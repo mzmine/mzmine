@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder;
 
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +38,8 @@ import org.jetbrains.annotations.NotNull;
  * scatter more on all instruments and do not count.
  */
 final class FeatureMzMetrics {
+
+  private static final int MAX_EXAMPLES = 40;
 
   private FeatureMzMetrics() {
   }
@@ -49,8 +52,10 @@ final class FeatureMzMetrics {
    * @param p95SpreadPpm     95% quantile of this spread
    * @param foreignFeatures  features with an intense data point farther than the tolerance from the
    *                         feature m/z
+   * @param examples         the first foreign features with their farthest intense data point
    */
-  record Result(int features, double medianSpreadPpm, double p95SpreadPpm, int foreignFeatures) {
+  record Result(int features, double medianSpreadPpm, double p95SpreadPpm, int foreignFeatures,
+                @NotNull List<String> examples) {
 
   }
 
@@ -63,6 +68,7 @@ final class FeatureMzMetrics {
       @NotNull double[] featureMzs, @NotNull MZTolerance tolerance) {
     final DoubleArrayList spreads = new DoubleArrayList();
     int foreign = 0;
+    final List<String> examples = new ArrayList<>();
     for (int f = 0; f < resolved.size(); f++) {
       final EvaluatedChromatogram feature = resolved.get(f);
       final int apex = feature.apexIndex();
@@ -76,7 +82,7 @@ final class FeatureMzMetrics {
       double weights = 0;
       double sum = 0;
       int count = 0;
-      boolean hasForeign = false;
+      int farthest = -1;
       for (int i = 0; i < feature.size(); i++) {
         final double intensity = feature.intensities()[i];
         if (intensity < minIntense) {
@@ -86,12 +92,23 @@ final class FeatureMzMetrics {
         weights += intensity;
         sum += intensity * mz;
         count++;
-        if (Math.abs(mz - featureMz) > tol) {
-          hasForeign = true;
+        if (Math.abs(mz - featureMz) > tol && (farthest < 0
+            || Math.abs(mz - featureMz) > Math.abs(feature.mzs()[farthest] - featureMz))) {
+          farthest = i;
         }
       }
-      if (hasForeign) {
+      if (farthest >= 0) {
         foreign++;
+        if (examples.size() < MAX_EXAMPLES) {
+          final double mz = feature.mzs()[farthest];
+          examples.add(
+              "mz %.5f scans %d-%d apex %.3g at %d: scan %d %+.1f ppm (%.1f tol) %.3g (%.0f%% of height)".formatted(
+                  featureMz, feature.scans()[0], feature.scans()[feature.size() - 1],
+                  feature.intensities()[apex], feature.scans()[apex], feature.scans()[farthest],
+                  (mz - featureMz) / featureMz * 1E6, Math.abs(mz - featureMz) / tol,
+                  feature.intensities()[farthest],
+                  100 * feature.intensities()[farthest] / feature.intensities()[apex]));
+        }
       }
       if (count < 3) {
         continue;
@@ -108,6 +125,6 @@ final class FeatureMzMetrics {
       spreads.add(Math.sqrt(variance / weights));
     }
     return new Result(resolved.size(), ChromatogramBenchmarkUtils.quantile(spreads, 0.5),
-        ChromatogramBenchmarkUtils.quantile(spreads, 0.95), foreign);
+        ChromatogramBenchmarkUtils.quantile(spreads, 0.95), foreign, examples);
   }
 }

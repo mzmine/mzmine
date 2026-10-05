@@ -300,8 +300,11 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   dropped from 1625 to 1236 (ADAP) and 731 to 271 (fast) with the final rule. A chromatogram with
   data points at the flanks co-exists with the dipping ion, the rule of complementary channels
   that never share a scan. Unfillable intense holes are dropouts of the raw data and should be
-  equal for both builders. Lost signal: intensity of the fillable data points / intensity of all
-  features. Intense holes inside a feature are rare for both builders: the local minimum resolver
+  equal for both builders. Since 2026-10-02 a data point of another chromatogram also has to be
+  closer to the interpolated m/z than to the local m/z of its chromatogram (±10 scans outside the
+  dip): two ions 1-2 tolerances apart that elute alternately counted as fillable for each other,
+  which penalized keeping them apart. The baselines below are from before. Lost signal: intensity
+  of the fillable data points / intensity of all features. Intense holes inside a feature are rare for both builders: the local minimum resolver
   splits at the zero of a hole, holes show as split peaks and truncated features.
   `FeatureMzMetrics` measures the m/z spread of the data points above 10% of the height, features
   with such a data point beyond the tolerance (foreign) and the m/z difference of matched features

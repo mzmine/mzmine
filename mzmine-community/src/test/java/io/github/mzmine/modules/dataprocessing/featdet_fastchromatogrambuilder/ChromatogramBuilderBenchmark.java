@@ -238,9 +238,9 @@ class ChromatogramBuilderBenchmark {
       final RawDataFile file = ChromatogramBenchmarkUtils.toRawDataFile(data,
           "synthetic_" + syntheticCase.name());
       final Scan[] scans = settings.scanSelection().getMatchingScans(file);
-      final Run adap = runAdap(file, settings, true);
-      final Run fast = runFastTask(file, settings, true);
-      final FeatureList[] resolved = resolve(adap, fast, settings);
+      final List<Run> runs = List.of(runAdap(file, settings, true),
+          runFastTask(file, settings, true));
+      final FeatureList[] resolved = resolve(runs, settings);
       for (int i = 0; i < resolved.length; i++) {
         final var summary = ResolvedGroundTruthEvaluator.evaluate(data,
             ChromatogramBenchmarkUtils.toChromatograms(resolved[i], scans),
@@ -248,14 +248,16 @@ class ChromatogramBuilderBenchmark {
             settings.minGroupIntensity(), settings.minHeight());
         report.add(
             "| %s | %s | %d | %d | %d | %d | %d | %d | %.3f | %.3f | %d | %d | %d | %.2f | %.2f | %d |".formatted(
-                syntheticCase.name(), i == 0 ? "adap" : "fast", summary.features(),
+                syntheticCase.name(), runs.get(i).method(), summary.features(),
                 summary.detectableIons(), summary.found(), summary.split(), summary.missed(),
                 summary.falseFeatures(), summary.medianRecovery(), summary.p10Recovery(),
                 summary.apexElsewhere(), summary.intenseHoles(), summary.ionsWithHoles(),
                 summary.medianMzErrorPpm(), summary.p95MzErrorPpm(), summary.contaminated()));
       }
-      ProjectService.getProject()
-          .removeFeatureList(adap.flist(), fast.flist(), resolved[0], resolved[1]);
+      final MZmineProject project = ProjectService.getProject();
+      for (int i = 0; i < runs.size(); i++) {
+        project.removeFeatureList(runs.get(i).flist(), resolved[i]);
+      }
       writeReport();
     }
     report.add("");
@@ -299,8 +301,8 @@ class ChromatogramBuilderBenchmark {
         |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|""");
 
     final MZmineProject project = ProjectService.getProject();
-    final Totals adapTotals = new Totals("adap");
-    final Totals fastTotals = new Totals("fast");
+    final List<BenchMethod> methods = realDataMethods();
+    final List<Totals> totals = methods.stream().map(m -> new Totals(m.name())).toList();
     boolean warmedUp = false;
     final List<String> fastStatistics = new ArrayList<>();
     final List<String> dipRows = new ArrayList<>();
@@ -310,17 +312,23 @@ class ChromatogramBuilderBenchmark {
       final double[][] massListIntensities = ChromatogramBenchmarkUtils.massListIntensities(scans);
       final long numDataPoints = Arrays.stream(massListMzs).mapToLong(m -> m.length).sum();
       if (!warmedUp) {
-        runAdap(file, settings);
-        runFastTask(file, settings);
+        for (final BenchMethod method : methods) {
+          method.runner().run(file, settings, false, true);
+        }
         warmedUp = true;
       }
-      final Run adap = median(repeats, () -> runAdap(file, settings));
-      final Run fast = median(repeats, () -> runFastTask(file, settings));
-      adapTotals.addRun(adap);
-      fastTotals.addRun(fast);
+      final List<Run> runs = new ArrayList<>();
+      for (int m = 0; m < methods.size(); m++) {
+        final BenchMethod method = methods.get(m);
+        final Run run = median(repeats, () -> method.runner().run(file, settings, false, true));
+        runs.add(run);
+        totals.get(m).addRun(run);
+      }
 
-      for (final Run run : List.of(adap, fast)) {
-        final Run other = run == adap ? fast : adap;
+      // the other list of all methods is the ADAP list, of ADAP the fast list
+      for (int m = 0; m < runs.size(); m++) {
+        final Run run = runs.get(m);
+        final Run other = runs.get(m == 0 ? 1 : 0);
         final var metrics = ChromatogramQualityMetrics.evaluate(run.chromatograms(), massListMzs,
             settings.tolerance());
         final var cross = ChromatogramQualityMetrics.crossMatch(run.chromatograms(),
@@ -334,8 +342,11 @@ class ChromatogramBuilderBenchmark {
                 metrics.chromatogramsWithFillableHoles(), metrics.splitPairs(),
                 metrics.coelutingPairs(), metrics.wideSplitPairs(), metrics.wideCoelutingPairs(),
                 cross.matchedFraction(), cross.meanOverlap(), cross.unmatchedFailSegment()));
+        if (run.statistics() != null) {
+          fastStatistics.add("- %s %s: %s".formatted(file.getName(), run.method(),
+              run.statistics()));
+        }
       }
-      fastStatistics.add("- %s: %s".formatted(file.getName(), fast.statistics()));
 
       // the fast builder without dip bridge shows the dips that the bridge fills
       final List<BuiltChromatogram> withoutBridge = builder(settings,
@@ -343,8 +354,11 @@ class ChromatogramBuilderBenchmark {
           new ScanDataAccessScans(
               EfficientDataAccess.of(file, ScanDataType.MASS_LIST, Arrays.asList(scans))), null,
           null);
-      for (final Run run : List.of(adap, fast, new Run("fast, no dip bridge", 0, 0, null,
-          EvaluatedChromatogram.of(Objects.requireNonNull(withoutBridge)), null))) {
+      final List<Run> dipRuns = new ArrayList<>(runs);
+      dipRuns.add(new Run("fast, no dip bridge", 0, 0, null,
+          EvaluatedChromatogram.of(Objects.requireNonNull(withoutBridge)), null));
+      for (int m = 0; m < dipRuns.size(); m++) {
+        final Run run = dipRuns.get(m);
         final var dips = ChromatogramQualityMetrics.dips(run.chromatograms(), massListMzs,
             massListIntensities, settings.tolerance(), DIP_FLANK_FACTOR * settings.minHeight(),
             FastChromatogramBuilderOptions.DEFAULT.dipBridgeToleranceFactor(),
@@ -352,8 +366,8 @@ class ChromatogramBuilderBenchmark {
         dipRows.add(
             "| %s | %s | %d | %d | %d |".formatted(file.getName(), run.method(), dips.dips(),
                 dips.fillableDips(), dips.fillableScans()));
-        if (run == adap || run == fast) {
-          (run == adap ? adapTotals : fastTotals).fillableDips += dips.fillableDips();
+        if (m < totals.size()) {
+          totals.get(m).fillableDips += dips.fillableDips();
         }
       }
       writeReport();
@@ -392,7 +406,7 @@ class ChromatogramBuilderBenchmark {
     final List<String> holeRows = new ArrayList<>();
     final List<String> mzRows = new ArrayList<>();
     for (final RawDataFile file : project.getCurrentRawDataFiles()) {
-      joinRows.add(compareResolved(file, settings, holeRows, mzRows, adapTotals, fastTotals));
+      joinRows.add(compareResolved(file, settings, holeRows, mzRows, methods, totals));
       writeReport();
     }
     report.add("""
@@ -421,8 +435,9 @@ class ChromatogramBuilderBenchmark {
         RT_TOLERANCE));
     report.addAll(mzRows);
     report.add("");
-    summary.add(adapTotals.row(dataset.name()));
-    summary.add(fastTotals.row(dataset.name()));
+    for (final Totals methodTotals : totals) {
+      summary.add(methodTotals.row(dataset.name()));
+    }
     writeReport();
   }
 
@@ -536,6 +551,38 @@ class ChromatogramBuilderBenchmark {
   }
 
   /**
+   * Runs one builder on one file.
+   */
+  @FunctionalInterface
+  interface MethodRunner {
+
+    /**
+     * @param keep     keeps the feature list in the project and in the run
+     * @param evaluate converts the feature list to chromatograms for the evaluation
+     */
+    @NotNull Run run(@NotNull RawDataFile file, @NotNull Settings settings, boolean keep,
+        boolean evaluate);
+  }
+
+  /**
+   * A builder of the real data benchmark.
+   */
+  record BenchMethod(@NotNull String name, @NotNull MethodRunner runner) {
+
+  }
+
+  /**
+   * @return the builders of the real data benchmark, ADAP first and fast second: the other list of
+   * each method in the comparison is the ADAP list, of ADAP the fast list. Variants of the fast
+   * builder can be appended.
+   */
+  @NotNull
+  private static List<BenchMethod> realDataMethods() {
+    return List.of(new BenchMethod("adap", ChromatogramBuilderBenchmark::runAdap),
+        new BenchMethod("fast", ChromatogramBuilderBenchmark::runFastTask));
+  }
+
+  /**
    * Runs the task in this thread to measure the time and the allocated bytes, then removes the
    * created feature list from the project.
    */
@@ -574,11 +621,15 @@ class ChromatogramBuilderBenchmark {
    */
   @NotNull
   private String compareResolved(@NotNull RawDataFile file, @NotNull Settings settings,
-      @NotNull List<String> holeRows, @NotNull List<String> mzRows, @NotNull Totals adapTotals,
-      @NotNull Totals fastTotals) throws InterruptedException {
-    final Run adap = runAdap(file, settings, true);
-    final Run fast = runFastTask(file, settings, true);
-    final FeatureList[] resolvedLists = resolve(adap, fast, settings);
+      @NotNull List<String> holeRows, @NotNull List<String> mzRows,
+      @NotNull List<BenchMethod> methods, @NotNull List<Totals> totals)
+      throws InterruptedException {
+    final List<Run> runs = new ArrayList<>();
+    for (final BenchMethod method : methods) {
+      runs.add(method.runner().run(file, settings, true, true));
+    }
+    final Run fast = runs.get(1);
+    final FeatureList[] resolvedLists = resolve(runs, settings);
     final FeatureList adapResolved = resolvedLists[0];
     final FeatureList fastResolved = resolvedLists[1];
 
@@ -586,16 +637,17 @@ class ChromatogramBuilderBenchmark {
     final Scan[] scans = settings.scanSelection().getMatchingScans(file);
     final double[][] massListMzs = ChromatogramBenchmarkUtils.massListMzs(scans);
     final double[][] massListIntensities = ChromatogramBenchmarkUtils.massListIntensities(scans);
-    for (final FeatureList flist : List.of(adapResolved, fastResolved)) {
-      final boolean isAdap = flist == adapResolved;
-      final String method = isAdap ? "adap" : "fast";
-      final FeatureList other = isAdap ? fastResolved : adapResolved;
-      final Run run = isAdap ? adap : fast;
+    for (int i = 0; i < runs.size(); i++) {
+      final FeatureList flist = resolvedLists[i];
+      final Run run = runs.get(i);
+      final String method = run.method();
+      // the other list of fast is the ADAP list, of ADAP the fast list
+      final int otherIndex = i == 0 ? 1 : 0;
+      final FeatureList other = resolvedLists[otherIndex];
       final var metrics = ResolvedFeatureMetrics.evaluate(flist, other, settings.tolerance(),
           RT_TOLERANCE);
       final var differences = ResolvedFeatureDifferences.explain(flist, other,
-          isAdap ? fast.chromatograms() : adap.chromatograms(), scans, settings.tolerance(),
-          RT_TOLERANCE);
+          runs.get(otherIndex).chromatograms(), scans, settings.tolerance(), RT_TOLERANCE);
       report.add(
           "| %s | %s | %d | %d | %.4f | %d | %d | %d | %d | %.3g | %.3g |".formatted(file.getName(),
               method, metrics.features(), metrics.duplicatePairs(), metrics.matchedFraction(),
@@ -622,11 +674,13 @@ class ChromatogramBuilderBenchmark {
           file.getName(), String.join("\n", holes.examples())));
       final var mz = FeatureMzMetrics.evaluate(features,
           ChromatogramBenchmarkUtils.featureMzs(flist), settings.tolerance());
+      logger.info(() -> "Foreign m/z data points of the %s features of %s:\n%s".formatted(method,
+          file.getName(), String.join("\n", mz.examples())));
       mzRows.add("| %s | %s | %.2f | %.2f | %d | %.2f | %.2f | %d |".formatted(file.getName(),
           method, mz.medianSpreadPpm(), mz.p95SpreadPpm(), mz.foreignFeatures(),
           metrics.medianMzDifferencePpm(), metrics.p95MzDifferencePpm(),
           metrics.beyondHalfTolerance()));
-      (isAdap ? adapTotals : fastTotals).addResolved(metrics, holes, mz);
+      totals.get(i).addResolved(metrics, holes, mz);
     }
 
     // the fast task uses the default options
@@ -641,40 +695,44 @@ class ChromatogramBuilderBenchmark {
         CHROMATOGRAPHIC_THRESHOLD);
     logger.info(() -> "Complementary joins with the apex away from the seed in %s:\n%s".formatted(
         file.getName(), String.join("\n", joinResult.examples())));
-    project.removeFeatureList(adap.flist(), fast.flist(), adapResolved, fastResolved);
+    for (int i = 0; i < runs.size(); i++) {
+      project.removeFeatureList(runs.get(i).flist(), resolvedLists[i]);
+    }
     return "| %s | %d | %d | %d | %d | %d | %d | %d |".formatted(file.getName(), joinResult.joins(),
         joinResult.apexAway(), joinResult.aboveMinHeight(), joinResult.resolvedInBoth(),
         joinResult.onlyAdap(), joinResult.onlyFast(), joinResult.neither());
   }
 
   /**
-   * Resolves the chromatograms of both runs with the local minimum resolver, the lists stay in the
+   * Resolves the chromatograms of the runs with the local minimum resolver, the lists stay in the
    * project.
    *
-   * @return the resolved lists of the ADAP and of the fast run
+   * @param runs runs that kept their feature list
+   * @return the resolved list of each run
    */
   @NotNull
-  private static FeatureList[] resolve(@NotNull Run adap, @NotNull Run fast,
-      @NotNull Settings settings) throws InterruptedException {
+  private static FeatureList[] resolve(@NotNull List<Run> runs, @NotNull Settings settings)
+      throws InterruptedException {
     final String suffix = "resolved";
+    final ModularFeatureList[] lists = runs.stream()
+        .map(run -> (ModularFeatureList) Objects.requireNonNull(run.flist()))
+        .toArray(ModularFeatureList[]::new);
     final MinimumSearchFeatureResolverParameters parameters = MinimumSearchFeatureResolverParameters.create(
-        new FeatureListsSelection((ModularFeatureList) Objects.requireNonNull(adap.flist()),
-            (ModularFeatureList) Objects.requireNonNull(fast.flist())), suffix,
-        OriginalFeatureListOption.KEEP, false, GroupMS2SubParameters.createDefault(),
-        ResolvingDimension.RETENTION_TIME, CHROMATOGRAPHIC_THRESHOLD, 0.04, 0d,
-        settings.minHeight(), 2d, Range.closed(0d, 1.2d), settings.minConsecutive());
+        new FeatureListsSelection(lists), suffix, OriginalFeatureListOption.KEEP, false,
+        GroupMS2SubParameters.createDefault(), ResolvingDimension.RETENTION_TIME,
+        CHROMATOGRAPHIC_THRESHOLD, 0.04, 0d, settings.minHeight(), 2d, Range.closed(0d, 1.2d),
+        settings.minConsecutive());
     final TaskResult resolved = MZmineTestUtil.callModuleWithTimeout(1200,
         MinimumSearchFeatureResolverModule.class, parameters);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, resolved, resolved.description());
 
     final MZmineProject project = ProjectService.getProject();
-    final FeatureList adapResolved = findFeatureList(project,
-        adap.flist().getName() + " " + suffix);
-    final FeatureList fastResolved = findFeatureList(project,
-        fast.flist().getName() + " " + suffix);
-    Assertions.assertNotNull(adapResolved);
-    Assertions.assertNotNull(fastResolved);
-    return new FeatureList[]{adapResolved, fastResolved};
+    final FeatureList[] resolvedLists = new FeatureList[lists.length];
+    for (int i = 0; i < lists.length; i++) {
+      resolvedLists[i] = findFeatureList(project, lists[i].getName() + " " + suffix);
+      Assertions.assertNotNull(resolvedLists[i]);
+    }
+    return resolvedLists;
   }
 
   @NotNull
@@ -791,7 +849,8 @@ class ChromatogramBuilderBenchmark {
           ## Summary of the real data
 
           Sums over the files of each data set: median task time, allocated MB of the task \
-          thread, resolved features, features found in the other list, fillable chromatogram \
+          thread, resolved features, features found in the other list (the ADAP list for fast, \
+          the fast list for ADAP), fillable chromatogram \
           dips (see Dips), intense holes, apex holes, split peaks, truncated and affected \
           features, lost signal (see Holes of the final result) and features with foreign m/z \
           data points (see m/z of the resolved features).

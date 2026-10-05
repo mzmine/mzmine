@@ -50,9 +50,11 @@ import org.jetbrains.annotations.NotNull;
  * if it reaches {@link #APEX_FRACTION}. A dip is fillable if the mass lists have the signal: in at
  * least half of its scans a data point within the window around the interpolated m/z and within the
  * intensity factor of the expected intensity that is unused or in another chromatogram without data
- * point in both flank scans. A chromatogram with a data point in a flank scan is a co-eluting
- * neighbor ion, not a part of the dipping ion, the rule of complementary channels that never share
- * a scan. Unfillable dips are dropouts of the raw data, which no builder can fill.
+ * point in both flank scans and closer to the interpolated m/z than to the local m/z of that
+ * chromatogram. A chromatogram with a data point in a flank scan is a co-eluting neighbor ion, not
+ * a part of the dipping ion, the rule of complementary channels that never share a scan, and a data
+ * point at the local m/z of its chromatogram is the signal of that ion. Unfillable dips are
+ * dropouts of the raw data, which no builder can fill.
  */
 final class FeatureHoleMetrics {
 
@@ -60,6 +62,8 @@ final class FeatureHoleMetrics {
   static final double INTENSE_FRACTION = 0.1;
   static final double APEX_FRACTION = 0.5;
   static final int MAX_DIP_SCANS = 50;
+  // the local m/z of the chromatogram that owns a filling data point
+  private static final int OWNER_REACH_SCANS = 10;
 
   private FeatureHoleMetrics() {
   }
@@ -412,9 +416,39 @@ final class FeatureHoleMetrics {
           chromatograms.get(owner), flankAfter))) {
         continue;
       }
+      if (owner >= 0) {
+        // decision: a data point at the m/z of its own chromatogram is the signal of that ion,
+        // e.g., two ions 1.3 tolerances apart that elute right after each other. Before, these
+        // counted as fillable for both ions and penalized separating them.
+        final double ownerMz = localMz(chromatograms.get(owner), flankBefore, flankAfter);
+        if (!Double.isNaN(ownerMz) && Math.abs(scanMzs[k] - ownerMz) <= Math.abs(
+            scanMzs[k] - mz)) {
+          continue;
+        }
+      }
       best = k;
     }
     return best;
+  }
+
+  /**
+   * @return the intensity weighted m/z of the data points of the chromatogram within
+   * {@value #OWNER_REACH_SCANS} scans before and after the dip, outside of the dip, or NaN without
+   * such data points
+   */
+  private static double localMz(@NotNull EvaluatedChromatogram chrom, int flankBefore,
+      int flankAfter) {
+    double sum = 0;
+    double weights = 0;
+    for (int i = 0; i < chrom.size(); i++) {
+      final int s = chrom.scans()[i];
+      if ((s < flankBefore && s >= flankBefore - OWNER_REACH_SCANS) || (s > flankAfter
+          && s <= flankAfter + OWNER_REACH_SCANS)) {
+        sum += chrom.mzs()[i] * chrom.intensities()[i];
+        weights += chrom.intensities()[i];
+      }
+    }
+    return weights > 0 ? sum / weights : Double.NaN;
   }
 
   private static boolean hasScan(@NotNull EvaluatedChromatogram chrom, int scan) {
