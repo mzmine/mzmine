@@ -27,15 +27,25 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics;
 
 import java.util.List;
 
+/**
+ * Catalog of the selectable optimization metrics. A new metric is a {@link SweepMetric}
+ * implementation that is added to {@link #ALL}.
+ */
 public final class OptimizationMetrics {
 
-  public static final List<SweepMetric> ALL = List.of(SweepMetric.IPO_ISOTOPE_SCORE,
-      SweepMetric.SLAW_INTEGRATION_SCORE, SweepMetric.ISOTOPE_RATIO_CONSISTENCY_SCORE,
-      SweepMetric.DOUBLE_PEAK_RATIO, SweepMetric.FILL_RATIO, SweepMetric.GC_EI_FRAGMENT_QUALITY,
-      new BenchmarkTargetCount(List.of()));
+  public static final IpoIsotopeScore IPO_ISOTOPE_SCORE = new IpoIsotopeScore();
+  public static final SlawIntegrationScore SLAW_INTEGRATION_SCORE = new SlawIntegrationScore();
+  public static final IsotopeRatioConsistencyScore ISOTOPE_RATIO_CONSISTENCY_SCORE = new IsotopeRatioConsistencyScore();
+  public static final DoublePeakRatio DOUBLE_PEAK_RATIO = new DoublePeakRatio();
+  public static final FillRatio FILL_RATIO = new FillRatio();
+  public static final GcEiFragmentQuality GC_EI_FRAGMENT_QUALITY = new GcEiFragmentQuality();
+  public static final BenchmarkTargetCount BENCHMARK_TARGET_COUNT = new BenchmarkTargetCount();
 
-  public static final List<SweepMetric> DEFAULT = List.of(
-      SweepMetric.ISOTOPE_RATIO_CONSISTENCY_SCORE);
+  public static final List<SweepMetric> ALL = List.of(IPO_ISOTOPE_SCORE, SLAW_INTEGRATION_SCORE,
+      ISOTOPE_RATIO_CONSISTENCY_SCORE, DOUBLE_PEAK_RATIO, FILL_RATIO, GC_EI_FRAGMENT_QUALITY,
+      BENCHMARK_TARGET_COUNT);
+
+  public static final List<SweepMetric> DEFAULT = List.of(ISOTOPE_RATIO_CONSISTENCY_SCORE);
 
   private OptimizationMetrics() {
   }

@@ -157,8 +157,10 @@ public class SweepMetricCheckListParameter implements
     final NodeList items = xmlElement.getElementsByTagName("item");
     final List<SweepMetric> loaded = new ArrayList<>();
     for (int i = 0; i < items.getLength(); i++) {
-      final String itemName = items.item(i).getTextContent();
-      choices.stream().filter(c -> c.name().equals(itemName)).findFirst().ifPresent(loaded::add);
+      final String item = items.item(i).getTextContent();
+      // the display name is accepted for configurations saved before the unique ID was used
+      choices.stream().filter(c -> c.getUniqueID().equals(item) || c.name().equals(item))
+          .findFirst().ifPresent(loaded::add);
     }
     if (!loaded.isEmpty()) {
       this.value = loaded;
@@ -173,7 +175,7 @@ public class SweepMetricCheckListParameter implements
     final Document doc = xmlElement.getOwnerDocument();
     for (SweepMetric metric : value) {
       final Element item = doc.createElement("item");
-      item.setTextContent(metric.name());
+      item.setTextContent(metric.getUniqueID());
       xmlElement.appendChild(item);
     }
   }

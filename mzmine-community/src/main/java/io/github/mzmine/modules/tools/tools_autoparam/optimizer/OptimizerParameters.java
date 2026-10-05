@@ -34,6 +34,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.OptimizationParameterRegistry;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
 import io.github.mzmine.parameters.ParameterSet;
@@ -189,10 +190,10 @@ public class OptimizerParameters extends SimpleParameterSet {
   public @Nullable Region getMessage() {
     return FxTextFlows.newTextFlowInAccordion("Citations", FxTexts.text(
             "When optimizing on these respective metrics, please respect the following citations:"),
-        FxTexts.linebreak(), FxTexts.boldText(SweepMetric.IPO_ISOTOPE_SCORE.name()),
+        FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.IPO_ISOTOPE_SCORE.name()),
         FxTexts.text(": "),
         FxTexts.hyperlinkText("IPO", "https://doi.org/10.1186/s12859-015-0562-8"),
-        FxTexts.linebreak(), FxTexts.boldText(SweepMetric.SLAW_INTEGRATION_SCORE.name()),
+        FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.SLAW_INTEGRATION_SCORE.name()),
         FxTexts.text(": "),
         FxTexts.hyperlinkText("SLAW", "https://pubs.acs.org/doi/10.1021/acs.analchem.1c02687"));
   }

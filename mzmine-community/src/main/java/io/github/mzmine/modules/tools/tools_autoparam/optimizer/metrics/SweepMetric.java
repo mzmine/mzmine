@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
@@ -39,32 +40,18 @@ import org.moeaframework.core.objective.Minimize;
 import org.moeaframework.core.objective.Objective;
 
 /**
- * A metric that can be evaluated on a {@link FeatureList}. Each implementation corresponds to one
- * of the objectives used in {@link WizardOptimizationProblem}.
+ * A metric that can be evaluated on a {@link FeatureList}. Each selected metric is one of the
+ * objectives in {@link WizardOptimizationProblem}. The selectable metrics are listed in
+ * {@link OptimizationMetrics#ALL}.
  * <p>
- * Convenience singleton constants are provided for all parameterless metrics. The
- * {@link BenchmarkTargetCount} record carries its own target list.
- *
- * <pre>{@code
- * double score = SweepMetric.ROWS_BELOW_CV20.evaluate(featureList);
- * double score = new SweepMetric.BenchmarkTargetCount(targets).evaluate(featureList);
- * }</pre>
+ * Metrics hold no run-specific state. Data that is only known during an optimization run, e.g.,
+ * benchmark targets, is passed in the {@link MetricContext}.
  */
-public sealed interface SweepMetric permits BenchmarkTargetCount, DoublePeakRatio, FillRatio,
-    GcEiFragmentQuality, IpoIsotopeScore, SlawIntegrationScore, IsotopeRatioConsistencyScore {
-
-  // --- Singleton constants for parameterless metrics ---
-  DoublePeakRatio DOUBLE_PEAK_RATIO = new DoublePeakRatio();
-  FillRatio FILL_RATIO = new FillRatio();
-  GcEiFragmentQuality GC_EI_FRAGMENT_QUALITY = new GcEiFragmentQuality();
-  IpoIsotopeScore IPO_ISOTOPE_SCORE = new IpoIsotopeScore();
-  SlawIntegrationScore SLAW_INTEGRATION_SCORE = new SlawIntegrationScore();
-  IsotopeRatioConsistencyScore ISOTOPE_RATIO_CONSISTENCY_SCORE = new IsotopeRatioConsistencyScore();
-
-  // --- Interface contract ---
+public interface SweepMetric extends UniqueIdSupplier {
 
   /**
-   * Human-readable metric name for display and logging.
+   * Human-readable metric name for display and logging. May change, use {@link #getUniqueID()}
+   * for save and load.
    */
   @NotNull String name();
 
@@ -75,8 +62,18 @@ public sealed interface SweepMetric permits BenchmarkTargetCount, DoublePeakRati
 
   /**
    * Evaluates the metric on the given feature list.
+   *
+   * @param context run-specific data, ignored by metrics that do not need it
    */
-  double evaluate(@NotNull FeatureList featureList);
+  double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context);
+
+  /**
+   * Whether this metric is used to sort and compare results when it is among the optimized metrics.
+   * If none is, the first (maximized) metric is used.
+   */
+  default boolean preferredForRanking() {
+    return false;
+  }
 
   /**
    * Returns the MOEA {@link Objective} for this metric, based on {@link #name()} and
@@ -91,7 +88,7 @@ public sealed interface SweepMetric permits BenchmarkTargetCount, DoublePeakRati
    * that need to persist component scores (e.g. for display normalisation) override this.
    */
   default void applyAttributes(@NotNull FeatureList featureList, @NotNull Solution solution) {
-    // decision: no-op by default; only HarmonicSlawIsotopes overrides this
+    // decision: no-op by default
   }
 
   // --- Helper ---

@@ -41,7 +41,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.BenchmarkTargetCount;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SearchScaleProvider;
@@ -165,8 +165,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
     // decision: super() must be first — use static helper for objective count before enabledMetrics field is assigned
     super(param.getValue(OptimizerParameters.paramToOptimize).size(),
-        calculateNumberOfObjectives(param, estimationContext.analysis().files()),
-        calculateNumberOfConstraints(param));
+        calculateNumberOfObjectives(param), calculateNumberOfConstraints(param));
 
     final List<DataFileStatistics> stats = estimationContext.analysis().files();
 
@@ -178,42 +177,17 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     target = Objects.requireNonNull(BenchmarkFeatureLoader.fromStatistics(stats));
     paramToOptimize = List.copyOf(param.getValue(OptimizerParameters.paramToOptimize));
     this.stopSearchRequestedSupplier = stopSearchRequestedSupplier;
-    enabledMetrics = buildEnabledMetrics(param, stats);
+    enabledMetrics = List.copyOf(OptimizerParameters.getOptimizationTargets(param));
 
     initialSequence = estimationContext.sequence();
     final File[] files = stats.stream().map(DataFileStatistics::file)
         .map(RawDataFile::getAbsoluteFilePath).toArray(File[]::new);
     batchEvaluator = new OptimizationBatchEvaluator(files, enabledMetrics,
-        fileOnlyBenchmarkFeatures, externalStatus);
+        new MetricContext(target), fileOnlyBenchmarkFeatures, externalStatus);
 
     preparedParameters = prepared;
     indexedParameters = IndexedParameter.bind(preparedParameters, paramToOptimize);
     mzSampleToSampleTolerance = estimationContext.sampleMzTolerance();
-  }
-
-  /**
-   * Builds the enabled {@link SweepMetric} list from the user's checklist selection.
-   * {@link BenchmarkTargetCount} placeholder instances are replaced with real instances carrying
-   * the actual target features derived from file statistics.
-   */
-  private static @NotNull List<SweepMetric> buildEnabledMetrics(@NotNull ParameterSet param,
-      @Nullable List<@NotNull DataFileStatistics> stats) {
-    final List<SweepMetric> selected = OptimizerParameters.getOptimizationTargets(param);
-    final List<SweepMetric> metrics = new ArrayList<>();
-    for (final SweepMetric metric : selected) {
-      if (metric instanceof BenchmarkTargetCount) {
-        // decision: only include benchmark metric when file statistics are available to derive targets
-        if (stats != null) {
-          final List<FeatureRecord> targets = BenchmarkFeatureLoader.fromStatistics(stats);
-          if (targets != null) {
-            metrics.add(new BenchmarkTargetCount(targets));
-          }
-        }
-      } else {
-        metrics.add(metric);
-      }
-    }
-    return List.copyOf(metrics);
   }
 
   /**
@@ -224,12 +198,12 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     return param.getValue(OptimizerParameters.maxShapeRejectionFactor) ? 1 : 0;
   }
 
-  static int calculateNumberOfObjectives(@NotNull ParameterSet param,
-      @Nullable List<DataFileStatistics> stats) {
-    final List<SweepMetric> selected = OptimizerParameters.getOptimizationTargets(param);
-    // BenchmarkTargetCount only counts as an objective when file statistics are available
-    return (int) selected.stream()
-        .filter(m -> !(m instanceof BenchmarkTargetCount) || stats != null).count();
+  /**
+   * One objective per selected metric. Must be static because it is needed inside the
+   * {@code super(...)} call.
+   */
+  static int calculateNumberOfObjectives(@NotNull ParameterSet param) {
+    return OptimizerParameters.getOptimizationTargets(param).size();
   }
 
   @Override

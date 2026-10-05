@@ -59,7 +59,21 @@ public final class IsotopeRatioConsistencyScore implements SweepMetric {
   }
 
   @Override
+  public @NotNull String getUniqueID() {
+    return "isotope_ratio_consistency";
+  }
+
+  @Override
   public boolean higherIsBetter() {
+    return true;
+  }
+
+  /**
+   * decision: preferred for sorting and comparing results, as it rewards consistent integration
+   * without relying on QC samples
+   */
+  @Override
+  public boolean preferredForRanking() {
     return true;
   }
 
@@ -69,7 +83,7 @@ public final class IsotopeRatioConsistencyScore implements SweepMetric {
   }
 
   @Override
-  public double evaluate(@NotNull FeatureList featureList) {
+  public double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context) {
     // discard low intensities, similar to IPO
     final double noise = MathUtils.calcQuantile(
         featureList.streamFeatures(false).mapToDouble(Feature::getHeight).toArray(), 0.03);

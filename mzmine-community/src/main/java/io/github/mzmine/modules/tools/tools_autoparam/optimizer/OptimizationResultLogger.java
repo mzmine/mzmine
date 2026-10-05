@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.IsotopeRatioConsistencyScore;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import java.util.List;
 import java.util.logging.Logger;
@@ -58,8 +57,8 @@ public final class OptimizationResultLogger {
   }
 
   /**
-   * Logs comparison between single-pass results and the best MOEA solution (by
-   * {@link IsotopeRatioConsistencyScore} score, or first metric if harmonic is not enabled).
+   * Logs comparison between single-pass results and the best MOEA solution (by the metric that is
+   * {@link SweepMetric#preferredForRanking()}, or the first maximized metric).
    */
   public static void logComparison(@NotNull Solution singlePass,
       @NotNull NondominatedPopulation moeaResult, @NotNull List<SweepMetric> enabledMetrics) {
@@ -99,9 +98,8 @@ public final class OptimizationResultLogger {
   }
 
   private static int findComparisonMetricIndex(@NotNull List<SweepMetric> enabledMetrics) {
-    // prefer YasinIsotopeScore
     for (int i = 0; i < enabledMetrics.size(); i++) {
-      if (enabledMetrics.get(i) instanceof IsotopeRatioConsistencyScore) {
+      if (enabledMetrics.get(i).preferredForRanking()) {
         return i;
       }
     }

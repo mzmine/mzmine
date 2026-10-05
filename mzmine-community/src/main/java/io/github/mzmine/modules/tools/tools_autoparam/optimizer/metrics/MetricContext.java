@@ -23,20 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.optimizer.search;
+package io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics;
 
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-public class PatternSearchOptimizerParameters extends SimpleParameterSet {
+/**
+ * Run-specific data that metrics need during {@link SweepMetric#evaluate}, created once per
+ * optimization run. New run-specific inputs are added here instead of to metric instances.
+ *
+ * @param benchmarkTargets target features derived from the raw data statistics, see
+ *                         {@link BenchmarkFeatureLoader#fromStatistics}
+ */
+public record MetricContext(@NotNull List<FeatureRecord> benchmarkTargets) {
 
-  public static final ComboParameter<SweepMetric> optimizationTarget = new ComboParameter<>(
-      "Optimization target", "Quality metric that pattern search maximizes.",
-      OptimizationMetrics.ALL, OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE);
-
-  public PatternSearchOptimizerParameters() {
-    super(optimizationTarget);
+  public MetricContext {
+    benchmarkTargets = List.copyOf(benchmarkTargets);
   }
 }

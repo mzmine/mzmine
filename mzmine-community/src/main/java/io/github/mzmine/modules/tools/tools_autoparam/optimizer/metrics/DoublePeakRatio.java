@@ -43,6 +43,11 @@ public record DoublePeakRatio() implements SweepMetric {
   }
 
   @Override
+  public @NotNull String getUniqueID() {
+    return "double_peak_ratio";
+  }
+
+  @Override
   @NotNull
   public String toString() {
     return name();
@@ -54,7 +59,7 @@ public record DoublePeakRatio() implements SweepMetric {
   }
 
   @Override
-  public double evaluate(@NotNull FeatureList featureList) {
+  public double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context) {
     final long numFeatures = featureList.streamFeatures().count();
     if (numFeatures == 0) {
       return 0;

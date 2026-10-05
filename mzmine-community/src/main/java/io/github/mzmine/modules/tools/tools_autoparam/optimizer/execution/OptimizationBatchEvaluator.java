@@ -45,6 +45,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.PrecisionDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
@@ -70,14 +71,16 @@ final class OptimizationBatchEvaluator {
 
   private final File @NotNull [] files;
   private final @NotNull List<SweepMetric> metrics;
+  private final @NotNull MetricContext metricContext;
   private final @NotNull List<FeatureRecord> benchmarkFeatures;
   private final @NotNull AtomicReference<TaskStatus> externalStatus;
 
   OptimizationBatchEvaluator(File @NotNull [] files, @NotNull List<SweepMetric> metrics,
-      @NotNull List<FeatureRecord> benchmarkFeatures,
+      @NotNull MetricContext metricContext, @NotNull List<FeatureRecord> benchmarkFeatures,
       @NotNull AtomicReference<TaskStatus> externalStatus) {
     this.files = files.clone();
     this.metrics = List.copyOf(metrics);
+    this.metricContext = metricContext;
     this.benchmarkFeatures = List.copyOf(benchmarkFeatures);
     this.externalStatus = externalStatus;
   }
@@ -168,7 +171,7 @@ final class OptimizationBatchEvaluator {
   private void applyScores(@NotNull FeatureList featureList, @NotNull Solution solution) {
     int objectiveIndex = 0;
     for (final SweepMetric metric : metrics) {
-      solution.setObjectiveValue(objectiveIndex++, metric.evaluate(featureList));
+      solution.setObjectiveValue(objectiveIndex++, metric.evaluate(featureList, metricContext));
       metric.applyAttributes(featureList, solution);
     }
 

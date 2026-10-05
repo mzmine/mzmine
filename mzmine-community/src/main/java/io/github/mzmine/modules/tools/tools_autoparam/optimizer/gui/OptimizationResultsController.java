@@ -55,7 +55,6 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.IsotopeRatioConsistencyScore;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.project.ProjectService;
@@ -160,7 +159,7 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   private int preferredSortObjectiveIndex() {
     final List<SweepMetric> metrics = optimization.getEnabledMetrics();
     for (int i = 0; i < metrics.size(); i++) {
-      if (metrics.get(i) instanceof IsotopeRatioConsistencyScore) {
+      if (metrics.get(i).preferredForRanking()) {
         return i;
       }
     }

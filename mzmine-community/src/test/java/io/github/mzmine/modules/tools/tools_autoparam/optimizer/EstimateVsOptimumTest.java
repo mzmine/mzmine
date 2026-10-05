@@ -36,6 +36,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefini
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.MoeadOptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
@@ -204,7 +205,7 @@ public class EstimateVsOptimumTest {
    * front is a trade-off set and there is no single "the optimization found this" value to compare
    * the estimate against.
    */
-  private static final SweepMetric METRIC = SweepMetric.ISOTOPE_RATIO_CONSISTENCY_SCORE;
+  private static final SweepMetric METRIC = OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE;
 
   private static final String OPTIMIZER_PROPERTY = "mzmine.test.autoparam.optimizer";
 

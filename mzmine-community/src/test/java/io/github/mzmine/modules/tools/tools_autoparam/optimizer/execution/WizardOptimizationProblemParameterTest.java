@@ -41,7 +41,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartInitialization;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartSampling;
@@ -127,7 +127,7 @@ class WizardOptimizationProblemParameterTest {
       @NotNull ParameterEstimationContext context, @NotNull PreparedParameterSet prepared,
       @NotNull List<ParameterDefinition<?>> selected) {
     final ParameterSet parameters = OptimizerParameters.create(
-        List.of(SweepMetric.IPO_ISOTOPE_SCORE), 30);
+        List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE), 30);
     parameters.setParameter(OptimizerParameters.paramToOptimize, selected);
     return new WizardOptimizationProblem(context, prepared, parameters,
         new AtomicReference<>(TaskStatus.PROCESSING), 30, () -> false);
@@ -137,9 +137,8 @@ class WizardOptimizationProblemParameterTest {
   void moeadCreatesAnObjectiveForEachSelectedMetric() {
     final OptimizerParameters parameters = new OptimizerParameters();
     OptimizerParameters.setOptimizerAndTargets(parameters, OptimizerOptions.MOEAD,
-        List.of(SweepMetric.IPO_ISOTOPE_SCORE, SweepMetric.SLAW_INTEGRATION_SCORE));
-    Assertions.assertEquals(2,
-        WizardOptimizationProblem.calculateNumberOfObjectives(parameters, null));
+        List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE, OptimizationMetrics.SLAW_INTEGRATION_SCORE));
+    Assertions.assertEquals(2, WizardOptimizationProblem.calculateNumberOfObjectives(parameters));
   }
 
   @Test

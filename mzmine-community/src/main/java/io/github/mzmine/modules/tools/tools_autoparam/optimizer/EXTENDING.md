@@ -37,16 +37,18 @@ no algorithm-specific code.
 
 ## Add an evaluation metric
 
-1. Add a separate implementation of the sealed `SweepMetric` interface under `metrics/`.
-2. Add the implementation to the `permits` list in `SweepMetric`.
-3. For a stateless metric, expose one singleton from `SweepMetric`.
-4. Register the metric in `OptimizerParameters.ALL_METRICS`. Add it to `DEFAULT_METRICS` only if
-   it should be selected for new configurations.
+1. Implement `SweepMetric` under `metrics/`, or in another module. The metric holds no
+   run-specific state.
+2. Add a singleton to the catalog `OptimizationMetrics` and to `OptimizationMetrics.ALL`. Add it to
+   `DEFAULT` only if it should be selected for new configurations.
 
-A metric supplies its name, optimization direction, and `evaluate(FeatureList)` implementation.
-Override `applyAttributes` only for additional diagnostic values that should appear in results.
-`WizardOptimizationProblem` creates one objective for every selected metric and
-`OptimizationBatchEvaluator` applies the metrics after each batch.
+A metric supplies its display name, a stable `getUniqueID()` for save and load, its optimization
+direction, and `evaluate(FeatureList, MetricContext)`. Data that only exists during a run, e.g.,
+the benchmark targets derived from the raw data statistics, is added to `MetricContext` instead of
+the metric. Override `preferredForRanking` to sort and compare results by this metric, and
+`applyAttributes` only for additional diagnostic values that should appear in results.
+`WizardOptimizationProblem` creates one objective for every selected metric and the run's
+`MetricContext`; `OptimizationBatchEvaluator` applies the metrics after each batch.
 
 ## Add an optimization parameter
 

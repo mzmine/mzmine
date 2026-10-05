@@ -38,6 +38,11 @@ public record SlawIntegrationScore() implements SweepMetric {
   }
 
   @Override
+  public @NotNull String getUniqueID() {
+    return "slaw_integration_score";
+  }
+
+  @Override
   public @NotNull String toString() {
     return name();
   }
@@ -48,7 +53,7 @@ public record SlawIntegrationScore() implements SweepMetric {
   }
 
   @Override
-  public double evaluate(@NotNull FeatureList featureList) {
+  public double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context) {
     final FeaturesDataTable dataTable = SweepMetric.buildDataTable(featureList);
     // dont use rsd filter here, because we just use all data files here. they may not be of a specific sample type.
     long matchingRows = 0;
