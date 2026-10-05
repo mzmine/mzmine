@@ -147,6 +147,26 @@ public final class ParameterEstimators {
         new ChoiceSearchDomain<>(all.subList(lower, upper + 1), lower));
   }
 
+  /**
+   * The smallest tolerance that covers the m/z deviations of 80% of the aligned rows across files.
+   * Without cross-file statistics, e.g., for a single file, the preset is kept.
+   * <p>
+   * decision: estimate only, the single choice domain keeps the optimizer from changing it.
+   */
+  public static @NotNull ParameterEstimate<MZTolerance> sampleToSampleMzTolerance(
+      @NotNull ParameterEstimationContext context) {
+    final MZTolerance estimate = estimateSampleToSampleMzTolerance(
+        context.analysis().sampleMzToleranceCounts(), 0.8f);
+    if (estimate == null) {
+      final MZTolerance preset = context.preset(WizardPart.MS,
+          MassSpectrometerWizardParameters.sampleToSampleMzTolerance);
+      return new ParameterEstimate<>(preset, ValueOrigin.PRESET_DEFAULT,
+          new ChoiceSearchDomain<>(List.of(preset)));
+    }
+    return new ParameterEstimate<>(estimate, ValueOrigin.RAW_DATA,
+        new ChoiceSearchDomain<>(List.of(estimate)));
+  }
+
   public static @NotNull ParameterEstimate<RTTolerance> interSampleRt(
       @NotNull ParameterEstimationContext context) {
     final InterSampleRtStatistics stats = interSampleRtStatistics(context.analysis());

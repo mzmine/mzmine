@@ -28,7 +28,6 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
@@ -48,7 +47,6 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SearchSca
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.util.ArrayList;
@@ -121,7 +119,6 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * space. Selected optimizer variables are applied afterwards and therefore take precedence.
    */
   private final @NotNull PreparedParameterSet preparedParameters;
-  private final @Nullable MZTolerance mzSampleToSampleTolerance;
   private final @NotNull List<FeatureRecord> fileOnlyBenchmarkFeatures;
   private final @NotNull BatchExecutionBudget batchExecutionBudget;
   private final @NotNull ElapsedTimeTracker elapsedTimeTracker = new ElapsedTimeTracker();
@@ -187,7 +184,6 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
     preparedParameters = prepared;
     indexedParameters = IndexedParameter.bind(preparedParameters, paramToOptimize);
-    mzSampleToSampleTolerance = estimationContext.sampleMzTolerance();
   }
 
   /**
@@ -361,10 +357,6 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
       workflowParam.setParameter(WorkflowDdaWizardParameters.exportPath, false);
     }
 
-    if (mzSampleToSampleTolerance != null) {
-      msParam.setParameter(MassSpectrometerWizardParameters.sampleToSampleMzTolerance,
-          mzSampleToSampleTolerance);
-    }
     return wizardSequence;
   }
 
@@ -385,14 +377,6 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     preparedParameters.applyEstimates(sequence, Set.copyOf(paramToOptimize));
     for (final IndexedParameter<?> parameter : indexedParameters) {
       parameter.applyToWizard(solution, sequence);
-    }
-
-    if (mzSampleToSampleTolerance != null) {
-      sequence.get(WizardPart.MS)
-          .filter(ms -> ms.hasParameter(MassSpectrometerWizardParameters.sampleToSampleMzTolerance))
-          .ifPresent(
-              ms -> ms.setParameter(MassSpectrometerWizardParameters.sampleToSampleMzTolerance,
-                  mzSampleToSampleTolerance));
     }
   }
 

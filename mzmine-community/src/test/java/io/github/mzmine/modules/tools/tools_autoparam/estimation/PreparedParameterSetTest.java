@@ -295,10 +295,16 @@ class PreparedParameterSetTest {
     final RawDataAnalysis analysis = new RawDataAnalysis(List.of(), new double[0], new double[0],
         new double[0], new double[0], new double[0], new double[0],
         java.util.Map.of(narrow, 2, wide, 8));
-    Assertions.assertEquals(wide, new ParameterEstimationContext(analysis,
-        ParameterEstimationTestData.sequence()).sampleMzTolerance());
-    Assertions.assertNull(new ParameterEstimationContext(RawDataAnalysis.analyze(List.of()),
-        ParameterEstimationTestData.sequence()).sampleMzTolerance());
+    final var estimated = OptimizationParameterRegistry.SAMPLE_TO_SAMPLE_MZ_TOLERANCE.prepare(
+        new ParameterEstimationContext(analysis, ParameterEstimationTestData.sequence()));
+    Assertions.assertEquals(wide, estimated.initialValue());
+    Assertions.assertEquals(ValueOrigin.RAW_DATA, estimated.origin());
+
+    // without cross-file statistics the preset is kept and not applied to the wizard
+    final var fallback = OptimizationParameterRegistry.SAMPLE_TO_SAMPLE_MZ_TOLERANCE.prepare(
+        new ParameterEstimationContext(RawDataAnalysis.analyze(List.of()),
+            ParameterEstimationTestData.sequence()));
+    Assertions.assertEquals(ValueOrigin.PRESET_DEFAULT, fallback.origin());
   }
 
 }

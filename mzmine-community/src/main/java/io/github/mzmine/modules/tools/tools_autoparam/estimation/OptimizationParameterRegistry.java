@@ -111,6 +111,14 @@ public final class OptimizationParameterRegistry {
       "MZ tolerance option", WizardPart.MS, MassSpectrometerWizardParameters.scanToScanMzTolerance,
       OptimizationRole.SELECTED_BY_DEFAULT, ALL_MS, ParameterEstimators::mzTolerance);
   /**
+   * decision: estimate only. Derived from the alignment of the representative files, so every
+   * candidate and the wizard use the same cross-file tolerance.
+   */
+  static final WizardParameterDefinition<MZTolerance> SAMPLE_TO_SAMPLE_MZ_TOLERANCE = new WizardParameterDefinition<>(
+      "Sample-to-sample m/z tolerance", WizardPart.MS,
+      MassSpectrometerWizardParameters.sampleToSampleMzTolerance, OptimizationRole.ESTIMATE_ONLY,
+      ALL_MS, ParameterEstimators::sampleToSampleMzTolerance);
+  /**
    * decision: estimate only. The polarity is fixed by the pre-classification before the statistics
    * are computed, so every candidate and the wizard use it.
    */
@@ -136,9 +144,9 @@ public final class OptimizationParameterRegistry {
           new DoubleSearchDomain(0.5d, 0.97d, SearchScale.LINEAR)));
 
   private static final List<ParameterDefinition<?>> ALL = sorted(Stream.concat(
-      Stream.of(MINIMUM_FEATURE_HEIGHT, MS1_NOISE, MZ_TOLERANCE, POLARITY, FWHM,
-          MINIMUM_CONSECUTIVE_SCANS, INTER_SAMPLE_RT, RT_CORRECTION, CROP_RT, MOBILITY_FWHM,
-          TOP_TO_EDGE, CHROMATOGRAPHIC_THRESHOLD),
+      Stream.of(MINIMUM_FEATURE_HEIGHT, MS1_NOISE, MZ_TOLERANCE, SAMPLE_TO_SAMPLE_MZ_TOLERANCE,
+          POLARITY, FWHM, MINIMUM_CONSECUTIVE_SCANS, INTER_SAMPLE_RT, RT_CORRECTION, CROP_RT,
+          MOBILITY_FWHM, TOP_TO_EDGE, CHROMATOGRAPHIC_THRESHOLD),
       WaveletParameterDefinitions.definitions().stream()).toList());
 
   private OptimizationParameterRegistry() {

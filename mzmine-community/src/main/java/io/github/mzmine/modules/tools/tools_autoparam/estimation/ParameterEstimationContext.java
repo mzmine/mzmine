@@ -36,12 +36,10 @@ import io.github.mzmine.modules.tools.tools_autoparam.RawDataParameterEstimation
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard context for interpreting measurements; construction performs no processing.
@@ -52,7 +50,6 @@ public final class ParameterEstimationContext {
 
   private final @NotNull RawDataAnalysis analysis;
   private final @NotNull WizardSequence sequence;
-  private final @Nullable MZTolerance sampleToSampleMzTolerance;
   private final @NotNull PresetSelection presetSelection;
   /**
    * Wizard settings fixed for the whole run before the statistics were computed, see
@@ -61,11 +58,10 @@ public final class ParameterEstimationContext {
   private final @NotNull ParameterSet preclassification;
 
   private ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
-      @NotNull WizardSequence sequence, @Nullable MZTolerance sampleToSampleMzTolerance,
-      @NotNull PresetSelection presetSelection, @NotNull ParameterSet preclassification) {
+      @NotNull WizardSequence sequence, @NotNull PresetSelection presetSelection,
+      @NotNull ParameterSet preclassification) {
     this.analysis = analysis;
     this.sequence = sequence;
-    this.sampleToSampleMzTolerance = sampleToSampleMzTolerance;
     this.presetSelection = presetSelection;
     this.preclassification = preclassification;
   }
@@ -87,8 +83,7 @@ public final class ParameterEstimationContext {
    */
   public ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence, @NotNull ParameterSet preclassification) {
-    this(analysis, sequence, estimateSampleToSampleMzTolerance(analysis), PresetSelection.NONE,
-        preclassification);
+    this(analysis, sequence, PresetSelection.NONE, preclassification);
   }
 
   /**
@@ -117,8 +112,7 @@ public final class ParameterEstimationContext {
     }
     final WizardSequence estimationSequence = sequence.copy();
     fitting.applyDefaultPresets(estimationSequence);
-    return new ParameterEstimationContext(analysis, estimationSequence,
-        estimateSampleToSampleMzTolerance(analysis), fitting, preclassification);
+    return new ParameterEstimationContext(analysis, estimationSequence, fitting, preclassification);
   }
 
   /**
@@ -127,12 +121,6 @@ public final class ParameterEstimationContext {
    */
   public @NotNull ParameterSet preclassification() {
     return preclassification;
-  }
-
-  private static @Nullable MZTolerance estimateSampleToSampleMzTolerance(
-      @NotNull RawDataAnalysis analysis) {
-    return ParameterEstimators.estimateSampleToSampleMzTolerance(analysis.sampleMzToleranceCounts(),
-        0.8f);
   }
 
   /**
@@ -168,10 +156,6 @@ public final class ParameterEstimationContext {
     return sequence;
   }
 
-  public @Nullable MZTolerance sampleMzTolerance() {
-    return sampleToSampleMzTolerance;
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == this) {
@@ -182,23 +166,20 @@ public final class ParameterEstimationContext {
     }
     var that = (ParameterEstimationContext) obj;
     return Objects.equals(this.analysis, that.analysis) && Objects.equals(this.sequence,
-        that.sequence) && Objects.equals(this.sampleToSampleMzTolerance,
-        that.sampleToSampleMzTolerance) && Objects.equals(this.presetSelection,
-        that.presetSelection) && Objects.equals(this.preclassification, that.preclassification);
+        that.sequence) && Objects.equals(this.presetSelection, that.presetSelection)
+        && Objects.equals(this.preclassification, that.preclassification);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(analysis, sequence, sampleToSampleMzTolerance, presetSelection,
-        preclassification);
+    return Objects.hash(analysis, sequence, presetSelection, preclassification);
   }
 
   @Override
   public String toString() {
     return "ParameterEstimationContext[" + "analysis=" + analysis + ", " + "sequence=" + sequence
-        + ", " + "sampleToSampleMzTolerance=" + sampleToSampleMzTolerance + ", "
-        + "presetSelection=" + presetSelection + ", " + "preclassification=" + preclassification
-        + ']';
+        + ", " + "presetSelection=" + presetSelection + ", " + "preclassification="
+        + preclassification + ']';
   }
 
 }
