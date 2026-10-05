@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -64,6 +64,7 @@ public interface RowTypeFilter {
       });
       case FRAGMENT_SCANS -> new NumericRowTypeFilter(selectedType, matchingMode, query,
           row -> row.getAllFragmentScans().size());
+      case TAGS -> new TagRowTypeFilter(matchingMode, query);
       // simple string matching
       case ION_TYPE -> new IonTypeRowTypeFilter(selectedType, matchingMode, query);
       case COMPOUND_NAME ->

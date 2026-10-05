@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCusto
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomValue;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import java.util.Objects;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
@@ -71,8 +72,12 @@ public class FeatureListPreferencesParameters extends SimpleParameterSet {
       FeatureListPreferencesDtoParameters.ionTypeRanking.cloneParameter(),
       DEFAULTS.getIonTypeRanking(), null, false, true);
 
+  public static final DefaultOffCustomParameter<List<String>> tagLabels = new DefaultOffCustomParameter<>(
+      FeatureListPreferencesDtoParameters.tagLabels.cloneParameter(), DEFAULTS.getTagLabels(), null,
+      false, true);
+
   public FeatureListPreferencesParameters() {
-    super(flists, rsdSampleTypes, ionTypeRanking);
+    super(flists, rsdSampleTypes, ionTypeRanking, tagLabels);
   }
 
   @Override
@@ -129,20 +134,24 @@ public class FeatureListPreferencesParameters extends SimpleParameterSet {
   }
 
   /**
-   * Resolves every parameter, so the mzmine default is used where
-   * {@link DefaultOffCustomOption#DEFAULT} is selected, the typed value where
-   * {@link DefaultOffCustomOption#CUSTOM} is, and the value of {@code current} where
-   * {@link DefaultOffCustomOption#KEEP_AS_IS} is.
+   * A parameter set that redefines nothing. The custom inputs are preloaded with {@code current},
+   * so switching a preference to CUSTOM starts on the value that is in effect for the feature
+   * list.
    *
-   * @param current the preferences that are currently in effect for the target feature list
+   * @param current the preferences of the feature list this parameter set is opened for
    */
-  public @NotNull FeatureListPreferences toPreferences(
+  public static @NotNull FeatureListPreferencesParameters keepAllAsIs(
       @NotNull final FeatureListPreferences current) {
-    return new FeatureListPreferences(
-        resolve(getParameter(rsdSampleTypes), current.getRsdSampleTypeFilter(),
-            DEFAULTS.getRsdSampleTypeFilter()),
-        resolve(getParameter(ionTypeRanking), current.getIonTypeRanking(),
-            DEFAULTS.getIonTypeRanking()));
+    final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
+    param.setParameter(rsdSampleTypes,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.KEEP_AS_IS,
+            current.getRsdSampleTypeFilter()));
+    param.setParameter(ionTypeRanking,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.KEEP_AS_IS,
+            current.getIonTypeRanking()));
+    param.setParameter(tagLabels,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.KEEP_AS_IS, current.getTagLabels()));
+    return param;
   }
 
   /**
@@ -159,22 +168,21 @@ public class FeatureListPreferencesParameters extends SimpleParameterSet {
   }
 
   /**
-   * A parameter set that redefines nothing. The custom inputs are preloaded with {@code current},
-   * so switching a preference to CUSTOM starts on the value that is in effect for the feature
-   * list.
+   * Resolves every parameter, so the mzmine default is used where
+   * {@link DefaultOffCustomOption#DEFAULT} is selected, the typed value where
+   * {@link DefaultOffCustomOption#CUSTOM} is, and the value of {@code current} where
+   * {@link DefaultOffCustomOption#KEEP_AS_IS} is.
    *
-   * @param current the preferences of the feature list this parameter set is opened for
+   * @param current the preferences that are currently in effect for the target feature list
    */
-  public static @NotNull FeatureListPreferencesParameters keepAllAsIs(
+  public @NotNull FeatureListPreferences toPreferences(
       @NotNull final FeatureListPreferences current) {
-    final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
-    param.setParameter(rsdSampleTypes,
-        new DefaultOffCustomValue<>(DefaultOffCustomOption.KEEP_AS_IS,
-            current.getRsdSampleTypeFilter()));
-    param.setParameter(ionTypeRanking,
-        new DefaultOffCustomValue<>(DefaultOffCustomOption.KEEP_AS_IS,
-            current.getIonTypeRanking()));
-    return param;
+    return new FeatureListPreferences(
+        resolve(getParameter(rsdSampleTypes), current.getRsdSampleTypeFilter(),
+            DEFAULTS.getRsdSampleTypeFilter()),
+        resolve(getParameter(ionTypeRanking), current.getIonTypeRanking(),
+            DEFAULTS.getIonTypeRanking()),
+        resolve(getParameter(tagLabels), current.getTagLabels(), DEFAULTS.getTagLabels()));
   }
 
   @Override
