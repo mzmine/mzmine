@@ -27,21 +27,28 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Set;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record WizardParameterDefinition<T>(@NotNull String name, @NotNull WizardPart part,
                                            @NotNull UserParameter<T, ?> parameter,
+                                           @NotNull OptimizationRole role,
+                                           @NotNull Set<WizardParameterFactory> presets,
                                            @NotNull Function<ParameterEstimationContext, ParameterEstimate<T>> estimator) implements
     ParameterDefinition<T> {
 
   public WizardParameterDefinition(String name, WizardPart part, UserParameter<T, ?> parameter,
+      OptimizationRole role, Set<WizardParameterFactory> presets,
       Function<ParameterEstimationContext, ParameterEstimate<T>> estimator) {
     this.name = name;
     this.part = part;
     this.parameter = parameter.cloneParameter();
+    this.role = role;
+    this.presets = Set.copyOf(presets);
     this.estimator = estimator;
   }
 

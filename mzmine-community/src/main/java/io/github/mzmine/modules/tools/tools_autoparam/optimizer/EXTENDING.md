@@ -64,8 +64,16 @@ range rules together. Use `DoubleSearchDomain`, `IntegerSearchDomain`, `RtSearch
 `ChoiceSearchDomain<T>` as appropriate. `MappedSearchDomain<T>` supports composite values controlled
 by one continuous coordinate. Explicitly declare linear or logarithmic continuous search.
 
-Register the definition only for presets containing its target. Optional-module definitions must
-not load their module classes during registry initialization, and stay out of `defaultSolutions()`.
+Each definition declares
+
+- its `OptimizationRole`: `ESTIMATE_ONLY` (estimated and applied, never offered to the optimizer),
+  `OPTIONAL` (can be selected), or `DEFAULT` (selected in new configurations), and
+- the wizard presets it applies to. List them explicitly; presets with a parameter of the same name
+  (e.g. direct infusion or GC-EI) do not imply that the definition applies.
+
+Add the constant to the registry's `ALL` list. `allSolutions()`, `defaultSolutions()`, and
+`forSequence()` are derived from role and presets. Optional-module definitions must not load their
+module classes during registry initialization and use the `OPTIONAL` role.
 
 IDs are derived automatically from the binding: wizard part and parameter name, or module class,
 application scope, and parameter name. Optional reflected bindings use their parameter field name

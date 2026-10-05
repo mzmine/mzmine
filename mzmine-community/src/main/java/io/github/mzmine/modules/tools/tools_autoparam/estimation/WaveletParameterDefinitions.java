@@ -27,12 +27,15 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.DoubleSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,13 +45,16 @@ final class WaveletParameterDefinitions {
 
   private static final String MODULE = "io.mzio.mzminepro.modules.featdet_resolving.wavelet.WaveletResolverModule";
   private static final String PARAMETERS = "io.mzio.mzminepro.modules.featdet_resolving.wavelet.WaveletResolverParameters";
+  private static final Set<WizardParameterFactory> PRESETS = Set.of(
+      IonInterfaceWizardParameterFactory.LC_WAVELET);
 
   private WaveletParameterDefinitions() {
   }
 
   static @NotNull List<ParameterDefinition<?>> definitions() {
     return List.of(new BatchParameterDefinition<Double>("Wavelet SNR threshold", MODULE, "snr",
-            ApplicationScope.FIRST, value -> override("snr", value),
+            ApplicationScope.FIRST, OptimizationRole.OPTIONAL_SELECTION, PRESETS,
+            value -> override("snr", value),
             _ -> new ParameterEstimate<>(4d, ValueOrigin.HEURISTIC,
                 new DoubleSearchDomain(3d, 10d, SearchScale.LINEAR))),
         enumDefinition("Wavelet noise calculation", "noiseCalculation"),
@@ -58,7 +64,7 @@ final class WaveletParameterDefinitions {
   private static @NotNull BatchParameterDefinition<Enum<?>> enumDefinition(@NotNull String name,
       @NotNull String field) {
     return new BatchParameterDefinition<>(name, MODULE, field, ApplicationScope.FIRST,
-        value -> override(field, value), _ -> {
+        OptimizationRole.OPTIONAL_SELECTION, PRESETS, value -> override(field, value), _ -> {
       final Object value = parameter(field).getValue();
       if (!(value instanceof Enum<?> initial)) {
         throw new IllegalStateException("Expected an enum parameter: " + field);
