@@ -1,7 +1,7 @@
 # Extending the parameter optimizer
 
-The optimizer has two independent extension points: scores evaluated on a feature list and
-parameters varied by the search.
+The optimizer has three independent extension points: search algorithms, scores evaluated on a
+feature list, and parameters varied by the search.
 
 ## Package layout
 
@@ -23,6 +23,17 @@ Keep the sealed `ParameterDefinition` interface and its implementations together
 The registry exposes the applicable definitions; its individual constants and optional wavelet
 helpers remain package-private. Search and execution consume prepared values without making
 estimation depend on either package.
+
+## Add a search algorithm
+
+1. Implement `OptimizerAlgorithmModule` in `search/` with its own parameter set. The module reads
+   and writes its optimization targets (one target or a checklist) and creates the configured
+   algorithm, including its start solutions around the raw-data estimate.
+2. Add an entry to `OptimizerOptions` with a stable ID.
+
+`BatchOptimizationMainTask` creates the algorithm after the raw-data estimate was evaluated, so
+start solutions from `problem.newSolution()` use the final constraint limits. The main task has
+no algorithm-specific code.
 
 ## Add an evaluation metric
 

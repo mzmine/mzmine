@@ -54,13 +54,8 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.TaskSt
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.gui.OptimizationResultsController;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.MoeadOptimizerParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OriginTaggingInitialization;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.PatternSearchAlgorithm;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerAlgorithmModule;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartInitialization;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartSampling;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationConflicts;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
@@ -84,22 +79,13 @@ import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.moeaframework.algorithm.AbstractAlgorithm;
-import org.moeaframework.algorithm.MOEAD;
 import org.moeaframework.core.PRNG;
 import org.moeaframework.core.Solution;
-import org.moeaframework.core.initialization.Initialization;
 import org.moeaframework.core.population.NondominatedPopulation;
 
 public class BatchOptimizationMainTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(BatchOptimizationMainTask.class.getName());
-
-  /**
-   * Initial population size for MOEA/D. One evaluation is a full batch
-   * run, so the MOEA Framework default of 100 would spend the entire batch budget on initialization
-   * and leave no generations for the actual search.
-   */
-  private static final int MOEAD_POPULATION_SIZE = 20;
 
   /**
    * Safety limit for cheap duplicate proposals per expensive batch execution.
@@ -359,11 +345,6 @@ public class BatchOptimizationMainTask extends AbstractTask {
     final AtomicReference<OptimizationResultsController> resultsController = new AtomicReference<>();
     final AtomicReference<NondominatedPopulation> completedResult = new AtomicReference<>();
 
-    final OptimizerOptions optimizerOption = params.getValue(OptimizerParameters.optimizers);
-    final ParameterSet optimizerParameters = OptimizerParameters.getSelectedOptimizerParameters(
-        params);
-    optimizer = optimizerOption.getOptimizer(optimizationProblem);
-
     final Solution singlePassSolution = optimizationProblem.newSolution();
 
     // decision: always derive and evaluate the raw data estimate, also when it is not used to
@@ -396,36 +377,21 @@ public class BatchOptimizationMainTask extends AbstractTask {
           resultsController, completedResult);
     }
 
-    final List<Solution> injected = switch (optimizerOption) {
-      // decision: starting at the estimate is intrinsic to local pattern search, not an optional
-      // warm-start strategy.
-      case PATTERN_SEARCH -> WarmStartInitialization.createSolutions(optimizationProblem,
-          PatternSearchAlgorithm.INITIAL_DESIGN_SIZE,
-              WarmStartSampling.GAUSSIAN);
-      case MOEAD -> {
-        if (!optimizerParameters.getValue(MoeadOptimizerParameters.rawDataInitialization)) {
-          yield List.of();
-        }
-        final WarmStartSampling sampling = optimizerParameters.getEmbeddedParameterValue(
-            MoeadOptimizerParameters.rawDataInitialization);
-        yield WarmStartInitialization.createSolutions(optimizationProblem, MOEAD_POPULATION_SIZE,
-            sampling);
-      }
-    };
+    // created after the estimate, so start solutions use the final shape rejection limit
+    final OptimizerAlgorithmModule optimizerModule = params.getValue(OptimizerParameters.optimizers)
+        .getModuleInstance();
+    optimizer = optimizerModule.createAlgorithm(optimizationProblem,
+        OptimizerParameters.getSelectedOptimizerParameters(params));
 
-    if (!injected.isEmpty()) {
-      logger.info("Initialization for %s: injected %d solutions, batch budget %d".formatted(
-          optimizer.getName(), injected.size(), totalBatchExecutions));
-      final String presetText =
-          presets.isEmpty() ? "" : "Presets:\n%s\n".formatted(presets.describe());
-      NotificationService.show(NotificationType.INFO, "Starting optimizer", """
-          Using %d attempts around raw-data based estimations and %d full batch executions.
-          %sEstimates:
-          %s""".formatted(injected.size(), totalBatchExecutions, presetText,
-          singlePassEstimates.describe()));
-    }
-
-    configureOptimizer(optimizerOption, optimizer, optimizationProblem, injected);
+    logger.info("Starting %s with a batch budget of %d".formatted(optimizerModule.getName(),
+        totalBatchExecutions));
+    final String presetText =
+        presets.isEmpty() ? "" : "Presets:\n%s\n".formatted(presets.describe());
+    NotificationService.show(NotificationType.INFO, "Starting optimizer", """
+        Using %s with %d full batch executions.
+        %sEstimates:
+        %s""".formatted(optimizerModule.getName(), totalBatchExecutions, presetText,
+        singlePassEstimates.describe()));
 
     try {
       final int maxProposals = Math.multiplyExact(totalBatchExecutions, PROPOSAL_BUDGET_MULTIPLIER);
@@ -505,36 +471,6 @@ public class BatchOptimizationMainTask extends AbstractTask {
       }
       stage.centerOnScreen();
     });
-  }
-
-  /**
-   * Configures the two supported algorithms and injects raw data-derived start solutions.
-   *
-   * @param injected solutions to seed the search with. May be empty for MOEA/D, which then
-   *                 initializes randomly.
-   */
-  private void configureOptimizer(@NotNull OptimizerOptions option,
-      @NotNull AbstractAlgorithm algorithm,
-      @NotNull WizardOptimizationProblem problem, @NotNull List<Solution> injected) {
-    switch (option) {
-      case MOEAD -> {
-        final MOEAD moead = (MOEAD) algorithm;
-        moead.setInitialPopulationSize(MOEAD_POPULATION_SIZE);
-        final Initialization initialization = new OriginTaggingInitialization(problem, injected);
-        moead.setInitialization(initialization);
-        // at the MOEA/D default of 20 the neighborhood equals the population, so mating draws
-        // from the whole population and the decomposition loses the locality it relies on.
-        // assumption: the floor of 4 keeps the neighborhood above the differential evolution arity
-        // of 4 minus 1, which MOEA/D requires now that the solution vector is all real-valued
-        moead.setNeighborhoodSize(Math.max(4, MOEAD_POPULATION_SIZE / 5));
-        // the variation operator is chosen in the MOEAD constructor from whether every variable is
-        // real-valued, so log it - "de+pm" confirms MOEA/D-DE, "sbx+pm+hux+bf" means the vector
-        // still contains a non-real variable and the decomposition fell back to SBX
-        logger.info("MOEA/D using variation %s, neighborhood %d, population %d".formatted(
-            moead.getVariation().getName(), moead.getNeighborhoodSize(), MOEAD_POPULATION_SIZE));
-      }
-      case PATTERN_SEARCH -> ((PatternSearchAlgorithm) algorithm).setInitialSolutions(injected);
-    }
   }
 
 }

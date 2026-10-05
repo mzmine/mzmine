@@ -35,9 +35,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.OptimizationParameterRegistry;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.MoeadOptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.PatternSearchOptimizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -151,17 +149,7 @@ public class OptimizerParameters extends SimpleParameterSet {
 
     final ParameterSet optimizerParameters = parameters.getParameter(optimizers)
         .setOptionGetParameters(optimizer);
-    switch (optimizer) {
-      case PATTERN_SEARCH -> {
-        if (targets.size() != 1) {
-          throw new IllegalArgumentException("Pattern search requires exactly one target.");
-        }
-        optimizerParameters.setParameter(PatternSearchOptimizerParameters.optimizationTarget,
-            targets.getFirst());
-      }
-      case MOEAD -> optimizerParameters.setParameter(MoeadOptimizerParameters.optimizationTargets,
-          new ArrayList<>(targets));
-    }
+    optimizer.getModuleInstance().setOptimizationTargets(optimizerParameters, targets);
   }
 
   public static @NotNull ParameterSet getSelectedOptimizerParameters(
@@ -172,7 +160,8 @@ public class OptimizerParameters extends SimpleParameterSet {
   public static @NotNull List<SweepMetric> getOptimizationTargets(
       @NotNull ParameterSet parameters) {
     final OptimizerOptions optimizer = parameters.getValue(optimizers);
-    return optimizer.getOptimizationTargets(getSelectedOptimizerParameters(parameters));
+    return optimizer.getModuleInstance()
+        .getOptimizationTargets(getSelectedOptimizerParameters(parameters));
   }
 
   @Override
