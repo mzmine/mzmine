@@ -109,6 +109,7 @@ public final class WizardParameterEstimationTask extends AbstractTask {
           .toScanPolaritySelection();
       final List<DataFileStatistics> statistics = RawDataPreparation.computeFileStatistics(
           importedFiles, null, getMemoryMapStorage(), polarity);
+      RawDataPreparation.requireIsotopeSignals(statistics);
       progress = 0.8;
       if (isCanceled()) {
         return;

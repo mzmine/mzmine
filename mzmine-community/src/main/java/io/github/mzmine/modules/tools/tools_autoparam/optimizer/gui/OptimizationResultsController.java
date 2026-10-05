@@ -88,7 +88,10 @@ import org.moeaframework.core.variable.RealVariable;
 
 public class OptimizationResultsController extends FxController<OptimizationResultModel> {
 
-  private final BatchWizardTab wizardTab;
+  /**
+   * Replaced by a new wizard tab if the original one was closed, see {@link #showWizardTab()}.
+   */
+  private @NotNull BatchWizardTab wizardTab;
   private final WizardOptimizationProblem optimization;
   @Nullable
   private final Stage stage;
@@ -250,9 +253,26 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   private void applySelectedSolutionToWizard() {
     final Solution solution = Objects.requireNonNull(model.getSelectedSolution(),
         "No solution selected");
-    wizardTab.getTabPane().getSelectionModel().select(wizardTab);
-    wizardTab.applyParameterValues(
+    showWizardTab().applyParameterValues(
         sequence -> optimization.applySolutionToWizard(solution, sequence), Source.OPTIMIZATION);
+  }
+
+  /**
+   * Selects the wizard tab of the optimization. If it was closed, opens a new wizard tab with the
+   * sequence the optimization started from, so the solution is applied to the same presets it was
+   * evaluated with.
+   */
+  private @NotNull BatchWizardTab showWizardTab() {
+    if (wizardTab.getTabPane() == null) {
+      final BatchWizardTab reopened = new BatchWizardTab();
+      // runs immediately on the JavaFX thread, so the tab pane is set afterward
+      MZmineCore.getDesktop().addTab(reopened);
+      reopened.applyPartialSequence(optimization.getInitialSequence());
+      wizardTab = reopened;
+    } else {
+      wizardTab.getTabPane().getSelectionModel().select(wizardTab);
+    }
+    return wizardTab;
   }
 
   public void openInBatch() {

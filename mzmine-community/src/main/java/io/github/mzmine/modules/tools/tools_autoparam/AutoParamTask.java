@@ -117,7 +117,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
   @Nullable
   private final List<FeatureRecord> additionalFeatures;
   private final boolean showTab;
-  private DataFileStatistics dataFileStats;
+  private @Nullable DataFileStatistics dataFileStats;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -503,11 +503,24 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     return "";
   }
 
-  public DataFileStatistics get() {
+  public @NotNull RawDataFile getDataFile() {
+    return file;
+  }
+
+  /**
+   * @return the statistics, or null if the task did not run yet, failed, or was canceled
+   */
+  public @Nullable DataFileStatistics get() {
     return dataFileStats;
   }
 
-  public DataFileStatistics runAndGet() {
+  /**
+   * Runs the task on this thread.
+   *
+   * @return the statistics, or null if the task failed or was canceled. The reason is in
+   * {@link #getErrorMessage()}.
+   */
+  public @Nullable DataFileStatistics runAndGet() {
     run();
     return get();
   }

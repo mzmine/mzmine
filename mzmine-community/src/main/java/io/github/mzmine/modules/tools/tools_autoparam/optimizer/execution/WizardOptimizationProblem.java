@@ -276,6 +276,14 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     return indexedParameters.get(parameterIndex).parameter().searchDomain().searchScale();
   }
 
+  /**
+   * @return a copy of the wizard sequence the optimization started from, with the presets that fit
+   * the raw data if the user switched to them
+   */
+  public @NotNull WizardSequence getInitialSequence() {
+    return initialSequence.copy();
+  }
+
   public @NotNull List<IndexedParameter<?>> getIndexedParameters() {
     return indexedParameters;
   }

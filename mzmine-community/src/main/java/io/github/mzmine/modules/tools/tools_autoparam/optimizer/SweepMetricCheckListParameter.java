@@ -114,7 +114,7 @@ public class SweepMetricCheckListParameter implements
           if (string == null) {
             return null;
           }
-          return view.getItems().stream().filter(metric -> metric.name().equals("string"))
+          return view.getItems().stream().filter(metric -> metric.name().equals(string))
               .findFirst().orElse(null);
         }
       });

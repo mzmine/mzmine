@@ -30,9 +30,9 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimators;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataAnalysis;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataPreparation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -75,11 +75,15 @@ public class AutoParamDashboardTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    // decision: showTab=false suppresses individual per-file AutoParametersPane tabs
-    final List<DataFileStatistics> stats = files.stream().map(
-        file -> new AutoParamTask(getMemoryMapStorage(), Instant.now(),
-            AutoParamParameters.of(files), AutoParamModule.class, file, (List<FeatureRecord>) null,
-            false)).parallel().map(AutoParamTask::runAndGet).toList();
+    final List<DataFileStatistics> stats;
+    try {
+      // skips failed files with a warning, fails only if no file could be analyzed
+      stats = RawDataPreparation.computeFileStatistics(files, null, getMemoryMapStorage(),
+          parameters.getValue(AutoParamParameters.POLARITY));
+    } catch (Exception e) {
+      error("Could not compute data file statistics: " + e.getMessage(), e);
+      return;
+    }
 
     logger.info("Computed statistics for %d files".formatted(stats.size()));
 

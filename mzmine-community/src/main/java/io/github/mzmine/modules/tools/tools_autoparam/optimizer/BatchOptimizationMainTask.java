@@ -168,7 +168,9 @@ public class BatchOptimizationMainTask extends AbstractTask {
       @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
       @NotNull BatchWizardTab tab, @NotNull OptimizerParameters params,
       @NotNull ParameterSet preclassification) {
-    this(storage, moduleCallDate, files, metadata, tab.getSequence(), tab, params,
+    // a copy, so wizard edits during the run do not change later candidates. Must be called on
+    // the JavaFX thread
+    this(storage, moduleCallDate, files, metadata, tab.getSequence().copy(), tab, params,
         preclassification, DEFAULT_RANDOM_SEED);
   }
 
@@ -317,6 +319,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
     final List<DataFileStatistics> stats = RawDataPreparation.computeFileStatistics(importedFiles,
         benchmarkFeatures, getMemoryMapStorage(), polarity);
     stats.forEach(stat -> logger.info(stat.getMzToleranceForIsotopes().toString()));
+    RawDataPreparation.requireIsotopeSignals(stats);
 
     // set a specific seed to make the results deterministic, see DEFAULT_RANDOM_SEED
     PRNG.setSeed(randomSeed);

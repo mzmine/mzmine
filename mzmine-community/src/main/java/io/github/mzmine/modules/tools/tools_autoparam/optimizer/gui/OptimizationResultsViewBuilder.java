@@ -219,7 +219,9 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
 
     if (stage != null) {
       final Button closeButton = FxButtons.createButton("Close", FxIcons.CANCEL, null, () -> {
-        stopSearch.run();
+        if (stopSearch != null) {
+          stopSearch.run();
+        }
         stage.hide();
       });
       buttonBar.getButtons().add(closeButton);

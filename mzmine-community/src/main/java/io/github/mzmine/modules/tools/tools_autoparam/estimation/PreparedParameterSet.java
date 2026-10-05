@@ -70,6 +70,8 @@ public record PreparedParameterSet(@NotNull List<PreparedParameter<?>> parameter
   public void applyEstimates(@NotNull WizardSequence sequence,
       @NotNull Set<ParameterDefinition<?>> excluded) {
     for (final PreparedParameter<?> parameter : parameters) {
+      // decision: preset defaults are not applied, so values the user changed in the wizard stay
+      // as they are. Unlike applyBaseline, which evaluates with the preset defaults.
       if (parameter.origin() != ValueOrigin.PRESET_DEFAULT && !excluded.contains(
           parameter.definition())) {
         parameter.applyInitialValue(sequence);
@@ -79,6 +81,11 @@ public record PreparedParameterSet(@NotNull List<PreparedParameter<?>> parameter
 
   /**
    * Candidate values replace selected parameters; all remaining baseline values stay fixed.
+   * <p>
+   * decision: the optimization always evaluates with the wizard preset defaults, including the
+   * {@link ValueOrigin#PRESET_DEFAULT} values, so results do not depend on prior user edits. When
+   * the result is applied to the wizard, {@link #applyEstimates(WizardSequence, Set)} keeps the
+   * user-changed values of those parameters.
    */
   public void applyBaseline(@NotNull WizardSequence sequence,
       @NotNull Set<ParameterDefinition<?>> selected) {

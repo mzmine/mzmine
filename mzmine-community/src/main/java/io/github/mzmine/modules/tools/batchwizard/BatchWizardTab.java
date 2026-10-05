@@ -686,10 +686,12 @@ public class BatchWizardTab extends SimpleTab {
       return;
     }
 
+    // a clone, so later edits of the module parameters do not change the running optimization
     final BatchOptimizationMainTask optimizer = new BatchOptimizationMainTask(
         MemoryMapStorage.forRawDataFile(), Instant.now(), optimizerFiles, metadataFile, this,
-        optimizerParam, preclassification);
-    TaskService.getController().addTask(optimizer);
+        (OptimizerParameters) optimizerParam.cloneParameterSet(), preclassification);
+    // tracked like estimation, so no second run writes into the wizard and errors are shown
+    startAutoParamTask(optimizer, "Cannot optimize parameters");
   }
 
   /**
@@ -743,8 +745,8 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   /**
-   * Starts a pre-classification or estimation task. The estimate and optimize buttons are disabled
-   * while any of them runs, errors are shown in a dialog.
+   * Starts a pre-classification, estimation, or optimization task. The estimate and optimize
+   * buttons are disabled while any of them runs, errors are shown in a dialog.
    */
   private void startAutoParamTask(@NotNull final AbstractTask task,
       @NotNull final String errorTitle) {
@@ -842,7 +844,8 @@ public class BatchWizardTab extends SimpleTab {
     setListenersActive(false);
     try {
       // decision: estimation and optimization replace previous customization with their own
-      // overrides, so overrides of a previous run do not linger
+      // overrides, so overrides of a previous run do not linger. This intentionally also discards
+      // overrides the user added manually, without confirmation.
       sequenceSteps.get(WizardPart.CUSTOMIZATION).ifPresent(WizardStepParameters::resetToDefaults);
       applier.accept(sequenceSteps);
       parameterChanges = WizardParameterChanges.diff(before, sequenceSteps, source);
