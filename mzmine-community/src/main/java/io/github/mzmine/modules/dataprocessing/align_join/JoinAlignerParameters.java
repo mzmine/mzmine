@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -133,6 +133,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
     param.setParameter(JoinAlignerParameters.mobilityTolerance, false);
     param.getParameter(JoinAlignerParameters.mobilityTolerance).getEmbeddedParameter()
         .setValue(new MobilityTolerance(0.1f));
+    param.setParameter(JoinAlignerParameters.mobilityWeight, 1d);
     param.setParameter(JoinAlignerParameters.SameChargeRequired, false);
     param.setParameter(JoinAlignerParameters.SameIDRequired, false);
     param.setParameter(JoinAlignerParameters.compareIsotopePattern, false);
@@ -150,6 +151,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
     param.setParameter(JoinAlignerParameters.RTWeight, rtWeight);
     if (mobTol != null && mobWeight != null) {
       param.setParameter(JoinAlignerParameters.mobilityTolerance, true, mobTol);
+      param.setParameter(JoinAlignerParameters.mobilityWeight, mobWeight);
     }
     return param;
   }
