@@ -43,6 +43,7 @@ import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -96,8 +97,13 @@ public class BatchTask extends AbstractTask {
    */
   public static final String WHOLE_BATCH_NAME = "WHOLE BATCH";
   private final BatchQueue queue;
-  /** A non-null value keeps bridge-submitted work bound to the reviewed project instance. */
-  private final @Nullable MZmineProject fixedProject;
+  /**
+   * Project used by an explicitly bound batch. This is separate from the current project so
+   * short-lived internal batches can run without changing the user's open project.
+   */
+  private final @Nullable MZmineProject projectOverride;
+  /** Whether this bound batch must stop when the reviewed current project changes. */
+  private final boolean cancelOnCurrentProjectChange;
   private final AtomicReference<@Nullable ThreadPoolTask> activeThreadPoolTask =
       new AtomicReference<>();
   private final AtomicReference<@Nullable WrappedTask[]> activeWrappedTasks = new AtomicReference<>();
@@ -139,7 +145,7 @@ public class BatchTask extends AbstractTask {
 
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
       final Instant moduleCallDate, final @Nullable List<File> subDirectories) {
-    this(project, parameters, moduleCallDate, subDirectories, null);
+    this(project, parameters, moduleCallDate, subDirectories, null, false);
   }
 
   /**
@@ -148,14 +154,27 @@ public class BatchTask extends AbstractTask {
    */
   static @NotNull BatchTask forFixedProject(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate) {
-    return new BatchTask(project, parameters, moduleCallDate, null, project);
+    return new BatchTask(project, parameters, moduleCallDate, null, project, true);
+  }
+
+  /**
+   * Creates an internal batch that always uses {@code project}, without replacing or inspecting
+   * the globally selected project. This is intended for temporary, isolated computations.
+   */
+  static @NotNull BatchTask forIsolatedProject(final @NotNull MZmineProject project,
+      final @NotNull BatchQueue queue, final @NotNull Instant moduleCallDate) {
+    final BatchModeParameters parameters = new BatchModeParameters();
+    parameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
+    return new BatchTask(project, parameters, moduleCallDate, null, project, false);
   }
 
   private BatchTask(final @NotNull MZmineProject project, final @NotNull ParameterSet parameters,
       final @NotNull Instant moduleCallDate, final @Nullable List<File> subDirectories,
-      final @Nullable MZmineProject fixedProject) {
+      final @Nullable MZmineProject projectOverride,
+      final boolean cancelOnCurrentProjectChange) {
     super(null, moduleCallDate);
-    this.fixedProject = fixedProject;
+    this.projectOverride = projectOverride;
+    this.cancelOnCurrentProjectChange = cancelOnCurrentProjectChange;
     this.runGCafterBatchStep = requireNonNullElse(
         getPreference(MZminePreferences.runGCafterBatchStep), false);
 
@@ -309,7 +328,7 @@ public class BatchTask extends AbstractTask {
         return;
       }
       // at the end of one dataset, clear the project and start over again
-      if (fixedProject == null && useAdvanced && currentStep() == 0 && subDirectories != null) {
+      if (projectOverride == null && useAdvanced && currentStep() == 0 && subDirectories != null) {
         // clear the old project
         ProjectService.getProjectManager().clearProject();
         currentDataset++;
@@ -592,8 +611,14 @@ public class BatchTask extends AbstractTask {
     final Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
         + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
-    ExitCode exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
-        moduleCallDate);
+    final ExitCode exitCode;
+    if (projectOverride != null && method instanceof AllSpectralDataImportModule importModule) {
+      exitCode = importModule.runBoundProjectModule(getProject(), batchStepParameters,
+          currentStepTasks, moduleCallDate, cancelOnCurrentProjectChange);
+    } else {
+      exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
+          moduleCallDate);
+    }
     logger.finest(
         () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
 
@@ -618,7 +643,7 @@ public class BatchTask extends AbstractTask {
     // submit as ThreadPoolTask
     final TaskStatus status;
     // create ThreadPool
-    if (fixedProject == null && currentStepTasks.size() > 1) {
+    if (projectOverride == null && currentStepTasks.size() > 1) {
       status = runInTaskPool(method, currentStepTasks);
     } else {
       // Fixed-project bridge batches need wrapper-level completion, not Future cancellation.
@@ -674,7 +699,7 @@ public class BatchTask extends AbstractTask {
     setActiveWrappedTasks(wrappedTasks);
     final TaskStatus result;
     try {
-      result = fixedProject == null ? TaskUtils.waitForTasksToFinish(this, wrappedTasks)
+      result = projectOverride == null ? TaskUtils.waitForTasksToFinish(this, wrappedTasks)
           : waitForFixedProjectTasksToFinish(wrappedTasks);
       waitForSubmittedTasksToExit(wrappedTasks);
     } finally {
@@ -864,7 +889,7 @@ public class BatchTask extends AbstractTask {
    */
   public @NotNull List<FeatureList> getResultFeatureLists() {
     synchronized (resultFeatureLists) {
-      return fixedProject == null ? List.of() : List.copyOf(resultFeatureLists);
+      return projectOverride == null ? List.of() : List.copyOf(resultFeatureLists);
     }
   }
 
@@ -924,7 +949,7 @@ public class BatchTask extends AbstractTask {
 
   private void recordFixedProjectResults(final @NotNull List<FeatureList> createdLists,
       final @NotNull MZmineProcessingModule method, final @NotNull Instant moduleCallDate) {
-    if (fixedProject == null) {
+    if (projectOverride == null) {
       return;
     }
     final List<FeatureList> matchingLists = createdLists.stream().filter(featureList ->
@@ -939,12 +964,12 @@ public class BatchTask extends AbstractTask {
   private MZmineProject getProject() {
     // Ordinary batches may deliberately load a project during a queue. Bridge batches never use a
     // replacement project after the reviewed project identity changed.
-    return fixedProject == null ? ProjectService.getProject() : fixedProject;
+    return projectOverride == null ? ProjectService.getProject() : projectOverride;
   }
 
   /** Cancels bridge-bound work before a future step can target a replacement project. */
   private boolean cancelIfFixedProjectChanged() {
-    if (fixedProject != null && ProjectService.getProject() != fixedProject) {
+    if (cancelOnCurrentProjectChange && ProjectService.getProject() != projectOverride) {
       setErrorMessage("The reviewed project changed before the batch could continue.");
       cancel();
       return true;

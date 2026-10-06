@@ -108,7 +108,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
         AllSpectralDataImportModule.class);
     final ExitCode exitCode = (module == null ? new AllSpectralDataImportModule() : module)
-        .runModule(project, parameters.cloneParameterSet(), tasks, moduleCallDate, project);
+        .runModule(project, parameters.cloneParameterSet(), tasks, moduleCallDate, project, true);
     return new NativeImportSelection.ImportTaskPreparation(exitCode, tasks);
   }
 
@@ -270,7 +270,15 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasksToAdd, @NotNull Instant moduleCallDate) {
-    return runModule(project, parameters, tasksToAdd, moduleCallDate, null);
+    return runModule(project, parameters, tasksToAdd, moduleCallDate, null, false);
+  }
+
+  /** Builds import tasks for a batch bound to a non-current private project. */
+  public @NotNull ExitCode runBoundProjectModule(final @NotNull MZmineProject project,
+      final @NotNull ParameterSet parameters, final @NotNull Collection<Task> tasksToAdd,
+      final @NotNull Instant moduleCallDate, final boolean cancelOnCurrentProjectChange) {
+    return runModule(project, parameters, tasksToAdd, moduleCallDate, project,
+        cancelOnCurrentProjectChange);
   }
 
   /**
@@ -279,7 +287,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   private @NotNull ExitCode runModule(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Collection<Task> tasksToAdd,
-      final @NotNull Instant moduleCallDate, @Nullable final MZmineProject fixedProject) {
+      final @NotNull Instant moduleCallDate, @Nullable final MZmineProject fixedProject,
+      final boolean cancelOnCurrentProjectChange) {
 
     // collect all tasks and run them on ThreadPoolTask
     List<Task> tasks = new ArrayList<>();
@@ -403,8 +412,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
     final AllSpectralDataImportMainTask mainTask = fixedProject == null
         ? new AllSpectralDataImportMainTask(tasks, parameters)
-        : AllSpectralDataImportMainTask.forFixedProject(tasks, dataImportTasks, parameters,
-            fixedProject);
+        : cancelOnCurrentProjectChange
+            ? AllSpectralDataImportMainTask.forFixedProject(tasks, dataImportTasks, parameters,
+                fixedProject)
+            : AllSpectralDataImportMainTask.forIsolatedProject(tasks, dataImportTasks, parameters,
+                fixedProject);
     tasksToAdd.add(mainTask);
 
     return ExitCode.OK;

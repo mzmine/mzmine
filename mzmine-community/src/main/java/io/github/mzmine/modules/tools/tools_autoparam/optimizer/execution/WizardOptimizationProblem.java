@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +74,7 @@ import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.core.variable.Variable;
 import org.moeaframework.problem.AbstractProblem;
 
-public class WizardOptimizationProblem extends AbstractProblem implements SearchScaleProvider {
+public class WizardOptimizationProblem extends AbstractProblem implements SearchScaleProvider, AutoCloseable {
 
   /**
    * Position of a solution in the evaluation order, so the results table can show convergence.
@@ -186,7 +187,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     initialSequence = estimationContext.sequence();
     final File[] files = stats.stream().map(DataFileStatistics::file)
         .map(RawDataFile::getAbsoluteFilePath).toArray(File[]::new);
-    batchEvaluator = new OptimizationBatchEvaluator(files, enabledMetrics,
+    batchEvaluator = new OptimizationBatchEvaluator(ProjectService.getProject(), files, enabledMetrics,
         fileOnlyBenchmarkFeatures, externalStatus);
 
     preparedParameters = prepared;
@@ -553,6 +554,16 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
   public @NotNull List<SweepMetric> getEnabledMetrics() {
     return enabledMetrics;
+  }
+
+  @Override
+  public void close() {
+    batchEvaluator.close();
+  }
+
+  /** Requests cancellation without blocking a caller such as the JavaFX status listener. */
+  public void cancel() {
+    batchEvaluator.cancel();
   }
 
 }

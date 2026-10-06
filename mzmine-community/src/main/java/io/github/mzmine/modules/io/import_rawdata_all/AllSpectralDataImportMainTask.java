@@ -59,25 +59,34 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   private final ParameterSet extractMetadataParameters;
   private final boolean sortAndRecolor;
   private final @Nullable MZmineProject fixedProject;
+  private final boolean cancelOnCurrentProjectChange;
   private final Set<RawDataFile> baselineRawDataFiles;
   private final List<? extends Task> rawDataImportTasks;
   private volatile @Nullable Task currentFollowupTask;
 
   public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
       final @NotNull ParameterSet parameters) {
-    this(tasks, List.of(), parameters, null);
+    this(tasks, List.of(), parameters, null, false);
   }
 
   /** Creates an import main task that never follows a changed current project. */
   static @NotNull AllSpectralDataImportMainTask forFixedProject(
       final @NotNull List<? extends Task> tasks, final @NotNull List<? extends Task> rawDataImportTasks,
       final @NotNull ParameterSet parameters, final @NotNull MZmineProject fixedProject) {
-    return new AllSpectralDataImportMainTask(tasks, rawDataImportTasks, parameters, fixedProject);
+    return new AllSpectralDataImportMainTask(tasks, rawDataImportTasks, parameters, fixedProject,
+        true);
+  }
+
+  /** Creates an import task bound to a private project without consulting the global project. */
+  static @NotNull AllSpectralDataImportMainTask forIsolatedProject(
+      final @NotNull List<? extends Task> tasks, final @NotNull List<? extends Task> rawDataImportTasks,
+      final @NotNull ParameterSet parameters, final @NotNull MZmineProject project) {
+    return new AllSpectralDataImportMainTask(tasks, rawDataImportTasks, parameters, project, false);
   }
 
   private AllSpectralDataImportMainTask(final @NotNull List<? extends Task> tasks,
       final @NotNull List<? extends Task> rawDataImportTasks, final @NotNull ParameterSet parameters,
-      @Nullable final MZmineProject fixedProject) {
+      @Nullable final MZmineProject fixedProject, final boolean cancelOnCurrentProjectChange) {
     super(Instant.now(), "Main data import task");
     importTasks = List.copyOf(tasks);
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
@@ -88,6 +97,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     sortAndRecolor = parameters.getValue(AllSpectralDataImportParameters.sortAndRecolor);
     this.parameters = parameters;
     this.fixedProject = fixedProject;
+    this.cancelOnCurrentProjectChange = cancelOnCurrentProjectChange;
     baselineRawDataFiles = fixedProject == null ? Set.of()
         : Set.copyOf(fixedProject.getCurrentRawDataFiles());
     this.rawDataImportTasks = List.copyOf(rawDataImportTasks);
@@ -301,7 +311,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   }
 
   private boolean cancelIfFixedProjectChanged() {
-    if (fixedProject != null && ProjectService.getProject() != fixedProject) {
+    if (cancelOnCurrentProjectChange && ProjectService.getProject() != fixedProject) {
       setErrorMessage("The reviewed project changed before import could continue.");
       cancel();
       return true;

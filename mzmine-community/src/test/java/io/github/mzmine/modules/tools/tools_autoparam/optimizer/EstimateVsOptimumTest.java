@@ -80,13 +80,19 @@ import testutils.MZmineTestUtil;
  * Runs a real optimization per dataset and tabulates what the single-pass estimator guessed against
  * what the optimization found, so the estimator's bias can be compared across datasets.
  * <p>
- * This is a measurement harness, not a regression test: it asserts only that a run completed, and
+ * By default this is a measurement harness, not a regression test: it asserts only that a run completed, and
  * its output is the printed table plus configuration-specific csv files. Every dataset costs a full
  * optimization, so it is minutes to hours depending on {@link #ITERATIONS_PROPERTY}.
  * <p>
+ * Run it through {@code :mzmine-community:benchmark}; the default test task excludes this tag.
  * Enable it explicitly with {@code -Dmzmine.test.autoparam.run=true}, then point it at data with
  * {@code -Dmzmine.test.autoparam.dataRoot=<folder>}. Generated CSV files go to
  * {@code build/autoparam-benchmarks} unless {@code mzmine.test.autoparam.outputDir} is set.
+ * <p>
+ * Set {@code -Dmzmine.test.autoparam.assertQuality=true} as well to make each selected run a
+ * pass/fail check of the optimizer result. This verifies that the returned result is feasible,
+ * scored, nonempty and no worse than the available search baseline; it does not validate compound
+ * identifications or establish analytical ground truth for a dataset.
  */
 @Tag("benchmark")
 @TestInstance(Lifecycle.PER_CLASS)
@@ -95,6 +101,8 @@ public class EstimateVsOptimumTest {
   private static final Logger logger = Logger.getLogger(EstimateVsOptimumTest.class.getName());
 
   static final String RUN_PROPERTY = "mzmine.test.autoparam.run";
+
+  static final String ASSERT_QUALITY_PROPERTY = "mzmine.test.autoparam.assertQuality";
 
   private static final String THERMO_20_YEARS = "Thermo/20 years mzmine/";
   private static final String ZENOTOF_PLASMA = "SCIEX/ZenoTOF/RawData/1_Srm1950_DDA/";
@@ -287,13 +295,19 @@ public class EstimateVsOptimumTest {
         System.getProperty(ONLY_PROPERTY), System.getProperty(CAMPAIGN_PROPERTY));
   }
 
-  static boolean isSelected(@NotNull BenchmarkDataset dataset) {
+  static boolean isSelected(final @NotNull BenchmarkDataset dataset) {
     final String only = System.getProperty(ONLY_PROPERTY);
     if (only == null || only.isBlank()) {
       return true;
     }
-    return java.util.Arrays.stream(only.split(",")).map(String::trim)
-        .anyMatch(name -> name.equalsIgnoreCase(dataset.name()));
+    return selectedDatasetNames().stream().anyMatch(name -> name.equalsIgnoreCase(dataset.name()));
+  }
+
+  private static @NotNull List<String> selectedDatasetNames() {
+    final String only = System.getProperty(ONLY_PROPERTY);
+    return only == null || only.isBlank() ? List.of()
+        : java.util.Arrays.stream(only.split(",")).map(String::trim).filter(name -> !name.isEmpty())
+            .toList();
   }
 
   /**
@@ -346,15 +360,35 @@ public class EstimateVsOptimumTest {
         "real-data optimizer benchmark is opt-in; enable with -D%s=true".formatted(RUN_PROPERTY));
     // a typo in a long path looks exactly like an absent dataset, so say which files are missing
     // instead of only reporting that nothing ran
-    final List<String> unavailable = DATASETS.stream().map(BenchmarkDataset::unavailableReason)
+    final List<BenchmarkDataset> selected = DATASETS.stream()
+        .filter(EstimateVsOptimumTest::isSelected).toList();
+    final List<String> unavailable = selected.stream().map(BenchmarkDataset::unavailableReason)
         .filter(java.util.Objects::nonNull).toList();
     unavailable.forEach(logger::warning);
 
-    final List<BenchmarkDataset> available = DATASETS.stream()
-        .filter(EstimateVsOptimumTest::isSelected).filter(BenchmarkDataset::isAvailable).toList();
-    Assumptions.assumeFalse(available.isEmpty(),
-        "no configured dataset is present, see the warnings above. Paths are relative to -D%s".formatted(
-            BenchmarkDataset.DATA_ROOT_PROPERTY));
+    final boolean assertQuality = Boolean.getBoolean(ASSERT_QUALITY_PROPERTY);
+    if (assertQuality) {
+      final List<String> unknown = selectedDatasetNames().stream().filter(
+          name -> DATASETS.stream().noneMatch(dataset -> dataset.name().equalsIgnoreCase(name)))
+          .toList();
+      Assertions.assertTrue(unknown.isEmpty(),
+          "quality checks do not recognize selected dataset IDs: " + String.join(" | ", unknown));
+      Assertions.assertTrue(unavailable.isEmpty(),
+          "quality checks require every selected dataset to be present: " + String.join(" | ",
+              unavailable));
+    }
+
+    final List<BenchmarkDataset> available = selected.stream().filter(BenchmarkDataset::isAvailable)
+        .toList();
+    if (assertQuality) {
+      Assertions.assertFalse(available.isEmpty(),
+          "quality checks require at least one selected dataset. Paths are relative to -D%s".formatted(
+              BenchmarkDataset.DATA_ROOT_PROPERTY));
+    } else {
+      Assumptions.assumeFalse(available.isEmpty(),
+          "no configured dataset is present, see the warnings above. Paths are relative to -D%s".formatted(
+              BenchmarkDataset.DATA_ROOT_PROPERTY));
+    }
 
     // checked before the first batch, because the optimizer keeps every result list in memory and
     // gradle's 512 MB test default dies deep inside a batch with a heap error that names no cause
@@ -399,6 +433,10 @@ public class EstimateVsOptimumTest {
       logger.warning("%d of %d datasets failed:%n  %s".formatted(failed.size(), available.size(),
           String.join("%n  ".formatted(), failed)));
     }
+    if (assertQuality) {
+      Assertions.assertTrue(failed.isEmpty(),
+          "quality checks failed for selected runs: " + String.join(" | ", failed));
+    }
     Assertions.assertFalse(rows.isEmpty(), "every dataset failed: " + String.join(" | ", failed));
   }
 
@@ -425,6 +463,9 @@ public class EstimateVsOptimumTest {
     final OptimizationOutcome outcome = task.getOutcome();
     if (outcome == null) {
       throw new IllegalStateException("%s produced no outcome".formatted(dataset.name()));
+    }
+    if (Boolean.getBoolean(ASSERT_QUALITY_PROPERTY)) {
+      OptimizationOutcomeQuality.assertQuality(outcome);
     }
 
     // decision: single objective, so index 0 is the only metric and the front holds at most one
