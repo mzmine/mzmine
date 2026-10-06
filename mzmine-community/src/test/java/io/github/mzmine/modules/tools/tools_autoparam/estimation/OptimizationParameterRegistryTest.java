@@ -33,7 +33,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.ParameterDefinitionCheckListParameter;
+import io.github.mzmine.parameters.parametertypes.CheckListParameter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -80,13 +80,13 @@ class OptimizationParameterRegistryTest {
     final WizardParameterDefinition<Double> renamed = new WizardParameterDefinition<>(
         "Renamed intensity", original.part(), original.parameter(), original.role(),
         original.presets(), original.estimator());
-    final ParameterDefinitionCheckListParameter saved = new ParameterDefinitionCheckListParameter(
+    final CheckListParameter<ParameterDefinition<?>> saved = new CheckListParameter<>(
         "Selection", "", List.of(original), List.of(original));
     final Element xml = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
         .createElement("selection");
     saved.saveValueToXML(xml);
     Assertions.assertEquals("wizard/MS/" + original.parameter().getName(), xml.getTextContent());
-    final ParameterDefinitionCheckListParameter loaded = new ParameterDefinitionCheckListParameter(
+    final CheckListParameter<ParameterDefinition<?>> loaded = new CheckListParameter<>(
         "Selection", "", List.of(renamed), List.of());
     loaded.loadValueFromXML(xml);
     Assertions.assertSame(renamed, loaded.getValue().getFirst());
@@ -94,7 +94,7 @@ class OptimizationParameterRegistryTest {
 
   @Test
   void emptySelectionXmlDoesNotRestoreDefaults() throws Exception {
-    final ParameterDefinitionCheckListParameter parameter = new ParameterDefinitionCheckListParameter(
+    final CheckListParameter<ParameterDefinition<?>> parameter = new CheckListParameter<>(
         "Selection", "", OptimizationParameterRegistry.allSolutions(),
         OptimizationParameterRegistry.defaultSolutions());
     parameter.loadValueFromXML(

@@ -40,6 +40,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.Optimizer
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.CheckListParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
@@ -53,6 +54,7 @@ import io.github.mzmine.util.files.ExtensionFilters;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +96,7 @@ public class OptimizerParameters extends SimpleParameterSet {
   private static final List<ParameterDefinition<?>> ALL_SOLUTIONS = OptimizationParameterRegistry.allSolutions();
   private static final List<ParameterDefinition<?>> DEFAULT_SOLUTIONS = OptimizationParameterRegistry.defaultSolutions();
 
-  public static final ParameterDefinitionCheckListParameter paramToOptimize = new ParameterDefinitionCheckListParameter(
+  public static final CheckListParameter<ParameterDefinition<?>> paramToOptimize = new CheckListParameter<>(
       "Parameters to optimize", "Select which parameters should be optimized.", ALL_SOLUTIONS,
       new ArrayList<>(DEFAULT_SOLUTIONS));
 
@@ -200,9 +202,13 @@ public class OptimizerParameters extends SimpleParameterSet {
 
   public @NotNull ExitCode showSetupDialog(boolean valueCheckRequired,
       @Nullable WizardSequence sequence) {
-    getParameter(paramToOptimize).setWizardSequence(sequence);
+    // show only the parameters that apply to the wizard presets
+    if (sequence != null) {
+      final Set<ParameterDefinition<?>> applicable = Set.copyOf(collectSolutions(sequence));
+      getParameter(paramToOptimize).setVisibleFilter(applicable::contains);
+    }
     final ExitCode superReturn = super.showSetupDialog(valueCheckRequired);
-    getParameter(paramToOptimize).setWizardSequence(null); // always reset to zero
+    getParameter(paramToOptimize).setVisibleFilter(null); // always reset to all
     return superReturn;
   }
 }

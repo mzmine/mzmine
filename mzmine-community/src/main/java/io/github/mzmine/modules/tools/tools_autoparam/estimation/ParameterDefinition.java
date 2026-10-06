@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
@@ -35,13 +36,21 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Index-free parameter identity, estimator, and typed wizard/batch binding.
  */
-public sealed interface ParameterDefinition<T> permits WizardParameterDefinition,
-    BatchParameterDefinition {
+public sealed interface ParameterDefinition<T> extends UniqueIdSupplier permits
+    WizardParameterDefinition, BatchParameterDefinition {
 
   /**
    * Derived from the actual target, independently of the optimization display label.
    */
   @NotNull String id();
+
+  /**
+   * The stable ID for saving a selection, see {@link #id()}.
+   */
+  @Override
+  default @NotNull String getUniqueID() {
+    return id();
+  }
 
   @NotNull String name();
 

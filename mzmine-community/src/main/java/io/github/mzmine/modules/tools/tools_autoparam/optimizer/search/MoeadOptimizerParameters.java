@@ -25,16 +25,17 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.search;
 
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.SweepMetricCheckListParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.CheckListParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import java.util.ArrayList;
 
 public class MoeadOptimizerParameters extends SimpleParameterSet {
 
-  public static final SweepMetricCheckListParameter optimizationTargets = new SweepMetricCheckListParameter(
+  public static final CheckListParameter<SweepMetric> optimizationTargets = new CheckListParameter<>(
       "Optimization targets", "Quality metrics that MOEA/D optimizes as separate objectives.",
       OptimizationMetrics.ALL, new ArrayList<>(OptimizationMetrics.DEFAULT));
 
