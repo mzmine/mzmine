@@ -289,7 +289,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
             .subList(0, MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1) : tolerances;
     // needs only the MS1 mass lists, cheap compared to the isotope trace extraction below
     final SimpleFloatRange effectiveRtRange = RunPhaseDetection.detect(file, scans);
-    logger.finest("Effective RT range of %s: %s".formatted(file.getName(), effectiveRtRange));
+//    logger.finest("Effective RT range of %s: %s".formatted(file.getName(), effectiveRtRange));
 
     final double[] basePeakMzs = Arrays.stream(getMainPeakMzs(scans, additionalFeatures)).sorted()
         .toArray();
@@ -319,9 +319,9 @@ public class AutoParamTask extends AbstractRawDataFileTask {
         final FeatureWithIsotopeTraces envelope = FeatureWithIsotopeTraces.of(initialMz, file,
             tolerance, withIsotopeRanges, getMemoryMapStorage(), this);
         if (envelope == null) {
-          logger.finest(
-              "No correlated isotopes found in file %s for m/z %.4f at a tolerance of %s".formatted(
-                  file.getName(), initialMz, tolerance.toString()));
+//          logger.finest(
+//              "No correlated isotopes found in file %s for m/z %.4f at a tolerance of %s".formatted(
+//                  file.getName(), initialMz, tolerance.toString()));
           continue;
         }
         featureWithIsotopeTraces.add(envelope);
@@ -345,7 +345,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     dataFileStats = new DataFileStatistics(file, featureStats, effectiveRtRange,
         referenceInjectionTime);
 
-    final String tolStr = "mz\tabs\trel\n" + Arrays.stream(dataFileStats.getBestTolerances()).map(
+    /*final String tolStr = "mz\tabs\trel\n" + Arrays.stream(dataFileStats.getBestTolerances()).map(
         pair -> "%.4f\t%.4f\t%.1f".formatted(pair.mz(), pair.tolerance().getMzTolerance(),
             pair.tolerance().getPpmTolerance())).collect(Collectors.joining("\n"));
     final String intensitiesStr = Arrays.stream(dataFileStats.getEdgeIntensities())
@@ -361,7 +361,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     logger.finest("Isotope fwhms:");
     logger.finest(fwhmStr);
     logger.finest("Combined tolerances: " + dataFileStats.getMzToleranceForIsotopes());
-    logger.finest("Number of isotope dp: " + numIsoDpStr);
+    logger.finest("Number of isotope dp: " + numIsoDpStr);*/
 
     if (showTab && DesktopService.isGUI()) {
       MZmineCore.getDesktop()
