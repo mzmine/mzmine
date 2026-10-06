@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 public record WizardParameterChanges(@NotNull WizardParameterChanges.Source source,
                                      @NotNull List<WizardParameterChange> changes) {
 
-  private static final WizardParameterChanges EMPTY = new WizardParameterChanges(Source.ESTIMATION,
+  private static final WizardParameterChanges EMPTY = new WizardParameterChanges(Source.NONE,
       List.of());
 
   /**

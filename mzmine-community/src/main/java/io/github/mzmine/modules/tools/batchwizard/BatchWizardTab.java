@@ -958,21 +958,10 @@ public class BatchWizardTab extends SimpleTab {
    * @param partialSequence might contain some or all steps of the workflow
    */
   public void applyPartialSequence(@NotNull final WizardSequence partialSequence) {
-    applyPartialSequence(partialSequence, null);
-  }
-
-  /**
-   * @param partialSequence might contain some or all steps of the workflow
-   * @param changeSource    highlight changed parameters as changed by this source, e.g., "parameter
-   *                        optimization". null to not highlight and clear previous highlights
-   */
-  public void applyPartialSequence(@NotNull final WizardSequence partialSequence,
-      @Nullable final WizardParameterChanges.Source changeSource) {
     setListenersActive(false);
 
     // keep old parameters before applying sequence
     updateAllParametersFromUi();
-    final WizardSequence before = changeSource == null ? null : sequenceSteps.copy();
 
     // partialSequence might contain other instances of the presets (after loading)
     // need to apply all parameter changes to ALL_PRESETS
@@ -988,10 +977,8 @@ public class BatchWizardTab extends SimpleTab {
 
     // keep current as default parameters
     sequenceSteps.apply(correctPartialSequence);
-    // decision: loading presets (no change source) overrides values, so previous highlights are cleared
-    parameterChanges = before == null ? WizardParameterChanges.empty()
-        : WizardParameterChanges.diff(before, sequenceSteps,
-            Objects.requireNonNullElse(changeSource, Source.NONE));
+    // decision: loading presets overrides values, so previous highlights are cleared
+    parameterChanges = WizardParameterChanges.empty();
 
     // auto-enable/disable advanced mode based on loaded customization state
     // listenersActive is false here, so the advancedMode listener does not trigger createParameterPanes again
