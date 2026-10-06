@@ -39,6 +39,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class PostColumnReactionParameters extends SimpleParameterSet {
 
+  public static final StringParameter tpName = new StringParameter(
+      "Name of transformation products",
+      "Set a name to be used for automated annotation of transformation products (e.g., 'TP').");
+
   public static final FeatureListsParameter flist = new FeatureListsParameter(
       "Aligned feature list", 1, 1);
 
@@ -56,21 +60,18 @@ public class PostColumnReactionParameters extends SimpleParameterSet {
           "Set a correlation score at which features are considered for transformation product annotation in %",
           0.4), true);
 
-  public static final StringParameter tpName = new StringParameter(
-      "Name of transformation products",
-      "Set a name to be used for automated annotation of transformation products (e.g., 'TP').");
+  public PostColumnReactionParameters() {
+    super(tpName, flist, unreactedRawDataFiles, formulaPredictionParameters, correlationThreshold);
+  }
 
   @Override
   public @Nullable Region getMessage() {
     return FxTextFlows.newTextFlowInAccordion("Information", true, FxTexts.text(
-        "This module identifies and annotates transformation products (ETPs) from post-column reactions. "
+        "This module identifies and annotates transformation products from post-column reactions. "
             + "It requires correlation grouping (metaCorrelate) to have been run first. "
             + "For each annotated compound, it searches for correlated features that are absent in unreacted control samples. "
-            + "These ETPs are then annotated with a name derived from the parent (e.g., ParentName_ETP_123) "
-            + "and can optionally have their molecular formula predicted."));
-  }
-
-  public PostColumnReactionParameters() {
-    super(flist, unreactedRawDataFiles, formulaPredictionParameters, correlationThreshold);
+            + "These transformation products are then annotated with the parent's name, "
+            + "a transformation product name (e.g., TP) and the nominal m/z, yielding e.g., Valsartan_TP_123."
+            + "Optionally, the molecular formula of transformation prodcuts can be predicted."));
   }
 }
