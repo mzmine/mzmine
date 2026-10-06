@@ -360,7 +360,6 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     logger.finest(intensitiesStr);
     logger.finest("Isotope fwhms:");
     logger.finest(fwhmStr);
-    logger.finest("Combined tolerances: " + dataFileStats.getMzToleranceForIsotopes());
     logger.finest("Number of isotope dp: " + numIsoDpStr);*/
 
     if (showTab && DesktopService.isGUI()) {

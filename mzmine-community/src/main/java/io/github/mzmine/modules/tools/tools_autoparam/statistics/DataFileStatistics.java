@@ -91,15 +91,6 @@ public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featu
     return counts;
   }
 
-  public MZTolerance getMzToleranceForIsotopes() {
-    MZTolerance harmonizedTolerance = null;
-    for (FeatureStatistics stats : featureStatistics) {
-      harmonizedTolerance = MZTolerance.enlargeByDominatingTolerance(harmonizedTolerance,
-          stats.getBestEnvelope().isotopeTraces().getLast());
-    }
-    return harmonizedTolerance;
-  }
-
   public double[] getLowestIsotopeHeights() {
     return featureStatistics().stream().map(FeatureStatistics::getBestEnvelope)
         .map(fwi -> fwi.isotopeTraces().getLast()).mapToDouble(Feature::getHeight).toArray();

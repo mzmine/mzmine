@@ -29,12 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.SimpleRange;
 import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.errortypes.PpmError;
-import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.RangeUtils;
 import java.util.Collection;
 import java.util.Objects;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents m/z tolerance. Tolerance is set using absolute (m/z) and relative (ppm)
@@ -93,48 +89,6 @@ public class MZTolerance {
         Math.max(ppm, mzTol.ppmTolerance));
   }
 
-  /**
-   * Joins mz tolerances and returns the maximum of ppm and mz tolerance
-   *
-   * @param tol1
-   * @param tol2
-   * @return
-   */
-  public static MZTolerance max(final MZTolerance tol1, final MZTolerance tol2) {
-    return new MZTolerance(Math.max(tol1.getMzTolerance(), tol2.getMzTolerance()),
-        Math.max(tol1.getPpmTolerance(), tol2.getPpmTolerance()));
-  }
-
-  public static MZTolerance enlargeByDominatingTolerance(@Nullable final MZTolerance current,
-      final Feature feature) {
-    final Double mz = feature.getMZ();
-    final Range<Double> mzRange = feature.getRawDataPointsMZRange();
-    final double halfRange = RangeUtils.rangeLength(mzRange);
-
-    final double mzToleranceForMass = current != null ? current.getMzTolerance() : halfRange;
-    final double ppmToleranceForMass = halfRange / mz * MILLION;
-
-    if (current == null) {
-      return new MZTolerance(mzToleranceForMass, ppmToleranceForMass);
-    }
-
-    if (mzToleranceForMass > ppmToleranceForMass) {
-      return new MZTolerance(Math.max(halfRange, mzToleranceForMass), current.getPpmTolerance());
-    } else {
-      return new MZTolerance(mzToleranceForMass,
-          Math.max(ppmToleranceForMass, current.getMzTolerance()));
-    }
-  }
-
-  public static MZTolerance[] getDefaultResolutions() {
-    MZTolerance[] mzTol = new MZTolerance[4];
-    mzTol[0] = new MZTolerance(0.00025, 0);
-    mzTol[1] = new MZTolerance(0.001, 0);
-    mzTol[2] = new MZTolerance(0.01, 0);
-    mzTol[3] = new MZTolerance(0.1, 0);
-    return mzTol;
-  }
-
   public double getMzTolerance() {
     return mzTolerance;
   }
@@ -145,10 +99,6 @@ public class MZTolerance {
 
   public double getMzToleranceForMass(final double mzValue) {
     return Math.max(mzTolerance, mzValue / MILLION * ppmTolerance);
-  }
-
-  public double getPpmBasedToleranceForMass(final double mzValue) {
-    return mzValue * (ppmTolerance / MILLION);
   }
 
   public double getPpmToleranceForMass(final double mzValue) {
@@ -216,6 +166,15 @@ public class MZTolerance {
     MZTolerance that = (MZTolerance) o;
     return Double.compare(that.getMzTolerance(), getMzTolerance()) == 0
         && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
+  }
+
+  public static MZTolerance[] getDefaultResolutions() {
+    MZTolerance[] mzTol = new MZTolerance[4];
+    mzTol[0] = new MZTolerance(0.00025, 0);
+    mzTol[1] = new MZTolerance(0.001, 0);
+    mzTol[2] = new MZTolerance(0.01, 0);
+    mzTol[3] = new MZTolerance(0.1, 0);
+    return mzTol;
   }
 
   @Override
