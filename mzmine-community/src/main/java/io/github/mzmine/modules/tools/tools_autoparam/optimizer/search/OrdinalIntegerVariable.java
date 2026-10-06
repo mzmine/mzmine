@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation.domain;
+package io.github.mzmine.modules.tools.tools_autoparam.optimizer.search;
 
 import org.jetbrains.annotations.NotNull;
 import org.moeaframework.core.Solution;

@@ -33,7 +33,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;

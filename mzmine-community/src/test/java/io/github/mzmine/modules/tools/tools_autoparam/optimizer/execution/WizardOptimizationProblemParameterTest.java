@@ -39,7 +39,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParamet
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterDefinition;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;

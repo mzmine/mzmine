@@ -53,7 +53,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;

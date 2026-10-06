@@ -28,7 +28,6 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation.domain;
 import java.util.function.DoubleFunction;
 import java.util.function.ToDoubleFunction;
 import org.jetbrains.annotations.NotNull;
-import org.moeaframework.core.variable.RealVariable;
 
 /**
  * A continuous search coordinate that controls a composite parameter value.
@@ -38,8 +37,13 @@ public record MappedSearchDomain<T>(@NotNull DoubleSearchDomain coordinate,
                                     @NotNull DoubleFunction<T> decoder) implements SearchDomain<T> {
 
   @Override
-  public @NotNull RealVariable createVariable(@NotNull String name) {
-    return coordinate.createVariable(name);
+  public double lower() {
+    return coordinate.lower();
+  }
+
+  @Override
+  public double upper() {
+    return coordinate.upper();
   }
 
   @Override

@@ -52,8 +52,18 @@ public record ChoiceSearchDomain<T>(@NotNull List<T> choices, int firstIndex) im
   }
 
   @Override
-  public @NotNull OrdinalIntegerVariable createVariable(@NotNull String name) {
-    return new OrdinalIntegerVariable(name, firstIndex, firstIndex + choices.size() - 1);
+  public double lower() {
+    return firstIndex;
+  }
+
+  @Override
+  public double upper() {
+    return firstIndex + choices.size() - 1;
+  }
+
+  @Override
+  public boolean ordinal() {
+    return true;
   }
 
   @Override

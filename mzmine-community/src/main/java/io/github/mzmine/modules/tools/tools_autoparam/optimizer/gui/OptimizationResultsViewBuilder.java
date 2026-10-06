@@ -41,7 +41,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSearchDomain;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;

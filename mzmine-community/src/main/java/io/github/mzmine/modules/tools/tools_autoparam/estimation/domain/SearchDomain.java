@@ -26,14 +26,30 @@
 package io.github.mzmine.modules.tools.tools_autoparam.estimation.domain;
 
 import org.jetbrains.annotations.NotNull;
-import org.moeaframework.core.variable.RealVariable;
 
 /**
- * Converts typed parameter values only at the numerical optimizer boundary.
+ * Converts typed parameter values only at the numerical optimizer boundary. Values are encoded on
+ * the coordinate range {@link #lower()} to {@link #upper()}; the optimizer creates its own
+ * variables from these bounds.
  */
 public interface SearchDomain<T> {
 
-  @NotNull RealVariable createVariable(@NotNull String name);
+  /**
+   * @return lowest encoded coordinate
+   */
+  double lower();
+
+  /**
+   * @return highest encoded coordinate
+   */
+  double upper();
+
+  /**
+   * @return true if only integer coordinates are valid, e.g., counts or the indices of choices
+   */
+  default boolean ordinal() {
+    return false;
+  }
 
   double encode(@NotNull T value);
 
@@ -46,11 +62,10 @@ public interface SearchDomain<T> {
   }
 
   default @NotNull T constrain(@NotNull T value) {
-    final RealVariable variable = createVariable("domain");
     final double encoded = encode(value);
     if (!Double.isFinite(encoded)) {
       throw new IllegalArgumentException("Parameter value must be finite: " + value);
     }
-    return decode(Math.clamp(encoded, variable.getLowerBound(), variable.getUpperBound()));
+    return decode(Math.clamp(encoded, lower(), upper()));
   }
 }

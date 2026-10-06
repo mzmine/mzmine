@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.tools.tools_autoparam.estimation.domain;
 
 import org.jetbrains.annotations.NotNull;
-import org.moeaframework.core.variable.RealVariable;
 
 public record DoubleSearchDomain(double lowerBound, double upperBound,
                                  @NotNull SearchScale searchScale) implements SearchDomain<Double> {
@@ -40,8 +39,13 @@ public record DoubleSearchDomain(double lowerBound, double upperBound,
   }
 
   @Override
-  public @NotNull RealVariable createVariable(@NotNull String name) {
-    return new RealVariable(name, lowerBound, upperBound);
+  public double lower() {
+    return lowerBound;
+  }
+
+  @Override
+  public double upper() {
+    return upperBound;
   }
 
   @Override

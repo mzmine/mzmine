@@ -9,12 +9,12 @@ Paths below are relative to `io.github.mzmine.modules.tools.tools_autoparam`.
 
 - `estimation`: raw-data preparation and analysis, benchmark input, typed definitions, estimation
   rules, prepared values, and the wizard's estimate-only task. It does not depend on optimizer code.
-- `estimation.domain`: typed search domains, search scales, and ordinal variables. The existing
-  MOEA variable integration lives here.
-- `optimizer.search`: search algorithms, their module settings, canonical coordinates, and
-  warm-start initialization.
-- `optimizer.execution`: binding prepared values to vector indices, batch evaluation, execution
-  budgets, termination, and timing.
+- `estimation.domain`: typed search domains with plain coordinate bounds and search scales. It does
+  not depend on MOEA.
+- `optimizer.search`: search algorithms, their module settings, canonical coordinates, warm-start
+  initialization, and the ordinal MOEA variable.
+- `optimizer.execution`: binding prepared values to vector indices and creating the MOEA
+  variables from the domain bounds, batch evaluation, execution budgets, termination, and timing.
 - `optimizer.metrics`: metric implementations, their catalog, and score diagnostics.
 - `optimizer.gui`: progress and result presentation.
 - `optimizer`: module entry points, configuration, main-task orchestration, outcomes, and logging.

@@ -37,7 +37,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefini
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;

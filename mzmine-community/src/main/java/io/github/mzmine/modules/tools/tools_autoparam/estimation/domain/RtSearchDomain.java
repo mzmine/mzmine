@@ -28,7 +28,6 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation.domain;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import org.jetbrains.annotations.NotNull;
-import org.moeaframework.core.variable.RealVariable;
 
 /**
  * Search coordinates are minutes; prepared values retain their unit.
@@ -37,8 +36,13 @@ public record RtSearchDomain(@NotNull DoubleSearchDomain minutes) implements
     SearchDomain<RTTolerance> {
 
   @Override
-  public @NotNull RealVariable createVariable(@NotNull String name) {
-    return minutes.createVariable(name);
+  public double lower() {
+    return minutes.lower();
+  }
+
+  @Override
+  public double upper() {
+    return minutes.upper();
   }
 
   @Override
