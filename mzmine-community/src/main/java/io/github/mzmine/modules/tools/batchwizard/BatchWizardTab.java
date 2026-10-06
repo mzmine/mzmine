@@ -25,14 +25,11 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
 import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
-import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -56,39 +53,19 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInt
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatisticsDashboardPane;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetChange;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationResult;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationTask;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.BatchOptimizationMainTask;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerModule;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResult;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
-import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxMenuUtil;
 import io.github.mzmine.util.javafx.MZmineIconUtils;
 import io.mzio.links.MzioMZmineLinks;
-import java.io.File;
 import java.text.MessageFormat;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,11 +77,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -173,10 +147,9 @@ public class BatchWizardTab extends SimpleTab {
   private final MenuButton presetsMenu = new MenuButton("Presets");
   private final SimpleBooleanProperty advancedMode = new SimpleBooleanProperty(false);
   /**
-   * Number of running pre-classification and estimation tasks, see
-   * {@link #startAutoParamTask(AbstractTask, String)}.
+   * Parameter estimation and optimization from the representative files
    */
-  private final SimpleIntegerProperty runningAutoParamTasks = new SimpleIntegerProperty(0);
+  private final WizardAutoParamActions autoParamActions = new WizardAutoParamActions(this);
   /**
    * Parameters changed by estimation or optimization. Highlighted until overridden again or a batch
    * is created.
@@ -573,15 +546,16 @@ public class BatchWizardTab extends SimpleTab {
     final Button estimate = FxButtons.createButton("Estimate", Source.ESTIMATION.icon(),
         "Derive wizard parameters from the same representative files used for optimization.\n"
             + "Right click to also show the data file statistics.",
-        () -> estimateParametersFromFiles(false));
+        () -> autoParamActions.estimate(false));
     estimate.setContextMenu(new ContextMenu(
         FxMenuUtil.newMenuItem("Estimate parameters and show statistics",
-            () -> estimateParametersFromFiles(true))));
+            () -> autoParamActions.estimate(true))));
     final Button optimize = FxButtons.createButton("Optimize", Source.OPTIMIZATION.icon(),
-        "Optimize the wizard parameters on representative files", this::runOptimizer);
+        "Optimize the wizard parameters on representative files", autoParamActions::optimize);
 
     //disable estimate and optimize on invalid presets
-    final BooleanBinding autoParamDisabled = createDisableEstimateAndOptimizeBinding();
+    final BooleanBinding autoParamDisabled = autoParamActions.createDisabledBinding(
+        combos.get(WizardPart.ION_INTERFACE).getSelectionModel().selectedItemProperty());
     estimate.disableProperty().bind(autoParamDisabled);
     optimize.disableProperty().bind(autoParamDisabled);
 
@@ -623,202 +597,6 @@ public class BatchWizardTab extends SimpleTab {
       actions.widthProperty().subscribe(
           width -> header.setStyle("-fx-padding: 0 %.1fpx 0 0;".formatted(width.doubleValue())));
     });
-  }
-
-  /**
-   * the parameter estimation needs chromatographic traces, so spatial imaging (MALDI, LDI, DESI,
-   * SIMS) is not supported
-   */
-  private BooleanBinding createDisableEstimateAndOptimizeBinding() {
-    final BooleanBinding autoParamTaskRunning = runningAutoParamTasks.greaterThan(0);
-    final ReadOnlyObjectProperty<WizardStepParameters> selectedIonInterface = combos.get(
-        WizardPart.ION_INTERFACE).getSelectionModel().selectedItemProperty();
-    final BooleanBinding imagingSelected = Bindings.createBooleanBinding(
-        () -> selectedIonInterface.get() != null && selectedIonInterface.get()
-            .getFactory() instanceof IonInterfaceWizardParameterFactory ionInterface
-            && ionInterface.isImaging(), selectedIonInterface);
-    final BooleanBinding autoParamDisabled = autoParamTaskRunning.or(imagingSelected);
-    return autoParamDisabled;
-  }
-
-  private void runOptimizer() {
-    if (runningAutoParamTasks.get() > 0) {
-      return;
-    }
-    updateAllParametersFromUi();
-    final WizardStepParameters importParam = sequenceSteps.get(DATA_IMPORT).get();
-    final @NotNull File[] allFiles = importParam.getParameter(DataImportWizardParameters.fileNames)
-        .getValue();
-    // selected once, the random selection must not change between pre-classification and run
-    final File[] optimizerFiles = RawDataPreparation.selectOptimizerInputFiles(allFiles);
-
-    if (optimizerFiles.length < 3) {
-      DialogLoggerUtil.showErrorDialog("Not enough files",
-          "The automated parameter optimisation requires ≥3 data files. Those data files"
-              + " need to be comparable (Same instrument, same method, similar or same sample)");
-      return;
-    }
-
-    final var metadataFile = importParam.getOptionalValue(DataImportWizardParameters.metadataFile)
-        .orElse(null);
-
-    preclassify(optimizerFiles, metadataFile, "Cannot optimize parameters",
-        preclassification -> startOptimizer(optimizerFiles, metadataFile, preclassification));
-  }
-
-  /**
-   * Shows the optimizer setup dialog after the pre-classification and starts the optimization.
-   *
-   * @param preclassification the settings fixed by the pre-classification, see
-   *                          {@link PreclassificationParameters}
-   */
-  private void startOptimizer(final File @NotNull [] optimizerFiles,
-      @Nullable final File metadataFile, @NotNull final ParameterSet preclassification) {
-    // keep edits made while the pre-classification was running
-    updateAllParametersFromUi();
-    final OptimizerParameters optimizerParam = (OptimizerParameters) ConfigService.getConfiguration()
-        .getModuleParameters(OptimizerModule.class);
-    // inject wizard sequence so the parameter checklist shows only relevant solutions
-    final ExitCode exitCode = optimizerParam.showSetupDialog(true, sequenceSteps);
-    if (exitCode != ExitCode.OK) {
-      return;
-    }
-
-    // a clone, so later edits of the module parameters do not change the running optimization
-    final BatchOptimizationMainTask optimizer = new BatchOptimizationMainTask(
-        MemoryMapStorage.forRawDataFile(), Instant.now(), optimizerFiles, metadataFile, this,
-        (OptimizerParameters) optimizerParam.cloneParameterSet(), preclassification);
-    // tracked like estimation, so no second run writes into the wizard and errors are shown
-    startAutoParamTask(optimizer, "Cannot optimize parameters");
-  }
-
-  /**
-   * Imports and pre-classifies the files in a background task, see {@link Preclassification}.
-   * Conflicts are shown as an error and stop the run, choices are asked in a dialog. Then continues
-   * on the JavaFX thread with the decided settings.
-   *
-   * @param errorTitle   title of error dialogs
-   * @param continuation receives the settings fixed by the pre-classification, see
-   *                     {@link PreclassificationParameters}
-   */
-  private void preclassify(final File @NotNull [] files, @Nullable final File metadataFile,
-      @NotNull final String errorTitle,
-      @NotNull final Consumer<@NotNull ParameterSet> continuation) {
-    // a copy, so the task never reads the live wizard off the JavaFX thread
-    final RawDataPreclassificationTask task = new RawDataPreclassificationTask(
-        MemoryMapStorage.forRawDataFile(), Instant.now(), files, metadataFile, sequenceSteps.copy(),
-        resolution -> {
-          final ParameterSet preclassification = resolvePreclassification(resolution, errorTitle);
-          if (preclassification != null) {
-            continuation.accept(preclassification);
-          }
-        });
-    startAutoParamTask(task, errorTitle);
-  }
-
-  /**
-   * @return the decided settings, or null if there was a conflict or the user cancelled
-   */
-  private @Nullable ParameterSet resolvePreclassification(
-      @NotNull final PreclassificationResult resolved, @NotNull final String errorTitle) {
-    if (resolved.hasConflicts()) {
-      DialogLoggerUtil.showErrorDialog(errorTitle, resolved.describeConflicts());
-      return null;
-    }
-    if (!resolved.needsUserChoice()) {
-      return resolved.parameters();
-    }
-    // decision: the dialog only shows the parameters that need a choice. They are the same
-    // instances as in the decided settings, so the dialog changes those
-    final ParameterSet choices = new SimpleParameterSet(
-        resolved.choiceParameters().toArray(new Parameter<?>[0]));
-    final ParameterSetupDialog dialog = new ParameterSetupDialog(true, choices,
-        FxTextFlows.newTextFlow(FxTexts.text(String.join("\n\n", resolved.choiceMessages()))));
-    dialog.showAndWait();
-    return dialog.getExitCode() == ExitCode.OK ? resolved.parameters() : null;
-  }
-
-  /**
-   * Starts a pre-classification, estimation, or optimization task. The estimate and optimize
-   * buttons are disabled while any of them runs, errors are shown in a dialog.
-   */
-  private void startAutoParamTask(@NotNull final AbstractTask task,
-      @NotNull final String errorTitle) {
-    // decision: a counter instead of a flag. A task hands its result to the JavaFX thread before
-    // it finishes, so the next task may already run when the previous one reports its end
-    runningAutoParamTasks.set(runningAutoParamTasks.get() + 1);
-    task.addTaskStatusListener((_, newStatus, _) -> {
-      if (!newStatus.isUnmodifiable()) {
-        return;
-      }
-      Platform.runLater(() -> {
-        runningAutoParamTasks.set(runningAutoParamTasks.get() - 1);
-        if (newStatus == TaskStatus.ERROR) {
-          DialogLoggerUtil.showErrorDialog(errorTitle, task.getErrorMessage());
-        }
-      });
-    });
-    TaskService.getController().addTask(task);
-  }
-
-  /**
-   * @param showStatistics opens the data file statistics dashboard after applying the estimates
-   */
-  private void estimateParametersFromFiles(final boolean showStatistics) {
-    if (runningAutoParamTasks.get() > 0) {
-      return;
-    }
-    updateAllParametersFromUi();
-    final WizardStepParameters importParameters = sequenceSteps.get(DATA_IMPORT).orElse(null);
-    if (importParameters == null) {
-      DialogLoggerUtil.showErrorDialog("Cannot estimate parameters",
-          "The wizard has no data import step.");
-      return;
-    }
-
-    final File[] allFiles = importParameters.getValue(DataImportWizardParameters.fileNames);
-    if (allFiles == null || allFiles.length == 0) {
-      DialogLoggerUtil.showErrorDialog("Cannot estimate parameters",
-          "Select at least one raw data file in the Data Import step first.");
-      return;
-    }
-    // selected once, the random selection must not change between pre-classification and run
-    final File[] estimateFiles = RawDataPreparation.selectOptimizerInputFiles(allFiles);
-
-    final File metadataFile = importParameters.getOptionalValue(
-        DataImportWizardParameters.metadataFile).orElse(null);
-    preclassify(estimateFiles, metadataFile, "Cannot estimate parameters",
-        preclassification -> startParameterEstimation(estimateFiles, metadataFile,
-            preclassification, showStatistics));
-  }
-
-  /**
-   * @param preclassification the settings fixed by the pre-classification, see
-   *                          {@link PreclassificationParameters}
-   */
-  private void startParameterEstimation(final File @NotNull [] estimateFiles,
-      @Nullable final File metadataFile, @NotNull final ParameterSet preclassification,
-      final boolean showStatistics) {
-    // keep edits made while the pre-classification was running
-    updateAllParametersFromUi();
-    final WizardSequence sequenceSnapshot = sequenceSteps.copy();
-    final WizardParameterEstimationTask task = new WizardParameterEstimationTask(
-        MemoryMapStorage.forRawDataFile(), Instant.now(), estimateFiles, metadataFile,
-        sequenceSnapshot, preclassification, this::confirmAndSwitchPresets,
-        result -> applyParameterEstimationResult(result, showStatistics));
-    startAutoParamTask(task, "Cannot estimate parameters");
-  }
-
-  private void applyParameterEstimationResult(@NotNull WizardParameterEstimationResult result,
-      final boolean showStatistics) {
-    applyParameterValues(sequence -> result.estimates().applyEstimates(sequence),
-        Source.ESTIMATION);
-    if (!showStatistics) {
-      return;
-    }
-    MZmineCore.getDesktop().addTab(new SimpleTab("Data File Statistics",
-        new DataFileStatisticsDashboardPane(result.statistics(), result.interSampleRtStatistics(),
-            result.context().massDetectorType())));
   }
 
   /**
@@ -1076,7 +854,7 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * Updates the parameters in all steps from the UI components. Does not check for completeness.
    */
-  private void updateAllParametersFromUi() {
+  void updateAllParametersFromUi() {
     paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
   }
 
