@@ -135,13 +135,14 @@ public final class OptimizationParameterRegistry {
       MinimumSearchFeatureResolverParameters.MIN_RATIO, ApplicationScope.FIRST,
       OptimizationRole.SELECTED_BY_DEFAULT, LOCAL_MINIMUM_RESOLVER,
       _ -> new ParameterEstimate<>(1.7d, ValueOrigin.HEURISTIC,
-          new DoubleSearchDomain(1.5d, 3d, SearchScale.LINEAR)));
+          new DoubleSearchDomain(1.5d, 3d, SearchScale.LINEAR), ParameterEstimators.FIXED_DEFAULT));
   static final BatchParameterDefinition<Double> CHROMATOGRAPHIC_THRESHOLD = new BatchParameterDefinition<>(
       "Chrom. Threshold", MinimumSearchFeatureResolverModule.class,
       MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL,
       ApplicationScope.FIRST, OptimizationRole.SELECTED_BY_DEFAULT, LOCAL_MINIMUM_RESOLVER,
       _ -> new ParameterEstimate<>(0.85d, ValueOrigin.HEURISTIC,
-          new DoubleSearchDomain(0.5d, 0.97d, SearchScale.LINEAR)));
+          new DoubleSearchDomain(0.5d, 0.97d, SearchScale.LINEAR),
+          ParameterEstimators.FIXED_DEFAULT));
 
   private static final List<ParameterDefinition<?>> ALL = sorted(Stream.concat(
       Stream.of(MINIMUM_FEATURE_HEIGHT, MS1_NOISE, MZ_TOLERANCE, SAMPLE_TO_SAMPLE_MZ_TOLERANCE,

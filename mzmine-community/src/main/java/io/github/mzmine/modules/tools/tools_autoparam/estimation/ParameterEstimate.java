@@ -28,7 +28,15 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchDomain;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @param note explains a value that is not estimated from the raw data, e.g., why the preset is
+ *             kept. Shown to the user, empty if there is nothing to explain.
+ */
 public record ParameterEstimate<T>(@NotNull T initialValue, @NotNull ValueOrigin origin,
-                                   @NotNull SearchDomain<T> searchDomain) {
+                                   @NotNull SearchDomain<T> searchDomain, @NotNull String note) {
 
+  public ParameterEstimate(@NotNull T initialValue, @NotNull ValueOrigin origin,
+      @NotNull SearchDomain<T> searchDomain) {
+    this(initialValue, origin, searchDomain, "");
+  }
 }

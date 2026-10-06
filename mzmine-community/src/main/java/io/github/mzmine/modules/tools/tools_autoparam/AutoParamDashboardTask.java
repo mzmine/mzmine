@@ -57,6 +57,7 @@ public class AutoParamDashboardTask extends AbstractTask {
 
   private final ParameterSet parameters;
   private final List<RawDataFile> files;
+  private double progress;
 
   public AutoParamDashboardTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull List<RawDataFile> files) {
@@ -72,7 +73,7 @@ public class AutoParamDashboardTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return progress;
   }
 
   @Override
@@ -90,6 +91,7 @@ public class AutoParamDashboardTask extends AbstractTask {
     }
 
     logger.info("Computed statistics for %d files".formatted(stats.size()));
+    progress = 0.8;
 
     if (DesktopService.isGUI()) {
       final InterSampleRtStatistics rtStatistics = ParameterEstimators.interSampleRtStatistics(
@@ -98,6 +100,7 @@ public class AutoParamDashboardTask extends AbstractTask {
           new DataFileStatisticsDashboardPane(stats, rtStatistics))));
     }
 
+    progress = 1d;
     setStatus(TaskStatus.FINISHED);
   }
 }

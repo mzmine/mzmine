@@ -66,6 +66,11 @@ public final class ParameterEstimators {
   // the median of the effective RT ranges is used if at least half of the files have one
   private static final double MIN_FILE_SHARE_FOR_CROP_RT = 0.5;
 
+  // notes that explain values that are not estimated from the raw data
+  private static final String NO_ISOTOPES = "no isotope envelopes found";
+  private static final String NO_ALIGNED_FILES = "needs features aligned across at least two files";
+  static final String FIXED_DEFAULT = "fixed default";
+
   private ParameterEstimators() {
   }
 
@@ -75,7 +80,8 @@ public final class ParameterEstimators {
     if (heights.length == 0) {
       return new ParameterEstimate<>(
           context.preset(WizardPart.MS, MassSpectrometerWizardParameters.minimumFeatureHeight),
-          ValueOrigin.PRESET_DEFAULT, new DoubleSearchDomain(100d, 1E8d, SearchScale.LOGARITHMIC));
+          ValueOrigin.PRESET_DEFAULT, new DoubleSearchDomain(100d, 1E8d, SearchScale.LOGARITHMIC),
+          NO_ISOTOPES);
     }
     return new ParameterEstimate<>(RawDataParameterEstimation.estimateMinHeight(heights),
         ValueOrigin.RAW_DATA,
@@ -89,7 +95,7 @@ public final class ParameterEstimators {
     if (widths.length == 0) {
       return new ParameterEstimate<>(context.preset(WizardPart.ION_INTERFACE,
           IonInterfaceHplcWizardParameters.approximateChromatographicFWHM),
-          ValueOrigin.PRESET_DEFAULT, rtDomain(0.005, 0.1));
+          ValueOrigin.PRESET_DEFAULT, rtDomain(0.005, 0.1), NO_ISOTOPES);
     }
     final double median = RawDataParameterEstimation.estimateFwhm(widths);
     return new ParameterEstimate<>(minutes(median), ValueOrigin.RAW_DATA,
@@ -102,7 +108,7 @@ public final class ParameterEstimators {
     if (scans.length == 0) {
       return new ParameterEstimate<>(context.preset(WizardPart.ION_INTERFACE,
           IonInterfaceHplcWizardParameters.minNumberOfDataPoints), ValueOrigin.PRESET_DEFAULT,
-          new IntegerSearchDomain(4, 10));
+          new IntegerSearchDomain(4, 10), NO_ISOTOPES);
     }
     // assumption: three scans are the physical minimum for a peak to have a shape.
     return new ParameterEstimate<>(
@@ -124,12 +130,15 @@ public final class ParameterEstimators {
     if (!factor && edges.length == 0) {
       return new ParameterEstimate<>(
           context.preset(WizardPart.MS, MassSpectrometerWizardParameters.massDetectorOption),
-          ValueOrigin.PRESET_DEFAULT, domain);
+          ValueOrigin.PRESET_DEFAULT, domain, NO_ISOTOPES);
     }
-    final double initial =
-        factor ? 5d : RawDataParameterEstimation.estimateAbsoluteNoiseLevel(edges);
-    return new ParameterEstimate<>(domain.decode(initial),
-        factor ? ValueOrigin.HEURISTIC : ValueOrigin.RAW_DATA, domain);
+    if (factor) {
+      return new ParameterEstimate<>(domain.decode(5d), ValueOrigin.HEURISTIC, domain,
+          "fixed factor for the mass detector type");
+    }
+    return new ParameterEstimate<>(
+        domain.decode(RawDataParameterEstimation.estimateAbsoluteNoiseLevel(edges)),
+        ValueOrigin.RAW_DATA, domain);
   }
 
   public static @NotNull ParameterEstimate<MZTolerance> mzTolerance(
@@ -142,9 +151,14 @@ public final class ParameterEstimators {
     final List<MZTolerance> all = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
     final int estimate = all.indexOf(
         RawDataParameterEstimation.estimateMzTolerance(context.analysis().files()));
+    final ChoiceSearchDomain<MZTolerance> domain = new ChoiceSearchDomain<>(
+        all.subList(lower, upper + 1), lower);
+    if (context.analysis().files().isEmpty()) {
+      return new ParameterEstimate<>(all.get(Math.clamp(estimate, lower, upper)),
+          ValueOrigin.HEURISTIC, domain, "no raw data statistics");
+    }
     return new ParameterEstimate<>(all.get(Math.clamp(estimate, lower, upper)),
-        context.analysis().files().isEmpty() ? ValueOrigin.HEURISTIC : ValueOrigin.RAW_DATA,
-        new ChoiceSearchDomain<>(all.subList(lower, upper + 1), lower));
+        ValueOrigin.RAW_DATA, domain);
   }
 
   /**
@@ -161,7 +175,7 @@ public final class ParameterEstimators {
       final MZTolerance preset = context.preset(WizardPart.MS,
           MassSpectrometerWizardParameters.sampleToSampleMzTolerance);
       return new ParameterEstimate<>(preset, ValueOrigin.PRESET_DEFAULT,
-          new ChoiceSearchDomain<>(List.of(preset)));
+          new ChoiceSearchDomain<>(List.of(preset)), NO_ALIGNED_FILES);
     }
     return new ParameterEstimate<>(estimate, ValueOrigin.RAW_DATA,
         new ChoiceSearchDomain<>(List.of(estimate)));
@@ -173,7 +187,7 @@ public final class ParameterEstimators {
     if (stats.isEmpty()) {
       return new ParameterEstimate<>(context.preset(WizardPart.ION_INTERFACE,
           IonInterfaceHplcWizardParameters.interSampleRTTolerance), ValueOrigin.PRESET_DEFAULT,
-          rtDomain(0.01, 0.2));
+          rtDomain(0.01, 0.2), NO_ALIGNED_FILES);
     }
     return new ParameterEstimate<>(minutes(stats.estimatedTolerance()), ValueOrigin.RAW_DATA,
         rtDomain(stats.lowerSearchBound(), stats.upperSearchBound()));
@@ -197,7 +211,8 @@ public final class ParameterEstimators {
     final double[] widths = context.analysis().fwhms();
     if (medians.length < 3 || widths.length == 0) {
       return new ParameterEstimate<>(context.preset(WizardPart.ION_INTERFACE,
-          IonInterfaceHplcWizardParameters.scanRtCorrection), ValueOrigin.PRESET_DEFAULT, domain);
+          IonInterfaceHplcWizardParameters.scanRtCorrection), ValueOrigin.PRESET_DEFAULT, domain,
+          "needs features aligned across at least three files");
     }
     // decision: require both an outlier relative to other files and a shift relevant to peak width.
     final double threshold = Math.max(3d * quantile(medians, 0.5),
@@ -230,7 +245,7 @@ public final class ParameterEstimators {
         final WizardMsPolarity preset = context.preset(WizardPart.MS,
             MassSpectrometerWizardParameters.polarity);
         yield new ParameterEstimate<>(preset, ValueOrigin.PRESET_DEFAULT,
-            new ChoiceSearchDomain<>(List.of(preset)));
+            new ChoiceSearchDomain<>(List.of(preset)), "no polarity filter needed");
       }
     };
   }
@@ -259,7 +274,7 @@ public final class ParameterEstimators {
       final Range<Double> preset = context.preset(WizardPart.ION_INTERFACE,
           IonInterfaceHplcWizardParameters.cropRtRange);
       return new ParameterEstimate<>(preset, ValueOrigin.PRESET_DEFAULT,
-          new ChoiceSearchDomain<>(List.of(preset)));
+          new ChoiceSearchDomain<>(List.of(preset)), "no retention time range found");
     }
     return new ParameterEstimate<>(range, ValueOrigin.RAW_DATA,
         new ChoiceSearchDomain<>(List.of(range)));
@@ -278,7 +293,7 @@ public final class ParameterEstimators {
     };
     return new ParameterEstimate<>(
         context.preset(WizardPart.IMS, IonMobilityWizardParameters.approximateImsFWHM),
-        ValueOrigin.PRESET_DEFAULT, domain);
+        ValueOrigin.PRESET_DEFAULT, domain, "not estimated from the raw data");
   }
 
   private static double quantile(double @NotNull [] sorted, double quantile) {

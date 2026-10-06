@@ -182,7 +182,8 @@ final class OptimizationBatchEvaluator {
           benchmarkFeatures.stream().parallel().mapToLong(record -> record.getNumMatches(rows))
               .sum());
     }
-    solution.setAttribute("Total features", featureList.streamFeatures().count());
+    solution.setAttribute(WizardOptimizationProblem.ATTR_TOTAL_FEATURES,
+        featureList.streamFeatures().count());
     solution.setAttribute("Rows (incl. isotopes)", featureList.getRows().size());
   }
 }

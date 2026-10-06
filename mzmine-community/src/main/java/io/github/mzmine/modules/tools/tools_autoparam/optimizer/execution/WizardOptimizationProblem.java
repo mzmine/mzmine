@@ -93,6 +93,10 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * set when a benchmark features file was supplied.
    */
   public static final String ATTR_BENCHMARK_FEATURES = "Target features";
+  /**
+   * Number of features in the evaluated feature list.
+   */
+  public static final String ATTR_TOTAL_FEATURES = "Total features";
   private static final Logger logger = Logger.getLogger(WizardOptimizationProblem.class.getName());
   /**
    * Whether the result was taken from {@link #evaluationCache} instead of running a batch. Kept

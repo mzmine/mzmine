@@ -65,6 +65,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -134,7 +135,11 @@ public class BatchOptimizationMainTask extends AbstractTask {
   /**
    * Maximum number of uncached full batch executions, including the raw-data estimate.
    */
-  private int totalBatchExecutions;
+  private final int totalBatchExecutions;
+  /**
+   * The current preparation step for the task description, null once the batches run.
+   */
+  private volatile @Nullable String preparationStep = "importing raw data files";
 
   @Nullable
   private AbstractAlgorithm optimizer;
@@ -195,6 +200,8 @@ public class BatchOptimizationMainTask extends AbstractTask {
     this.params = params;
     this.preclassification = preclassification;
     this.randomSeed = randomSeed;
+    totalBatchExecutions = Math.max(params.getValue(OptimizerParameters.iterations),
+        OptimizerParameters.MIN_ITERATIONS);
 
     addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.CANCELED && optimizer != null) {
@@ -223,18 +230,20 @@ public class BatchOptimizationMainTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    final int max = totalBatchExecutions > 0 ? totalBatchExecutions : 100;
+    final String step = preparationStep;
     final WizardOptimizationProblem currentProblem = problem;
-    final int completed = currentProblem != null ? currentProblem.getBatchExecutionCount() : 0;
-    return "Performing batch optimization. Full batch %d/%d".formatted(completed, max);
+    if (step != null || currentProblem == null) {
+      return "Parameter optimization: " + Objects.requireNonNullElse(step, "preparing");
+    }
+    return "Parameter optimization: full batch %d/%d".formatted(
+        currentProblem.getBatchExecutionCount(), totalBatchExecutions);
   }
 
   @Override
   public double getFinishedPercentage() {
-    final int max = totalBatchExecutions > 0 ? totalBatchExecutions : 100;
     final WizardOptimizationProblem currentProblem = problem;
     return currentProblem != null ? Math.min(1d,
-        (double) currentProblem.getBatchExecutionCount() / max) : 0d;
+        (double) currentProblem.getBatchExecutionCount() / totalBatchExecutions) : 0d;
   }
 
   /**
@@ -283,6 +292,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
     addTaskStatusListener((_, _, _) -> initialMemoryOption.enforceToMemoryMapping());
 
     final List<RawDataFile> importedFiles = RawDataPreparation.importFilesBlocking(files, metadata);
+    preparationStep = "classifying raw data files";
     final ParameterSet runPreclassification =
         preclassification != null ? preclassification : preclassifyWithoutUser(importedFiles);
     if (runPreclassification == null) {
@@ -294,6 +304,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
             params.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
             params.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
 
+    preparationStep = "computing raw data statistics and estimates";
     // if confirmed, the wizard switches to the presets that fit the raw data and every candidate is
     // evaluated with them.
     // decision: headless runs keep the given presets, so scripted comparisons stay reproducible
@@ -307,7 +318,6 @@ public class BatchOptimizationMainTask extends AbstractTask {
       return;
     }
     final List<DataFileStatistics> stats = estimation.statistics();
-    stats.forEach(stat -> logger.info(stat.getMzToleranceForIsotopes().toString()));
     final ParameterEstimationContext estimationContext = estimation.context();
     final PreparedParameterSet singlePassEstimates = estimation.estimates();
     final PresetSelection presets = estimationContext.presetSelection();
@@ -317,11 +327,11 @@ public class BatchOptimizationMainTask extends AbstractTask {
 
     // set a specific seed to make the results deterministic, see DEFAULT_RANDOM_SEED
     PRNG.setSeed(randomSeed);
-    totalBatchExecutions = Math.max(params.getValue(OptimizerParameters.iterations), 30);
     final WizardOptimizationProblem optimizationProblem = new WizardOptimizationProblem(
         estimationContext, singlePassEstimates, params, externalStatus, totalBatchExecutions,
         stopSearchRequested::get);
     problem = optimizationProblem;
+    preparationStep = null;
     final boolean showExtendedStatistics = params.getValue(
         OptimizerParameters.showExtendedStatistics);
     if (DesktopService.isGUI() && showExtendedStatistics) {
@@ -340,6 +350,16 @@ public class BatchOptimizationMainTask extends AbstractTask {
     // solutions and the logged comparison is meaningful in both cases
     SolutionOrigin.ESTIMATE.applyTo(singlePassSolution);
     optimizationProblem.evaluate(singlePassSolution);
+    // decision: without features every score is 0, so the search has nothing to improve on
+    if (singlePassSolution.getAttribute(
+        WizardOptimizationProblem.ATTR_TOTAL_FEATURES) instanceof Number features
+        && features.longValue() == 0) {
+      error("""
+          The batch with the raw data estimates produced no features, the optimization was \
+          stopped. Check the selected files and the wizard settings, e.g., the minimum feature \
+          height.""");
+      return;
+    }
 
     // decision: derive the shape rejection limit from the estimate's own measured rate, so the
     // limit adapts to the dataset instead of being an absolute guess

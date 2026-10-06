@@ -76,9 +76,14 @@ public class OptimizerParameters extends SimpleParameterSet {
           "Optional file with additional benchmark features.", ExtensionFilters.CSV_TSV_IMPORT,
           FileSelectionType.OPEN));
 
+  /**
+   * The search needs some batches after the raw data estimate to improve on it.
+   */
+  public static final int MIN_ITERATIONS = 30;
+
   public static final IntegerParameter iterations = new IntegerParameter("Iterations",
       "Maximum number of uncached full batch executions, including the raw-data estimate. Cached "
-          + "duplicate proposals do not consume this budget.", 70, 30, 10_000);
+          + "duplicate proposals do not consume this budget.", 70, MIN_ITERATIONS, 10_000);
 
   public static final OptionalParameter<DoubleParameter> maxShapeRejectionFactor = new OptionalParameter<>(
       new DoubleParameter("Max shape rejection factor", """
@@ -125,8 +130,8 @@ public class OptimizerParameters extends SimpleParameterSet {
   }
 
   /**
-   * Convenience factory for programmatic use (e.g. tests). Passes the given metrics as the
-   * selection and leaves benchmark file options disabled.
+   * Convenience factory for programmatic use (e.g. tests). Uses MOEA/D, which accepts several
+   * metrics, with the given metrics as targets and leaves benchmark file options disabled.
    */
   public static @NotNull ParameterSet create(@NotNull List<SweepMetric> metrics,
       int numIterations) {

@@ -37,7 +37,7 @@ public record PreparedParameter<T>(@NotNull ParameterDefinition<T> definition,
 
   public PreparedParameter {
     estimate = new ParameterEstimate<>(estimate.searchDomain().constrain(estimate.initialValue()),
-        estimate.origin(), estimate.searchDomain());
+        estimate.origin(), estimate.searchDomain(), estimate.note());
   }
 
   /**
@@ -55,12 +55,21 @@ public record PreparedParameter<T>(@NotNull ParameterDefinition<T> definition,
     return estimate.searchDomain();
   }
 
+  /**
+   * @return explains a value that is not estimated from the raw data, empty if there is nothing to
+   * explain
+   */
+  public @NotNull String note() {
+    return estimate.note();
+  }
+
   public void applyInitialValue(@NotNull WizardSequence sequence) {
     definition.apply(sequence, initialValue());
   }
 
   public @NotNull String describe() {
+    final String origin = note().isBlank() ? origin().toString() : origin() + ", " + note();
     return "%s: %s (%s)".formatted(definition.name(), searchDomain().format(initialValue()),
-        origin());
+        origin);
   }
 }

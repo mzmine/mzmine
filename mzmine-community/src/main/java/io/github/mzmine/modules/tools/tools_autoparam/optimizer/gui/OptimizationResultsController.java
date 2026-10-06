@@ -224,16 +224,19 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   }
 
   public void applyToWizardSequence() {
-
-    final ButtonType choice = ((MZmineGUI) DesktopService.getDesktop()).displayConfirmation(
-        "Information", """
-            This will replace the current wizard parameters.
-            Continue?""", ButtonType.YES, ButtonType.NO);
-    if (choice != ButtonType.YES) {
-      return;
+    if (confirmWizardOverride("This will replace the current wizard parameters.")) {
+      applySelectedSolutionToWizard();
     }
+  }
 
-    applySelectedSolutionToWizard();
+  /**
+   * @param action explains what replaces the wizard parameters
+   * @return true if the user accepts that the wizard parameters are replaced
+   */
+  private boolean confirmWizardOverride(@NotNull String action) {
+    final ButtonType choice = ((MZmineGUI) DesktopService.getDesktop()).displayConfirmation(
+        "Information", action + "\nContinue?", ButtonType.YES, ButtonType.NO);
+    return choice == ButtonType.YES;
   }
 
   /**
@@ -280,7 +283,17 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     }
   }
 
+  /**
+   * Applies the selected solution to the wizard and creates its batch.
+   *
+   * @return the batch, null if the user cancelled or the batch could not be created
+   */
   private @Nullable BatchQueue createOptimizedBatch() {
+    if (!confirmWizardOverride("""
+        The batch is created from the wizard, so the selected solution replaces the current \
+        wizard parameters.""")) {
+      return null;
+    }
     applySelectedSolutionToWizard();
 
     final WizardSequence sequenceSteps = wizardTab.getSequence();
@@ -305,6 +318,9 @@ public class OptimizationResultsController extends FxController<OptimizationResu
 
   private void runBatchFilterResults() {
     final BatchQueue q = createOptimizedBatch();
+    if (q == null) {
+      return;
+    }
     final BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);

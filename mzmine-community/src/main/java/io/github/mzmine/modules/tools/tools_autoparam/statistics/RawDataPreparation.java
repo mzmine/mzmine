@@ -164,8 +164,26 @@ public final class RawDataPreparation {
 
     final Set<String> files = new HashSet<>(
         List.of(filesToImport).stream().map(File::getName).toList());
-    return project.getCurrentRawDataFiles().stream()
+    final List<RawDataFile> imported = project.getCurrentRawDataFiles().stream()
         .filter(raw -> files.contains(raw.getFileName())).toList();
+    warnIfPartiallyImported(files, imported);
+    return imported;
+  }
+
+  /**
+   * A partial import continues with the imported files. No files fail the callers.
+   */
+  private static void warnIfPartiallyImported(@NotNull Set<String> requested,
+      @NotNull List<RawDataFile> imported) {
+    if (imported.isEmpty() || imported.size() >= requested.size()) {
+      return;
+    }
+    final Set<String> missing = new HashSet<>(requested);
+    imported.forEach(raw -> missing.remove(raw.getFileName()));
+    final String message = "Only %d of %d raw data files were imported, continuing without: %s".formatted(
+        imported.size(), requested.size(), String.join(", ", missing));
+    logger.warning(message);
+    NotificationService.show(NotificationType.WARNING, "Raw data files missing", message);
   }
 
   private static @NotNull String describeImportErrors(@NotNull List<? extends Task> tasks) {

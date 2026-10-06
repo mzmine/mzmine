@@ -12,8 +12,7 @@ Detailed measurements and rejected algorithm pilots are recorded in
 ## Decisions
 
 - Retain deterministic pattern search for single-objective optimization and MOEA/D for genuine
-  multi-objective searches. MOEA/D remains the default until the smaller pattern-search campaign
-  is accepted as sufficient product validation.
+  multi-objective searches. Pattern search is the default optimizer.
 - GP-ARD, multivariate TPE, and standalone Sobol search were removed after matched pilot runs did
   not outperform pattern search. Sobol remains shared infrastructure for MOEA/D warm starts and
   pattern-search restarts. The pilot CSVs remain under

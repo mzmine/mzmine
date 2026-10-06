@@ -56,7 +56,8 @@ final class WaveletParameterDefinitions {
             ApplicationScope.FIRST, OptimizationRole.OPTIONAL_SELECTION, PRESETS,
             value -> override("snr", value),
             _ -> new ParameterEstimate<>(4d, ValueOrigin.HEURISTIC,
-                new DoubleSearchDomain(3d, 10d, SearchScale.LINEAR))),
+                new DoubleSearchDomain(3d, 10d, SearchScale.LINEAR),
+                ParameterEstimators.FIXED_DEFAULT)),
         enumDefinition("Wavelet noise calculation", "noiseCalculation"),
         enumDefinition("Wavelet baseline method", "baselineMethod"));
   }
@@ -72,7 +73,7 @@ final class WaveletParameterDefinitions {
       final List<Enum<?>> choices = Arrays.stream(initial.getDeclaringClass().getEnumConstants())
           .<Enum<?>>map(constant -> constant).toList();
       return new ParameterEstimate<>(initial, ValueOrigin.PRESET_DEFAULT,
-          new ChoiceSearchDomain<>(choices));
+          new ChoiceSearchDomain<>(choices), "module default");
     });
   }
 

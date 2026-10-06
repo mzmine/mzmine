@@ -496,7 +496,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
 
   @Override
   public String getTaskDescription() {
-    return "";
+    return "Computing raw data statistics of " + file.getName();
   }
 
   public @NotNull RawDataFile getDataFile() {

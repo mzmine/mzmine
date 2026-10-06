@@ -444,9 +444,9 @@ public class EstimateVsOptimumTest {
     rows.add(new ComparisonRow(dataset.name(), seed, "metric", METRIC.name(),
         estimate.getObjectiveValue(0), objectiveOrNull(perturbed), objectiveOrNull(front)));
     rows.add(new ComparisonRow(dataset.name(), seed, "diagnostic", "Total features",
-        attributeAsDouble(estimate, "Total features"),
-        attributeAsDouble(perturbed, "Total features"),
-        attributeAsDouble(front, "Total features")));
+        attributeAsDouble(estimate, WizardOptimizationProblem.ATTR_TOTAL_FEATURES),
+        attributeAsDouble(perturbed, WizardOptimizationProblem.ATTR_TOTAL_FEATURES),
+        attributeAsDouble(front, WizardOptimizationProblem.ATTR_TOTAL_FEATURES)));
     rows.add(new ComparisonRow(dataset.name(), seed, "diagnostic",
         ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT,
         attributeAsDouble(estimate, ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT),
