@@ -88,6 +88,7 @@ public class PostColumnReactionTask extends AbstractFeatureListTask {
   private final double corrThreshold;
   private final boolean checkFormulaPred;
   private FormulaPredictionFeatureListParameters predParamSet;
+  private final String tpName;
 
 
   public PostColumnReactionTask(@NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -96,6 +97,9 @@ public class PostColumnReactionTask extends AbstractFeatureListTask {
     //Define feature list for processing
     this.flist = parameters.getParameter(PostColumnReactionParameters.flist).getValue()
         .getMatchingFeatureLists()[0];
+
+    //Define name of transformation products for automated annotation
+    this.tpName = parameters.getParameter(PostColumnReactionParameters.tpName).getValue();
 
     //Define unreacted raw datafiles
     RawDataFilesSelection unreactedSelection = parameters.getParameter(
@@ -265,7 +269,7 @@ public class PostColumnReactionTask extends AbstractFeatureListTask {
         String baseAnnotation = baseRow.getPreferredAnnotationName();
         if (baseAnnotation != null) {
           String roundedMz = String.valueOf(Math.round(correlatedRow.getAverageMZ()));
-          String baseTpAnnotation = baseAnnotation + "_ETP_" + roundedMz;
+          String baseTpAnnotation = baseAnnotation + "_" + tpName + "_" + roundedMz;
 
           // To handle multiple ETPs with the same parent and nominal m/z (e.g. isobars), a letter suffix ('b', 'c', ...) is appended if required. This ensures a unique name for each new ETP.
 

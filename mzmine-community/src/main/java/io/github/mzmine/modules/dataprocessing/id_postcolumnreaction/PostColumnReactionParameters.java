@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -54,6 +55,10 @@ public class PostColumnReactionParameters extends SimpleParameterSet {
       new PercentParameter("Apply shape correlation threshold",
           "Set a correlation score at which features are considered for transformation product annotation in %",
           0.4), true);
+
+  public static final StringParameter tpName = new StringParameter(
+      "Name of transformation products",
+      "Set a name to be used for automated annotation of transformation products (e.g., 'TP').");
 
   @Override
   public @Nullable Region getMessage() {
