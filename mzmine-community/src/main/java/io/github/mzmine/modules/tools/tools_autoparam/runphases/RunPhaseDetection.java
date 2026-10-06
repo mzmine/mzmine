@@ -85,36 +85,28 @@ public final class RunPhaseDetection {
    */
   public static @Nullable SimpleFloatRange detect(@NotNull RawDataFile file,
       @NotNull List<? extends Scan> ms1Scans) {
-    final RunPhaseAnalysis analysis = analyze(file, ms1Scans);
-    // decision: no range from fallbacks only, callers decide how to handle undetected files
-    if (analysis.traces() == null || !analysis.phases().hasDetection()) {
+    if (ms1Scans.size() < MIN_SCANS) {
       return null;
     }
-    return analysis.phases().effectiveRtRange();
+    final RunPhases phases = analyze(file, ms1Scans);
+    // decision: no range from fallbacks only, callers decide how to handle undetected files
+    return phases.hasDetection() ? phases.effectiveRtRange() : null;
   }
 
   /**
-   * Same as {@link #detect(RawDataFile, List)} but also returns the traces for diagnostics.
+   * @param ms1Scans at least {@link #MIN_SCANS} MS1 scans
    */
-  static @NotNull RunPhaseAnalysis analyze(@NotNull RawDataFile file,
+  private static @NotNull RunPhases analyze(@NotNull RawDataFile file,
       @NotNull List<? extends Scan> ms1Scans) {
     final int n = ms1Scans.size();
-    if (n < MIN_SCANS) {
-      final double last = n == 0 ? 0 : ms1Scans.getLast().getRetentionTime();
-      return new RunPhaseAnalysis(RunPhases.undetected(last), null);
-    }
-
     final double[] rt = new double[n];
     final double[] tic = new double[n];
-    final double[] basePeak = new double[n];
     for (int i = 0; i < n; i++) {
       final MassSpectrum spectrum = TraceMath.spectrum(ms1Scans.get(i));
       rt[i] = ms1Scans.get(i).getRetentionTime();
       double sum = 0;
       for (int j = 0; j < spectrum.getNumberOfDataPoints(); j++) {
-        final double intensity = spectrum.getIntensityValue(j);
-        sum += intensity;
-        basePeak[i] = Math.max(basePeak[i], intensity);
+        sum += spectrum.getIntensityValue(j);
       }
       tic[i] = sum;
     }
@@ -156,12 +148,8 @@ public final class RunPhaseDetection {
         scansPerMinute, pumpBound);
     final SaltEvents saltEvents = SaltClusters.events(rt, salt, logTic, pumpBound);
 
-    final RunPhases phases = new RunPhases(ms.flowOn(), ms.flowOff(), ms.voidTime(), ms.washStart(),
+    return new RunPhases(ms.flowOn(), ms.flowOff(), ms.voidTime(), ms.washStart(),
         ms.reequilibration(), saltEvents.earlyEnd(), saltEvents.lateStart(), solvent, pressure);
-    final RunPhaseTraces traces = new RunPhaseTraces(rt, logTic, basePeak, background.suppression(),
-        background.gradient(), background.rising(), background.falling(), salt, ions,
-        background.correlation(), background.saltIon(), solventTrace, pressureTrace);
-    return new RunPhaseAnalysis(phases, traces);
   }
 
   /**

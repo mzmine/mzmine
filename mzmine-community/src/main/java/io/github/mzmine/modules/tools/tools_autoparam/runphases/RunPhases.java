@@ -51,14 +51,6 @@ record RunPhases(double flowOn, double flowOff, double voidTime, double washStar
   private static final double PRESSURE_END_EXTENSION = 0.05;
 
   /**
-   * @return phases without any detection, the effective range is the full run
-   */
-  static @NotNull RunPhases undetected(double lastRt) {
-    return new RunPhases(Double.NaN, lastRt, Double.NaN, Double.NaN, Double.NaN, Double.NaN,
-        Double.NaN, GradientEnd.NONE, GradientEnd.NONE);
-  }
-
-  /**
    * The latest of flow on, void and salt plug end.
    * <p>
    * decision: no derived start after the void (e.g. background recovery), it cut real early peaks.

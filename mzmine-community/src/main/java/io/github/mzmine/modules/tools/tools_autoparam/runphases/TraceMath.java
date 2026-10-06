@@ -25,9 +25,13 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.runphases;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
@@ -54,25 +58,16 @@ final class TraceMath {
   static double maxInTolerance(@NotNull MassSpectrum spectrum, double mz,
       @NotNull MZTolerance tolerance) {
     final double tol = tolerance.getMzToleranceForMass(mz);
-    final int numDp = spectrum.getNumberOfDataPoints();
-    int lo = 0;
-    int hi = numDp - 1;
-    while (lo <= hi) {
-      final int mid = (lo + hi) >>> 1;
-      if (spectrum.getMzValue(mid) < mz - tol) {
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;
-      }
-    }
-    double max = 0;
-    for (int j = lo; j < numDp && spectrum.getMzValue(j) <= mz + tol; j++) {
-      max = Math.max(max, spectrum.getIntensityValue(j));
-    }
-    return max;
+    final DataPoint basePeak = ScanUtils.findBasePeak(spectrum, mz - tol, mz + tol);
+    return basePeak != null ? basePeak.getIntensity() : 0;
   }
 
   /**
+   * decision: not {@link io.github.mzmine.util.MathUtils#calcMedian(double[])}. NaN marks
+   * undetected values and must stay NaN for an empty input, where MathUtils returns 0. The upper
+   * middle element (no interpolation) is what the run phase thresholds were tuned with, the same
+   * applies to {@link #quantile(double[], double)}.
+   *
    * @return median ignoring NaN values, NaN if there are no values
    */
   static double median(double @NotNull [] values) {
@@ -158,9 +153,13 @@ final class TraceMath {
    * @return the first index with rt >= time, the last index if there is none
    */
   static int indexAtRt(double @NotNull [] rt, double time) {
-    int i = 0;
-    while (i < rt.length - 1 && rt[i] < time) {
-      i++;
+    int i = BinarySearch.binarySearch(rt, time, DefaultTo.GREATER_EQUALS);
+    if (i == -1) {
+      return rt.length - 1;
+    }
+    // an exact match may be any of several equal retention times
+    while (i > 0 && rt[i - 1] >= time) {
+      i--;
     }
     return i;
   }

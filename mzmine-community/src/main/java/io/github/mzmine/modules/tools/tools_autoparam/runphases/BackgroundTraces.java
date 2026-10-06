@@ -33,15 +33,10 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param suppression S, median normalized log10 intensity of all background ions. Drops when the
  *                    ions vanish (no flow, void)
- * @param gradient    G = rising - falling, a proxy for the solvent composition. NaN where too few
- *                    group ions are detected
- * @param rising      median normalized log10 intensity of the ions that rise over the run
- * @param falling     median normalized log10 intensity of the ions that fall over the run
- * @param correlation Spearman correlation of each ion with the scan index, 0 for salt ions
- * @param saltIon     true for background ions that are sodium formate clusters
+ * @param gradient    G = rising - falling, the median normalized log10 intensities of the ions that
+ *                    rise and fall over the run. A proxy for the solvent composition. NaN where
+ *                    too few group ions are detected
  */
-record BackgroundTraces(double @NotNull [] suppression, double @NotNull [] gradient,
-                        double @NotNull [] rising, double @NotNull [] falling,
-                        double @NotNull [] correlation, boolean @NotNull [] saltIon) {
+record BackgroundTraces(double @NotNull [] suppression, double @NotNull [] gradient) {
 
 }

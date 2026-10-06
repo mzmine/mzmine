@@ -138,8 +138,6 @@ final class BackgroundIons {
     final int numFalling = (int) Arrays.stream(correlation).filter(r -> r < -CORRELATION_THRESHOLD)
         .count();
     final double[] suppression = new double[n];
-    final double[] rising = new double[n];
-    final double[] falling = new double[n];
     final double[] gradient = new double[n];
     for (int i = 0; i < n; i++) {
       final List<Double> all = new ArrayList<>(ions.length);
@@ -161,13 +159,10 @@ final class BackgroundIons {
       }
       // assumption: without background ions nothing indicates no flow, S stays at its level
       suppression[i] = all.isEmpty() ? 0 : TraceMath.median(all);
-      rising[i] = groupValue(numRising, up);
-      falling[i] = groupValue(numFalling, down);
-      gradient[i] = rising[i] - falling[i];
+      gradient[i] = groupValue(numRising, up) - groupValue(numFalling, down);
     }
     return new BackgroundTraces(TraceMath.rollingMedian(suppression, window),
-        TraceMath.rollingMedian(gradient, window), TraceMath.rollingMedian(rising, window),
-        TraceMath.rollingMedian(falling, window), correlation, saltIon);
+        TraceMath.rollingMedian(gradient, window));
   }
 
   /**
