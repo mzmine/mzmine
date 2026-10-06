@@ -34,7 +34,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.impl.ComposedParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

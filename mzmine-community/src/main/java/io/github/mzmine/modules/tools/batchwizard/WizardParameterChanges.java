@@ -106,7 +106,7 @@ public record WizardParameterChanges(@NotNull WizardParameterChanges.Source sour
     public FxIcons icon() {
       return switch (this) {
         case NONE -> null;
-        case ESTIMATION -> FxIcons.LIGHTBULB;
+        case ESTIMATION -> FxIcons.LIGHTBULB_FILL;
         case OPTIMIZATION -> FxIcons.GRAPH_UP;
       };
     }

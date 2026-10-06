@@ -43,7 +43,7 @@ public enum FxIcons implements IconCodeSupplier {
 
   //
   USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, TOGGLE_SWITCH, YOUTUBE, DEVELOPMENT, BOOK, //
-  ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET, GRAPH_UP,
+  ROCKET, LIGHTBULB, LIGHTBULB_FILL, METADATA_TABLE, TABLE, SPREADSHEET, GRAPH_UP,
 
   // ACTIONS
   SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH, COLLAPSE, EXPAND;
@@ -104,7 +104,8 @@ public enum FxIcons implements IconCodeSupplier {
       case PLUS -> "bi-plus";
       case PLUS_CIRCLE -> "bi-plus-circle";
       case COLUMNS_DOTS -> "bi-three-dots";
-      case LIGHTBULB -> "bi-lightbulb-fill";
+      case LIGHTBULB -> "bi-lightbulb";
+      case LIGHTBULB_FILL -> "bi-lightbulb-fill";
       case QUESTIONMARK -> "bi-question-circle";
       case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
       case LINK -> "bi-link-45deg";
