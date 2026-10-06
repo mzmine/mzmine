@@ -26,13 +26,14 @@
 package io.github.mzmine.modules.tools.tools_autoparam.statistics;
 
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.List;
 
 /**
  * Ordered tolerance choices shared by statistics and parameter estimation.
  */
 public final class MzToleranceSearchOptions {
 
-  public static final MZTolerance[] ALL_TOLERANCE_OPTIONS = new MZTolerance[]{ //
+  public static final List<MZTolerance> ALL_TOLERANCE_OPTIONS = List.of( //
       new MZTolerance(0.0005, 2), // 0
       new MZTolerance(0.001, 5), //  1
       new MZTolerance(0.003, 7), //  2
@@ -44,7 +45,7 @@ public final class MzToleranceSearchOptions {
       new MZTolerance(0.05, 25), //  8
       new MZTolerance(0.1, 25), //   9
       new MZTolerance(0.3, 25), //  10
-      new MZTolerance(0.5, 25)}; // 11
+      new MZTolerance(0.5, 25)); // 11
 
   /**
    * Index of the widest tolerance estimated for a high-resolution mass spectrometer preset (QTOF

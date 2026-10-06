@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -70,8 +69,7 @@ class AutoParamTaskImsMzmlTest {
     Assertions.assertNotNull(stats);
 
     // IMS files are only searched within the high-resolution tolerances
-    final List<MZTolerance> imsTolerances = Arrays.asList(
-            MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS)
+    final List<MZTolerance> imsTolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS
         .subList(0, MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1);
     for (final MzToMzTolerancePair pair : stats.getBestTolerances()) {
       Assertions.assertTrue(imsTolerances.contains(pair.tolerance()), pair::toString);

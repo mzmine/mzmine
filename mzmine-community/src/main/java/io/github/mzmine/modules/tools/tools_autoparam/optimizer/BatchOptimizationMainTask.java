@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
@@ -41,10 +40,9 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatisticsDashboardPane;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimators;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataAnalysis;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationResult;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.BatchExecutionLimitReachedException;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.OptimizationSearchStoppedException;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.TaskStatusTerminationCondition;
@@ -296,35 +294,30 @@ public class BatchOptimizationMainTask extends AbstractTask {
             params.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
             params.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
 
-    final PolarityType polarity = runPreclassification.getValue(
-        PreclassificationParameters.polarity).toScanPolaritySelection();
-    final List<DataFileStatistics> stats = RawDataPreparation.computeFileStatistics(importedFiles,
-        benchmarkFeatures, getMemoryMapStorage(), polarity);
-    stats.forEach(stat -> logger.info(stat.getMzToleranceForIsotopes().toString()));
-    RawDataPreparation.requireIsotopeSignals(stats);
-
-    // set a specific seed to make the results deterministic, see DEFAULT_RANDOM_SEED
-    PRNG.setSeed(randomSeed);
-
-    totalBatchExecutions = Math.max(params.getValue(OptimizerParameters.iterations), 30);
-    final RawDataAnalysis analysis = RawDataAnalysis.analyze(stats);
     // if confirmed, the wizard switches to the presets that fit the raw data and every candidate is
     // evaluated with them.
     // decision: headless runs keep the given presets, so scripted comparisons stay reproducible
     final Predicate<PresetSelection> presetConfirmation =
         tab != null ? presetSelection -> confirmPresetsOnFxThread(tab, presetSelection)
             : _ -> false;
-    final ParameterEstimationContext estimationContext = ParameterEstimationContext.withFittingPresets(
-        analysis, sequence, runPreclassification, presetConfirmation);
-    if (getStatus() != TaskStatus.PROCESSING) {
+    final WizardParameterEstimationResult estimation = WizardParameterEstimationResult.estimate(
+        importedFiles, benchmarkFeatures, sequence, runPreclassification, presetConfirmation,
+        getMemoryMapStorage(), () -> getStatus() != TaskStatus.PROCESSING);
+    if (estimation == null) {
       return;
     }
+    final List<DataFileStatistics> stats = estimation.statistics();
+    stats.forEach(stat -> logger.info(stat.getMzToleranceForIsotopes().toString()));
+    final ParameterEstimationContext estimationContext = estimation.context();
+    final PreparedParameterSet singlePassEstimates = estimation.estimates();
     final PresetSelection presets = estimationContext.presetSelection();
     if (!presets.isEmpty()) {
       logger.info("Optimizing with presets that fit the raw data:\n" + presets.describe());
     }
-    final PreparedParameterSet singlePassEstimates = PreparedParameterSet.prepare(
-        estimationContext);
+
+    // set a specific seed to make the results deterministic, see DEFAULT_RANDOM_SEED
+    PRNG.setSeed(randomSeed);
+    totalBatchExecutions = Math.max(params.getValue(OptimizerParameters.iterations), 30);
     final WizardOptimizationProblem optimizationProblem = new WizardOptimizationProblem(
         estimationContext, singlePassEstimates, params, externalStatus, totalBatchExecutions,
         stopSearchRequested::get);
@@ -334,8 +327,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
     if (DesktopService.isGUI() && showExtendedStatistics) {
       final List<DataFileStatistics> dashboardStats = List.copyOf(stats);
       FxThread.runLater(() -> MZmineCore.getDesktop().addTab(new SimpleTab("Auto Param Statistics",
-          new DataFileStatisticsDashboardPane(dashboardStats,
-              ParameterEstimators.interSampleRtStatistics(analysis),
+          new DataFileStatisticsDashboardPane(dashboardStats, estimation.interSampleRtStatistics(),
               estimationContext.massDetectorType()))));
     }
     final AtomicReference<OptimizationResultsController> resultsController = new AtomicReference<>();

@@ -79,7 +79,7 @@ public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featu
    * order of the tolerance array.
    */
   public @NotNull Map<MZTolerance, Integer> extractToleranceCounts() {
-    final MZTolerance[] allTolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
+    final List<MZTolerance> allTolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
     final Map<MZTolerance, Integer> counts = new LinkedHashMap<>();
     for (MZTolerance tol : allTolerances) {
       counts.put(tol, 0);

@@ -124,7 +124,7 @@ class PreparedParameterSetTest {
         withValue(OptimizationParameterRegistry.MS1_NOISE,
             new WizardMassDetectorNoiseLevels(MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, 500,
                 200), context), withValue(OptimizationParameterRegistry.MZ_TOLERANCE,
-            MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[4], context)));
+            MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(4), context)));
     estimates.applyEstimates(sequence);
     final var lc = sequence.get(WizardPart.ION_INTERFACE).orElseThrow();
     Assertions.assertEquals(0.08,
@@ -132,7 +132,7 @@ class PreparedParameterSetTest {
             .getToleranceInMinutes(), 1e-6);
     Assertions.assertEquals(6, lc.getValue(IonInterfaceHplcWizardParameters.minNumberOfDataPoints));
     final var ms = sequence.get(WizardPart.MS).orElseThrow();
-    Assertions.assertEquals(MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[4],
+    Assertions.assertEquals(MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(4),
         ms.getValue(MassSpectrometerWizardParameters.scanToScanMzTolerance));
     final WizardMassDetectorNoiseLevels noise = ms.getValue(
         MassSpectrometerWizardParameters.massDetectorOption);
@@ -291,8 +291,8 @@ class PreparedParameterSetTest {
 
   @Test
   void crossFileMzToleranceIsDerivedFromCountsDuringPreparation() {
-    final var narrow = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[2];
-    final var wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[5];
+    final var narrow = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(2);
+    final var wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(5);
     final RawDataAnalysis analysis = new RawDataAnalysis(List.of(), new double[0], new double[0],
         new double[0], new double[0], new double[0], new double[0],
         java.util.Map.of(narrow, 2, wide, 8));

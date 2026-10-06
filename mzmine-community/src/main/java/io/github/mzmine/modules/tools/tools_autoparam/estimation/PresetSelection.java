@@ -42,7 +42,6 @@ import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSear
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataParameterEstimation;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import java.util.ArrayList;
@@ -284,8 +283,8 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
 
     // decision: switch above the widest high-resolution range (QTOF) for both presets. An Orbitrap
     // estimate within the QTOF range is still high-resolution data and is limited to its range.
-    final int estimatedIndex = ArrayUtils.indexOf(estimatedTolerance,
-        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS);
+    final int estimatedIndex = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.indexOf(
+        estimatedTolerance);
     if (estimatedIndex > MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX && allowed.contains(
         MassSpectrometerWizardParameterFactory.LOW_RES)) {
       return new PresetChange(WizardPart.MS, current,

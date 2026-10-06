@@ -82,7 +82,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
 
   private static final Logger logger = Logger.getLogger(AutoParamTask.class.getName());
 
-  private static final MZTolerance[] tolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
+  private static final List<MZTolerance> tolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
   /**
    * Number of additional seed peaks per spectrum besides the base peak.
    */
@@ -285,10 +285,8 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     }
     // decision: the mass spectrometer presets allowed with ion mobility are never estimated with
     // a wider tolerance, and wide merges distort the frame spectra
-    final List<MZTolerance> testedTolerances =
-        file instanceof IMSRawDataFile ? Arrays.asList(tolerances)
-            .subList(0, MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1)
-            : Arrays.asList(tolerances);
+    final List<MZTolerance> testedTolerances = file instanceof IMSRawDataFile ? tolerances
+            .subList(0, MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1) : tolerances;
     // needs only the MS1 mass lists, cheap compared to the isotope trace extraction below
     final SimpleFloatRange effectiveRtRange = RunPhaseDetection.detect(file, scans);
     logger.finest("Effective RT range of %s: %s".formatted(file.getName(), effectiveRtRange));

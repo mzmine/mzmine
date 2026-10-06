@@ -25,13 +25,11 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
-import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -102,28 +100,13 @@ public final class WizardParameterEstimationTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-      if (importedFiles.isEmpty()) {
-        throw new IllegalStateException("None of the selected wizard files could be imported.");
-      }
 
-      final PolarityType polarity = preclassification.getValue(PreclassificationParameters.polarity)
-          .toScanPolaritySelection();
-      final List<DataFileStatistics> statistics = RawDataPreparation.computeFileStatistics(
-          importedFiles, null, getMemoryMapStorage(), polarity);
-      RawDataPreparation.requireIsotopeSignals(statistics);
-      progress = 0.8;
-      if (isCanceled()) {
+      final WizardParameterEstimationResult result = WizardParameterEstimationResult.estimate(
+          importedFiles, null, sequence, preclassification, this::confirmPresetsOnFxThread,
+          getMemoryMapStorage(), this::isCanceled);
+      if (result == null) {
         return;
       }
-
-      final RawDataAnalysis analysis = RawDataAnalysis.analyze(statistics);
-      final ParameterEstimationContext context = ParameterEstimationContext.withFittingPresets(
-          analysis, sequence, preclassification, this::confirmPresetsOnFxThread);
-      if (isCanceled()) {
-        return;
-      }
-      final WizardParameterEstimationResult result = new WizardParameterEstimationResult(context,
-          PreparedParameterSet.prepare(context));
       progress = 1d;
       FxThread.runLater(() -> onFinished.accept(result));
       setStatus(TaskStatus.FINISHED);

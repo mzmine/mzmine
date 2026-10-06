@@ -281,14 +281,14 @@ class PresetSelectionTest {
     // TWIMS only allows QTOF, the mass spectrometer is selected for the switched ion mobility
     final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
         IonMobilityWizardParameterFactory.TWIMS, MassSpectrometerWizardParameterFactory.QTOF);
-    final MZTolerance narrow = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[2];
+    final MZTolerance narrow = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(2);
     final PresetChange orbitrap = PresetSelection.selectMassSpectrometer(narrow, true, sequence,
         IonMobilityWizardParameterFactory.NO_IMS);
     Assertions.assertNotNull(orbitrap);
     Assertions.assertEquals(MassSpectrometerWizardParameterFactory.Orbitrap, orbitrap.to());
 
-    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
-        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.length - 1];
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(
+        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.size() - 1);
     final PresetChange lowRes = PresetSelection.selectMassSpectrometer(wide, false, sequence,
         IonMobilityWizardParameterFactory.NO_IMS);
     Assertions.assertNotNull(lowRes);
@@ -297,8 +297,8 @@ class PresetSelectionTest {
 
   @Test
   void toleranceAboveHighResolutionRangeSwitchesToLowRes() {
-    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
-        MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1];
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(
+        MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1);
     for (final MassSpectrometerWizardParameterFactory ms : List.of(
         MassSpectrometerWizardParameterFactory.QTOF,
         MassSpectrometerWizardParameterFactory.Orbitrap)) {
@@ -314,7 +314,8 @@ class PresetSelectionTest {
 
   @Test
   void toleranceWithinHighResolutionRangeKeepsHighRes() {
-    final MZTolerance widestHighRes = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX];
+    final MZTolerance widestHighRes = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(
+        MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX);
     // the Orbitrap range ends below, but the data are still high-resolution data
     Assertions.assertNull(PresetSelection.selectMassSpectrometer(widestHighRes, true,
         sequence(IonInterfaceWizardParameterFactory.HPLC,
@@ -328,8 +329,8 @@ class PresetSelectionTest {
 
   @Test
   void lowResRequiresAnIonMobilityPresetThatAllowsIt() {
-    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
-        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.length - 1];
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(
+        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.size() - 1);
     Assertions.assertNull(PresetSelection.selectMassSpectrometer(wide, false,
         sequence(IonInterfaceWizardParameterFactory.HPLC, IonMobilityWizardParameterFactory.TIMS,
             MassSpectrometerWizardParameterFactory.QTOF), IonMobilityWizardParameterFactory.TIMS));
@@ -337,8 +338,8 @@ class PresetSelectionTest {
 
   @Test
   void otherMassSpectrometersAreKeptForWideTolerances() {
-    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
-        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.length - 1];
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(
+        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.size() - 1);
     for (final MassSpectrometerWizardParameterFactory ms : List.of(
         MassSpectrometerWizardParameterFactory.Orbitrap_Astral,
         MassSpectrometerWizardParameterFactory.FTICR)) {

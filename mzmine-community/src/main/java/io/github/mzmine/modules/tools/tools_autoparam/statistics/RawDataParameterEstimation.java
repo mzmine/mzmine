@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MathUtils;
 import java.util.List;
 import java.util.Map.Entry;
@@ -123,10 +122,10 @@ public final class RawDataParameterEstimation {
         .collect(Collectors.toMap(Entry::getKey, Entry::getValue, Integer::sum)).entrySet().stream()
         .max(Entry.comparingByValue()).map(Entry::getKey)
         .orElse(MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
-    final MZTolerance[] options = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
-    final int estimatedIndex = Math.clamp(ArrayUtils.indexOf(mostFrequentTolerance, options) + 1, 0,
-        options.length - 1);
-    return options[estimatedIndex];
+    final List<MZTolerance> options = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
+    final int estimatedIndex = Math.clamp(options.indexOf(mostFrequentTolerance) + 1, 0,
+        options.size() - 1);
+    return options.get(estimatedIndex);
   }
 
   /**

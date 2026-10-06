@@ -340,8 +340,8 @@ public class EstimateVsOptimumTest {
         continue;
       }
       final int index = OrdinalIntegerVariable.getInt(solution, i);
-      final MZTolerance[] options = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
-      return index >= 0 && index < options.length ? options[index] : null;
+      final List<MZTolerance> options = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
+      return index >= 0 && index < options.size() ? options.get(index) : null;
     }
     return null;
   }

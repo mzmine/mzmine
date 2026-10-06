@@ -70,7 +70,7 @@ class DataFileStatisticsDashboardPaneTest {
 
   @Test
   void usesTheDefaultToleranceEstimateWithoutObservedSignals() {
-    Assertions.assertEquals(MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[4],
+    Assertions.assertEquals(MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(4),
         RawDataParameterEstimation.estimateMzTolerance(List.of()));
   }
 

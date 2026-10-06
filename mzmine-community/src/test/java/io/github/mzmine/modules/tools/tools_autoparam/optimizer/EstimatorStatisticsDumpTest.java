@@ -193,8 +193,7 @@ public class EstimatorStatisticsDumpTest {
     counts.forEach((tol, count) -> {
       for (int i = 0; i < count; i++) {
         valueWriter.printf(Locale.ROOT, "%s,mzToleranceIndex,%d%n", dataset.name(),
-            io.github.mzmine.util.ArrayUtils.indexOf(tol,
-                MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS));
+            MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.indexOf(tol));
       }
     });
 

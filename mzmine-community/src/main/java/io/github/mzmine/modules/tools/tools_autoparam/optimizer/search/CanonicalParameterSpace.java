@@ -99,11 +99,6 @@ final class CanonicalParameterSpace {
     return range > 0 ? 1d / range : 1d;
   }
 
-  int ordinalLevels(int dimension) {
-    return ordinal[dimension] ? upperIntegerBounds[dimension] - lowerIntegerBounds[dimension] + 1
-        : 0;
-  }
-
   @NotNull double[] encode(@NotNull Solution solution) {
     if (solution.getNumberOfVariables() != dimensions()) {
       throw new IllegalArgumentException("solution has the wrong number of variables");

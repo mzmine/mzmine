@@ -139,7 +139,7 @@ public final class ParameterEstimators {
     final int upper = context.lowResolution() ? 11
         : context.massDetectorType() == MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL ? 4
             : MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX;
-    final List<MZTolerance> all = List.of(MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS);
+    final List<MZTolerance> all = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
     final int estimate = all.indexOf(
         RawDataParameterEstimation.estimateMzTolerance(context.analysis().files()));
     return new ParameterEstimate<>(all.get(Math.clamp(estimate, lower, upper)),
