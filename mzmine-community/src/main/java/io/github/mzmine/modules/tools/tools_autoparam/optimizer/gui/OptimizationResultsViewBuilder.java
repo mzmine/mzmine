@@ -220,13 +220,16 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     }
 
     if (stage != null) {
-      final Button closeButton = FxButtons.createButton("Close", FxIcons.CANCEL, null, () -> {
+      final Runnable close = () -> {
         if (stopSearch != null) {
           stopSearch.run();
         }
         stage.hide();
-      });
+      };
+      final Button closeButton = FxButtons.createButton("Close", FxIcons.CANCEL, null, close);
       buttonBar.getButtons().add(closeButton);
+      // the window close button must also stop the search, otherwise it continues hidden
+      stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, _ -> close.run());
     }
 
     return borderPane;

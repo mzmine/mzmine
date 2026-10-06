@@ -31,6 +31,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplc
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.OptimizationParameterRegistry;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
@@ -131,6 +132,26 @@ class WizardOptimizationProblemParameterTest {
     parameters.setParameter(OptimizerParameters.paramToOptimize, selected);
     return new WizardOptimizationProblem(context, prepared, parameters,
         new AtomicReference<>(TaskStatus.PROCESSING), 30, () -> false);
+  }
+
+  @Test
+  void selectionsForUnusedPresetsAreNotOptimized() {
+    // the default selection contains the mobility FWHM, but the sequence has no ion mobility
+    final WizardSequence sequence = fullSequence();
+    sequence.set(WizardPart.IMS, IonMobilityWizardParameterFactory.NO_IMS.create());
+    final ParameterEstimationContext context = ParameterEstimationTestData.context(sequence);
+    final PreparedParameterSet prepared = PreparedParameterSet.prepare(context);
+    final List<ParameterDefinition<?>> defaults = OptimizationParameterRegistry.defaultSolutions();
+    final List<ParameterDefinition<?>> applicable = prepared.applicable(defaults);
+    Assertions.assertTrue(applicable.size() < defaults.size());
+
+    final WizardOptimizationProblem problem = problem(context, prepared, defaults);
+    Assertions.assertEquals(applicable,
+        problem.getIndexedParameters().stream().map(p -> p.parameter().definition()).toList());
+
+    final List<ParameterDefinition<?>> unused = defaults.stream()
+        .filter(definition -> !applicable.contains(definition)).toList();
+    Assertions.assertThrows(IllegalStateException.class, () -> problem(context, prepared, unused));
   }
 
   @Test

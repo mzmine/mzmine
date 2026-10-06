@@ -55,6 +55,20 @@ public record PreparedParameterSet(@NotNull List<PreparedParameter<?>> parameter
   }
 
   /**
+   * The optimizer selection may contain definitions for presets that are not used: items hidden in
+   * the setup dialog stay selected, and the preset confirmation may switch presets after the
+   * dialog.
+   *
+   * @return the selected definitions that are prepared for this wizard, in selection order
+   */
+  public @NotNull List<ParameterDefinition<?>> applicable(
+      @NotNull List<ParameterDefinition<?>> selected) {
+    final Set<ParameterDefinition<?>> prepared = parameters.stream()
+        .map(PreparedParameter::definition).collect(Collectors.toSet());
+    return selected.stream().filter(prepared::contains).toList();
+  }
+
+  /**
    * Applies measured estimates and heuristics, preserving unrelated current wizard edits.
    */
   public void applyEstimates(@NotNull WizardSequence sequence) {

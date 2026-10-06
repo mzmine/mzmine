@@ -61,6 +61,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.moeaframework.core.Solution;
@@ -163,10 +164,19 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
       @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param,
       @NotNull AtomicReference<TaskStatus> externalStatus, int maxBatchExecutions,
       @NotNull BooleanSupplier stopSearchRequestedSupplier) {
+    this(estimationContext, prepared, param, resolveParamToOptimize(prepared, param),
+        externalStatus, maxBatchExecutions, stopSearchRequestedSupplier);
+  }
+
+  private WizardOptimizationProblem(@NotNull ParameterEstimationContext estimationContext,
+      @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param,
+      @NotNull List<ParameterDefinition<?>> paramToOptimize,
+      @NotNull AtomicReference<TaskStatus> externalStatus, int maxBatchExecutions,
+      @NotNull BooleanSupplier stopSearchRequestedSupplier) {
 
     // decision: super() must be first — use static helper for objective count before enabledMetrics field is assigned
-    super(param.getValue(OptimizerParameters.paramToOptimize).size(),
-        calculateNumberOfObjectives(param), calculateNumberOfConstraints(param));
+    super(paramToOptimize.size(), calculateNumberOfObjectives(param),
+        calculateNumberOfConstraints(param));
 
     final List<DataFileStatistics> stats = estimationContext.analysis().files();
 
@@ -176,7 +186,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
             param.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
     batchExecutionBudget = new BatchExecutionBudget(maxBatchExecutions);
     target = Objects.requireNonNull(BenchmarkFeatureLoader.fromStatistics(stats));
-    paramToOptimize = List.copyOf(param.getValue(OptimizerParameters.paramToOptimize));
+    this.paramToOptimize = List.copyOf(paramToOptimize);
     this.stopSearchRequestedSupplier = stopSearchRequestedSupplier;
     enabledMetrics = List.copyOf(OptimizerParameters.getOptimizationTargets(param));
 
@@ -188,6 +198,30 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
     preparedParameters = prepared;
     indexedParameters = IndexedParameter.bind(preparedParameters, paramToOptimize);
+  }
+
+  /**
+   * Only the selected parameters that apply to the final wizard presets are optimized. Must be
+   * static because it is needed inside the {@code super(...)} call.
+   *
+   * @throws IllegalStateException if none of the selected parameters applies
+   */
+  static @NotNull List<ParameterDefinition<?>> resolveParamToOptimize(
+      @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param) {
+    final List<ParameterDefinition<?>> selected = param.getValue(
+        OptimizerParameters.paramToOptimize);
+    final List<ParameterDefinition<?>> applicable = prepared.applicable(selected);
+    if (applicable.isEmpty()) {
+      throw new IllegalStateException("""
+          None of the selected parameters to optimize applies to the wizard presets. \
+          Select at least one of the listed parameters.""");
+    }
+    if (applicable.size() < selected.size()) {
+      logger.fine(() -> "Not optimized, the wizard presets do not use: " + selected.stream()
+          .filter(definition -> !applicable.contains(definition)).map(ParameterDefinition::name)
+          .collect(Collectors.joining(", ")));
+    }
+    return applicable;
   }
 
   /**
