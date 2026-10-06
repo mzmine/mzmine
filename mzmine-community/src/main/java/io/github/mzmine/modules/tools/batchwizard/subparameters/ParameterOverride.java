@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -43,12 +42,9 @@ import org.jetbrains.annotations.Nullable;
  * Represents a single parameter override for a specific module parameter. This class is
  * serializable so it can be saved/loaded with wizard presets.
  */
-public final class ParameterOverride {
-
-  private final @NotNull String moduleClassName;
-  private final @NotNull String moduleUniqueId;
-  private final @NotNull Parameter<?> parameterWithValue;
-  private final @NotNull ApplicationScope scope;
+public record ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleUniqueId,
+                                @NotNull Parameter<?> parameterWithValue,
+                                @NotNull ApplicationScope scope) {
 
   private static final Logger logger = Logger.getLogger(ParameterOverride.class.getName());
 
@@ -57,12 +53,7 @@ public final class ParameterOverride {
    */
   public <T> ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleUniqueId,
       @NotNull Parameter<T> parameter, @Nullable T value, @NotNull ApplicationScope scope) {
-    this.moduleClassName = moduleClassName;
-    this.moduleUniqueId = moduleUniqueId;
-    final Parameter<T> clone = parameter.cloneParameter();
-    clone.setValue(value);
-    this.parameterWithValue = clone;
-    this.scope = scope;
+    this(moduleClassName, moduleUniqueId, cloneWithValue(parameter, value), scope);
   }
 
   /**
@@ -75,32 +66,11 @@ public final class ParameterOverride {
         scope);
   }
 
-  public @NotNull String moduleClassName() {
-    return moduleClassName;
-  }
-
-  public @NotNull String moduleUniqueId() {
-    return moduleUniqueId;
-  }
-
-  public @NotNull Parameter<?> parameterWithValue() {
-    return parameterWithValue;
-  }
-
-  public @NotNull ApplicationScope scope() {
-    return scope;
-  }
-
-  @Override
-  public boolean equals(@Nullable Object other) {
-    return other instanceof ParameterOverride override && moduleClassName.equals(
-        override.moduleClassName) && moduleUniqueId.equals(override.moduleUniqueId)
-        && parameterWithValue.equals(override.parameterWithValue) && scope == override.scope;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(moduleClassName, moduleUniqueId, parameterWithValue, scope);
+  private static <T> @NotNull Parameter<T> cloneWithValue(@NotNull Parameter<T> parameter,
+      @Nullable T value) {
+    final Parameter<T> clone = parameter.cloneParameter();
+    clone.setValue(value);
+    return clone;
   }
 
   /**
