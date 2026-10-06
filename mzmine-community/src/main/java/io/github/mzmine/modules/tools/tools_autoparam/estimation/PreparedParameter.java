@@ -33,18 +33,34 @@ import org.jetbrains.annotations.NotNull;
  * Dataset-specific values stay attached to the definition, independent of vector ordering.
  */
 public record PreparedParameter<T>(@NotNull ParameterDefinition<T> definition,
-                                   @NotNull T initialValue, @NotNull ValueOrigin origin,
-                                   @NotNull SearchDomain<T> searchDomain) {
+                                   @NotNull ParameterEstimate<T> estimate) {
 
   public PreparedParameter {
-    initialValue = searchDomain.constrain(initialValue);
+    estimate = new ParameterEstimate<>(estimate.searchDomain().constrain(estimate.initialValue()),
+        estimate.origin(), estimate.searchDomain());
+  }
+
+  /**
+   * @return the estimated value, constrained to the search domain
+   */
+  public @NotNull T initialValue() {
+    return estimate.initialValue();
+  }
+
+  public @NotNull ValueOrigin origin() {
+    return estimate.origin();
+  }
+
+  public @NotNull SearchDomain<T> searchDomain() {
+    return estimate.searchDomain();
   }
 
   public void applyInitialValue(@NotNull WizardSequence sequence) {
-    definition.apply(sequence, initialValue);
+    definition.apply(sequence, initialValue());
   }
 
   public @NotNull String describe() {
-    return "%s: %s (%s)".formatted(definition.name(), searchDomain.format(initialValue), origin);
+    return "%s: %s (%s)".formatted(definition.name(), searchDomain().format(initialValue()),
+        origin());
   }
 }

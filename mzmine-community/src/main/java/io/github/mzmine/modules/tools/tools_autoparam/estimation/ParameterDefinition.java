@@ -65,8 +65,6 @@ public sealed interface ParameterDefinition<T> permits WizardParameterDefinition
   void apply(@NotNull WizardSequence sequence, @NotNull T value);
 
   default @NotNull PreparedParameter<T> prepare(@NotNull ParameterEstimationContext context) {
-    final ParameterEstimate<T> estimate = estimator().apply(context);
-    return new PreparedParameter<>(this, estimate.initialValue(), estimate.origin(),
-        estimate.searchDomain());
+    return new PreparedParameter<>(this, estimator().apply(context));
   }
 }

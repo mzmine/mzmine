@@ -39,7 +39,6 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSe
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.DoubleSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.IntegerSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.MappedSearchDomain;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.RtSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
@@ -290,8 +289,12 @@ public final class ParameterEstimators {
     return new RTTolerance((float) value, Unit.MINUTES);
   }
 
-  private static @NotNull RtSearchDomain rtDomain(double lower, double upper) {
-    return new RtSearchDomain(new DoubleSearchDomain(lower, upper, SearchScale.LINEAR));
+  /**
+   * Search coordinates are minutes; values retain their unit.
+   */
+  private static @NotNull MappedSearchDomain<RTTolerance> rtDomain(double lower, double upper) {
+    return new MappedSearchDomain<>(new DoubleSearchDomain(lower, upper, SearchScale.LINEAR),
+        RTTolerance::getToleranceInMinutes, ParameterEstimators::minutes, RTTolerance::toString);
   }
 
   public static @Nullable MZTolerance estimateSampleToSampleMzTolerance(

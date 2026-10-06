@@ -36,7 +36,6 @@ import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclass
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataParameterEstimation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -154,32 +153,6 @@ public final class ParameterEstimationContext {
 
   public @NotNull WizardSequence sequence() {
     return sequence;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
-    }
-    var that = (ParameterEstimationContext) obj;
-    return Objects.equals(this.analysis, that.analysis) && Objects.equals(this.sequence,
-        that.sequence) && Objects.equals(this.presetSelection, that.presetSelection)
-        && Objects.equals(this.preclassification, that.preclassification);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(analysis, sequence, presetSelection, preclassification);
-  }
-
-  @Override
-  public String toString() {
-    return "ParameterEstimationContext[" + "analysis=" + analysis + ", " + "sequence=" + sequence
-        + ", " + "presetSelection=" + presetSelection + ", " + "preclassification="
-        + preclassification + ']';
   }
 
 }

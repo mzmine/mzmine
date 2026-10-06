@@ -68,9 +68,10 @@ the estimator. Search domains convert composite values; optional wavelet reflect
 
 Each definition's estimator receives a `ParameterEstimationContext` and returns a
 `ParameterEstimate<T>`: initial value, `ValueOrigin`, and `SearchDomain<T>`. Keep estimation and
-range rules together. Use `DoubleSearchDomain`, `IntegerSearchDomain`, `RtSearchDomain`, or
-`ChoiceSearchDomain<T>` as appropriate. `MappedSearchDomain<T>` supports composite values controlled
-by one continuous coordinate. Explicitly declare linear or logarithmic continuous search.
+range rules together. Use `DoubleSearchDomain`, `IntegerSearchDomain`, or `ChoiceSearchDomain<T>`
+as appropriate. `MappedSearchDomain<T>` supports composite or unit-carrying values controlled by one
+continuous coordinate, e.g. RT tolerances searched in minutes. Explicitly declare linear or
+logarithmic continuous search.
 
 Each definition declares
 

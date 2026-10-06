@@ -71,8 +71,8 @@ class PreparedParameterSetTest {
   private static <T> @NotNull PreparedParameter<T> withValue(
       @NotNull ParameterDefinition<T> definition, @NotNull T value,
       @NotNull ParameterEstimationContext context) {
-    return new PreparedParameter<>(definition, value, ValueOrigin.RAW_DATA,
-        definition.prepare(context).searchDomain());
+    return new PreparedParameter<>(definition, new ParameterEstimate<>(value, ValueOrigin.RAW_DATA,
+        definition.prepare(context).searchDomain()));
   }
 
   @Test
