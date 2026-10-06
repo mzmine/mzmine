@@ -72,6 +72,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -80,6 +81,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.objective.Minimize;
+import org.moeaframework.core.objective.Objective;
 import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.core.variable.Variable;
 
@@ -377,12 +379,11 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
       }
     }
 
-    final List<ObjectiveWrapper> wrappers = ObjectiveWrapper.extract(solutions);
     TableColumn<Solution, Number> preferredSortColumn = null;
-    for (ObjectiveWrapper wrapper : wrappers) {
-      final TableColumn<Solution, Number> col = wrapper.createColumn();
+    for (int i = 0; i < template.getNumberOfObjectives(); i++) {
+      final TableColumn<Solution, Number> col = createObjectiveColumn(template.getObjective(i), i);
       solutionTable.getColumns().add(col);
-      if (wrapper.index() == model.getPreferredSortObjectiveIndex()) {
+      if (i == model.getPreferredSortObjectiveIndex()) {
         preferredSortColumn = col;
       }
     }
@@ -407,6 +408,21 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
               Objects.requireNonNullElse(s.getAttribute(attribute), "").toString()));
       solutionTable.getColumns().add(col);
     }
+  }
+
+  /**
+   * A score column with a bar, colored by the direction of the objective.
+   */
+  private @NotNull TableColumn<Solution, Number> createObjectiveColumn(@NotNull Objective objective,
+      int index) {
+    final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
+    final Color color =
+        objective instanceof Minimize ? palette.getNegativeColor() : palette.getPositiveColor();
+    final TableColumn<Solution, Number> column = TableColumns.createColumn(objective.getName(), 140,
+        threeDecimals, ColumnAlignment.RIGHT,
+        s -> new ReadOnlyDoubleWrapper(s.getObjectiveValue(index)));
+    column.setCellFactory(_ -> new BarTableCell(color, threeDecimals));
+    return column;
   }
 
   private int evaluationIndex(@NotNull Solution solution) {

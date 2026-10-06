@@ -52,8 +52,8 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.FrontSolutionRanker;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
@@ -115,7 +115,8 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     model.getParameters().setAll(optimization.getIndexedParameters());
     this.stage = stage;
     this.stopSearchAction = stopSearchAction;
-    model.preferredSortObjectiveIndexProperty().set(preferredSortObjectiveIndex());
+    model.preferredSortObjectiveIndexProperty()
+        .set(FrontSolutionRanker.tieBreakObjectiveIndex(optimization.getEnabledMetrics()));
     model.singlePassSolutionProperty().set(singlePassSolution);
     rebuildDisplayedSolutions();
   }
@@ -140,8 +141,8 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     model.resultProperty().set(result);
     model.stopSearchRequestedProperty().set(false);
     rebuildDisplayedSolutions();
-    final Solution preferred = FrontSolutionRanker.selectBestAverageRank(result.asList(),
-        model.getPreferredSortObjectiveIndex());
+    final Solution preferred = FrontSolutionRanker.selectBest(result.asList(),
+        optimization.getEnabledMetrics());
     model.preferredFrontSolutionProperty().set(preferred);
     model.selectedSolutionProperty().set(preferred);
     model.optimizationRunningProperty().set(false);
@@ -154,16 +155,6 @@ public class OptimizationResultsController extends FxController<OptimizationResu
           "Parameter optimization has finished." + selectionMessage, true);
       stage.requestFocus();
     }
-  }
-
-  private int preferredSortObjectiveIndex() {
-    final List<SweepMetric> metrics = optimization.getEnabledMetrics();
-    for (int i = 0; i < metrics.size(); i++) {
-      if (metrics.get(i).preferredForRanking()) {
-        return i;
-      }
-    }
-    return 0;
   }
 
   /**

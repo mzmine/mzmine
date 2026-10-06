@@ -57,59 +57,26 @@ public final class OptimizationResultLogger {
   }
 
   /**
-   * Logs comparison between single-pass results and the best MOEA solution (by the metric that is
-   * {@link SweepMetric#preferredForRanking()}, or the first maximized metric).
+   * Logs comparison between single-pass results and the best optimized solution, selected the same
+   * way as in the results window, see {@link FrontSolutionRanker#selectBest(List, List)}.
    */
   public static void logComparison(@NotNull Solution singlePass,
-      @NotNull NondominatedPopulation moeaResult, @NotNull List<SweepMetric> enabledMetrics) {
+      @NotNull NondominatedPopulation result, @NotNull List<SweepMetric> enabledMetrics) {
+    final Solution best = FrontSolutionRanker.selectBest(result.asList(), enabledMetrics);
 
-    // find the harmonic slaw-isotopes metric index, fallback to first maximize metric
-    final int compareIndex = findComparisonMetricIndex(enabledMetrics);
-    if (compareIndex < 0) {
-      logger.info("No maximize metric found for single-pass vs MOEA comparison.");
-      return;
-    }
-
-    final String compareName = enabledMetrics.get(compareIndex).name();
-
-    // find best MOEA solution by the comparison metric
-    Solution bestMoea = null;
-    double bestScore = Double.NEGATIVE_INFINITY;
-    for (final Solution sol : moeaResult) {
-      final double score = sol.getObjectiveValue(compareIndex);
-      if (score > bestScore) {
-        bestScore = score;
-        bestMoea = sol;
-      }
-    }
-
-    final StringBuilder sb = new StringBuilder("\n=== Single-pass vs MOEA comparison ===\n");
-    sb.append("  %-30s  %15s  %15s%n".formatted("Metric", "Single-pass", "MOEA best"));
+    final StringBuilder sb = new StringBuilder("\n=== Single-pass vs optimized comparison ===\n");
+    sb.append("  %-30s  %15s  %15s%n".formatted("Metric", "Single-pass", "Optimized best"));
     sb.append("  %-30s  %15s  %15s%n".formatted("-".repeat(30), "-".repeat(15), "-".repeat(15)));
     for (int i = 0; i < enabledMetrics.size(); i++) {
       final double spValue = singlePass.getObjectiveValue(i);
-      final double moeaValue = bestMoea != null ? bestMoea.getObjectiveValue(i) : Double.NaN;
+      final double bestValue = best != null ? best.getObjectiveValue(i) : Double.NaN;
       sb.append(
-          "  %-30s  %15.4f  %15.4f%n".formatted(enabledMetrics.get(i).name(), spValue, moeaValue));
+          "  %-30s  %15.4f  %15.4f%n".formatted(enabledMetrics.get(i).name(), spValue, bestValue));
     }
-    sb.append("  Comparison metric: %s%n".formatted(compareName));
-    sb.append("  MOEA Pareto frontier size: %d%n".formatted(moeaResult.size()));
+    sb.append("  Best: average rank across all metrics, ties by %s%n".formatted(
+        enabledMetrics.get(FrontSolutionRanker.tieBreakObjectiveIndex(enabledMetrics)).name()));
+    sb.append("  Pareto front size: %d%n".formatted(result.size()));
     logger.info(sb.toString());
-  }
-
-  private static int findComparisonMetricIndex(@NotNull List<SweepMetric> enabledMetrics) {
-    for (int i = 0; i < enabledMetrics.size(); i++) {
-      if (enabledMetrics.get(i).preferredForRanking()) {
-        return i;
-      }
-    }
-    // fallback: first maximize metric
-    for (int i = 0; i < enabledMetrics.size(); i++) {
-      if (enabledMetrics.get(i).higherIsBetter()) {
-        return i;
-      }
-    }
-    return -1;
   }
 
 }

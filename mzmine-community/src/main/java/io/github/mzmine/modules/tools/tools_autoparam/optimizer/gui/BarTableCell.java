@@ -25,10 +25,8 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.gui;
 
-import io.github.mzmine.javafx.components.util.FxLayout;
 import java.text.NumberFormat;
 import java.util.Objects;
-import java.util.logging.Logger;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ObservableList;
@@ -37,41 +35,44 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import org.jetbrains.annotations.NotNull;
 import org.moeaframework.core.Solution;
 
+/**
+ * Shows a number with a bar relative to the largest value in the column. The bar scales with the
+ * column width and is empty for values at or below 0.
+ */
 public class BarTableCell extends TableCell<Solution, Number> {
 
-  private final NumberFormat formatter;
-  private final Label label;
-  private final Rectangle rect;
+  private static final double BAR_HEIGHT = 16;
+
   private final DoubleProperty widthFraction = new SimpleDoubleProperty(0d);
 
-  private static final Logger logger = Logger.getLogger(BarTableCell.class.getName());
+  public BarTableCell(@NotNull Color color, @NotNull NumberFormat formatter) {
+    final Label label = new Label();
+    final Region bar = new Region();
+    bar.setBackground(new Background(
+        new BackgroundFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.5),
+            CornerRadii.EMPTY, Insets.EMPTY)));
+    // decision: no preferred width, so the bar follows the column width and never widens it
+    bar.setMinWidth(0);
+    bar.setPrefWidth(0);
+    bar.setMinHeight(BAR_HEIGHT);
+    bar.setMaxHeight(BAR_HEIGHT);
 
-  public BarTableCell(Color color, NumberFormat formatter) {
-    this.formatter = formatter;
-    label = new Label();
-    rect = new Rectangle();
-    rect.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.5));
-    rect.setHeight(16);
+    final StackPane content = new StackPane(bar, label);
+    StackPane.setAlignment(bar, Pos.CENTER_LEFT);
+    StackPane.setAlignment(label, Pos.CENTER_RIGHT);
+    bar.maxWidthProperty().bind(content.widthProperty().multiply(widthFraction));
+
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-
-    final StackPane stackPane = new StackPane();
-    final FlowPane labelAlignment = FxLayout.newFlowPane(Pos.CENTER_RIGHT, Insets.EMPTY, label);
-    final FlowPane rectAlignment = FxLayout.newFlowPane(Pos.CENTER_LEFT, Insets.EMPTY, rect);
-
-    stackPane.getChildren().addAll(rectAlignment, labelAlignment);
-
-    final BorderPane content = new BorderPane(stackPane);
-    setGraphic(content);
     setMinWidth(USE_PREF_SIZE);
-
-    rect.widthProperty().bind(widthFraction.multiply(100));
 
     itemProperty().subscribe(item -> {
       if (item == null) {
@@ -80,19 +81,23 @@ public class BarTableCell extends TableCell<Solution, Number> {
       }
       setGraphic(content);
       label.setText(formatter.format(item));
-
       final ObservableList<Solution> items = getTableColumn().getTableView().getItems();
-
       double max = 0d;
       for (int i = 0; i < items.size(); i++) {
         max = Math.max(
             Objects.requireNonNullElse(getTableColumn().getCellData(i), 0d).doubleValue(), max);
       }
-      final double value = item.doubleValue();
-      widthFraction.set(value / max);
-      if(widthFraction.get() > 1) {
-        logger.info("Width fraction is greater than 1");
-      }
+      widthFraction.set(fraction(item.doubleValue(), max));
     });
+  }
+
+  /**
+   * @return the value relative to the maximum within 0 to 1, 0 if the maximum is not positive
+   */
+  private static double fraction(double value, double max) {
+    if (!(max > 0) || !Double.isFinite(value)) {
+      return 0;
+    }
+    return Math.clamp(value / max, 0d, 1d);
   }
 }

@@ -23,9 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.optimizer.gui;
+package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -33,11 +34,35 @@ import org.jetbrains.annotations.Nullable;
 import org.moeaframework.core.Solution;
 
 /**
- * Selects a deterministic compromise from a non-dominated multi-objective front.
+ * Selects the best solution of a non-dominated front, the same way for the results window and the
+ * log. With several objectives, this is a deterministic compromise: the best average rank across
+ * all objectives.
  */
-final class FrontSolutionRanker {
+public final class FrontSolutionRanker {
 
   private FrontSolutionRanker() {
+  }
+
+  /**
+   * @return the best solution by average rank, ties are decided by
+   * {@link #tieBreakObjectiveIndex(List)}. Null for an empty front.
+   */
+  public static @Nullable Solution selectBest(@NotNull List<Solution> front,
+      @NotNull List<SweepMetric> metrics) {
+    return selectBestAverageRank(front, tieBreakObjectiveIndex(metrics));
+  }
+
+  /**
+   * @return the index of the metric that is {@link SweepMetric#preferredForRanking()}, otherwise
+   * the first objective. Also the column the results are sorted by.
+   */
+  public static int tieBreakObjectiveIndex(@NotNull List<SweepMetric> metrics) {
+    for (int i = 0; i < metrics.size(); i++) {
+      if (metrics.get(i).preferredForRanking()) {
+        return i;
+      }
+    }
+    return 0;
   }
 
   static @Nullable Solution selectBestAverageRank(@NotNull List<Solution> front,
