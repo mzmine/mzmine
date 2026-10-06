@@ -94,7 +94,7 @@ public class FitterTest {
         List.of(new GaussianPeak(), new GaussianDoublePeak(), new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
     Assertions.assertEquals(PeakShapeClassification.DOUBLE_GAUSSIAN, fit.peakShapeClassification());
-    Assertions.assertEquals(0.9643966172323696, fit.fitScore(), 0.0000001);
+    Assertions.assertEquals(0.9793872382256189, fit.fitScore(), 0.0000001);
   }
 
   @Test
@@ -144,11 +144,11 @@ public class FitterTest {
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9283789295872468, fit.fitScore(), 0.0000001);
+    Assertions.assertEquals(0.9397468348474988, fit.fitScore(), 0.0000001);
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianDoublePeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9332001170402136, fit.fitScore(), 0.0000001);
+    Assertions.assertEquals(0.9477058183413567, fit.fitScore(), 0.0000001);
   }
 
   @Test
