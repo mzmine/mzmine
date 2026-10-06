@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam;
+package io.github.mzmine.modules.tools.tools_autoparam.statistics;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;

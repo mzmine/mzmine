@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam;
+package io.github.mzmine.modules.tools.tools_autoparam.statistics;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.TreeRangeMap;
@@ -53,8 +53,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerTask;
 import io.github.mzmine.modules.tools.batchwizard.builders.BaseWizardBatchBuilder;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.runphases.RunPhaseDetection;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -65,8 +63,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.SpectraMerging;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectArrayMap;

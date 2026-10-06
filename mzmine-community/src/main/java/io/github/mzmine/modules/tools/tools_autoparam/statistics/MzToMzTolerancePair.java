@@ -23,26 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam;
+package io.github.mzmine.modules.tools.tools_autoparam.statistics;
 
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Cross-file retention-time deviations and the estimator/search values derived from them.
- */
-public record InterSampleRtStatistics(double @NotNull [] deviations, double estimatedTolerance,
-                                      double lowerSearchBound, double upperSearchBound) {
+public record MzToMzTolerancePair(double mz, @NotNull MZTolerance tolerance) {
 
-  public InterSampleRtStatistics {
-    deviations = deviations.clone();
-  }
-
-  @Override
-  public double @NotNull [] deviations() {
-    return deviations.clone();
-  }
-
-  public boolean isEmpty() {
-    return deviations.length == 0;
-  }
 }

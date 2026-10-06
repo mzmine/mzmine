@@ -7,8 +7,12 @@ feature list, and parameters varied by the search.
 
 Paths below are relative to `io.github.mzmine.modules.tools.tools_autoparam`.
 
-- `estimation`: raw-data preparation and analysis, benchmark input, typed definitions, estimation
-  rules, prepared values, and the wizard's estimate-only task. It does not depend on optimizer code.
+- `runphases`: run phase detection for the effective RT range of a file.
+- `statistics`: per-file statistics (the `AutoParamModule` with its task and pane), raw-data import
+  and preparation (`RawDataPreparation`), benchmark feature records, and the m/z tolerance options.
+- `preclassification`: settings fixed from the imported files before the statistics, e.g. polarity.
+- `estimation`: cross-file analysis, benchmark loading, typed definitions, estimation rules,
+  prepared values, and the wizard's estimate-only task. It does not depend on optimizer code.
 - `estimation.domain`: typed search domains with plain coordinate bounds and search scales. It does
   not depend on MOEA.
 - `optimizer.search`: search algorithms, their module settings, canonical coordinates, warm-start
@@ -18,6 +22,10 @@ Paths below are relative to `io.github.mzmine.modules.tools.tools_autoparam`.
 - `optimizer.metrics`: metric implementations, their catalog, and score diagnostics.
 - `optimizer.gui`: progress and result presentation.
 - `optimizer`: module entry points, configuration, main-task orchestration, outcomes, and logging.
+- top level: the statistics dashboard.
+
+Packages only depend on packages earlier in this order: `runphases`, `statistics`,
+`preclassification`, `estimation`, top level, `optimizer`. Keep it free of cycles.
 
 Keep the sealed `ParameterDefinition` interface and its implementations together in `estimation`.
 The registry exposes the applicable definitions; its individual constants and optional wavelet

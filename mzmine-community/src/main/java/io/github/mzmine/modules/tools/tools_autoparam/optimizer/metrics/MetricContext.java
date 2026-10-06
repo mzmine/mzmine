@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics;
 
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 

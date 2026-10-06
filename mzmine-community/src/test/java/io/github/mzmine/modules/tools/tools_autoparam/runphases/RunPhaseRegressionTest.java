@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.tools_autoparam.runphases;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataPreparation;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.util.List;
@@ -36,8 +36,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;

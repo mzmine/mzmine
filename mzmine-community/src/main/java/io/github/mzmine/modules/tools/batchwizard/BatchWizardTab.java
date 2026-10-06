@@ -59,7 +59,6 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatisticsDashboardPane;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetChange;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataPreparation;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationResult;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationTask;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.BatchOptimizationMainTask;
@@ -71,6 +70,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclass
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolution;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolved;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -128,9 +128,9 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;

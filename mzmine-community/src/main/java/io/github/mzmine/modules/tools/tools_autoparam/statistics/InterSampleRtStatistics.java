@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,11 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam;
+package io.github.mzmine.modules.tools.tools_autoparam.statistics;
 
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import org.jetbrains.annotations.NotNull;
 
-public record MzToMzTolerancePair(double mz, @NotNull MZTolerance tolerance) {
+/**
+ * Cross-file retention-time deviations and the estimator/search values derived from them.
+ */
+public record InterSampleRtStatistics(double @NotNull [] deviations, double estimatedTolerance,
+                                      double lowerSearchBound, double upperSearchBound) {
 
+  public InterSampleRtStatistics {
+    deviations = deviations.clone();
+  }
+
+  @Override
+  public double @NotNull [] deviations() {
+    return deviations.clone();
+  }
+
+  public boolean isEmpty() {
+    return deviations.length == 0;
+  }
 }

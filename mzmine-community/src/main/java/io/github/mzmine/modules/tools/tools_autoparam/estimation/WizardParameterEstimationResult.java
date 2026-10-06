@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
-import io.github.mzmine.modules.tools.tools_autoparam.InterSampleRtStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.InterSampleRtStatistics;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 

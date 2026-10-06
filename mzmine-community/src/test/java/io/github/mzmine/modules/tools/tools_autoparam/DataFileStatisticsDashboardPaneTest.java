@@ -26,7 +26,8 @@
 package io.github.mzmine.modules.tools.tools_autoparam;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataParameterEstimation;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

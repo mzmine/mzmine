@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam;
 
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToMzTolerancePair;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
