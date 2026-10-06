@@ -65,10 +65,8 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.BatchOptimizatio
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerModule;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationConflicts;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolution;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolved;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResult;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
@@ -722,26 +720,22 @@ public class BatchWizardTab extends SimpleTab {
    * @return the decided settings, or null if there was a conflict or the user cancelled
    */
   private @Nullable ParameterSet resolvePreclassification(
-      @NotNull final PreclassificationResolution resolution, @NotNull final String errorTitle) {
-    return switch (resolution) {
-      case PreclassificationConflicts conflicts -> {
-        DialogLoggerUtil.showErrorDialog(errorTitle, conflicts.describe());
-        yield null;
-      }
-      case PreclassificationResolved resolved -> {
-        if (!resolved.needsUserChoice()) {
-          yield resolved.parameters();
-        }
-        // decision: the dialog only shows the parameters that need a choice. They are the same
-        // instances as in the decided settings, so the dialog changes those
-        final ParameterSet choices = new SimpleParameterSet(
-            resolved.choiceParameters().toArray(new Parameter<?>[0]));
-        final ParameterSetupDialog dialog = new ParameterSetupDialog(true, choices,
-            FxTextFlows.newTextFlow(FxTexts.text(String.join("\n\n", resolved.choiceMessages()))));
-        dialog.showAndWait();
-        yield dialog.getExitCode() == ExitCode.OK ? resolved.parameters() : null;
-      }
-    };
+      @NotNull final PreclassificationResult resolved, @NotNull final String errorTitle) {
+    if (resolved.hasConflicts()) {
+      DialogLoggerUtil.showErrorDialog(errorTitle, resolved.describeConflicts());
+      return null;
+    }
+    if (!resolved.needsUserChoice()) {
+      return resolved.parameters();
+    }
+    // decision: the dialog only shows the parameters that need a choice. They are the same
+    // instances as in the decided settings, so the dialog changes those
+    final ParameterSet choices = new SimpleParameterSet(
+        resolved.choiceParameters().toArray(new Parameter<?>[0]));
+    final ParameterSetupDialog dialog = new ParameterSetupDialog(true, choices,
+        FxTextFlows.newTextFlow(FxTexts.text(String.join("\n\n", resolved.choiceMessages()))));
+    dialog.showAndWait();
+    return dialog.getExitCode() == ExitCode.OK ? resolved.parameters() : null;
   }
 
   /**

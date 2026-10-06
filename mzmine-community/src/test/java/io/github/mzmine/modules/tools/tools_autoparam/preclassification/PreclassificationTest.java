@@ -42,7 +42,7 @@ class PreclassificationTest {
   private static final ComboParameter<String> STUB = new ComboParameter<>("Stub", "",
       new String[]{"a", "b", "c"}, "a");
 
-  private static @NotNull PreclassificationResolution resolve(
+  private static @NotNull PreclassificationResult resolve(
       @NotNull RawDataClassifier<?>... classifiers) {
     final ParameterSet parameters = new SimpleParameterSet(STUB.cloneParameter(),
         PreclassificationParameters.polarity.cloneParameter());
@@ -52,9 +52,9 @@ class PreclassificationTest {
 
   @Test
   void fixedDecisionsSetTheValueWithoutChoice() {
-    final PreclassificationResolved resolved = Assertions.assertInstanceOf(
-        PreclassificationResolved.class,
-        resolve(new StubClassifier(new PreclassificationFixed<>("c")), new PolarityClassifier()));
+    final PreclassificationResult resolved = resolve(
+        new StubClassifier(ClassifierDecision.fixed("c")), new PolarityClassifier());
+    Assertions.assertFalse(resolved.hasConflicts());
     Assertions.assertFalse(resolved.needsUserChoice());
     Assertions.assertEquals("c", resolved.parameters().getValue(STUB));
     // no files and no wizard polarity: nothing to filter
@@ -64,9 +64,8 @@ class PreclassificationTest {
 
   @Test
   void choicesLimitTheComboAndAreCollected() {
-    final PreclassificationResolved resolved = Assertions.assertInstanceOf(
-        PreclassificationResolved.class,
-        resolve(new StubClassifier(new PreclassificationChoice<>("b", List.of("b", "c"), "why"))));
+    final PreclassificationResult resolved = resolve(
+        new StubClassifier(ClassifierDecision.choice(List.of("b", "c"), "why")));
     Assertions.assertTrue(resolved.needsUserChoice());
     Assertions.assertEquals(List.of("why"), resolved.choiceMessages());
 
@@ -80,18 +79,18 @@ class PreclassificationTest {
 
   @Test
   void conflictsOfAllClassifiersAreCollected() {
-    final PreclassificationConflicts conflicts = Assertions.assertInstanceOf(
-        PreclassificationConflicts.class,
-        resolve(new StubClassifier(new PreclassificationConflict<>("first")),
-            new StubClassifier(new PreclassificationFixed<>("c")),
-            new StubClassifier(new PreclassificationConflict<>("second"))));
-    Assertions.assertEquals(List.of("first", "second"), conflicts.messages());
+    final PreclassificationResult resolved = resolve(
+        new StubClassifier(ClassifierDecision.conflict("first")),
+        new StubClassifier(ClassifierDecision.fixed("c")),
+        new StubClassifier(ClassifierDecision.conflict("second")));
+    Assertions.assertTrue(resolved.hasConflicts());
+    Assertions.assertEquals(List.of("first", "second"), resolved.conflicts());
   }
 
   /**
    * Returns the given decision for {@link #STUB}.
    */
-  private record StubClassifier(@NotNull PreclassificationDecision<String> decision) implements
+  private record StubClassifier(@NotNull ClassifierDecision<String> decision) implements
       RawDataClassifier<String> {
 
     @Override
@@ -100,7 +99,7 @@ class PreclassificationTest {
     }
 
     @Override
-    public @NotNull PreclassificationDecision<String> decide(
+    public @NotNull ClassifierDecision<String> decide(
         @NotNull List<@NotNull RawDataFile> files, @NotNull WizardSequence wizard) {
       return decision;
     }

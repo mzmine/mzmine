@@ -55,7 +55,7 @@ public final class Preclassification {
    * @param files  the imported raw data files that are used for estimation and optimization
    * @param wizard the wizard sequence with the user's settings, usually a copy
    */
-  public static @NotNull PreclassificationResolution resolve(
+  public static @NotNull PreclassificationResult resolve(
       @NotNull List<@NotNull RawDataFile> files, @NotNull WizardSequence wizard) {
     return resolve(files, wizard, CLASSIFIERS,
         new PreclassificationParameters().cloneParameterSet());
@@ -64,7 +64,7 @@ public final class Preclassification {
   /**
    * @param parameters receives the decisions, must contain the parameters of all classifiers
    */
-  static @NotNull PreclassificationResolution resolve(@NotNull List<@NotNull RawDataFile> files,
+  static @NotNull PreclassificationResult resolve(@NotNull List<@NotNull RawDataFile> files,
       @NotNull WizardSequence wizard, @NotNull List<RawDataClassifier<?>> classifiers,
       @NotNull ParameterSet parameters) {
     final List<Parameter<?>> choiceParameters = new ArrayList<>();
@@ -74,10 +74,7 @@ public final class Preclassification {
       apply(classifier, files, wizard, parameters, choiceParameters, choiceMessages, conflicts);
     }
     // decision: collect the conflicts of all classifiers, so the user sees every problem at once
-    if (!conflicts.isEmpty()) {
-      return new PreclassificationConflicts(conflicts);
-    }
-    return new PreclassificationResolved(parameters, choiceParameters, choiceMessages);
+    return new PreclassificationResult(parameters, choiceParameters, choiceMessages, conflicts);
   }
 
   private static <T> void apply(@NotNull RawDataClassifier<T> classifier,
@@ -85,20 +82,21 @@ public final class Preclassification {
       @NotNull ParameterSet parameters, @NotNull List<Parameter<?>> choiceParameters,
       @NotNull List<String> choiceMessages, @NotNull List<String> conflicts) {
     final UserParameter<T, ?> parameter = parameters.getParameter(classifier.parameter());
-    switch (classifier.decide(files, wizard)) {
-      case PreclassificationFixed<T> fixed -> parameter.setValue(fixed.value());
-      case PreclassificationChoice<T> choice -> {
-        // limit the combo box to the valid values
-        if (parameter instanceof ComboParameter<?> combo) {
-          // the combo holds the value type of the classifier's parameter
-          @SuppressWarnings("unchecked") final ComboParameter<T> typedCombo = (ComboParameter<T>) combo;
-          typedCombo.getChoices().setAll(choice.options());
-        }
-        parameter.setValue(choice.preselected());
-        choiceParameters.add(parameter);
-        choiceMessages.add(choice.message());
-      }
-      case PreclassificationConflict<T> conflict -> conflicts.add(conflict.message());
+    final ClassifierDecision<T> decision = classifier.decide(files, wizard);
+    if (decision.isConflict()) {
+      conflicts.add(decision.message());
+      return;
     }
+    if (decision.needsUserChoice()) {
+      // limit the combo box to the valid values
+      if (parameter instanceof ComboParameter<?> combo) {
+        // the combo holds the value type of the classifier's parameter
+        @SuppressWarnings("unchecked") final ComboParameter<T> typedCombo = (ComboParameter<T>) combo;
+        typedCombo.getChoices().setAll(decision.options());
+      }
+      choiceParameters.add(parameter);
+      choiceMessages.add(decision.message());
+    }
+    parameter.setValue(decision.value());
   }
 }

@@ -49,7 +49,7 @@ public final class RawDataPreclassificationTask extends AbstractTask {
   private final File @NotNull [] files;
   private final @Nullable File metadataFile;
   private final @NotNull WizardSequence wizard;
-  private final @NotNull Consumer<@NotNull PreclassificationResolution> onFinished;
+  private final @NotNull Consumer<@NotNull PreclassificationResult> onFinished;
   private volatile double progress;
 
   /**
@@ -60,7 +60,7 @@ public final class RawDataPreclassificationTask extends AbstractTask {
   public RawDataPreclassificationTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File @NotNull [] files, @Nullable File metadataFile,
       @NotNull WizardSequence wizard,
-      @NotNull Consumer<@NotNull PreclassificationResolution> onFinished) {
+      @NotNull Consumer<@NotNull PreclassificationResult> onFinished) {
     super(storage, moduleCallDate, "Classify raw data");
     this.files = files.clone();
     this.metadataFile = metadataFile;
@@ -92,7 +92,7 @@ public final class RawDataPreclassificationTask extends AbstractTask {
         throw new IllegalStateException("None of the selected wizard files could be imported.");
       }
 
-      final PreclassificationResolution resolution = Preclassification.resolve(importedFiles,
+      final PreclassificationResult resolution = Preclassification.resolve(importedFiles,
           wizard);
       progress = 1d;
       FxThread.runLater(() -> onFinished.accept(resolution));

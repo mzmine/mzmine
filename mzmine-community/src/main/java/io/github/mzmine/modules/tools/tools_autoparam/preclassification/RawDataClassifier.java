@@ -50,6 +50,6 @@ public interface RawDataClassifier<T> {
    * @param wizard the current wizard sequence with the user's settings
    * @return the decision for {@link #parameter()}
    */
-  @NotNull PreclassificationDecision<T> decide(@NotNull List<@NotNull RawDataFile> files,
+  @NotNull ClassifierDecision<T> decide(@NotNull List<@NotNull RawDataFile> files,
       @NotNull WizardSequence wizard);
 }

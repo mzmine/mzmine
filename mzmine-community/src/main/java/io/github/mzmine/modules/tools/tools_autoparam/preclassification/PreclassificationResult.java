@@ -31,21 +31,33 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * All classifiers decided without conflict.
+ * Result of all {@link RawDataClassifier}s, see {@link Preclassification#resolve}.
  *
- * @param parameters       the decided settings, see {@link PreclassificationParameters}
+ * @param parameters       the decided settings, see {@link PreclassificationParameters}. Not
+ *                         usable if there are conflicts
  * @param choiceParameters the parameters of {@link #parameters()} the user still has to choose. The
  *                         same instances, so a dialog on them changes {@link #parameters()}
  * @param choiceMessages   explain why the user has to choose
+ * @param conflicts        explain why no value matches all files. The estimation or optimization
+ *                         has to be aborted if there is any
  */
-public record PreclassificationResolved(@NotNull ParameterSet parameters,
-                                        @NotNull List<@NotNull Parameter<?>> choiceParameters,
-                                        @NotNull List<@NotNull String> choiceMessages) implements
-    PreclassificationResolution {
+public record PreclassificationResult(@NotNull ParameterSet parameters,
+                                      @NotNull List<@NotNull Parameter<?>> choiceParameters,
+                                      @NotNull List<@NotNull String> choiceMessages,
+                                      @NotNull List<@NotNull String> conflicts) {
 
-  public PreclassificationResolved {
+  public PreclassificationResult {
     choiceParameters = List.copyOf(choiceParameters);
     choiceMessages = List.copyOf(choiceMessages);
+    conflicts = List.copyOf(conflicts);
+  }
+
+  public boolean hasConflicts() {
+    return !conflicts.isEmpty();
+  }
+
+  public @NotNull String describeConflicts() {
+    return String.join("\n\n", conflicts);
   }
 
   public boolean needsUserChoice() {

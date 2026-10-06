@@ -50,12 +50,12 @@ public final class PolarityClassifier implements RawDataClassifier<WizardMsPolar
    *                       both polarities, {@link PolarityType#UNKNOWN} for files without
    * @param wizardPolarity the ion mode currently selected in the wizard
    */
-  static @NotNull PreclassificationDecision<WizardMsPolarity> decide(
+  static @NotNull ClassifierDecision<WizardMsPolarity> decide(
       @NotNull Map<String, PolarityType> filePolarities, @NotNull WizardMsPolarity wizardPolarity) {
     final List<String> positiveOnly = names(filePolarities, PolarityType.POSITIVE::equals);
     final List<String> negativeOnly = names(filePolarities, PolarityType.NEGATIVE::equals);
     if (!positiveOnly.isEmpty() && !negativeOnly.isEmpty()) {
-      return new PreclassificationConflict<>("""
+      return ClassifierDecision.conflict("""
           The selected files contain positive only data (%s) and negative only data (%s). No \
           single ion mode matches all files.
           Each wizard run should process a single polarity, use separate wizard runs for the \
@@ -70,29 +70,29 @@ public final class PolarityClassifier implements RawDataClassifier<WizardMsPolar
         final List<String> missing = names(filePolarities,
             polarity -> polarity != required && polarity != PolarityType.ANY);
         if (!missing.isEmpty()) {
-          yield new PreclassificationConflict<>("""
+          yield ClassifierDecision.conflict("""
               The ion mode in the wizard is set to %s, but these files have no %s scans: %s
               Change the ion mode or the selected files.""".formatted(wizardPolarity,
               wizardPolarity.toString().toLowerCase(), String.join(", ", missing)));
         }
-        yield new PreclassificationFixed<>(wizardPolarity);
+        yield ClassifierDecision.fixed(wizardPolarity);
       }
       case No_filter -> decideWithoutFilter(filePolarities, positiveOnly, negativeOnly);
     };
   }
 
-  private static @NotNull PreclassificationDecision<WizardMsPolarity> decideWithoutFilter(
+  private static @NotNull ClassifierDecision<WizardMsPolarity> decideWithoutFilter(
       @NotNull Map<String, PolarityType> filePolarities, @NotNull List<String> positiveOnly,
       @NotNull List<String> negativeOnly) {
     final List<String> unknown = names(filePolarities, PolarityType.UNKNOWN::equals);
     if (unknown.size() == filePolarities.size()) {
       // no polarity information at all, nothing to filter
-      return new PreclassificationFixed<>(WizardMsPolarity.No_filter);
+      return ClassifierDecision.fixed(WizardMsPolarity.No_filter);
     }
     // decision: filtering by a polarity would remove all scans of files without polarity
     // information, so they cannot be combined with files that have one
     if (!unknown.isEmpty()) {
-      return new PreclassificationConflict<>("""
+      return ClassifierDecision.conflict("""
           These files have no polarity information, while the other selected files have: %s
           Filtering by a polarity would remove all their scans. Use separate wizard runs for \
           these files.""".formatted(String.join(", ", unknown)));
@@ -100,12 +100,13 @@ public final class PolarityClassifier implements RawDataClassifier<WizardMsPolar
     // decision: switch without asking if only one polarity matches all files. Also safer for
     // polarity switching files that were not part of the sampled files
     if (!positiveOnly.isEmpty()) {
-      return new PreclassificationFixed<>(WizardMsPolarity.Positive);
+      return ClassifierDecision.fixed(WizardMsPolarity.Positive);
     }
     if (!negativeOnly.isEmpty()) {
-      return new PreclassificationFixed<>(WizardMsPolarity.Negative);
+      return ClassifierDecision.fixed(WizardMsPolarity.Negative);
     }
-    return new PreclassificationChoice<>(WizardMsPolarity.Positive,
+    // the first option, positive, is preselected
+    return ClassifierDecision.choice(
         List.of(WizardMsPolarity.Positive, WizardMsPolarity.Negative), """
         The selected files contain positive and negative scans (polarity switching). Each wizard \
         run processes a single polarity. Select the ion mode to estimate and optimize the \
@@ -124,7 +125,7 @@ public final class PolarityClassifier implements RawDataClassifier<WizardMsPolar
   }
 
   @Override
-  public @NotNull PreclassificationDecision<WizardMsPolarity> decide(
+  public @NotNull ClassifierDecision<WizardMsPolarity> decide(
       @NotNull List<@NotNull RawDataFile> files, @NotNull WizardSequence wizard) {
     final Map<String, PolarityType> filePolarities = new LinkedHashMap<>();
     for (final RawDataFile file : files) {

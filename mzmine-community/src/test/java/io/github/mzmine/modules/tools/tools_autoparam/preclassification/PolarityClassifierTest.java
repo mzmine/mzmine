@@ -48,13 +48,14 @@ class PolarityClassifierTest {
   }
 
   private static void assertFixed(@NotNull WizardMsPolarity expected,
-      @NotNull PreclassificationDecision<WizardMsPolarity> decision) {
-    Assertions.assertEquals(new PreclassificationFixed<>(expected), decision);
+      @NotNull ClassifierDecision<WizardMsPolarity> decision) {
+    Assertions.assertEquals(ClassifierDecision.fixed(expected), decision);
   }
 
   private static @NotNull String assertConflict(
-      @NotNull PreclassificationDecision<WizardMsPolarity> decision) {
-    return Assertions.assertInstanceOf(PreclassificationConflict.class, decision).message();
+      @NotNull ClassifierDecision<WizardMsPolarity> decision) {
+    Assertions.assertTrue(decision.isConflict());
+    return decision.message();
   }
 
   @Test
@@ -72,12 +73,11 @@ class PolarityClassifierTest {
 
   @Test
   void polaritySwitchingFilesNeedAChoice() {
-    final PreclassificationDecision<WizardMsPolarity> decision = PolarityClassifier.decide(
+    final ClassifierDecision<WizardMsPolarity> decision = PolarityClassifier.decide(
         files("a", PolarityType.ANY, "b", PolarityType.ANY), WizardMsPolarity.No_filter);
-    final PreclassificationChoice<?> choice = Assertions.assertInstanceOf(
-        PreclassificationChoice.class, decision);
+    Assertions.assertTrue(decision.needsUserChoice());
     Assertions.assertEquals(List.of(WizardMsPolarity.Positive, WizardMsPolarity.Negative),
-        choice.options());
+        decision.options());
   }
 
   @Test

@@ -54,9 +54,8 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeSco
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerAlgorithmModule;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationConflicts;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolved;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResult;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
@@ -249,20 +248,17 @@ public class BatchOptimizationMainTask extends AbstractTask {
    * @return the decided settings, or null if the task was set to error
    */
   private @Nullable ParameterSet preclassifyWithoutUser(@NotNull List<RawDataFile> importedFiles) {
-    return switch (Preclassification.resolve(importedFiles, sequence)) {
-      case PreclassificationConflicts conflicts -> {
-        error(conflicts.describe());
-        yield null;
-      }
-      case PreclassificationResolved resolved -> {
-        if (resolved.needsUserChoice()) {
-          error("The raw data require a user choice before the optimization:\n" + String.join("\n",
-              resolved.choiceMessages()));
-          yield null;
-        }
-        yield resolved.parameters();
-      }
-    };
+    final PreclassificationResult resolved = Preclassification.resolve(importedFiles, sequence);
+    if (resolved.hasConflicts()) {
+      error(resolved.describeConflicts());
+      return null;
+    }
+    if (resolved.needsUserChoice()) {
+      error("The raw data require a user choice before the optimization:\n" + String.join("\n",
+          resolved.choiceMessages()));
+      return null;
+    }
+    return resolved.parameters();
   }
 
   /**
