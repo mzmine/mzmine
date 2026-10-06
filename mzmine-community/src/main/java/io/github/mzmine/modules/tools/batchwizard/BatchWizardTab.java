@@ -149,7 +149,7 @@ public class BatchWizardTab extends SimpleTab {
     tabPane = new TabPane();
     tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
     tabPane.setTabDragPolicy(TabDragPolicy.FIXED);
-    BorderPane centerPane = new BorderPane(new StackPane(tabPane, createTabHeaderActions()));
+    final BorderPane centerPane = new BorderPane(new StackPane(tabPane, createTabHeaderActions()));
     var centerScroll = new ScrollPane(centerPane);
     centerScroll.setFitToWidth(true);
     centerScroll.setFitToHeight(true);
@@ -492,14 +492,18 @@ public class BatchWizardTab extends SimpleTab {
   /// the tab overflow button never run below the actions and centers the actions vertically in the
   /// header.
   private void reserveTabHeaderSpace(@NotNull final Region actions) {
+    final Subscription[] headerSub = {Subscription.EMPTY};
     tabPane.skinProperty().subscribe(skin -> {
+      headerSub[0].unsubscribe();
+      headerSub[0] = Subscription.EMPTY;
+      actions.minHeightProperty().unbind();
       if (skin == null || !(tabPane.lookup(".tab-header-area") instanceof Region header)) {
         return;
       }
       actions.minHeightProperty().bind(header.heightProperty());
       // assumption: the themes set the header area padding to 0 (jabref_light.css,
       // style_modern.css), the inline style only adds the right padding
-      actions.widthProperty().subscribe(
+      headerSub[0] = actions.widthProperty().subscribe(
           width -> header.setStyle("-fx-padding: 0 %.1fpx 0 0;".formatted(width.doubleValue())));
     });
   }
