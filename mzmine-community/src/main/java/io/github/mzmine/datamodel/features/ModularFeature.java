@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -94,6 +95,11 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
   public ModularFeature(@NotNull ModularFeatureList flist) {
     super(flist.getFeaturesSchema());
     this.flist = flist;
+  }
+
+  public ModularFeature(@NotNull CompoundList compList) {
+    super(compList.getCompoundFeaturesSchema());
+    this.flist = compList.getFeatureList();
   }
 
   // NOT TESTED
@@ -164,18 +170,7 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
 
     setAllMS2FragmentScans(allMS2FragmentScanNumbers);
 
-    float fwhm = QualityParameters.calculateFWHM(this);
-    if (!Float.isNaN(fwhm)) {
-      set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(this);
-    if (!Float.isNaN(tf)) {
-      set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(this);
-    if (!Float.isNaN(af)) {
-      set(AsymmetryFactorType.class, af);
-    }
+    QualityParameters.calculateAndSetQualityParameters(this);
   }
 
   /**

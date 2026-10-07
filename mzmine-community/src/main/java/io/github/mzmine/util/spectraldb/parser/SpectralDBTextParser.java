@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,12 +47,17 @@ public abstract class SpectralDBTextParser extends SpectralDBParser {
   protected long totalLines = 0L;
   protected AtomicLong processedLines = new AtomicLong(0L);
 
+
   public SpectralDBTextParser(int bufferEntries, LibraryEntryProcessor processor,
       boolean extensiveErrorLogging) {
     super(bufferEntries, processor);
     this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
+  /**
+   * Counts the lines of the file to report progress. Prefer {@link #initByteProgress(File)} in new
+   * parsers, it does not need this extra pass over the file.
+   */
   @Override
   public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
       @NotNull SpectralLibrary library) throws IOException {
@@ -72,6 +77,11 @@ public abstract class SpectralDBTextParser extends SpectralDBParser {
 
   @Override
   public double getProgress() {
+    // byte progress when the parser streams the file, the line count otherwise
+    final double byteProgress = getByteProgress();
+    if (byteProgress >= 0) {
+      return byteProgress;
+    }
     return totalLines == 0 ? 0 : processedLines.get() / (double) totalLines;
   }
 

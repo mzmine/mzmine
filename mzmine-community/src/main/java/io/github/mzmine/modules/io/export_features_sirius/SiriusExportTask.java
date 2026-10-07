@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -191,12 +192,16 @@ public class SiriusExportTask extends AbstractTask {
   private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
       throws IOException {
 
+    // index the MS1 correlation edges by row once instead of probing all row pairs for each row
+    final Map<FeatureListRow, List<RowsRelationship>> correlationIndex = featureList.getMs1CorrelationMap()
+        .map(R2RMap::createRowIndex).orElseGet(Map::of);
+
     for (FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return;
       }
 
-      if (exportRow(writer, row)) {
+      if (exportRow(writer, row, correlationIndex)) {
         exportedRows.getAndIncrement();
       }
 
@@ -205,9 +210,23 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   /**
+   * Exports a single row without a precomputed correlation index. Prefer
+   * {@link #exportRow(BufferedWriter, FeatureListRow, Map)} when exporting many rows.
+   *
    * @return True if the row was exported.
    */
   public boolean exportRow(BufferedWriter writer, FeatureListRow row) throws IOException {
+    return exportRow(writer, row, null);
+  }
+
+  /**
+   * @param correlationIndex MS1 correlation edges by row, see {@link R2RMap#createRowIndex()}. May
+   *                         be null, then the edges of this row are searched in the correlation map
+   *                         of its feature list.
+   * @return True if the row was exported.
+   */
+  public boolean exportRow(BufferedWriter writer, FeatureListRow row,
+      @Nullable Map<FeatureListRow, List<RowsRelationship>> correlationIndex) throws IOException {
 
     if (!checkFeatureCriteria(row)) {
       return false;
@@ -217,7 +236,7 @@ public class SiriusExportTask extends AbstractTask {
     final List<SpectralLibraryEntry> entries = new ArrayList<>();
 
     // export either correlated OR MS1
-    final SpectralLibraryEntry ms1 = getCorrelatedOrBestMS1Spectrum(row);
+    final SpectralLibraryEntry ms1 = getCorrelatedOrBestMS1Spectrum(row, correlationIndex);
     if (ms1 != null) {
       entries.add(ms1);
     }
@@ -244,18 +263,19 @@ public class SiriusExportTask extends AbstractTask {
     return actuallyExported > 0;
   }
 
-  private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row) {
+  private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row,
+      @Nullable final Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
     final Feature bestFeature = row.getBestFeature();
     if (bestFeature == null) {
       // maybe no MS1 data?
       logger.warning(
           "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-          + FeatureUtils.rowToString(row));
+              + FeatureUtils.rowToString(row));
       return null;
     }
 
     final SpectralLibraryEntry correlated = generateCorrelationSpectrum(entryFactory, mzTol, row,
-        null, null);
+        null, null, correlationIndex);
     if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
       return correlated;
     } else {
@@ -299,7 +319,7 @@ public class SiriusExportTask extends AbstractTask {
       return false;
     }
 
-    return !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
+    return !excludeMultimers || adduct == null || adduct.getIonType().molecules() <= 1;
   }
 
   @Nullable
@@ -366,14 +386,44 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   /**
+   * The rows that are directly correlated to this row in MS1.
+   *
+   * @param correlationIndex MS1 correlation edges by row or null to search the correlation map of
+   *                         the feature list of this row
+   * @return list of directly correlated rows, empty if there are none
+   */
+  private static @NotNull List<FeatureListRow> getCorrelatedRows(@NotNull final FeatureListRow row,
+      @Nullable final Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
+    if (correlationIndex != null) {
+      final List<RowsRelationship> edges = correlationIndex.get(row);
+      return edges == null ? List.of()
+          : edges.stream().map(rel -> rel.getOtherRow(row)).distinct().toList();
+    }
+
+    // no index available: probe all pairs of this row
+    final FeatureList flist = row.getFeatureList();
+    final R2RMap<RowsRelationship> ms1Map =
+        flist == null ? null : flist.getMs1CorrelationMap().orElse(null);
+    return ms1Map == null ? List.of()
+        : ms1Map.streamAllCorrelatedRows(row, flist.getRows()).map(rel -> rel.getOtherRow(row))
+            .distinct().toList();
+  }
+
+  /**
    * Generates a spectrum of all correlated features, such as isotope patterns and adducts assigned
    * via IIN (+ their isotopes).
+   *
+   * @param correlationIndex MS1 correlation edges by row, see {@link R2RMap#createRowIndex()}.
+   *                         Create it once per feature list and pass it in when many rows are
+   *                         exported. May be null, then the edges of this row are searched in the
+   *                         correlation map of its feature list.
    */
   @Nullable
   public static SpectralLibraryEntry generateCorrelationSpectrum(
       final SpectralLibraryEntryFactory entryFactory, final MZTolerance mzTol,
       @NotNull FeatureListRow row, @Nullable RawDataFile file,
-      @Nullable final Map<DBEntryField, Object> metadataMap) {
+      @Nullable final Map<DBEntryField, Object> metadataMap,
+      @Nullable final Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
     file = file != null ? file : row.getBestFeature().getRawDataFile();
     final List<DataPoint> dps = new ArrayList<>();
 
@@ -382,23 +432,35 @@ public class SiriusExportTask extends AbstractTask {
       return null;
     }
 
-    final RowGroup group = row.getGroup();
     final IonIdentity identity = row.getBestIonIdentity();
     final IsotopePattern ip = feature.getIsotopePattern();
 
-    if (group == null && identity != null) {
-      throw new IllegalStateException("Cannot have an ion identity without a row group.");
+    // the rows directly correlated to this row (edges in the MS1 correlation map) take the place of
+    // the former row group. Transitively correlated rows were never exported either, so only direct
+    // neighbors are relevant here.
+    final List<FeatureListRow> correlatedRows = getCorrelatedRows(row, correlationIndex);
+    final boolean hasGroup = !correlatedRows.isEmpty();
+
+    if (!hasGroup && identity != null) {
+      // an ion identity is always created from correlated rows, but the correlation map may be
+      // missing later, e.g. when a module created a new feature list that only copied the rows and
+      // their annotations. Export the isotope pattern of this feature then instead of failing.
+      logger.finer(() ->
+          "Row has an ion identity but no correlated rows. Exporting only its isotope pattern: "
+              + FeatureUtils.rowToString(row));
     }
 
-    if (group == null) {
-      // add isotope pattern of this feature only if we don't have a group, otherwise the isotope
-      // pattern is exported below.
+    if (!hasGroup) {
+      // add isotope pattern of this feature only if it is not correlated to any other row,
+      // otherwise the isotope pattern is exported below.
       addIsotopePattern(feature, dps, ip);
-    }
-
-    if (group != null) {
+    } else {
       final IonNetwork network = identity != null ? identity.getNetwork() : null;
-      for (final FeatureListRow groupedRow : group.getRows()) {
+      // export the row itself and all directly correlated rows
+      final List<FeatureListRow> groupedRows = new ArrayList<>(correlatedRows.size() + 1);
+      groupedRows.add(row);
+      groupedRows.addAll(correlatedRows);
+      for (final FeatureListRow groupedRow : groupedRows) {
         // only write intensities of the same file, otherwise intensities will be distorted
         final Feature sameFileFeature = groupedRow.getFeature(file);
         if (sameFileFeature == null
@@ -406,19 +468,18 @@ public class SiriusExportTask extends AbstractTask {
           continue;
         }
 
-        // this writes the data points of the row we want to export and all grouped rows + their isotope patterns.
-        if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
-          // if we have an annotation, export the annotation
-          if (network != null && network.get(groupedRow) != null) {
-            dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
-                network.get(groupedRow).getAdduct()));
-          } else {
-            dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
-          }
-
-          // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
-          addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
+        // this writes the data points of the row we want to export and all correlated rows + their isotope patterns.
+        // if we have an annotation, export the annotation
+        IonIdentity otherIon = null;
+        if (network != null && (otherIon = network.get(groupedRow)) != null) {
+          dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
+              otherIon.toString()));
+        } else {
+          dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
         }
+
+        // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
+        addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
       }
     }
 

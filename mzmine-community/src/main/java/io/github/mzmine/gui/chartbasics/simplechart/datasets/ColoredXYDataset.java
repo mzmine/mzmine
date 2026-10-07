@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -56,6 +57,9 @@ import org.jfree.data.xy.IntervalXYDataset;
  * {@link PlotXYDataProvider} can be used to construct this dataset. The dataset implements the
  * interfaces, too, because the default renderers can then generate labels and tooltips based on the
  * interface methods and therefore be more reusable.
+ * <br>
+ * When using a ColoredXYDataset, also use a renderer that respects the color set in the dataset.
+ * Available renderers are located in io.github.mzmine.gui.chartbasics.simplechart.renderers
  *
  * @author https://github.com/SteffenHeu
  */
@@ -265,6 +269,11 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
 
   public XYValueProvider getValueProvider() {
     return xyValueProvider;
+  }
+
+  public boolean isCursorSelectable() {
+    return !(xyValueProvider instanceof PlotXYDataProvider plotProvider)
+        || plotProvider.isCursorSelectable();
   }
 
   public SeriesKeyProvider<Comparable<?>> getSeriesKeyProvider() {

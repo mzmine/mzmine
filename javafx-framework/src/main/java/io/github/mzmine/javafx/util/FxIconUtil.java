@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newStackPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder.EventHandling;
 import java.io.IOException;
@@ -40,12 +41,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleExpression;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -66,6 +70,8 @@ public class FxIconUtil {
 
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
   public static final int DEFAULT_ICON_SIZE = 18;
+  public static final int DEFAULT_LARGE_ICON_SIZE = 24;
+  public static final int LIST_ICON_SIZE = 15;
 
 
   @NotNull
@@ -98,23 +104,8 @@ public class FxIconUtil {
     return view;
   }
 
-  /**
-   * Returns file icon of the given color.
-   *
-   * @param color color of the icon
-   * @return file icon
-   */
-  public static Image getFileIcon(Color color) {
-    // Define colors mapping for the initial file icon
-    HashMap<Color, Color> colorsMapping = new HashMap<>();
-    colorsMapping.put(new Color(1.0, 0.5333333611488342, 0.0235294122248888, 1.0), color);
-    colorsMapping.put(new Color(0.9921568632125854, 0.6078431606292725, 0.1882352977991104, 1.0),
-        tintColor(color, 0.25));
-    colorsMapping.put(new Color(1.0, 0.7372549176216125, 0.4470588266849518, 1.0),
-        tintColor(color, 0.5));
-
-    // Recolor file icon according to the mapping
-    return ImageUtils.recolor(loadImageFromResources("icons/fileicon.png"), colorsMapping);
+  public static Node getFileIconNode(Color color) {
+    return FxIconUtil.getFontIcon(FxIcons.FOLDER_FILL, LIST_ICON_SIZE, color);
   }
 
   /**
@@ -228,6 +219,23 @@ public class FxIconUtil {
     return button;
   }
 
+  /**
+   * Opens the given url
+   */
+  public static ButtonBase newIconButtonOpenUrl(final IconCodeSupplier fxIcons,
+      @Nullable String tooltip, @NotNull String url) {
+    return newIconButtonOpenUrl(fxIcons, DEFAULT_ICON_SIZE, tooltip, url);
+  }
+
+  /**
+   * Opens the given url
+   */
+  public static ButtonBase newIconButtonOpenUrl(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @NotNull String url) {
+    return newIconButton(fxIcons, size, tooltip,
+        () -> DesktopService.getDesktop().openWebPage(url));
+  }
+
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, onAction);
   }
@@ -247,19 +255,49 @@ public class FxIconUtil {
   }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
+      @Nullable Color color, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, color, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons,
+      @NotNull ObservableValue<String> tooltip, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, tooltip, null, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons,
+      @NotNull ObservableValue<String> tooltip, @Nullable Color color,
+      @Nullable Runnable onAction) {
+
+    final ButtonBase btn = newIconButton(fxIcons, DEFAULT_ICON_SIZE, null, color, onAction);
+    btn.tooltipProperty().bind(tooltip.map(Tooltip::new));
+    return btn;
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
       @NotNull EventHandling eventHandling, @Nullable Runnable onAction) {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, eventHandling, onAction);
   }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
       @Nullable String tooltip, @Nullable Runnable onAction) {
-    return newIconButton(fxIcons, size, tooltip, EventHandling.DEFAULT_PASS, onAction);
+    return newIconButton(fxIcons, size, tooltip, (Color) null, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @Nullable Color color, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, size, tooltip, EventHandling.DEFAULT_PASS, color, onAction);
   }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
       @Nullable String tooltip, @NotNull EventHandling eventHandling, @Nullable Runnable onAction) {
-    return FxIconButtonBuilder.ofIconButton(fxIcons, eventHandling).size(size).tooltip(tooltip)
-        .onAction(onAction).build();
+    return newIconButton(fxIcons, size, tooltip, eventHandling, null, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @NotNull EventHandling eventHandling, @Nullable Color color,
+      @Nullable Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons, eventHandling).size(size).color(color)
+        .tooltip(tooltip).onAction(onAction).build();
   }
 
   public static ButtonBase newFlashableIconButton(final FxIcons fxIcons, final int size,

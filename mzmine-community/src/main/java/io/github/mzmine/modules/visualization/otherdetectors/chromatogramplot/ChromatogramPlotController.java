@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -33,6 +34,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -41,6 +43,8 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedCollection;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -57,7 +61,12 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   private final ChromatogramPlotBuilder chromatogramPlotBuilder;
 
   public ChromatogramPlotController() {
+    this(false);
+  }
+
+  public ChromatogramPlotController(boolean rangeStickyZero) {
     super(new ChromatogramPlotModel());
+    model.setRangeStickyZero(rangeStickyZero);
     chromatogramPlotBuilder = new ChromatogramPlotBuilder(model);
   }
 
@@ -189,6 +198,22 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
     domainAxisLabel().set(label);
   }
 
+  public BooleanProperty domainAxisLabelVisibleProperty() {
+    return model.showDomainAxisLabelProperty();
+  }
+
+  public void setDomainAxisLabelVisible(boolean visible) {
+    domainAxisLabelVisibleProperty().set(visible);
+  }
+
+  public BooleanProperty rangeAxisLabelVisibleProperty() {
+    return model.showRangeAxisLabelProperty();
+  }
+
+  public void setRangeAxisLabelVisible(boolean visible) {
+    rangeAxisLabelVisibleProperty().set(visible);
+  }
+
   public ObjectProperty<NumberFormat> domainAxisFormat() {
     return model.domainAxisFormatProperty();
   }
@@ -211,6 +236,16 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public void setRangeAxisStickyZero(boolean stickyZero) {
     model.getChart().setStickyZeroRangeAxis(stickyZero);
+  }
+
+  /**
+   * If enabled, each added dataset's series key is drawn as a single item label on the point with
+   * the highest range value, and a
+   * {@link io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator} is
+   * installed on the renderer (custom renderers added via the model do not otherwise get one).
+   */
+  public void setShowSeriesLabel(boolean showSeriesLabel) {
+    model.setShowSeriesLabel(showSeriesLabel);
   }
 
   public void applyWithNotifyChanges(boolean tempState, @NotNull final Runnable r) {
@@ -243,5 +278,38 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public MapProperty<XYDataset, XYItemRenderer> datasetsAndRenderersProperty() {
     return model.datasetRenderersProperty();
+  }
+
+  public ObjectProperty<@Nullable XYDataset> selectedDatasetProperty() {
+    return model.selectedDatasetProperty();
+  }
+
+  public @Nullable XYDataset getSelectedDataset() {
+    return model.getSelectedDataset();
+  }
+
+  public void setSelectedDataset(@Nullable XYDataset dataset) {
+    model.setSelectedDataset(dataset);
+  }
+
+
+  @NotNull
+  public SimpleXYChart<PlotXYDataProvider> getChart() {
+    return model.getChart();
+  }
+
+  public @NotNull FxXYPlot getXYPlot() {
+    return model.getXYPlot();
+  }
+
+  public void setLegendItemsVisible(boolean visible) {
+    model.getChart().setLegendItemsVisible(visible);
+  }
+
+  public void setDatasets(@NotNull SequencedCollection<XYDatasetAndRenderer> list) {
+    model.getDatasetRenderers().clear();
+    for (XYDatasetAndRenderer dr : list) {
+      addDataset(dr.dataset(), dr.renderer());
+    }
   }
 }

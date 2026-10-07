@@ -1,0 +1,154 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/**
+ * Nord - Inspired by the Arctic Nord color palette
+ * Calm blue-grey tones with cool Frost accent colors.
+ * Palette reference: https://www.nordtheme.com/
+ */
+
+.root {
+    /* Frost: #8fbcbb #88c0d0 #81a1c1 #5e81ac */
+    -jr-theme: #88c0d0;
+    -jr-accent: #5e81ac;
+    -jr-accent-below-text: #2e4466;
+    -jr-selected: -jr-accent;
+    -jr-hover: #fff1;
+
+    -jr-row-odd-background: #3b4252;
+    -jr-row-even-background: #2e3440;
+    -jr-accent-alt: -jr-accent;
+
+    /* Aurora palette */
+    -jr-red: #bf616a;
+    -jr-light-red: #d08770;
+    -jr-green: #a3be8c;
+    -jr-light-green: #b9d49d;
+    -jr-blue: #5e81ac;
+    -jr-light-blue: #81a1c1;
+    -jr-purple: #b48ead;
+    -jr-light-purple: #c9a6c3;
+    -jr-yellow: #ebcb8b;
+    -jr-orange: #d08770;
+
+    /* Polar Night backgrounds */
+    -jr-base: #2e3440;
+    -jr-background-alt: #292e3b;
+    -jr-menu-background: #252a33;
+    -jr-toolbar: -jr-menu-background;
+    -jr-sidepane-background: #3b4252;
+    -jr-search-background: #3b4252;
+
+    -jr-sidepane-header-background: -jr-background-alt;
+    -jr-group-hits-bg: -jr-background-alt;
+    -jr-group-hits-fg: -fx-light-text-color;
+    -fx-control-inner-background: #434c5e;
+    -fx-control-inner-background-alt: -fx-control-inner-background;
+
+    -fx-dark-text-color: black;
+    /* Snow Storm text colors */
+    -fx-mid-text-color: #d8dee9;
+    -fx-light-text-color: #eceff4;
+    -jr-separator: #434c5e;
+    -fx-outer-border: #4c566a;
+
+    -jr-icon: -fx-light-text-color;
+    -jr-icon-active: derive(-fx-light-text-color, 50%);
+    -jr-icon-background-active: -jr-hover;
+    -jr-icon-background-armed: #fff2;
+
+    -jr-menu-foreground: -fx-light-text-color;
+    -jr-menu-item-foreground: -fx-light-text-color;
+    -jr-menu-forground-active: derive(-fx-light-text-color, 50%);
+
+    -jr-scrollbar-thumb: #4c566a;
+    -jr-scrollbar-track: derive(-fx-control-inner-background, -50%);
+
+    -fx-focused-text-base-color: -fx-dark-text-color;
+
+    -jr-tooltip-fg: #eceff4;
+
+    -jr-drag-target: -jr-accent;
+    -jr-drag-target-hover: -jr-accent;
+
+    -js-summary-text-color: derive(-fx-light-text-color, 70%);
+    -js-summary-text-color-selected: derive(-fx-dark-text-color, 70%);
+}
+
+.region-match-chart-bg, .tool-bar, .status-bar {
+    -fx-background-color: -jr-menu-background;
+}
+
+#previewBody {
+    background-color: #434c5e;
+    color: #eceff4;
+}
+
+/* Alternating table rows */
+.table-row-cell:odd {
+    -fx-background-color: #3b4252;
+}
+
+.table-row-cell:even {
+    -fx-background-color: #2e3440;
+}
+
+.table-row-cell:hover,
+.tree-table-row-cell:hover {
+    -fx-background-color: -jr-hover;
+}
+
+.table-view .groupColumnBackground {
+    -fx-stroke: #4c566a;
+}
+
+.code-area .lineno {
+    -fx-background-color: -jr-background-alt;
+    -fx-text-fill: -fx-mid-text-color;
+}
+
+.text-unchanged {
+    -fx-fill: -fx-light-text-color;
+}
+
+.radio-button > .radio {
+    -fx-background-color: -fx-light-text-color, -fx-control-inner-background;
+}
+
+.numberColumn > .hits:any-selected {
+    -fx-background-color: derive(#4c566a, 25%);
+}
+
+.numberColumn > .hits:all-selected {
+    -fx-background-color: #4c566a;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: -jr-background-alt;
+    -fx-padding: 0 .5 0 .5;
+}
+
+.file-row-text {
+    -fx-text-fill: -fx-light-text-color;
+}

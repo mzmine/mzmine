@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
@@ -121,7 +122,7 @@ class FeatureIntegrationDataCalcTask extends FxUpdateTask<IntegrationDashboardMo
 
       entries.add(
           new FeatureIntegrationData(file, feature != null ? feature.getFeatureData() : null,
-              chromatogram, additionalData));
+              chromatogram, additionalData, SimpleDoubleRange.of(mzRange)));
       processed++;
     }
   }
@@ -141,13 +142,14 @@ class FeatureIntegrationDataCalcTask extends FxUpdateTask<IntegrationDashboardMo
       return IonTimeSeries.EMPTY;
     }
 
-    if (file instanceof IMSRawDataFile ims && (FeatureUtils.isMrm(feature))) {
+    if (file instanceof IMSRawDataFile ims && (FeatureUtils.isImsFeature(feature))) {
       final int previousBinningWith = BinningMobilogramDataAccess.getPreviousBinningWidth(flist,
           ims.getMobilityType());
       var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
           new MobilityScanDataAccess(ims, MobilityScanDataType.MASS_LIST,
               (List<Frame>) flist.getSeletedScans(file)), mzRange, extendedRtRange,
-          row.getMobilityRange(), flist.getMemoryMapStorage(),
+          feature != null ? feature.getMobilityRange() : row.getMobilityRange(),
+          flist.getMemoryMapStorage(),
           new BinningMobilogramDataAccess(ims, previousBinningWith));
       chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
     } else {

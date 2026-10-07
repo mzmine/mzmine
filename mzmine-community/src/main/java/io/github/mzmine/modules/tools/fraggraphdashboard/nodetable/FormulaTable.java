@@ -31,12 +31,12 @@ import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.Comparators;
+import io.github.mzmine.util.FormulaUtils;
 import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.ReadOnlyFloatWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaTable extends TableView<ResultFormula> {
 
@@ -45,7 +45,7 @@ public class FormulaTable extends TableView<ResultFormula> {
 
     TableColumn<ResultFormula, String> formula = new TableColumn<>("Ion formula");
     formula.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
-        MolecularFormulaManipulator.getString(cell.getValue().getFormulaAsObject())));
+        FormulaUtils.getFormulaString(cell.getValue().getFormulaAsObject())));
     formula.setMinWidth(150);
 
     NumberFormats formats = ConfigService.getGuiFormats();

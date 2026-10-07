@@ -27,9 +27,9 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
 
-import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -42,6 +42,7 @@ import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
@@ -49,12 +50,14 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInt
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
-import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.javafx.FxMenuUtil;
 import io.mzio.links.MzioMZmineLinks;
-import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -71,30 +74,37 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBase;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 public class BatchWizardTab extends SimpleTab {
 
@@ -109,24 +119,22 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * Parameter panes of the selected presets
    */
-  private final Map<File, LocalWizardSequenceFile> localPresets = new HashMap<>();
   private final Map<WizardStepParameters, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
+  private final List<Subscription> paramPaneSubscriptions = new ArrayList<>();
   private final Map<WizardPart, ComboBox<WizardStepParameters>> combos = new HashMap<>();
-  private final LastFilesButton localPresetsButton;
+  /**
+   * Load and save presets and apply local presets
+   */
+  private final MenuButton presetsMenu = new MenuButton("Presets");
   private final SimpleBooleanProperty advancedMode = new SimpleBooleanProperty(false);
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
-  private final int helpButtonSize = 50;
 
   public BatchWizardTab() {
     super("mzwizard");
 //    setGraphic(LightAndDarkModeIcon.mzwizardImageTab(200, 18));
     ALL_PRESETS = WizardStepParameters.createAllPresets();
-    localPresetsButton = new LastFilesButton("Local presets", true,
-        file -> applyLocalPartialSequence(localPresets.get(file)));
-    localPresetsButton.setGraphic(
-        FxIconUtil.getFontIcon("bi-folder-symlink", FxIconUtil.DEFAULT_ICON_SIZE));
     createContentPane();
     findAllLocalPresetFiles();
     // reset to mzmine default presets (loading the local presets have changed the parameters already once)
@@ -141,7 +149,7 @@ public class BatchWizardTab extends SimpleTab {
     tabPane = new TabPane();
     tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
     tabPane.setTabDragPolicy(TabDragPolicy.FIXED);
-    BorderPane centerPane = new BorderPane(tabPane);
+    final BorderPane centerPane = new BorderPane(new StackPane(tabPane, createTabHeaderActions()));
     var centerScroll = new ScrollPane(centerPane);
     centerScroll.setFitToWidth(true);
     centerScroll.setFitToHeight(true);
@@ -156,6 +164,8 @@ public class BatchWizardTab extends SimpleTab {
    */
   private synchronized void createParameterPanes() {
     schemaPane.getChildren().clear();
+    paramPaneSubscriptions.forEach(Subscription::unsubscribe);
+    paramPaneSubscriptions.clear();
     paramPaneMap.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
     // evaluate workflow and limit choices
@@ -277,6 +287,9 @@ public class BatchWizardTab extends SimpleTab {
   private Tab createParameterTab(final WizardStepParameters step) {
     ParameterSetupPane paramPane = new ParameterSetupPane(true, false, step);
     paramPaneMap.put(step, paramPane);
+    if (step instanceof DataImportWizardParameters dataImportParameters) {
+      subscribeMetadataExtractionToImportFiles(dataImportParameters, paramPane);
+    }
     // add to schema
     addToSchema(step);
     // NOT add tabs without user parameters (components to set)
@@ -292,6 +305,27 @@ public class BatchWizardTab extends SimpleTab {
     } else {
       return null;
     }
+  }
+
+  private void subscribeMetadataExtractionToImportFiles(
+      @NotNull final DataImportWizardParameters dataImportParameters,
+      @NotNull final ParameterSetupPane paramPane) {
+    final FileNamesComponent fileNamesComponent = paramPane.getComponentForParameter(
+        DataImportWizardParameters.fileNames);
+    if (fileNamesComponent == null) {
+      return;
+    }
+
+    final SampleMetadataExtractionParameters metadataParameters = dataImportParameters.getParameter(
+        DataImportWizardParameters.extractMetadata).getEmbeddedParameters();
+    paramPaneSubscriptions.add(fileNamesComponent.textProperty()
+        .subscribe(_ -> updateMetadataSelectedFiles(metadataParameters, fileNamesComponent)));
+  }
+
+  private static void updateMetadataSelectedFiles(
+      @NotNull final SampleMetadataExtractionParameters metadataParameters,
+      @NotNull final FileNamesComponent fileNamesComponent) {
+    metadataParameters.setSelectedFiles(fileNamesComponent.getValue());
   }
 
   private static void addCheckboxToCustomizationTabHeader(
@@ -343,10 +377,18 @@ public class BatchWizardTab extends SimpleTab {
     }
   }
 
-  public Region createSpacer() {
-    var spacer = new Region();
-    spacer.setPrefWidth(10);
-    return spacer;
+  /// caption above the combo box. min and pref width 0 so the column width is defined by the combo
+  /// box and long captions wrap instead of widening the column
+  private static @NonNull Label generateCaptionLabel(WizardPart part) {
+    final Label caption = FxLabels.wrap(FxLabels.newBoldLabel(part.caption()));
+    caption.setTooltip(new Tooltip(part.tooltip()));
+    caption.setMinWidth(0);
+    caption.setPrefWidth(0);
+    caption.setMaxWidth(Double.MAX_VALUE);
+    caption.setAlignment(Pos.CENTER);
+    caption.setTextAlignment(TextAlignment.CENTER);
+    GridPane.setValignment(caption, VPos.BOTTOM);
+    return caption;
   }
 
   private Region createTopMenu() {
@@ -354,9 +396,9 @@ public class BatchWizardTab extends SimpleTab {
     controlSchemaPane.setAlignment(Pos.CENTER);
     VBox.setMargin(controlSchemaPane, new Insets(5));
 
-    var instrumentComboBoxPane = new FlowPane(4, 4);
-    instrumentComboBoxPane.setAlignment(Pos.CENTER);
-    HBox.setMargin(instrumentComboBoxPane, new Insets(5));
+    // row 0: captions, row 1: combo boxes, separators and create batch button
+    final GridPane comboBoxGrid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
+    int column = 0;
 
     sequenceSteps.clear();
     combos.clear();
@@ -376,39 +418,55 @@ public class BatchWizardTab extends SimpleTab {
       ComboBox<WizardStepParameters> combo = new ComboBox<>(presets);
       combo.setVisibleRowCount(IonInterfaceWizardParameterFactory.values().length);
       combos.put(part, combo);
-      // add a spacer if not the first
-      if (!instrumentComboBoxPane.getChildren().isEmpty()) {
-        instrumentComboBoxPane.getChildren().add(new Label("-"));
+      // add a separator if not the first
+      if (column > 0) {
+        comboBoxGrid.add(new Label("-"), column++, 1);
       }
       combo.getSelectionModel().select(0);
-      instrumentComboBoxPane.getChildren().add(combo);
+      final Label caption = generateCaptionLabel(part);
+      caption.widthProperty().addListener(
+          (_, _, width) -> caption.setMinHeight(caption.prefHeight(width.doubleValue())));
+      comboBoxGrid.add(caption, column, 0);
+      comboBoxGrid.add(combo, column++, 1);
 
       // add listener
-      combo.getSelectionModel().selectedItemProperty()
-          .addListener((observable, oldValue, newValue) -> {
-            if (listenersActive) {
-              sequenceSteps.set(part, newValue);
-              // keep old parameters before changing pane
-              updateAllParametersFromUi();
-              createParameterPanes();
-            }
-          });
+      combo.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
+        if (listenersActive) {
+          sequenceSteps.set(part, newValue);
+          // keep old parameters before changing pane
+          updateAllParametersFromUi();
+          createParameterPanes();
+        }
+      });
     }
 
-    Button createBatch = FxButtons.createButton("Create batch", FxIcons.START, null,
-        this::createBatch);
-    Button save = FxButtons.createSaveButton("Save presets", this::saveLocalWizardSequence);
-    Button load = FxButtons.createLoadButton("Load presets", this::chooseAndLoadLocalSequence);
+    final Button createBatch = FxButtons.createButton("Create batch", FxIcons.START,
+        "Create the batch from the selected workflow and parameters", this::createBatch);
+    createBatch.getStyleClass().add("accent-button");
+    presetsMenu.setGraphic(
+        FxIconUtil.getFontIcon("bi-folder-symlink", FxIconUtil.DEFAULT_ICON_SIZE));
+    presetsMenu.setTooltip(new Tooltip("Load, save, or apply local presets"));
+    comboBoxGrid.add(FxLabels.newLabel("="), column++, 1);
+    comboBoxGrid.add(createBatch, column++, 1);
+    comboBoxGrid.add(presetsMenu, column, 1);
 
-    instrumentComboBoxPane.getChildren()
-        .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load,
-            localPresetsButton);
+    final FlowPane instrumentComboBoxPane = FxLayout.newFlowPane(comboBoxGrid);
+    instrumentComboBoxPane.setAlignment(Pos.CENTER);
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
 
+    controlSchemaPane.getChildren().addAll(instrumentComboBoxPane, schemaPane);
+    return controlSchemaPane;
+  }
+
+  /**
+   * Advanced mode and help. Overlays the right end of the tab header. Requires the {@link #tabPane}
+   * to be initialized.
+   */
+  private @NotNull HBox createTabHeaderActions() {
     // advanced mode toggle switch
-    /*ToggleSwitch advancedToggle = new ToggleSwitch("Advanced mode");
+    /*final ToggleSwitch advancedToggle = new ToggleSwitch("Advanced mode");
     advancedToggle.setTooltip(new Tooltip("Show or hide the advanced parameter customization tab"));
     advancedToggle.selectedProperty().bindBidirectional(advancedMode);
     advancedMode.addListener((_, _, _) -> {
@@ -418,36 +476,58 @@ public class BatchWizardTab extends SimpleTab {
       }
     });*/
 
-    // add a wrapper around the top pane with combo boxes and buttons so the overlay buttons do not overlap
-    final HBox topPaneWrapper = FxLayout.newHBox(
-        new Insets(0, helpButtonSize + 120, 0, helpButtonSize), instrumentComboBoxPane);
-    HBox.setHgrow(instrumentComboBoxPane, Priority.ALWAYS);
-    controlSchemaPane.getChildren().addAll(topPaneWrapper, schemaPane);
+    final Button help = FxButtons.createHelpButton(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl());
 
-    final ButtonBase help = FxIconUtil.newIconButton(FxIcons.QUESTIONMARK, 50,
-        "Open the mzwizard documentation", () -> DesktopService.getDesktop()
-            .openWebPage(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl()));
-    VBox topRightControls = FxLayout.newVBox(Pos.CENTER_RIGHT, FxLayout.DEFAULT_PADDING_INSETS,
-        help/*, advancedToggle*/);
-    topRightControls.setPickOnBounds(false);
-    final StackPane stackPane = new StackPane(controlSchemaPane, topRightControls);
-    StackPane.setAlignment(topRightControls, Pos.TOP_RIGHT);
+    final HBox actions = FxLayout.newHBox(Pos.CENTER_RIGHT,
+        new Insets(0, FxLayout.DEFAULT_SPACE, 0, 0), /*advancedToggle,*/ help);
+    actions.getStyleClass().add("tab-header-actions");
+    actions.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+    actions.setPickOnBounds(false);
+    StackPane.setAlignment(actions, Pos.TOP_RIGHT);
+    reserveTabHeaderSpace(actions);
+    return actions;
+  }
 
-    return stackPane;
+  /// The actions overlay the right end of the tab header. Pads the header area so that the tabs and
+  /// the tab overflow button never run below the actions and centers the actions vertically in the
+  /// header.
+  private void reserveTabHeaderSpace(@NotNull final Region actions) {
+    final Subscription[] headerSub = {Subscription.EMPTY};
+    tabPane.skinProperty().subscribe(skin -> {
+      headerSub[0].unsubscribe();
+      headerSub[0] = Subscription.EMPTY;
+      actions.minHeightProperty().unbind();
+      if (skin == null || !(tabPane.lookup(".tab-header-area") instanceof Region header)) {
+        return;
+      }
+      actions.minHeightProperty().bind(header.heightProperty());
+      // assumption: the themes set the header area padding to 0 (jabref_light.css,
+      // style_modern.css), the inline style only adds the right padding
+      headerSub[0] = actions.widthProperty().subscribe(
+          width -> header.setStyle("-fx-padding: 0 %.1fpx 0 0;".formatted(width.doubleValue())));
+    });
   }
 
   /**
    * Find local preset files and add to the drop-down
    */
   private void findAllLocalPresetFiles() {
-    var newLocalPresets = WizardSequenceIOUtils.findAllLocalPresetFiles();
 
-    localPresets.clear();
+    final List<MenuItem> items = new ArrayList<>();
+    items.add(FxMenuUtil.newMenuItem("Load presets...", this::chooseAndLoadLocalSequence));
+    items.add(FxMenuUtil.newMenuItem("Save presets...", this::saveLocalWizardSequence));
+    items.add(new SeparatorMenuItem());
+
+    final var newLocalPresets = WizardSequenceIOUtils.findAllLocalPresetFiles();
+    final MenuItem localHeader = new MenuItem(
+        newLocalPresets.isEmpty() ? "No local presets" : "Local presets");
+    localHeader.setDisable(true);
+    items.add(localHeader);
     for (final LocalWizardSequenceFile preset : newLocalPresets) {
-      localPresets.put(preset.file(), preset);
+      items.add(FxMenuUtil.newMenuItem(FileAndPathUtil.eraseFormat(preset.file().getName()),
+          () -> applyLocalPartialSequence(preset)));
     }
-    localPresetsButton.setLastFiles(
-        newLocalPresets.stream().map(LocalWizardSequenceFile::file).toList());
+    presetsMenu.getItems().setAll(items);
   }
 
   /**

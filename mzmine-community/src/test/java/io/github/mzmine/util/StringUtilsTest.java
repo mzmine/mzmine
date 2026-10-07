@@ -57,7 +57,7 @@ class StringUtilsTest {
   }
 
   @Test
-  void parseSignAndIntegerOrElse() {
+  void parseSignAndIntegerOrElseOnlyDigits() {
     assertEquals(123, StringUtils.parseSignAndIntegerOrElse("+123", true, 5));
     assertEquals(123, StringUtils.parseSignAndIntegerOrElse("123", true, 5));
     assertEquals(123, StringUtils.parseSignAndIntegerOrElse("dahklwdhla123dwahjdwhakd", true, 5));
@@ -67,6 +67,18 @@ class StringUtilsTest {
     assertEquals(5, StringUtils.parseSignAndIntegerOrElse(null, true, 5));
     assertEquals(3, StringUtils.parseSignAndIntegerOrElse("+3", true, 5));
     assertEquals(3, StringUtils.parseSignAndIntegerOrElse("3+", true, 5));
+  }
+
+  @Test
+  void parseSignAndIntegerOrElse() {
+    assertEquals(123, StringUtils.parseSignAndIntegerOrElse("+123", 5));
+    assertEquals(123, StringUtils.parseSignAndIntegerOrElse("123", 5));
+    assertEquals(3, StringUtils.parseSignAndIntegerOrElse("+3", 5));
+    assertEquals(3, StringUtils.parseSignAndIntegerOrElse("3+", 5));
+    assertEquals(-3, StringUtils.parseSignAndIntegerOrElse("3-", 5));
+    assertEquals(1, StringUtils.parseSignAndIntegerOrElse("+", 5));
+    assertEquals(1, StringUtils.parseSignAndIntegerOrElse("+1", 5));
+    assertEquals(-1, StringUtils.parseSignAndIntegerOrElse("-", 5));
   }
 
   @Test

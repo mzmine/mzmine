@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -28,9 +29,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class NormalizedAreaType extends AreaType {
 
+  public static final String UNIQUE_ID = "area_norm";
+
   @Override
   public @NotNull String getUniqueID() {
-    return "area_norm";
+    return UNIQUE_ID;
   }
 
   @Override

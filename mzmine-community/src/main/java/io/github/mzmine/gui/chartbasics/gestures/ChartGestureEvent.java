@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,8 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import javafx.scene.input.ScrollEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
@@ -43,6 +45,8 @@ import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.RectangleEdge;
 
 /**
  * {@link ChartGesture}s are part of {@link ChartGestureEvent} which are generated and processed by
@@ -226,9 +230,15 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
    * @param axis
    * @return
    */
-  public Boolean isVerticalAxis(ValueAxis axis) {
+  public @Nullable Boolean isVerticalAxis(final @Nullable ValueAxis axis) {
     if (axis == null)
       return null;
+
+    final Boolean axisOrientation = isLeftOrRightEdge(axis);
+    if (axisOrientation != null) {
+      return axisOrientation;
+    }
+
     JFreeChart chart = getChart();
     PlotOrientation orient = PlotOrientation.HORIZONTAL;
     if (chart.getXYPlot() != null)
@@ -240,7 +250,6 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
       return null;
 
     Entity entity = this.getGesture().getEntity();
-    double start = 0;
     // horizontal
     if ((entity.equals(Entity.DOMAIN_AXIS) && orient.equals(PlotOrientation.VERTICAL))
         || (entity.equals(Entity.RANGE_AXIS) && orient.equals(PlotOrientation.HORIZONTAL))) {
@@ -252,6 +261,26 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
       return true;
     }
     // error
+    return null;
+  }
+
+  private @Nullable Boolean isLeftOrRightEdge(final @NotNull ValueAxis axis) {
+    if (!(axis.getPlot() instanceof XYPlot plot)) {
+      return null;
+    }
+
+    for (int i = 0; i < plot.getDomainAxisCount(); i++) {
+      if (axis.equals(plot.getDomainAxis(i))) {
+        final RectangleEdge edge = plot.getDomainAxisEdge(i);
+        return RectangleEdge.isLeftOrRight(edge);
+      }
+    }
+    for (int i = 0; i < plot.getRangeAxisCount(); i++) {
+      if (axis.equals(plot.getRangeAxis(i))) {
+        final RectangleEdge edge = plot.getRangeAxisEdge(i);
+        return RectangleEdge.isLeftOrRight(edge);
+      }
+    }
     return null;
   }
 }

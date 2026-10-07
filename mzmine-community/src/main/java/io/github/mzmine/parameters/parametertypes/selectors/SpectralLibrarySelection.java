@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -42,6 +43,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,8 +59,8 @@ public class SpectralLibrarySelection {
     this(SpectralLibrarySelectionType.ALL_IMPORTED, List.of());
   }
 
-  public SpectralLibrarySelection(SpectralLibrarySelectionType selectionType,
-      List<File> specificLibraryNames) {
+  public SpectralLibrarySelection(@NotNull SpectralLibrarySelectionType selectionType,
+      @NotNull List<File> specificLibraryNames) {
     this.selectionType = selectionType;
     this.specificLibraryNames = specificLibraryNames;
   }
@@ -68,8 +70,11 @@ public class SpectralLibrarySelection {
         libraries.stream().map(SpectralLibrary::getPath).toList());
   }
 
+  /// Sorted to have the same order in all use cases
+  ///
+  /// @return sorted (by name) list of matching libraries
   public List<SpectralLibrary> getMatchingLibraries() {
-    return switch (selectionType) {
+    final List<SpectralLibrary> libraries = switch (selectionType) {
       case ALL_IMPORTED ->
           ProjectService.getProjectManager().getCurrentProject().getCurrentSpectralLibraries()
               .stream().toList();
@@ -82,6 +87,11 @@ public class SpectralLibrarySelection {
         yield List.of();
       }
     };
+
+    final List<SpectralLibrary> sorted = libraries.stream().sorted(
+        Comparator.comparing(SpectralLibrary::getName).thenComparing(SpectralLibrary::getPath,
+            Comparator.nullsLast(Comparator.comparing(File::getAbsolutePath)))).toList();
+    return sorted;
   }
 
   public SpectralLibrarySelectionType getSelectionType() {
@@ -122,7 +132,7 @@ public class SpectralLibrarySelection {
    * Checks if all spectral libraries are available, otherwise ask for import, finally return
    * selected list of libraries.
    *
-   * @return all selected spectral libraries
+   * @return all selected spectral libraries, sorted by name for same order in all use cases
    * @throws SpectralLibrarySelectionException when specific libraries are provided but are not
    *                                           imported (GUI: ask to import, CLI: throw exception).
    */

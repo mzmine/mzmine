@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -93,7 +93,7 @@ public class MZmineJsonLibraryEntry {
   public Double rt, ccs;
   public String ri;
   public String cas, splash;
-  public String formula, smiles, inchi, inchikey, peptideSequence;
+  public String formula, smiles, isomericSmiles, inchi, inchikey, peptideSequence;
   public FloatArrayList fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
@@ -159,6 +159,7 @@ public class MZmineJsonLibraryEntry {
       case INCHI -> inchi;
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
+      case ISOMERIC_SMILES -> isomericSmiles;
       case PEPTIDE_SEQ -> peptideSequence;
       case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass;
       case CLASSYFIRE_CLASS -> classyFireClass;
@@ -229,6 +230,8 @@ public class MZmineJsonLibraryEntry {
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
       case JSON_STRING -> null;
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS_1_0 ->
+          null; // runtime-only, no JSON mapping
     };
   }
 

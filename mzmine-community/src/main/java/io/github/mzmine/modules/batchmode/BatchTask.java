@@ -39,9 +39,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
+import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
+import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -60,6 +61,8 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapSnapshot;
+import io.github.mzmine.util.MemoryMapStorageStats;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CsvWriter;
@@ -71,6 +74,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -85,6 +89,10 @@ import org.jetbrains.annotations.Nullable;
 public class BatchTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(BatchTask.class.getName());
+  /**
+   * Name of the measurement that covers the whole batch instead of a single step.
+   */
+  public static final String WHOLE_BATCH_NAME = "WHOLE BATCH";
   private final BatchQueue queue;
   // advanced parameters
   private final int stepsPerDataset;
@@ -92,8 +100,19 @@ public class BatchTask extends AbstractTask {
   private final boolean useAdvanced;
   private final int datasets;
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  // collected in parallel to stepTimes - temp file (MemoryMapStorage) statistics per step
+  private final List<StepStorageMeasurement> stepStorageStats = new ArrayList<>();
   private final boolean runGCafterBatchStep;
+  // guards against logging the final summary twice, as run() has multiple exit paths
+  private boolean summaryPrinted = false;
   private int processedSteps;
+  /**
+   * 1-based number of the step within the current dataset that is running, or of the last step that
+   * ran once the batch has stopped. 0 before the first step starts. Unlike {@link #processedSteps}
+   * this is not advanced after a step, so error messages logged after the batch stopped still name
+   * the step that actually failed.
+   */
+  private int currentStepNumber = 0;
   private @Nullable List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
@@ -203,6 +222,8 @@ public class BatchTask extends AbstractTask {
                   getErrorMessage()));
         }
       }
+      // still report the steps that did finish before the exception
+      finishBatchMeasurements(batchStart, false);
       return;
     }
 
@@ -210,18 +231,38 @@ public class BatchTask extends AbstractTask {
       logger.log(Level.WARNING, getErrorMessage());
     }
 
+    // isCanceled() is also true for ERROR
     if (isCanceled()) {
+      finishBatchMeasurements(batchStart, false);
       return;
     }
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
-    Duration duration = Duration.between(batchStart, Instant.now());
+    finishBatchMeasurements(batchStart, true);
+  }
+
+  /**
+   * Appends the {@link #WHOLE_BATCH_NAME} summary row and logs all measurements. Called on every
+   * exit path of {@link #run()} so that the numbers of the finished steps are also reported when
+   * the batch stopped early. Only the first call produces output.
+   *
+   * @param batchStart      start of the batch, used for the whole batch wall clock time
+   * @param finishedSuccess false if the batch stopped early by exception, error or cancel
+   */
+  private void finishBatchMeasurements(@NotNull final Instant batchStart,
+      final boolean finishedSuccess) {
+    if (summaryPrinted) {
+      return;
+    }
+    summaryPrinted = true;
+
+    final Duration duration = Duration.between(batchStart, Instant.now());
     if (runGCafterBatchStep) {
       System.gc();
     }
-    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration, runGCafterBatchStep));
-    printBatchTimes();
+    stepTimes.add(new StepTimeMeasurement(0, WHOLE_BATCH_NAME, duration, runGCafterBatchStep));
+    printBatchMeasurements(finishedSuccess);
   }
 
   private void runBatchQueue() {
@@ -236,10 +277,11 @@ public class BatchTask extends AbstractTask {
         ProjectService.getProjectManager().clearProject();
         currentDataset++;
 
-        // print step times
-        if (!stepTimes.isEmpty()) {
-          printBatchTimes();
+        // print and reset per-dataset step measurements (timing + temp file usage)
+        if (!stepStorageStats.isEmpty()) {
+          printBatchMeasurements(getStatus() == TaskStatus.FINISHED);
           stepTimes.clear();
+          stepStorageStats.clear();
         }
 
         // change files
@@ -284,9 +326,11 @@ public class BatchTask extends AbstractTask {
         }
       }
 
-      // run step
+      // run step stepNumber (0 based)
       final int stepNumber = i % stepsPerDataset;
+      currentStepNumber = stepNumber + 1;
       Instant start = Instant.now();
+      final MemoryMapSnapshot storageBefore = MemoryMapStorageStats.snapshot();
 
       // the heavy lifting
       processQueueStep(stepNumber);
@@ -296,9 +340,16 @@ public class BatchTask extends AbstractTask {
       if (runGCafterBatchStep) {
         System.gc();
       }
-      stepTimes.add(
-          new StepTimeMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
-              duration, runGCafterBatchStep));
+      final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
+      final String stepName = queue.get(stepNumber).getModule().getName();
+      final StepTimeMeasurement stepTime = new StepTimeMeasurement(stepNumber + 1, stepName,
+          duration, runGCafterBatchStep);
+      final StepStorageMeasurement stepStorage = new StepStorageMeasurement(stepNumber + 1,
+          stepName, storageBefore, storageAfter);
+      stepTimes.add(stepTime);
+      stepStorageStats.add(stepStorage);
+      // log each finished step right away so the measurements survive a failing or canceled batch
+      logStepMeasurement(new StepMeasurement(stepTime, stepStorage));
 
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
@@ -319,18 +370,99 @@ public class BatchTask extends AbstractTask {
     }
   }
 
-  private void printBatchTimes() {
-    String csv = CsvWriter.writeToString(stepTimes, StepTimeMeasurement.class, '\t', true);
-    logger.info("""
-        Timing: Whole batch took %.3f seconds to finish
-        %s""".formatted(stepTimes.getLast().secondsToFinish(), csv));
+  /**
+   * Timing, heap and temp file usage of all collected steps, followed by a
+   * {@link #WHOLE_BATCH_NAME} summary row. Pairs {@link #stepTimes} and {@link #stepStorageStats}
+   * by index. The summary row uses the measured wall clock of the whole batch (which also covers
+   * overhead outside of the steps) and falls back to the sum of the step times while the batch is
+   * still running. Its storage columns are the sums of the per-step deltas, its live columns are
+   * the latest snapshot and therefore not a sum.
+   *
+   * @return an unmodifiable list, empty while no step has finished yet
+   */
+  public @NotNull List<StepMeasurement> getStepMeasurements() {
+    final int steps = stepStorageStats.size();
+    if (steps == 0) {
+      return List.of();
+    }
+    final List<StepMeasurement> measurements = new ArrayList<>(steps + 1);
+    for (int i = 0; i < steps; i++) {
+      measurements.add(new StepMeasurement(stepTimes.get(i), stepStorageStats.get(i)));
+    }
 
-//    CsvWriter.writeToFile();
-//    logger.info(csv);
-//    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
-//    logger.info(STR."""
-//    Timing: Whole batch took \{duration} to finish
-//    \{times}""");
+    // the trailing WHOLE BATCH timing entry is only added once the batch has finished
+    final StepTimeMeasurement wholeBatch = stepTimes.size() > steps ? stepTimes.get(steps) : null;
+    // round to 3 decimals to keep the CSV clean
+    final double totalSeconds = wholeBatch != null ? wholeBatch.secondsToFinish() : round3(
+        stepTimes.stream().limit(steps).mapToDouble(StepTimeMeasurement::secondsToFinish).sum());
+    final long totalFiles = stepStorageStats.stream()
+        .mapToLong(StepStorageMeasurement::filesCreatedInStep).sum();
+    final double totalReservedGB = round3(
+        stepStorageStats.stream().mapToDouble(StepStorageMeasurement::reservedGBInStep).sum());
+    final double totalUsedGB = round3(
+        stepStorageStats.stream().mapToDouble(StepStorageMeasurement::usedGBInStep).sum());
+
+    final StepStorageMeasurement last = stepStorageStats.getLast();
+    final String heap = wholeBatch != null ? wholeBatch.usedHeapGB() : null;
+    measurements.add(
+        new StepMeasurement(new StepTimeMeasurement(0, totalSeconds, WHOLE_BATCH_NAME, heap),
+            new StepStorageMeasurement(0, WHOLE_BATCH_NAME, totalFiles, totalReservedGB,
+                totalUsedGB, last.liveFiles(), last.liveUsedGB())));
+
+    return List.copyOf(measurements);
+  }
+
+  /**
+   * Logs the measurement of a single finished step. Called directly after each step so that timing
+   * and memory numbers are available even if a later step fails or the batch is canceled before
+   * {@link #printBatchMeasurements(boolean)} runs.
+   */
+  private void logStepMeasurement(@NotNull final StepMeasurement measurement) {
+    logger.info(measurement.toString());
+  }
+
+  /**
+   * Logs {@link #getStepMeasurements()} as a single CSV.
+   *
+   * @param finishedSuccess false adds a marker below the summary so that partial measurements of a
+   *                        batch that stopped early are not mistaken for a full run
+   */
+  private void printBatchMeasurements(final boolean finishedSuccess) {
+    final List<StepMeasurement> measurements = getStepMeasurements();
+    if (measurements.isEmpty()) {
+      // not a single step finished - still report why the batch stopped
+      if (!finishedSuccess) {
+        logger.info(incompleteBatchMarker());
+      }
+      return;
+    }
+    final String csv = CsvWriter.writeToString(measurements, StepMeasurement.class, '\t', true);
+    final String marker = finishedSuccess ? ""
+        : "\n%s The %s row covers the wall clock time until the batch stopped, its temp file columns only sum the steps listed above.".formatted(
+            incompleteBatchMarker(), WHOLE_BATCH_NAME);
+    // stripTrailing drops the trailing row separator so that the marker ends up on its own line
+    logger.info("""
+        Batch step measurements (timing + temp file usage)
+        %s%s""".formatted(csv.stripTrailing(), marker));
+  }
+
+  /**
+   * Names the reason the batch stopped and how far it got, logged below an incomplete summary.
+   */
+  private @NotNull String incompleteBatchMarker() {
+    final String reason = switch (getStatus()) {
+      case ERROR -> "error: " + Objects.requireNonNullElse(getErrorMessage(), "unknown");
+      case CANCELED -> "canceled";
+      // the batch may still be running when a dataset summary is printed in advanced batch mode
+      case WAITING, PROCESSING, FINISHED -> "stopped early";
+    };
+    // currentStepNumber, not processedSteps, as the latter already counts the step that failed
+    return "INCOMPLETE BATCH: stopped in step %d of %d (%s).".formatted(
+        Math.max(currentStepNumber, 1), totalSteps, reason);
+  }
+
+  private static double round3(final double value) {
+    return Math.round(value * 1e3) / 1e3;
   }
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
@@ -581,17 +713,17 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
+    // 1 before the first step started, so that the description does not read "step 0"
+    final int step = Math.max(currentStepNumber, 1);
     if (datasets > 1) {
       if (stepsPerDataset == 0) {
         return "Batch mode";
       } else {
-        return String.format("Batch step %d/%d of dataset %d/%d",
-            Math.min(processedSteps % stepsPerDataset + 1, totalSteps), stepsPerDataset,
+        return String.format("Batch step %d/%d of dataset %d/%d", step, stepsPerDataset,
             currentDataset + 1, datasets);
       }
     } else {
-      return String.format("Batch step %d/%d", Math.min(processedSteps + 1, totalSteps),
-          totalSteps);
+      return String.format("Batch step %d/%d", step, totalSteps);
     }
   }
 

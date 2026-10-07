@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -32,6 +31,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -41,9 +41,9 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.CombinedScoreWeights;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -180,7 +180,8 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return switch (type) {
       case CCS -> featureList.hasRowType(CCSType.class) && weights.ccs() > 0d;
       case RI -> featureList.hasRowType(RIType.class) && weights.ri() > 0d;
-      case ISOTOPE -> featureList.hasFeatureType(IsotopePatternType.class) && weights.isotopes() > 0d;
+      case ISOTOPE ->
+          featureList.hasFeatureType(IsotopePatternType.class) && weights.isotopes() > 0d;
       case RT -> featureList.hasRowType(RTType.class) && weights.rt() > 0d
           && !FeatureListUtils.hasAllImagingData(featureList);
       case MZ -> weights.mz() > 0d; // GC-EI SpectralDeconvolutionGCTask sets weight to 0
@@ -331,7 +332,9 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
           yield 3;
         }
       }
-      case CompoundDatabaseMatchesType _ -> 4;
+      case CompoundDatabaseMatchesType _ -> !annotation.isAnalogMatch() ? 4 : 7;
+      // analog matches are informational; rank below identity-based annotations but above unannotated
+      case AnalogSpectralLibraryMatchesType _ -> 6;
       case null, default -> 10;
     };
   }
@@ -384,9 +387,10 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         }
         yield MsiAnnotationLevel.LEVEL_4;
       }
-      case SpectralDBAnnotation _ -> MsiAnnotationLevel.LEVEL_2;
+      case SpectralDBAnnotation s ->
+          s.isAnalogMatch() ? MsiAnnotationLevel.LEVEL_3 : MsiAnnotationLevel.LEVEL_2;
       case CompoundDBAnnotation c -> {
-        if (rtScore().orElse(0d) > 0.01 || riScore().orElse(0d) > 0.01) {
+        if ((rtScore().orElse(0d) > 0.01 || riScore().orElse(0d) > 0.01) && !c.isAnalogMatch()) {
           yield MsiAnnotationLevel.LEVEL_2;
         } else if (c.get(SiriusCsiScoreType.class) != null) {
           yield MsiAnnotationLevel.LEVEL_3;
@@ -425,9 +429,14 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         // lipids are hard to judge by isotope scores so default to level 5
         yield ExposomicsAnnotationLevel.LEVEL_5;
       }
-      case SpectralDBAnnotation s ->
-          riScore().orElse(0d) > 0 || rtScore().orElse(0d) > 0 ? ExposomicsAnnotationLevel.LEVEL_1
-              : ExposomicsAnnotationLevel.LEVEL_2a;
+      case SpectralDBAnnotation s -> {
+        if (s.isAnalogMatch()) {
+          yield ExposomicsAnnotationLevel.LEVEL_3;
+        } else {
+          yield riScore().orElse(0d) > 0 || rtScore().orElse(0d) > 0
+              ? ExposomicsAnnotationLevel.LEVEL_1 : ExposomicsAnnotationLevel.LEVEL_2a;
+        }
+      }
       case CompoundDBAnnotation c -> {
         if (c.get(SiriusCsiScoreType.class) != null) {
           yield ExposomicsAnnotationLevel.LEVEL_3;

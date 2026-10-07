@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,13 +37,14 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlacehold
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.StringUtils;
-import io.github.mzmine.util.io.CSVUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -93,10 +94,8 @@ public class ProjectMetadataReader {
     // different file formats are supported.
     // see test/resources/metadata
     // first two lines are optional (description / type) otherwise try to cast to type
-    char sep = CSVUtils.detectSeparatorFromName(file);
-
     try {
-      List<String[]> lines = CSVParsingUtils.readData(file, String.valueOf(sep));
+      List<String[]> lines = CSVParsingUtils.readData(file, CSVParsingUtils.AUTO_SEPARATOR);
 
       lines = extractRemoveHeaderTitlesAndTypes(lines);
       if (!errors.isEmpty()) {
@@ -156,20 +155,21 @@ public class ProjectMetadataReader {
           type = AvailableTypes.castToMostAppropriateType(columnData, data);
         }
 
-        MetadataColumn metaCol = forType(type, title, description);
-        metadata.addColumn(metaCol);
+        final MetadataColumn metaCol = forType(type, title, description);
 
         // not all raw data files might be imported - but more covered in the metadata sheet
+        final Map<RawDataFile, Object> columnValues = HashMap.newHashMap(data.length);
         for (int row = 0; row < data.length; row++) {
-          var rawFile = rawFiles[row];
+          final RawDataFile rawFile = rawFiles[row];
           if (rawFile != null) {
-            metadata.setValue(metaCol, rawFile, data[row]);
+            columnValues.put(rawFile, data[row]);
           }
         }
+        metadata.setValues(metaCol, columnValues);
       }
 
       logger.info("Metadata table: ");
-      var info = metadata.getData().keySet().stream()
+      var info = metadata.getColumns().stream()
           .map(col -> "Column %s of type %s".formatted(col.getTitle(), col.getType()))
           .collect(Collectors.joining("\n"));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,10 +63,30 @@ public class CollectionUtils {
    * @param list any collection
    * @param <T>  the object to be mapped
    * @return Map object to index in collection. Uses map that is space optimized but does not retain
-   * order of the input sequence
+   * order of the input sequence. Keys without mapping return -1 as index value.
    */
   public static <T> Object2IntMap<T> indexMapUnordered(Collection<T> list) {
+    return indexMapUnordered(list, -1);
+  }
+
+  /**
+   * Map of the object to its index to avoid indexOf. This method will take any collection as input
+   * and this makes only sense if the collection has an order.
+   * <p>
+   * The resulting map does not conserve order of its entries compared to the input sequence. The
+   * map is optimized for memory.
+   *
+   * @param list               any collection
+   * @param defaultReturnValue returned for keys that are not in the collection. Use something
+   *                           outside of the valid index range, e.g., -1, so that unknown keys do
+   *                           not silently map to index 0
+   * @param <T>                the object to be mapped
+   * @return Map object to index in collection. Uses map that is space optimized but does not retain
+   * order of the input sequence
+   */
+  public static <T> Object2IntMap<T> indexMapUnordered(Collection<T> list, int defaultReturnValue) {
     Object2IntMap<T> map = new Object2IntOpenHashMap<>(list.size());
+    map.defaultReturnValue(defaultReturnValue);
     int i = 0;
     for (final T value : list) {
       map.put(value, i);
@@ -449,4 +469,70 @@ public class CollectionUtils {
     return items.stream().filter(item -> !uniques.add(item)).toList();
   }
 
+  /**
+   * Order independent check for equal content
+   *
+   * @return true if both inputs have the same size and content - in any order
+   */
+  public static boolean equalContentIgnoreOrder(Collection a, Collection b) {
+    if (a == b) {
+      return true;
+    }
+    if (a == null || b == null || a.size() != b.size()) {
+      return false;
+    }
+
+    return new HashSet<>(a).containsAll(b);
+  }
+
+  public static <T> List<T> combineUnique(List<T>... lists) {
+    int size = 0;
+    for (final List<? extends T> list : lists) {
+      size += list.size();
+    }
+
+    final HashSet<T> unique = HashSet.newHashSet(size);
+
+    final ArrayList<T> result = new ArrayList<>(size);
+    for (List<? extends T> list : lists) {
+      list.forEach(s -> {
+        if (s != null) {
+          if (unique.add(s)) {
+            result.add(s);
+          }
+        }
+      });
+    }
+    result.trimToSize();
+    return result;
+  }
+
+  /**
+   *
+   * @param lists any objects lists, will call toString on elements
+   * @return modifiable list of all strings in order of appearance in the lists
+   */
+  @NotNull
+  public static List<String> combineUniqueStrings(List<?>... lists) {
+    int size = 0;
+    for (final List<?> list : lists) {
+      size += list.size();
+    }
+
+    final Set<String> unique = HashSet.newHashSet(size);
+
+    final ArrayList<String> result = new ArrayList<>(size);
+    for (List<?> list : lists) {
+      list.forEach(o -> {
+        if (o != null) {
+          final String s = o.toString();
+          if (unique.add(s)) {
+            result.add(s);
+          }
+        }
+      });
+    }
+    result.trimToSize();
+    return result;
+  }
 }

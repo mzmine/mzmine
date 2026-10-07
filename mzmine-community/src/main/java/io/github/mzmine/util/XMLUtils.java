@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,48 +25,72 @@
 
 package io.github.mzmine.util;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Objects;
+import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
-import org.xml.sax.SAXException;
 
 /**
  * XML processing utilities
  */
 public class XMLUtils {
 
-  private static final String FEATURE_DISALLOW_DOCTYPE_DECL =
-      "http://apache.org/xml/features/disallow-doctype-decl";
-  private static final String FEATURE_EXTERNAL_GENERAL_ENTITIES =
-      "http://xml.org/sax/features/external-general-entities";
-  private static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES =
-      "http://xml.org/sax/features/external-parameter-entities";
-  private static final String FEATURE_LOAD_EXTERNAL_DTD =
-      "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+  private static final Logger logger = Logger.getLogger(XMLUtils.class.getName());
+
+  /**
+   * jackson mapper to auto map objects into DOM or stax
+   */
+  private static final XmlMapper XML_MAPPER = XmlMapper.builder().addModule(new JavaTimeModule())
+      .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+
+  private static final String FEATURE_DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
+  private static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+  private static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+  private static final String FEATURE_LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
 
   private XMLUtils() {
   }
@@ -103,8 +128,8 @@ public class XMLUtils {
       factory.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
       factory.setFeature(FEATURE_LOAD_EXTERNAL_DTD, false);
     } catch (SAXNotRecognizedException | SAXNotSupportedException exception) {
-      final ParserConfigurationException parserConfigurationException =
-          new ParserConfigurationException("Failed to configure secure SAX parser factory.");
+      final ParserConfigurationException parserConfigurationException = new ParserConfigurationException(
+          "Failed to configure secure SAX parser factory.");
       parserConfigurationException.initCause(exception);
       throw parserConfigurationException;
     }
@@ -171,11 +196,11 @@ public class XMLUtils {
   /**
    * Convert XML document to String
    *
-   * @param document xml document
+   * @param documentOrElement xml document or element
    * @return String representation of the document
    * @throws TransformerException if transformation fails
    */
-  public static @NotNull String saveToString(@NotNull final Document document)
+  public static @NotNull String saveToString(@NotNull final Node documentOrElement)
       throws TransformerException {
     // Create transformer
     final Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -188,7 +213,7 @@ public class XMLUtils {
 
     // Transform to string
     final StringWriter writer = new StringWriter();
-    transformer.transform(new DOMSource(document), new StreamResult(writer));
+    transformer.transform(new DOMSource(documentOrElement), new StreamResult(writer));
     return writer.toString();
   }
 
@@ -362,5 +387,141 @@ public class XMLUtils {
     }
     throw new IllegalArgumentException(
         "Missing required child element '" + tagName + "' in " + parent.getTagName());
+  }
+
+  /**
+   * Only streams over direct children, not recursively. The method
+   * {@link Element#getElementsByTagName(String)} goes too deep into sub children.
+   *
+   * @param parent  element to search in
+   * @param tagName children tag name
+   * @return stream over all direct children with tag name
+   */
+  @NotNull
+  public static Stream<@NotNull Element> streamChildElementsByTagName(@NotNull Element parent,
+      @NotNull String tagName) {
+    NodeList children = parent.getChildNodes();
+    return IntStream.range(0, children.getLength()).mapToObj(children::item)
+        .filter(Element.class::isInstance).map(Element.class::cast)
+        .filter(element -> Objects.equals(element.getTagName(), tagName));
+  }
+
+  /// Saves an object T into the parent DOM element using jackson annotations. If the element
+  /// defines
+  ///
+  /// `@JacksonXmlRootElement(localName = "name") then this element name will be used.`
+  ///
+  /// @param parent   element or document
+  /// @param storable object to be stored
+  public static <T> void saveToDOM(Node parent, T storable) {
+    try {
+      final DOMResult result = new DOMResult(parent);
+      final XMLStreamWriter writer = XMLOutputFactory.newFactory().createXMLStreamWriter(result);
+      try (JsonGenerator gen = XML_MAPPER.getFactory().createGenerator(writer)) {
+        XML_MAPPER.writeValue(gen, storable);
+      }
+    } catch (XMLStreamException | IOException e) {
+      throw new RuntimeException("Failed save object to XML DOM", e);
+    }
+
+  }
+
+  /**
+   * Load object from DOM, uses jackson annotations
+   *
+   * @param parent      element or document
+   * @param targetClass the target class to deserialize
+   * @return the object
+   */
+  public static <T> T loadFromDOM(Node parent, Class<? extends T> targetClass) {
+    try {
+      final XMLStreamReader reader = XMLInputFactory.newFactory()
+          .createXMLStreamReader(new DOMSource(parent));
+      final T storable;
+      try (JsonParser parser = XML_MAPPER.getFactory().createParser(reader)) {
+        storable = XML_MAPPER.readValue(parser, targetClass);
+      }
+      return storable;
+    } catch (XMLStreamException | IOException e) {
+      throw new RuntimeException("Failed to load object from XML DOM", e);
+    }
+  }
+
+  /**
+   * IMPORTANT: This method is for debugging purposes only and should not be used in production
+   * code. It advances the reader.
+   */
+  @Deprecated
+  public static String streamToStringDebugging(XMLStreamReader reader) {
+    try {
+      StringWriter sw = new StringWriter();
+      TransformerFactory.newInstance().newTransformer()
+          .transform(new StAXSource(reader), new StreamResult(sw));
+      String xml = sw.toString();
+      return xml;
+    } catch (TransformerException e) {
+      throw new RuntimeException("Failed to reader to string", e);
+    }
+  }
+
+  public static void appendSimpleDoubleRange(@NotNull Element parent, @NotNull String tag,
+      @NotNull SimpleRange.SimpleDoubleRange range) {
+    final Element element = parent.getOwnerDocument().createElement(tag);
+    element.setAttribute(CONST.RANGE_LOWER_ATTR, String.valueOf(range.lower()));
+    element.setAttribute(CONST.RANGE_UPPER_ATTR, String.valueOf(range.upper()));
+    parent.appendChild(element);
+  }
+
+  public static void appendSimpleFloatRange(@NotNull Element parent, @NotNull String tag,
+      @NotNull SimpleRange.SimpleFloatRange range) {
+    final Element element = parent.getOwnerDocument().createElement(tag);
+    element.setAttribute(CONST.RANGE_LOWER_ATTR, String.valueOf(range.lower()));
+    element.setAttribute(CONST.RANGE_UPPER_ATTR, String.valueOf(range.upper()));
+    parent.appendChild(element);
+  }
+
+  public static @Nullable SimpleRange.SimpleDoubleRange loadSimpleDoubleRange(
+      @Nullable Element rangeElement) {
+    if (rangeElement == null) {
+      return null;
+    }
+    try {
+      return new SimpleDoubleRange(
+          Double.parseDouble(rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR)),
+          Double.parseDouble(rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+    } catch (NumberFormatException e) {
+      logger.warning("Could not parse range from values %s - %s.".formatted(
+          rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR),
+          rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+      return null;
+    }
+  }
+
+  public static @Nullable SimpleRange.SimpleFloatRange loadSimpleFloatRange(
+      @Nullable Element rangeElement) {
+    if (rangeElement == null) {
+      return null;
+    }
+    try {
+      return new SimpleFloatRange(
+          Float.parseFloat(rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR)),
+          Float.parseFloat(rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+    } catch (NumberFormatException e) {
+      logger.warning("Could not parse range from values %s - %s.".formatted(
+          rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR),
+          rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+      return null;
+    }
+  }
+
+  // decision: only consider direct children so the entry's own range elements are read, not another entry's
+  public static @Nullable Element childElement(@NotNull Element parent, @NotNull String tag) {
+    final NodeList children = parent.getElementsByTagName(tag);
+    for (int i = 0; i < children.getLength(); i++) {
+      if (children.item(i) instanceof Element element && element.getParentNode() == parent) {
+        return element;
+      }
+    }
+    return null;
   }
 }

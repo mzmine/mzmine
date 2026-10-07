@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import java.util.Objects;
 import java.util.SequencedCollection;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import javafx.beans.Observable;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -64,13 +65,13 @@ import org.jfree.data.xy.XYDataset;
 public class FxXYPlotModel implements FxPlotModel {
 
   private static final Logger logger = Logger.getLogger(FxXYPlotModel.class.getName());
-  private final ObjectProperty<@Nullable XYPlot> plot = new SimpleObjectProperty<>();
+  private final ReadOnlyObjectWrapper<@Nullable XYPlot> plot = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyObjectWrapper<@Nullable JFreeChart> chart = new ReadOnlyObjectWrapper<>();
 
   private final ListProperty<MarkerDefinition> domainMarkers = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
+      createObservableMarkerList());
   private final ListProperty<MarkerDefinition> rangeMarkers = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
+      createObservableMarkerList());
 
   /**
    * Separation between permanent markers that are always kept on the chart and those that are often
@@ -80,7 +81,7 @@ public class FxXYPlotModel implements FxPlotModel {
    * value, visible state, and style.
    */
   private final ListProperty<MarkerDefinition> permanentDomainMarkers = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
+      createObservableMarkerList());
   /**
    * Separation between permanent markers that are always kept on the chart and those that are often
    * cleared, removed, and new ones added ({@link #domainMarkers} and {@link #rangeMarkers}).
@@ -89,7 +90,7 @@ public class FxXYPlotModel implements FxPlotModel {
    * value, visible state, and style.
    */
   private final ListProperty<MarkerDefinition> permanentRangeMarkers = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
+      createObservableMarkerList());
 
   /**
    * index of dataset against dataset. sorted by keys
@@ -113,11 +114,28 @@ public class FxXYPlotModel implements FxPlotModel {
 
   private final List<DatasetChangeListener> datasetChangeListeners = new ArrayList<>();
 
-
   public FxXYPlotModel(@Nullable XYPlot plot) {
     this.plot.set(plot);
     chart.bind(this.plot.map(xyPlot -> xyPlot != null ? xyPlot.getChart() : null).orElse(null));
-    cursorConfigModel = new PlotCursorConfigModel(this::getAllDatasets);
+    cursorConfigModel = new PlotCursorConfigModel(this::getAllDatasets, this::getPlot);
+
+    // decision: cursor markers stay in the permanent marker path so temporary clears do not remove
+    // them from the plot model.
+    permanentDomainMarkers.add(
+        new MarkerDefinition(0, cursorConfigModel.getDomainCursorMarker(), Layer.FOREGROUND));
+    permanentRangeMarkers.add(
+        new MarkerDefinition(cursorConfigModel.rangeCursorMarkerDatasetIndexProperty(),
+            cursorConfigModel.getRangeCursorMarker(), Layer.FOREGROUND));
+  }
+
+  /**
+   *
+   * @return Creates a list for {@link MarkerDefinition}s that will not only trigger if the elements
+   * change but also if the {@link MarkerDefinition#indexProperty()} changes.
+   */
+  private static @NotNull ObservableList<MarkerDefinition> createObservableMarkerList() {
+    return FXCollections.observableArrayList(
+        markerDefinition -> new Observable[]{markerDefinition.indexProperty()});
   }
 
   /**
@@ -132,13 +150,12 @@ public class FxXYPlotModel implements FxPlotModel {
     return plot.get();
   }
 
-
   public @Nullable JFreeChart getChart() {
     return chart.get();
   }
 
-  public ObjectProperty<@Nullable XYPlot> plotProperty() {
-    return plot;
+  public ReadOnlyObjectProperty<@Nullable XYPlot> plotProperty() {
+    return plot.getReadOnlyProperty();
   }
 
   public ReadOnlyObjectProperty<JFreeChart> chartProperty() {
@@ -441,8 +458,12 @@ public class FxXYPlotModel implements FxPlotModel {
    * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void addDomainMarker(int index, Marker marker, Layer layer, boolean notify) {
+    addDomainMarker(new MarkerDefinition(index, marker, layer));
+  }
+
+  public void addDomainMarker(final @NotNull MarkerDefinition markerDefinition) {
     // change will happen through property subscription
-    domainMarkers.add(new MarkerDefinition(index, marker, layer));
+    domainMarkers.add(markerDefinition);
   }
 
   public void clearDomainMarkers() {
@@ -460,8 +481,12 @@ public class FxXYPlotModel implements FxPlotModel {
    * value, visible state, and style.
    */
   public void addPermanentDomainMarker(int index, Marker marker, Layer layer) {
+    addPermanentDomainMarker(new MarkerDefinition(index, marker, layer));
+  }
+
+  public void addPermanentDomainMarker(final @NotNull MarkerDefinition markerDefinition) {
     // change will happen through property subscription
-    permanentDomainMarkers.add(new MarkerDefinition(index, marker, layer));
+    permanentDomainMarkers.add(markerDefinition);
   }
 
   /**
@@ -473,8 +498,12 @@ public class FxXYPlotModel implements FxPlotModel {
    * value, visible state, and style.
    */
   public void addPermanentRangeMarker(int index, Marker marker, Layer layer) {
+    addPermanentRangeMarker(new MarkerDefinition(index, marker, layer));
+  }
+
+  public void addPermanentRangeMarker(final @NotNull MarkerDefinition markerDefinition) {
     // change will happen through property subscription
-    permanentRangeMarkers.add(new MarkerDefinition(index, marker, layer));
+    permanentRangeMarkers.add(markerDefinition);
   }
 
   /**
@@ -521,8 +550,12 @@ public class FxXYPlotModel implements FxPlotModel {
    * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void addRangeMarker(int index, Marker marker, Layer layer, boolean notify) {
+    addRangeMarker(new MarkerDefinition(index, marker, layer));
+  }
+
+  public void addRangeMarker(final @NotNull MarkerDefinition markerDefinition) {
     // change will happen through property subscription
-    rangeMarkers.add(new MarkerDefinition(index, marker, layer));
+    rangeMarkers.add(markerDefinition);
   }
 
   public void clearRangeMarkers() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,9 @@
 
 package io.github.mzmine.util.presets;
 
+import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.modules.presets.ModulePresetStoreFactory;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.MetadataRegexMappingPresetStore;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPresetStore;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -58,6 +60,11 @@ public class PresetStoreService {
     registerStoreFactory(PresetCategory.FILTERS,
         KnownPresetGroup.ROW_TYPE_FILTER_PRESET.getUniqueID(),
         (_, _) -> new RowTypeFilterPresetStore());
+    registerStoreFactory(PresetCategory.LIBRARIES,
+        KnownPresetGroup.ION_LIBRARY_PRESET.getUniqueID(), (_, _) -> new IonLibraryPresetStore());
+    registerStoreFactory(PresetCategory.OTHER,
+        KnownPresetGroup.METADATA_REGEX_MAPPING_PRESET.getUniqueID(),
+        (_, _) -> new MetadataRegexMappingPresetStore());
   }
 
 

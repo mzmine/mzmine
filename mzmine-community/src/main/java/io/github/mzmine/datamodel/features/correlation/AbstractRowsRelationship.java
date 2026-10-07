@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,8 @@ import java.text.MessageFormat;
 /**
  * A relationship that stores both rows
  */
-public abstract class AbstractRowsRelationship implements RowsRelationship {
+public abstract sealed class AbstractRowsRelationship implements RowsRelationship permits
+    InternalTypedRowsRelationship, R2RSimpleSimilarityList, SimpleRowsRelationship {
 
   private final FeatureListRow a;
   private final FeatureListRow b;
@@ -44,6 +45,16 @@ public abstract class AbstractRowsRelationship implements RowsRelationship {
       this.b = a;
       this.a = b;
     }
+  }
+
+  /**
+   * Whether the constructor will swap the two rows, so that a becomes {@link #getRowB()}.
+   * {@link RowsRelationship#withRows} uses this to keep payload that describes one of the two rows
+   * attached to that row: the new rows may be ordered differently than the old ones, e.g. after
+   * renumbering.
+   */
+  protected static boolean swapsRows(final FeatureListRow a, final FeatureListRow b) {
+    return a.getID() >= b.getID();
   }
 
   @Override

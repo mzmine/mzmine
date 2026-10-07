@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,272 +28,94 @@ package io.github.mzmine.datamodel.identities.iontype;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IonNetworkLogic {
 
-  private static final Logger LOG = Logger.getLogger(IonNetworkLogic.class.getName());
+  /**
+   * Orders ion identities so that the most likely explanation comes first. This is a total order:
+   * two ion identities only compare equal when their {@link IonType} is equal, so sorting is
+   * reproducible and independent of the order in which the ion identities were added to a row.
+   *
+   * @param ranking the user defined ranking, read from {@link FeatureList#getPreferences()}
+   */
+  public static @NotNull Comparator<IonIdentity> bestFirstSorter(
+      @NotNull final IonTypeRanking ranking) {
+    return ((Comparator<IonIdentity>) (a, b) -> compareIonIdentitiesLikelyhood(ranking, a,
+        b)).reversed();
+  }
 
   /**
-   * Compare for likelyhood comparison and sorting
+   * Compare for likelyhood comparison and sorting. The criteria are applied in this order:
+   * undefined adduct, network size (score), the {@link IonTypeRanking#score(IonType)} which covers
+   * the frequency of all ion parts as well as the multimer and charge penalties, and finally mass
+   * and name to make the order total.
    *
-   * @param a ion a
-   * @param b ion b
+   * @param ranking the user defined ion type ranking
+   * @param a       ion a
+   * @param b       ion b
    * @return same as comparable: -1 0 1 if the first argument is less, equal or better
    */
-  public static int compareRows(IonIdentity a, IonIdentity b, RowGroup g) {
+  public static int compareIonIdentitiesLikelyhood(@NotNull final IonTypeRanking ranking,
+      final IonIdentity a, final IonIdentity b) {
     if (a == null && b == null) {
       return 0;
-    }
-    // M+? (undefined
-    else if (a == null || a.getIonType().isUndefinedAdductParent()) {
+    } else if (a == null) {
       return -1;
-    } else if (b == null || b.getIonType().isUndefinedAdductParent()) {
+    } else if (b == null) {
       return 1;
     }
+    final IonType typeA = a.getIonType();
+    final IonType typeB = b.getIonType();
+
     // M-H2O+? (one is? undefined
-    else if (a.getIonType().isUndefinedAdduct() && !b.getIonType().isUndefinedAdduct()) {
+    final boolean undefinedA = typeA.isUndefinedAdduct();
+    final boolean undefinedB = typeB.isUndefinedAdduct();
+    if (undefinedA && !undefinedB) {
       return -1;
-    } else if (!a.getIonType().isUndefinedAdduct() && b.getIonType().isUndefinedAdduct()) {
+    } else if (!undefinedA && undefinedB) {
       return 1;
     }
 
     // network size, MSMS modification and multimer (2M) verification
-    int result = Integer.compare(a.getLikelyhood(), b.getLikelyhood());
-    if (result != 0) {
-      return result;
-    }
-    // if a has less nM molecules in cluster
-    result = Integer.compare(b.getIonType().getMolecules(), a.getIonType().getMolecules());
+    int result = Integer.compare(a.getScore(), b.getScore());
     if (result != 0) {
       return result;
     }
 
-    int bLinks = getLinksTo(b, g);
-    int aLinks = getLinksTo(a, g);
-    result = Integer.compare(aLinks, bLinks);
+    // the ranking covers ion part frequency, in-source modifications and multimers
+    result = Double.compare(ranking.score(typeA), ranking.score(typeB));
     if (result != 0) {
       return result;
     }
 
-    return compareCharge(a, b);
-  }
-
-  /**
-   * @param g can be null. can be used to limit the number of links
-   * @return number of links to an ion identity
-   */
-  public static int getLinksTo(IonIdentity ion, RowGroup g) {
-    // TODO change to real links after refinement
-    if (g == null) {
-      return ion.getPartnerRows().size();
-    } else {
-      int c = 0;
-      for (FeatureListRow row : ion.getPartnerRows()) {
-        if (g.contains(row)) {
-          c++;
-        }
-      }
-
-      return c;
+    // decision: the remaining criteria only make the order total so that equally likely ions are
+    // always sorted the same way, independent of insertion order. Smaller mass difference first,
+    // then alphabetically by name.
+    result = Double.compare(typeB.absTotalMass(), typeA.absTotalMass());
+    if (result != 0) {
+      return result;
     }
+    return typeB.name().compareTo(typeA.name());
   }
 
-  /**
-   * @param a
-   * @param b
-   * @return True if b is a better choice
-   */
-  private static int compareCharge(IonIdentity a, IonIdentity b) {
-    int ca = a.getIonType().getAbsCharge();
-    int cb = b.getIonType().getAbsCharge();
-    return Integer.compare(ca, cb);
-  }
-
-
-  /**
-   * Create list of AnnotationNetworks and set net ID
-   *
-   * @return
-   */
-  public static List<IonNetwork> createAnnotationNetworks(FeatureList pkl, MZTolerance mzTolerance,
-      boolean useGrouping) {
-    if (useGrouping && pkl.getGroups() != null) {
-      List<IonNetwork> nets = new ArrayList<>();
-      for (RowGroup g : pkl.getGroups()) {
-        nets.addAll(createAnnotationNetworks(g.getRows(), mzTolerance));
-      }
-
-      return nets;
-    } else {
-      return createAnnotationNetworks(pkl.getRowsCopy(), mzTolerance);
-    }
-  }
-
-
-  /**
-   * Method 2: all that point to the same molecule (even without edge)
-   *
-   * @param rows
-   * @return
-   */
-  public static List<IonNetwork> createAnnotationNetworks(List<FeatureListRow> rows,
-      MZTolerance mzTolerance) {
-    // bin neutral masses to annotation networks
-    List<IonNetwork> nets = new ArrayList<>(binNeutralMassToNetworks(rows, mzTolerance));
-
-    // add network to all identities
-    setNetworksToAllAnnotations(nets);
-
-    // fill in neutral losses [M-H2O] is not iserted yet
-    // they might be if [M+H2O+X]+ was also annotated by another link
-    fillInNeutralLosses(rows, nets, mzTolerance);
-
-    resetNetworkIDs(nets);
-    return nets;
-  }
-
-
-  public static void resetNetworkIDs(List<IonNetwork> nets) {
-    for (int i = 0; i < nets.size(); i++) {
-      nets.get(i).setID(i);
-    }
-  }
-
-  /**
-   * Need to reset networks to annotations afterwards
-   *
-   * @param nets
-   */
-  private static void splitByGroups(List<IonNetwork> nets) {
-    int size = nets.size();
-    for (int i = 0; i < size; i++) {
-      IonNetwork net = nets.get(i);
-      if (!net.allSameCorrGroup()) {
-        nets.addAll(splitByGroup(net));
-        nets.remove(i);
-        i--;
-        size--;
-      }
-    }
-  }
-
-  /**
-   * Split network into correlation groups. need to reset network to ids afterwards
-   *
-   * @param net
-   * @return
-   */
-  private static Collection<IonNetwork> splitByGroup(IonNetwork net) {
-    Map<Integer, IonNetwork> map = new HashMap<>();
-    for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
-      Integer id = e.getKey().getGroupID();
-      if (id != -1) {
-        IonNetwork nnet = map.get(id);
-        if (nnet == null) {
-          // new network for group
-          nnet = new IonNetwork(net.getMZTolerance(), -1);
-          map.put(id, nnet);
-        }
-        nnet.put(e.getKey(), e.getValue());
-      } else {
-        // delete id if no corr group
-        e.getValue().delete(e.getKey());
-      }
-    }
-    return map.values();
-  }
-
-  /**
-   * fill in neutral losses [M-H2O+?] is not inserted yet. they might be if [M+H2O+X]+ was also
-   * annotated by another link
-   *
-   * @param rows
-   * @param nets
-   */
-  private static void fillInNeutralLosses(List<FeatureListRow> rows, Collection<IonNetwork> nets,
-      MZTolerance mzTolerance) {
-    for (FeatureListRow row : rows) {
-      if (row.hasIonIdentity()) {
-        for (AtomicInteger index = new AtomicInteger(0);
-            index.get() < row.getIonIdentities().size(); index.incrementAndGet()) {
-          IonIdentity neutral = row.getIonIdentities().get(index.get());
-          // only if charged (neutral losses do not point to the real neutral mass)
-          if (!neutral.getIonType().isModifiedUndefinedAdduct()) {
-            continue;
-          }
-
-          // all partners
-          ConcurrentHashMap<FeatureListRow, IonIdentity> partnerIDs = neutral.getPartner();
-          for (Entry<FeatureListRow, IonIdentity> p : partnerIDs.entrySet()) {
-            FeatureListRow partner = p.getKey();
-            if (partner == null) {
-              continue;
-            }
-
-            IonNetwork[] partnerNets = IonNetworkLogic.getAllNetworks(partner);
-            // create new net if partner was in no network
-            if (partnerNets == null || partnerNets.length == 0) {
-              // create new and put both
-              IonNetwork newNet = new IonNetwork(mzTolerance, nets.size());
-              nets.add(newNet);
-              newNet.put(row, neutral);
-              newNet.put(partner, p.getValue());
-              newNet.setNetworkToAllRows();
-            } else {
-              // add neutral loss to nets
-              // do not if its already in this network (e.g. as adduct)
-              Arrays.stream(partnerNets).filter(pnet -> !pnet.containsKey(row)).forEach(pnet -> {
-                // try to find real annotation
-                IonType pid = pnet.get(partner).getIonType();
-                // modified
-                pid = pid.createModified(neutral.getIonType().getModification());
-
-                IonIdentity realID = neutral;
-                if (pnet.checkForAnnotation(row, pid)) {
-                  realID.setMSMSIdentities(neutral.getMSMSIdentities());
-                  // create new
-                  realID = new IonIdentity(pid);
-                  row.addIonIdentity(realID, true);
-                  index.incrementAndGet();
-                  realID.setNetwork(pnet);
-                  // set partners
-                  pnet.addAllLinksTo(row, realID);
-                  // put
-                  pnet.put(row, realID);
-                }
-              });
-            }
-          }
-        }
-      }
-    }
-  }
 
   /**
    * All annotation networks of all annotations of row
    *
-   * @param row
-   * @return
+   * @return all networks of row
    */
   public static IonNetwork[] getAllNetworks(FeatureListRow row) {
     if (!row.hasIonIdentity()) {
@@ -304,190 +126,64 @@ public class IonNetworkLogic {
   }
 
   /**
-   * Set the network to all its children rows
+   * Sort all ion identities of a row by the likelyhood of being true. Uses the ranking defined in
+   * the preferences of the row's feature list.
    *
-   * @param nets
+   * @param row the row to sort
+   * @return list of annotations or null
    */
-  public static void setNetworksToAllAnnotations(Collection<IonNetwork> nets) {
-    nets.stream().forEach(n -> n.setNetworkToAllRows());
-  }
-
-  /**
-   * Binning of all neutral masses described by all annotations of rows with 0.1 Da binning width
-   * (masses should be very different)
-   *
-   * @param rows
-   * @return AnnotationNetworks
-   */
-  private static Collection<IonNetwork> binNeutralMassToNetworks(List<FeatureListRow> rows,
-      MZTolerance mzTolerance) {
-    Map<Integer, IonNetwork> map = new HashMap<>();
-    for (FeatureListRow row : rows) {
-      if (!row.hasIonIdentity()) {
-        continue;
-      }
-
-      for (IonIdentity adduct : row.getIonIdentities()) {
-        // only if charged (neutral losses do not point to the real neutral mass)
-        if (adduct.getIonType().getAbsCharge() == 0) {
-          continue;
-        }
-
-        double mass = adduct.getIonType().getMass(row.getAverageMZ());
-        // bin to 0.1
-        Integer nmass = (int) Math.round(mass * 10.0);
-
-        IonNetwork net = map.get(nmass);
-        if (net == null) {
-          // create new
-          net = new IonNetwork(mzTolerance, map.size());
-          map.put(nmass, net);
-        }
-        // add row and id to network
-        net.put(row, adduct);
-      }
-    }
-    return map.values();
-  }
-
-  /**
-   * Neutral mass of AnnotationNetwork entry (ion and peaklistrow)
-   *
-   * @param e
-   * @return
-   */
-  public static double calcMass(Entry<FeatureListRow, IonIdentity> e) {
-    return e.getValue().getIonType().getMass(e.getKey().getAverageMZ());
-  }
-
-  /**
-   * Add all rows of a network
-   *
-   * @param current
-   * @param row
-   * @param rows
-   * @return false if this network has already been created
-   */
-  private static boolean addRow(IonNetwork current, FeatureListRow row, List<FeatureListRow> rows,
-      int masterID) {
-    if (row.hasIonIdentity()) {
-      for (IonIdentity adduct : row.getIonIdentities()) {
-        // try to add all
-        if (current.isEmpty()) {
-          current.put(row, adduct);
-        }
-
-        // add all connection for ids>rowID
-        ConcurrentHashMap<FeatureListRow, IonIdentity> ids = adduct.getPartner();
-        for (Entry<FeatureListRow, IonIdentity> entry : ids.entrySet()) {
-          int id = entry.getKey().getID();
-          if (id != masterID) {
-            if (id > masterID) {
-              FeatureListRow row2 = entry.getKey();
-              IonIdentity adduct2 = entry.getValue();
-              // new row found?
-              if (!current.containsKey(row2)) {
-                current.put(row2, adduct2);
-                boolean isNewNet = addRow(current, row2, rows, masterID);
-                if (!isNewNet) {
-                  return false;
-                }
-              }
-            } else {
-              // id was smaller - trash this network, its already added
-              return false;
-            }
-          }
-        }
-      }
-    }
-    // is new network
-    return true;
-  }
-
-  public static FeatureListRow findRowByID(int id, List<FeatureListRow> rows) {
-    if (rows == null) {
-      return null;
-    } else {
-      for (FeatureListRow r : rows) {
-        if (r.getID() == id) {
-          return r;
-        }
-      }
-
-      return null;
-    }
-  }
-
-  /**
-   * All MS annotation connections to all ions annotation
-   *
-   * @return
-   */
-  public static List<FeatureListRow> findAllAnnotationConnections(List<FeatureListRow> rows,
-      FeatureListRow row) {
-    if (!row.hasIonIdentity()) {
-      return List.of();
-    }
-
-    return row.getIonIdentities().stream().flatMap(ion -> ion.getPartner().keySet().stream())
-        .collect(Collectors.toList());
+  public static List<IonIdentity> sortIonIdentities(FeatureListRow row) {
+    return sortIonIdentities(row, row.getFeatureList().getPreferences().getIonTypeRanking());
   }
 
   /**
    * Sort all ion identities of a row by the likelyhood of being true.
    *
-   * @param row
+   * @param row     the row to sort
+   * @param ranking the user defined ion type ranking
    * @return list of annotations or null
    */
-  public static List<IonIdentity> sortIonIdentities(FeatureListRow row, boolean useGroup) {
+  public static List<IonIdentity> sortIonIdentities(FeatureListRow row,
+      @NotNull final IonTypeRanking ranking) {
     List<IonIdentity> ident = row.getIonIdentities();
     if (ident == null || ident.isEmpty()) {
       return null;
     }
 
-    RowGroup group = useGroup ? row.getGroup() : null;
-
     // best is first
-    final List<IonIdentity> sorted = ident.stream()
-        .sorted(((Comparator<IonIdentity>) (a, b) -> compareRows(a, b, group)).reversed()).toList();
+    final List<IonIdentity> sorted = ident.stream().sorted(bestFirstSorter(ranking)).toList();
     row.setIonIdentities(sorted);
     return ident;
   }
 
   /**
-   * Sort all ion identities of all rows
+   * Sort all ion identities of all rows with the ranking defined in the feature list preferences
    *
-   * @param pkl
-   * @return
+   * @param pkl the feature list
    */
-  public static void sortIonIdentities(FeatureList pkl, boolean useGroup) {
+  public static void sortIonIdentities(FeatureList pkl) {
+    final IonTypeRanking ranking = pkl.getPreferences().getIonTypeRanking();
     for (FeatureListRow r : pkl.getRows()) {
-      sortIonIdentities(r, useGroup);
+      sortIonIdentities(r, ranking);
     }
   }
 
   /**
    * Delete empty networks
    *
-   * @param peakList
-   * @param removeEmpty
    */
-  public static void recalcAllAnnotationNetworks(FeatureList peakList, boolean removeEmpty) {
-    List<IonNetwork> list = streamNetworks(peakList, false).collect(Collectors.toList());
+  public static void removeEmptyNetworks(FeatureList peakList) {
+    List<IonNetwork> list = streamNetworks(peakList, false).toList();
     for (IonNetwork n : list) {
-      if (removeEmpty && n.size() < 2) {
+      if (n.size() < 2) {
         n.delete();
-      } else {
-        n.recalcConnections();
       }
     }
   }
 
   /**
-   * All annnotaion networks of the peaklist
+   * All annotation networks of the featurelist
    *
-   * @param peakList
    * @return
    */
   public static IonNetwork[] getAllNetworks(FeatureList peakList, boolean onlyBest) {
@@ -559,63 +255,178 @@ public class IonNetworkLogic {
    */
   public static Stream<IonNetwork> streamNetworks(List<FeatureListRow> rows,
       @Nullable IonNetworkSorter sorter, boolean onlyBest) {
-    Stream<IonNetwork> stream = null;
+    // ion networks are mutable, so streaming over them and calling distinct may create leaks
+    // if the network is changed during the streaming
+    // this is why we need to collect all distinct networks in a list and return this list
+    return getAllNetworksList(rows, sorter, onlyBest).stream();
+  }
+
+  /**
+   * Stream all AnnotationNetworks of this peakList
+   *
+   * @param rows
+   * @param sorter
+   * @param onlyBest needs to be the best ion identity for all ions in this network
+   * @return
+   */
+  public static List<IonNetwork> getAllNetworksList(List<FeatureListRow> rows,
+      @Nullable IonNetworkSorter sorter, boolean onlyBest) {
+    final List<IonNetwork> results;
     if (onlyBest) {
-      stream = rows.stream().filter(FeatureListRow::hasIonIdentity)
+      // ion networks are mutable, so streaming over them and calling distinct may create leaks
+      // if the network is changed during the streaming
+      // this is why we need to collect all distinct networks in a list and return this list
+      results = rows.stream()
           // map to IonNetwork of best ion identity
           .map(r -> {
-            IonNetwork net = r.getBestIonIdentity().getNetwork();
-            if (net.hasSmallestID(r)) {
-              return net;
-            } else {
+            final IonIdentity ion = r.getBestIonIdentity();
+            if (ion == null) {
               return null;
             }
-          }).filter(Objects::nonNull)
-          // filter that all PeakListRows have this set to best Ion identity
-          .filter(net -> net.keySet().stream().allMatch(
-              r -> r.hasIonIdentity() && r.getBestIonIdentity().getNetwork() != null
-                  && r.getBestIonIdentity().getNetwork().getID() == net.getID()));
+            return ion.getNetwork();
+          }).filter(Objects::nonNull).distinct()
+          // filter that all rows have this set to best Ion identity
+          .filter(net -> net.getNodes().stream().allMatch(node -> {
+            final IonIdentity ion = node.row().getBestIonIdentity();
+            return ion != null && net.equals(ion.getNetwork());
+          }))
+          // modifiable for sorting
+          .collect(CollectionUtils.toArrayList());
     }
     // get all IOnNetworks
     else {
-      stream = rows.stream()//
-          // .filter(r -> {
-          // if (r.getID() == 1003)
-          // return true;
-          // else
-          // return false;
-          // }) //
-          .filter(FeatureListRow::hasIonIdentity) //
+      results = rows.stream()//
           .flatMap(r -> r.getIonIdentities().stream().map(IonIdentity::getNetwork)
-              .filter(Objects::nonNull).filter(net -> net.hasSmallestID(r)));
+              .filter(Objects::nonNull)).distinct()
+          // modifiable for sorting
+          .collect(CollectionUtils.toArrayList());
     }
     if (sorter != null) {
-      stream = stream.sorted(sorter);
+      results.sort(sorter);
     }
-    return stream;
+    return results;
   }
 
   /**
-   * Best annotation network in group
+   * Renumber all networks of a feature list in ascending order of the retention time (0-based). The
+   * ion identities of all rows are re-pointed to the renumbered networks.
    *
-   * @param group
-   * @return
+   * @return the renumbered networks in ascending retention time order
    */
-  public static IonNetwork getBestNetwork(RowGroup group) {
-    return group.stream().filter(FeatureListRow::hasIonIdentity).flatMap(
-            r -> r.getIonIdentities().stream().map(IonIdentity::getNetwork).filter(Objects::nonNull))
-        .min(Comparator.naturalOrder()).orElse(null);
+  public static @NotNull List<IonNetwork> renumberNetworks(
+      @NotNull ModularFeatureList featureList) {
+    final List<IonNetwork> nets = getAllNetworksList(featureList.getRows(),
+        new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false);
+    final List<IonNetwork> renumbered = new ArrayList<>(nets.size());
+    for (int i = 0; i < nets.size(); i++) {
+      renumbered.add(nets.get(i).withID(i));
+    }
+    return renumbered;
   }
 
   /**
-   * Renumber all networks in a feature list in ascending order of the retention time (0-based)
+   * Recreates the ion identity networks of {@code sourceRows} on their copied rows and replaces the
+   * ion identities of those copies.
+   * <p>
+   * A copied row initially still holds the {@link IonIdentity} instances of its source row, and
+   * those point through {@link IonIdentity#getNetwork()} at the rows of the original feature list.
+   * Left alone, the copy would describe networks of foreign rows, which is why every copy of a
+   * feature list that copies rows has to call this.
+   * <p>
+   * A network shrinks to the rows that were copied and is only dropped once it is empty, when all
+   * of its rows were filtered out. A network of a single row is kept on purpose: filtering away the
+   * other members must not take the ion annotation of the surviving row with it.
+   * <p>
+   * {@code sourceRows} may be the rows of the target itself, for a module that filters in place.
+   * Networks that lost no row are then left untouched, ion identities and all, so that anything
+   * holding on to them stays valid.
    *
-   * @param featureList
+   * @param sourceRows the rows of the original feature list
+   * @param rowMapping maps a source row to its copy, or to null if that row was not copied
    */
-  public static void renumberNetworks(ModularFeatureList featureList) {
-    AtomicInteger netID = new AtomicInteger(0);
-    IonNetworkLogic.streamNetworks(featureList,
-            new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false)
-        .forEach(n -> n.setID(netID.getAndIncrement()));
+  public static void remapIonNetworks(@NotNull final List<FeatureListRow> sourceRows,
+      @NotNull final Function<FeatureListRow, ? extends FeatureListRow> rowMapping) {
+    // keyed by identity on purpose: rows of one network often share an ion type, and those ion
+    // identities compare equal by IonIdentity#compareTo. Each one still has to map to its own copy.
+    final Map<IonIdentity, IonIdentity> ionMapping = new IdentityHashMap<>();
+
+    for (final IonNetwork net : getAllNetworksList(sourceRows, null, false)) {
+      // a network whose every row maps to itself needs no work, which is the case when a feature
+      // list is processed in place. Keep it and its ion identities, so anything holding on to them
+      // stays valid. A row mapped to null was filtered and counts as a change.
+      boolean unchanged = true;
+      for (final IonNetworkNode node : net.getNodes()) {
+        if (rowMapping.apply(node.row()) != node.row()) {
+          unchanged = false;
+          break;
+        }
+      }
+      if (unchanged) {
+        continue;
+      }
+
+      final List<IonNetworkNode> newNodes = new ArrayList<>(net.size());
+      final List<IonIdentity> sourceIons = new ArrayList<>(net.size());
+      for (final IonNetworkNode node : net.getNodes()) {
+        final FeatureListRow newRow = rowMapping.apply(node.row());
+        if (newRow == null) {
+          // the row was filtered out, the remaining members keep their annotation
+          continue;
+        }
+        newNodes.add(new IonNetworkNode(newRow, copyIon(node.ion())));
+        sourceIons.add(node.ion());
+      }
+      if (newNodes.isEmpty()) {
+        // all member rows are gone, so the network disappears with them
+        continue;
+      }
+      // re-points the copied ions at the new network
+      new SimpleIonNetwork(net.getID(), newNodes, net.getMolFormulas()).setNetworkToAllRows();
+      for (int i = 0; i < newNodes.size(); i++) {
+        ionMapping.put(sourceIons.get(i), newNodes.get(i).ion());
+      }
+    }
+
+    for (final FeatureListRow sourceRow : sourceRows) {
+      final FeatureListRow newRow = rowMapping.apply(sourceRow);
+      if (newRow == null) {
+        continue;
+      }
+      final List<IonIdentity> sourceIons = sourceRow.getIonIdentities();
+      if (sourceIons.isEmpty()) {
+        continue;
+      }
+      // keep the order, the first ion identity is the preferred one
+      final List<IonIdentity> newIons = new ArrayList<>(sourceIons.size());
+      for (final IonIdentity sourceIon : sourceIons) {
+        final IonIdentity mapped = ionMapping.get(sourceIon);
+        if (mapped != null) {
+          newIons.add(mapped);
+        } else if (newRow == sourceRow) {
+          // processed in place and this network was left untouched above, so the ion identity
+          // already points at the right rows
+          newIons.add(sourceIon);
+        } else if (sourceIon.getNetwork() == null) {
+          // not part of any network, so there is nothing to remap - still copy it so that the
+          // copied row does not share a mutable ion identity with its source
+          newIons.add(copyIon(sourceIon));
+        }
+        // otherwise every row of its network is gone and the ion identity is dropped with it
+      }
+      if (newRow == sourceRow && newIons.equals(sourceIons)) {
+        // nothing changed for this row, do not replace its list
+        continue;
+      }
+      newRow.setIonIdentities(newIons.isEmpty() ? null : List.copyOf(newIons));
+    }
+  }
+
+  /**
+   * A copy without the network back reference, which is set once the new network exists.
+   */
+  private static @NotNull IonIdentity copyIon(@NotNull final IonIdentity ion) {
+    final IonIdentity copy = new IonIdentity(ion.getIonType());
+    copy.addMolFormulas(ion.getMolFormulas());
+    return copy;
   }
 }

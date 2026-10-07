@@ -28,21 +28,26 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Combines {@link FeatureTableFX} with {@link FxFeatureTableFilterMenu}
  */
 public class FxFeatureTableViewBuilder extends FxViewBuilder<FxFeatureTableModel> {
 
-  protected FxFeatureTableViewBuilder(FxFeatureTableModel model) {
+  private final @NotNull FxFeatureTableController controller;
+
+  protected FxFeatureTableViewBuilder(FxFeatureTableModel model,
+      @NotNull FxFeatureTableController controller) {
     super(model);
+    this.controller = controller;
   }
 
   @Override
   public Region build() {
     // feature table is already built in model as there are many requirements from model to table
     final BorderPane main = new BorderPane(model.getFeatureTable());
-    final FxFeatureTableFilterMenu filterMenu = new FxFeatureTableFilterMenu(model);
+    final FxFeatureTableFilterMenu filterMenu = new FxFeatureTableFilterMenu(model, controller);
     main.setBottom(filterMenu);
 
     return main;

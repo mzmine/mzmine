@@ -40,7 +40,7 @@ public abstract class MetadataOnlyScan implements Scan {
   }
 
   @Override
-  public @Nullable Double getTIC() {
+  public double getTIC() {
     throw new UnsupportedOperationException(
         "This scan contains no data, only metadata and is only used to build a scan while reading data.");
   }

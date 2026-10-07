@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,9 +63,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   private static final List<DataType> subTypes = List.of(new IonNetworkIDType(),
       new IonIdentityListType(),
       // start with netID
-      new SizeType(), new NeutralMassType(), new PartnerIdsType(), new MsMsMultimerVerifiedType(),
-      // all realtionship types
-      new IINRelationshipsType(), new IINRelationshipsSummaryType(),
+      new SizeType(), new NeutralMassType(),
       // all formula types
       // list of IIN consensus formulas
       new ConsensusFormulaListType(),
@@ -97,18 +94,6 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
       case IonNetworkIDType __ -> net != null ? ion.getNetID() : null;
       case SizeType __ -> net != null ? net.size() : null;
       case NeutralMassType __ -> net != null ? net.getNeutralMass() : null;
-      case PartnerIdsType __ -> ion.getPartnerRowsString(";");
-      case MsMsMultimerVerifiedType __ -> {
-        int msmsMultimerCount = ion.getMSMSMultimerCount();
-        yield msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
-      }
-      // list of relationships has no order
-      case IINRelationshipsType __ ->
-          net != null ? new ArrayList<>(net.getRelations().entrySet()) : null;
-      case IINRelationshipsSummaryType __ ->
-          net != null && net.getRelations() != null ? net.getRelations().entrySet().stream()
-              .map(entry -> entry.getValue().getName(entry.getKey()))
-              .collect(Collectors.joining(";")) : null;
       //
       case ConsensusFormulaListType __ -> net != null ? net.getMolFormulas() : null;
       case SimpleFormulaListType __ -> ion.getMolFormulas();
@@ -151,13 +136,9 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
       T newValue) {
     try {
       if (subType.getClass().equals(ConsensusFormulaListType.class)) {
-        List<ResultFormula> formulas = model.get(this).get(0).getNetwork().getMolFormulas();
-        formulas.remove(newValue);
-        formulas.add(0, (ResultFormula) newValue);
+        model.get(this).get(0).getNetwork().setBestMolFormula((ResultFormula) newValue);
       } else if (subType.getClass().equals(SimpleFormulaListType.class)) {
-        List<ResultFormula> formulas = model.get(this).get(0).getMolFormulas();
-        formulas.remove(newValue);
-        formulas.add(0, (ResultFormula) newValue);
+        model.get(this).get(0).setBestMolFormula((ResultFormula) newValue);
       } else if (subType.getClass().equals(IonIdentityListType.class)) {
         List<IonIdentity> ions = model.get(this);
         if (ions != null) {

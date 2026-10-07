@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -98,10 +98,6 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     plotModel.setDataset(dataset);
     plotModel.setRenderer(renderer);
 
-    // add the cursor marker at all times - will be invisible if no value or visible false
-    addPermanentDomainMarker(0, getCursorConfigModel().getDomainCursorMarker(), Layer.FOREGROUND);
-    addPermanentRangeMarker(0, getCursorConfigModel().getRangeCursorMarker(), Layer.FOREGROUND);
-
     // init listeners now and call manual update once
     initListeners();
     updateAll();
@@ -133,10 +129,10 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
           }
         });
 
-    applyNotifyLater(plotModel.domainMarkersProperty(), _ -> updateDomainMarkers());
-    applyNotifyLater(plotModel.rangeMarkersProperty(), _ -> updateRangeMarkers());
-    applyNotifyLater(plotModel.permanentDomainMarkersProperty(), _ -> updateDomainMarkers());
-    applyNotifyLater(plotModel.permanentRangeMarkersProperty(), _ -> updateRangeMarkers());
+    applyNotifyLater(plotModel.domainMarkersProperty(), _ -> this.updateDomainMarkers());
+    applyNotifyLater(plotModel.rangeMarkersProperty(), _ -> this.updateRangeMarkers());
+    applyNotifyLater(plotModel.permanentDomainMarkersProperty(), _ -> this.updateDomainMarkers());
+    applyNotifyLater(plotModel.permanentRangeMarkersProperty(), _ -> this.updateRangeMarkers());
   }
 
   private void updateAll() {
@@ -674,6 +670,10 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     plotModel.addPermanentDomainMarker(index, marker, layer);
   }
 
+  public void addPermanentDomainMarker(final @NotNull MarkerDefinition markerDefinition) {
+    plotModel.addPermanentDomainMarker(markerDefinition);
+  }
+
   /**
    * Separation between permanent markers that are always kept on the chart and those that are often
    * cleared, removed, and new ones added ({@link #domainMarkersProperty()} and
@@ -684,6 +684,10 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
    */
   public void addPermanentRangeMarker(int index, Marker marker, Layer layer) {
     plotModel.addPermanentRangeMarker(index, marker, layer);
+  }
+
+  public void addPermanentRangeMarker(final @NotNull MarkerDefinition markerDefinition) {
+    plotModel.addPermanentRangeMarker(markerDefinition);
   }
 
   /**

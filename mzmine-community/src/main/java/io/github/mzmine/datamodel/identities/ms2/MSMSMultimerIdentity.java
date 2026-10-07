@@ -61,7 +61,7 @@ public class MSMSMultimerIdentity extends MSMSIonIdentity {
   }
 
   public int getMCount() {
-    return getType().getMolecules();
+    return getType().molecules();
   }
 
 }

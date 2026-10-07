@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,7 +108,15 @@ public interface PresetStore<T extends Preset> {
    *
    * @param preset the preset to save
    */
-  void saveToFile(@NotNull T preset);
+  @Nullable
+  default File saveToFile(@NotNull T preset) {
+    ensureDirectoryExists();
+    final File file = getPresetFile(preset);
+    return saveToFile(file, preset);
+  }
+
+  @Nullable
+  File saveToFile(@NotNull File file, @NotNull T preset);
 
   @Nullable T loadFromFile(@NotNull File file);
 
@@ -314,5 +322,5 @@ public interface PresetStore<T extends Preset> {
     return new PresetStoreKey(getPresetCategory(), getPresetGroup());
   }
 
-  FxPresetEditor createPresetEditor();
+  @Nullable FxPresetEditor createPresetEditor();
 }

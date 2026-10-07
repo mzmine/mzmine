@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,15 +37,22 @@ import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChart
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDashboardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -56,9 +63,29 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
     MinSamplesRequirement {
 
   private final AbundanceMeasure abundanceMeasure;
+  private final @NotNull AbundanceMeasure normalizedAbundanceMeasure;
 
   protected AbstractBoxPlotType(AbundanceMeasure abundanceMeasure) {
+    // only allow height and area type
     this.abundanceMeasure = abundanceMeasure;
+    this.normalizedAbundanceMeasure = Objects.requireNonNull(abundanceMeasure.normalizedVariant());
+  }
+
+  /**
+   * @return the normalized measure used by this box plot if the user enables it in the header
+   */
+  public @NotNull AbundanceMeasure getNormalizedAbundanceMeasure() {
+    return normalizedAbundanceMeasure;
+  }
+
+  /**
+   * @return the normalized measure if the header check box is shown and selected, otherwise the raw
+   * measure
+   */
+  private @NotNull AbundanceMeasure getEffectiveAbundanceMeasure(
+      @NotNull MetadataHeaderColumn<?, ?> col) {
+    return col.isNormVisible() && col.isNormActiveSelected() ? normalizedAbundanceMeasure
+        : abundanceMeasure;
   }
 
   @Override
@@ -78,12 +105,16 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
 
     final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(this,
-        ProjectService.getMetadata().getSampleTypeColumn());
+        ProjectService.getMetadata().getSampleTypeColumn(), abundanceMeasure);
+
+    final ObservableValue<AbundanceMeasure> measure = Bindings.createObjectBinding(
+        () -> getEffectiveAbundanceMeasure(col), col.normActiveProperty(),
+        col.normVisibleProperty());
 
     // define observable
     col.setCellFactory(new CountingRowChartCellFactory(
         (id) -> (TreeTableCell) new AbundanceBoxPlotCell(id, col.selectedColumnProperty(),
-            abundanceMeasure)));
+            measure)));
 //    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
     col.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return col;
@@ -94,9 +125,10 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
       @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file,
       @Nullable DataType<?> superType, @Nullable Object value) {
     return () -> {
-      if (table == null || table.getFeatureList() == null) {
+      if (table == null || table.getFeatureList() == null || table.getTableOwner() == FeatureTableOwner.STATS_DASHBOARD) {
         return;
       }
+      final FeatureTableOwner masterTableOwner = table.getTableOwner();
       FxThread.runLater(() -> {
         final StatsDashboardTab tab = new StatsDashboardTab();
         tab.onFeatureListSelectionChanged(List.of(table.getFeatureList()));
@@ -104,14 +136,34 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
 
         final ColumnID colId = new ColumnID(this, ColumnType.ROW_TYPE, null, -1);
         final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> map = table.getNewColumnMap();
-        final MetadataColumn<?> selectedColumn = map.entrySet().stream()
+        final MetadataHeaderColumn<?, ?> headerColumn = map.entrySet().stream()
             .filter(entry -> entry.getValue().getUniqueIdString().equals(colId.getUniqueIdString()))
-            .findFirst().map(entry -> ((MetadataHeaderColumn) entry.getKey()).getSelectedColumn())
-            .orElse(ProjectService.getMetadata().getSampleTypeColumn());
+            .map(Entry::getKey).filter(MetadataHeaderColumn.class::isInstance)
+            .map(c -> (MetadataHeaderColumn<?, ?>) c).findFirst().orElse(null);
+
+        final MetadataColumn<?> selectedColumn =
+            headerColumn != null ? headerColumn.getSelectedColumn()
+                : ProjectService.getMetadata().getSampleTypeColumn();
 
         tab.getController().groupingColumnProperty().set(selectedColumn);
-        tab.getController().abundanceMeasureProperty().set(abundanceMeasure);
-        MZmineCore.getDesktop().addTab(tab);
+        // carry over the normalized state of the column header
+        tab.getController().abundanceMeasureProperty().set(
+            headerColumn != null ? getEffectiveAbundanceMeasure(headerColumn) : abundanceMeasure);
+        // master is complex dashboard - open in other window
+        if (masterTableOwner.isOtherComplexDashboard()) {
+          new MZmineWindow().addTab(tab);
+        } else {
+          MZmineCore.getDesktop().addTab(tab);
+        }
+
+        // Bidirectional link so selections sync between source feature table and the new Stats
+        // dashboard's table. The user can disable either direction from the link popover.
+        final FxFeatureTableController sourceCtrl = FxFeatureTableController.controllerFor(table);
+        final FxFeatureTableController statsCtrl = tab.getController().getTableController();
+        if (sourceCtrl != null) {
+          sourceCtrl.linkTo(statsCtrl, true);
+          statsCtrl.linkTo(sourceCtrl, true);
+        }
       });
     };
   }

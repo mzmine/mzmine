@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,30 +25,39 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.gapfilling.GapFillMzMatchDuplicateType;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.maths.Precision;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class Gap {
 
   protected FeatureListRow featureListRow;
   protected RawDataFile rawDataFile;
 
-  protected Range<Double> mzRange;
-  protected Range<Float> rtRange;
+  protected final SimpleDoubleRange mzRange;
+  protected final double mzCenter;
+  protected SimpleFloatRange rtRange;
   private final boolean validateRtShape;
   protected double intTolerance;
 
@@ -63,13 +72,13 @@ public class Gap {
    * @param mzRange M/Z coordinate of this empty gap
    * @param rtRange RT coordinate of this empty gap
    */
-  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
-      Range<Float> rtRange, double intTolerance) {
+  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, SimpleDoubleRange mzRange,
+      SimpleFloatRange rtRange, double intTolerance) {
     this(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, true);
   }
 
-  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
-      Range<Float> rtRange, double intTolerance, boolean validateRtShape) {
+  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, SimpleDoubleRange mzRange,
+      SimpleFloatRange rtRange, double intTolerance, boolean validateRtShape) {
 
     this.featureListRow = peakListRow;
     this.rawDataFile = rawDataFile;
@@ -77,6 +86,7 @@ public class Gap {
     this.mzRange = mzRange;
     this.rtRange = rtRange;
     this.validateRtShape = validateRtShape;
+    this.mzCenter = RangeUtils.rangeCenter(mzRange);
   }
 
   public void offerNextScan(Scan scan) {
@@ -96,7 +106,7 @@ public class Gap {
       currentDataPoint = new GapDataPointImpl(scan, basePeak.getMZ(), scanRT,
           basePeak.getIntensity());
     } else {
-      currentDataPoint = new GapDataPointImpl(scan, RangeUtils.rangeCenter(mzRange), scanRT, 0);
+      currentDataPoint = new GapDataPointImpl(scan, mzCenter, scanRT, 0);
     }
 
     // If we have not yet started, just create a new peak
@@ -157,12 +167,91 @@ public class Gap {
         mzIntensities[0], mzIntensities[1],
         bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
 
-    final Feature newPeak = new ModularFeature((ModularFeatureList) featureListRow.getFeatureList(),
-        rawDataFile, series, FeatureStatus.ESTIMATED);
+    final ModularFeature newPeak = new ModularFeature(
+        (ModularFeatureList) featureListRow.getFeatureList(), rawDataFile, series,
+        FeatureStatus.ESTIMATED);
+
+    tagPotentialDuplicates(newPeak);
 
     // Fill the gap
     featureListRow.addFeature(rawDataFile, newPeak, false);
     return true;
+  }
+
+  /**
+   * Tags this gap-filled feature when it is a potential duplicate of another row's feature from the
+   * same raw data file (caused by (mis)alignment during gap filling). Sets two feature data types:
+   * and {@link GapFillMzMatchDuplicateType} (another row within this gap's m/z and RT window holds
+   * a feature of the same file, additionally, &ge; 50 % of the gap-filled feature's m/z values
+   * match such a feature, compared per scan).
+   *
+   * @param newFeature the freshly gap-filled feature
+   */
+  protected void tagPotentialDuplicates(@NotNull final ModularFeature newFeature) {
+    final ModularFeatureList flist = (ModularFeatureList) featureListRow.getFeatureList();
+    // make the columns available in the feature table (addFeatureType de-dupes by class)
+    flist.addFeatureType(new GapFillMzMatchDuplicateType());
+
+    final List<FeatureListRow> candidates = FeatureListUtils.getRowsInsideScanAndMZRange(flist,
+        rtRange, mzRange);
+
+    final List<Integer> mzIds = new ArrayList<>();
+    for (final FeatureListRow other : candidates) {
+      if (other == featureListRow) {
+        continue;
+      }
+      final Feature otherFeature = other.getFeature(rawDataFile);
+      if (otherFeature == null) {
+        continue;
+      }
+      // decision: only real peaks in other rows count as duplicates, not other gap-fills. This also
+      // keeps the result deterministic regardless of multithreaded gap-fill order.
+      final FeatureStatus status = otherFeature.getFeatureStatus();
+      if (status != FeatureStatus.DETECTED && status != FeatureStatus.MANUAL) {
+        continue;
+      }
+      if (fractionOfEqualMz(newFeature, otherFeature) >= 0.5) {
+        mzIds.add(other.getID());
+      }
+    }
+
+    newFeature.set(GapFillMzMatchDuplicateType.class, formatTag(mzIds));
+  }
+
+  /**
+   * Fraction of the gap-filled feature's data points whose scan (matched by retention time) is also
+   * present in the other feature with an equal m/z. m/z is unaffected by smoothing, so a true
+   * duplicate matches. Overridden in {@code ImsGap} for ion mobility data.
+   *
+   * @param gapFilled the gap-filled feature
+   * @param other     a real feature from the same raw data file in another row
+   * @return fraction in [0, 1]
+   */
+  protected double fractionOfEqualMz(@NotNull final Feature gapFilled,
+      @NotNull final Feature other) {
+    final IonTimeSeries<?> a = gapFilled.getFeatureData();
+    final IonTimeSeries<?> b = other.getFeatureData();
+    final int n = a.getNumberOfValues();
+    final int m = b.getNumberOfValues();
+    if (n == 0 || m == 0) {
+      return 0d;
+    }
+    int matches = 0;
+    for (int i = 0; i < n; i++) {
+      // same scan = same RT (b is sorted ascending in RT); negative result means no shared scan
+      final int j = BinarySearch.binarySearch(a.getRetentionTime(i),
+          DefaultTo.MINUS_INSERTION_POINT, m, b::getRetentionTime);
+//      if (j >= 0 && MZTolerance.NARROW_5_PPM_OR_1_MDA.checkWithinTolerance(a.getMZ(i), b.getMZ(j))) {
+      if (j >= 0 && Precision.equalFloatSignificance(a.getMZ(i), b.getMZ(j))) {
+        matches++;
+      }
+    }
+    return (double) matches / n;
+  }
+
+  private static @NotNull String formatTag(@NotNull final List<Integer> ids) {
+    return ids.isEmpty() ? "no"
+        : "yes (IDs: " + ids.stream().map(String::valueOf).collect(Collectors.joining(", ")) + ")";
   }
 
   /**
@@ -174,8 +263,8 @@ public class Gap {
       return true;
     }
 
-    if (dp.getRT() < rtRange.lowerEndpoint()) {
-      double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
+    if (dp.getRT() < rtRange.lower()) {
+      double prevInt = currentPeakDataPoints.getLast().getIntensity();
       if (dp.getIntensity() > (prevInt * (1 - intTolerance))) {
         return true;
       }
@@ -185,8 +274,8 @@ public class Gap {
       return true;
     }
 
-    if (dp.getRT() > rtRange.upperEndpoint()) {
-      double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
+    if (dp.getRT() > rtRange.upper()) {
+      double prevInt = currentPeakDataPoints.getLast().getIntensity();
       if (dp.getIntensity() < (prevInt * (1 + intTolerance))) {
         return true;
       }
@@ -267,5 +356,9 @@ public class Gap {
 
   public FeatureListRow getFeatureListRow() {
     return featureListRow;
+  }
+
+  public RawDataFile getRawDataFile() {
+    return rawDataFile;
   }
 }

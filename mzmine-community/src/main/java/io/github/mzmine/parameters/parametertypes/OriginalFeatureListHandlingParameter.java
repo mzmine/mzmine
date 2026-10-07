@@ -127,6 +127,10 @@ public class OriginalFeatureListHandlingParameter extends
         newLists.forEach(project::addFeatureList);
       }
     }
+
+    public boolean isProcessInPlace() {
+      return this == PROCESS_IN_PLACE;
+    }
   }
 
   public boolean isIncludeProcessInPlace() {

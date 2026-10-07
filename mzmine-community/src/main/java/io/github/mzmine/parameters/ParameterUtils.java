@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,6 +32,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -135,6 +137,27 @@ public class ParameterUtils {
   }
 
   /**
+   * @param parameters    input parameters
+   * @param keepSelection keep the selection of raw data files and features lists
+   * @return a new array with cloned parameters
+   */
+  public static Parameter<?> @NotNull [] cloneParameters(Parameter<?> @NotNull [] parameters,
+      boolean keepSelection) {
+    // Make a deep copy of the parameters
+    Parameter<?>[] newParameters = new Parameter[parameters.length];
+    for (int i = 0; i < parameters.length; i++) {
+      if (parameters[i] instanceof RawDataFilesParameter rfp) {
+        newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else if (parameters[i] instanceof FeatureListsParameter flp) {
+        newParameters[i] = flp.cloneParameter(keepSelection);
+      } else {
+        newParameters[i] = parameters[i].cloneParameter();
+      }
+    }
+    return newParameters;
+  }
+
+  /**
    * Attemp to copy parameters by name (this is how its usually done in MZmine). Exceptions because
    * of changed data types etc are caught and logged.
    *
@@ -190,6 +213,19 @@ public class ParameterUtils {
    */
   public static boolean equalValues(final ParameterSet a, final ParameterSet b) {
     return equalValues(a, b, true, true);
+  }
+
+  /**
+   * Compares two processing steps by their module and parameter values.
+   *
+   * @param skipFileParameters        whether values of file-name parameters are ignored
+   * @param skipRawDataFileParameters whether raw-data-file and file-name parameters are ignored
+   */
+  public static boolean equalValues(@NotNull final MZmineProcessingStep<?> a,
+      @NotNull final MZmineProcessingStep<?> b, final boolean skipFileParameters,
+      final boolean skipRawDataFileParameters) {
+    return a == b || (a.getModule().equals(b.getModule()) && equalValues(a.getParameterSet(),
+        b.getParameterSet(), skipFileParameters, skipRawDataFileParameters));
   }
 
 
@@ -262,24 +298,48 @@ public class ParameterUtils {
     return true;
   }
 
+  /**
+   * Now returns the latest method call parameter. Similar to
+   * {@link #getParameterOfLatestMethodCall(List, Class, Parameter)} but for ParameterSet matching
+   * instead of module.
+   *
+   * @param appliedMethods all applied methods (newest last)
+   * @param parameterClass the parameters to find in applied methods
+   * @param parameter      the parameter to extract
+   * @return latest method call parameter or empty
+   */
   @NotNull
   public static <T> Optional<T> getValueFromAppliedMethods(
-      Collection<FeatureListAppliedMethod> appliedMethods,
-      Class<? extends ParameterSet> parameterClass, Parameter<T> mzTolParameter) {
-    return appliedMethods.stream()
-        .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
-        .findFirst().map(FeatureListAppliedMethod::getParameters)
-        .map(parameterSet -> parameterSet.getValue(mzTolParameter));
+      List<FeatureListAppliedMethod> appliedMethods, Class<? extends ParameterSet> parameterClass,
+      Parameter<T> parameter) {
+    return getParameterFromAppliedMethods(appliedMethods, parameterClass, parameter).map(
+        Parameter::getValue);
   }
 
+  /**
+   * Now returns the latest method call parameter. Similar to
+   * {@link #getParameterOfLatestMethodCall(List, Class, Parameter)} but for ParameterSet matching
+   * instead of module.
+   *
+   * @param appliedMethods all applied methods (newest last)
+   * @param parameterClass the parameters to find in applied methods
+   * @param parameter      the parameter to extract
+   * @return latest method call parameter or empty
+   */
   @NotNull
   public static <T extends Parameter<?>> Optional<T> getParameterFromAppliedMethods(
-      Collection<FeatureListAppliedMethod> appliedMethods,
-      Class<? extends ParameterSet> parameterClass, T parameter) {
-    return appliedMethods.stream()
-        .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
-        .findFirst().map(FeatureListAppliedMethod::getParameters)
-        .map(parameterSet -> parameterSet.getParameter(parameter));
+      List<FeatureListAppliedMethod> appliedMethods, Class<? extends ParameterSet> parameterClass,
+      T parameter) {
+
+    for (int i = appliedMethods.size() - 1; i >= 0; i--) {
+      var appliedMethod = appliedMethods.get(i);
+
+      final ParameterSet params = appliedMethod.getParameters();
+      if (params.getClass().equals(parameterClass)) {
+        return Optional.ofNullable(params.getParameter(parameter));
+      }
+    }
+    return Optional.empty();
   }
 
 
@@ -573,8 +633,11 @@ public class ParameterUtils {
       final Document document = XMLUtils.newDocument();
       final Element element = document.createElement("parameterset");
       document.appendChild(element);
+      // without the version, loading assumes version 1 and reports all version changes since
+      // this was the case in the ModulePresets
+      element.setAttribute(BatchQueue.MODULE_VERSION_ATTR,
+          String.valueOf(parameterSet.getVersion()));
 
-      // Serialize batch queue.
       parameterSet.saveValuesToXML(element);
       return XMLUtils.saveToString(document);
     } catch (Exception exception) {
@@ -677,5 +740,9 @@ public class ParameterUtils {
       actualParameters.add(parameter);
     }
     return actualParameters;
+  }
+
+  public static boolean skipForBatchModeValidation(Parameter<?> param) {
+    return param instanceof RawDataFilesParameter || param instanceof FeatureListsParameter;
   }
 }

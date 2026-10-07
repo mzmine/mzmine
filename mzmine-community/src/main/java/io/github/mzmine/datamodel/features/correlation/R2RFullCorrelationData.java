@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,15 +29,17 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * row to row correlation (2 rows) Intensity profile and Feature shape correlation
  *
  * @author Robin Schmid
  */
-public class R2RFullCorrelationData extends R2RCorrelationData {
+public final class R2RFullCorrelationData extends R2RCorrelationData {
 
   // correlation of all data points in one total correlation
   private CorrelationData corrTotal;
@@ -271,4 +273,14 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     return hasHeightCorr() ? heightCorr.getPearsonR() : 0;
   }
 
+  public R2RSimpleCorrelationData toSimpleCorrelationData() {
+    return new R2RSimpleCorrelationData(this);
+  }
+
+  @Override
+  public @NotNull R2RFullCorrelationData withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new R2RFullCorrelationData(a, b, heightCorr,
+        corrFeatureShape == null ? null : new LinkedHashMap<>(corrFeatureShape));
+  }
 }

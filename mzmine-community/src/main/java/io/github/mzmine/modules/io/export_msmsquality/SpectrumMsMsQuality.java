@@ -53,7 +53,7 @@ public record SpectrumMsMsQuality(int rowId, float purity, MSMSScore score, int 
     return Stream.of(Integer.toString(rowId),
             annotation != null ? annotation.getCompoundName() : "",
             annotation != null && annotation.getAdductType() != null ? annotation.getAdductType()
-                .toString(false) : "", Float.toString(purity),
+                .toString() : "", Float.toString(purity),
             (score.explainedIntensity() >= 0 ? String.valueOf(score.explainedIntensity()) : "0"),
             (score.explainedSignals() >= 0 ? String.valueOf(score.explainedSignals()) : "0"),
             Integer.toString(numPeaks), Float.toString(spectralEntropy),

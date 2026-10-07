@@ -25,15 +25,13 @@
 
 package io.github.mzmine.modules.io.projectload;
 
-import com.google.common.io.CountingInputStream;
 import com.vdurmont.semver4j.Semver;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataProjectIO;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -44,6 +42,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CountingInputStream;
 import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.BufferedReader;
 import java.io.File;
@@ -146,7 +145,7 @@ public class ProjectOpeningTask extends AbstractTask {
       } else {
         newProject = (MZmineProjectImpl) ProjectService.getProject();
       }
-      if(!keepCurrentLibraries) {
+      if (!keepCurrentLibraries) {
         newProject.clearSpectralLibrary();
       }
 
@@ -195,6 +194,9 @@ public class ProjectOpeningTask extends AbstractTask {
         }
 
       }
+
+      currentLoadedObjectName = "Project metadata";
+      ProjectMetadataProjectIO.loadFromZip(zipFile);
 
       loadFeatureList(zipFile);
 
@@ -275,7 +277,7 @@ public class ProjectOpeningTask extends AbstractTask {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
       projectVersionString = reader.readLine();
     }
-    if(projectVersionString == null) {
+    if (projectVersionString == null) {
       throw new IOException("Cannot open mzmine project due to a missing version specification.");
     }
 
@@ -312,8 +314,7 @@ public class ProjectOpeningTask extends AbstractTask {
 //    peakListOpenHandler = new PeakListOpenHandler_3_0_old(dataFilesIDMap);
 //    userParameterOpenHandler = new UserParameterOpenHandler_3_0(newProject, dataFilesIDMap);
 
-    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersion,
-        getModuleCallDate());
+    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersion, getModuleCallDate());
   }
 
   /**

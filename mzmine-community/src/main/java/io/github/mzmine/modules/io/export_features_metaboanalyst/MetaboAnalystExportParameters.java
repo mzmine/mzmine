@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.CompoundFeatureRowSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -50,6 +51,7 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
 
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
+  public static final CompoundFeatureRowSelectionParameter compoundRowSelection = CompoundFeatureRowSelectionParameter.createDefault();
   public static final MetadataGroupingParameter grouping = new MetadataGroupingParameter();
   public static final ComboParameter<AbundanceMeasure> FEATURE_INTENSITY = new ComboParameter(
       "Feature intensity", "Either use height or area", AbundanceMeasure.values(),
@@ -58,7 +60,7 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
   public MetaboAnalystExportParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-exchange-with-other-software.html#metaboanalyst-export",
-        featureLists, filename,
+        featureLists, compoundRowSelection, filename,
 //        format,
         grouping, FEATURE_INTENSITY);
   }

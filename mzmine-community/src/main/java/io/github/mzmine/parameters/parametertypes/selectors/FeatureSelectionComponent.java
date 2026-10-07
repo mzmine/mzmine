@@ -61,6 +61,7 @@ public class FeatureSelectionComponent extends BorderPane {
     selectionList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     selectionList.setPrefWidth(200);
     selectionList.setPrefHeight(50);
+    setMaxHeight(150);
     setCenter(selectionList);
 
     buttonPanel = new FlowPane(Orientation.VERTICAL);

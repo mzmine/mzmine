@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -43,10 +44,6 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
@@ -102,15 +99,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private final FxXYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
+  private final ObjectProperty<MZTolerance> mzToleranceProperty = new SimpleObjectProperty<>();
+  private final ObjectProperty<Range<Double>> selectedMzRangeProperty = new SimpleObjectProperty<>();
   /**
    * If true, the labels of the data set will have the same color as the data set itself
    */
   protected BooleanProperty matchLabelColors;
-  private final ObjectProperty<MZTolerance> mzToleranceProperty = new SimpleObjectProperty<>();
-  private final ObjectProperty<Range<Double>> selectedMzRangeProperty = new SimpleObjectProperty<>();
 
-  // Spectra processing
-  protected DataPointProcessingController controller;
   protected EStandardChartTheme theme;
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true, dataPointsVisible = false;
   private boolean processingAllowed;
@@ -205,9 +200,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     getChart().getLegend().setVisible(showLegend);
 
     setMinHeight(50);
-
-    // set processingAllowed
-    setProcessingAllowed(processingAllowed);
 
     // If the plot is changed then clear the map containing coordinates of labels. New values will be
     // added by the SpectraItemLabelGenerator
@@ -413,11 +405,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized void removeAllDataSets() {
     applyWithNotifyChanges(false, () -> {
-      // if the data sets are removed, we have to cancel the tasks.
-      if (controller != null) {
-        controller.cancelTasks();
-      }
-      controller = null;
       plot.removeAllDatasets();
 
       // MS2 range markers
@@ -507,9 +494,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
       plot.addDataset(dataSet, newRenderer);
 
-      if (dataSet instanceof ScanDataSet) {
-        checkAndRunController();
-      }
     });
   }
 
@@ -521,14 +505,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     boolean showPrecursorWindow = MZmineCore.getConfiguration().getPreferences()
         .getValue(MZminePreferences.showPrecursorWindow);
     if (scan.getMSLevel() == 2) {
+      final MsMsInfo info = scan.getMsMsInfo();
       final Double prmz = scan.getPrecursorMz();
-      if (prmz != null) {
-        final MsMsInfo info = scan.getMsMsInfo();
-        if (showPrecursorWindow && info != null && info.getIsolationWindow() != null) {
-          addDomainMarker(info.getIsolationWindow(), color, alpha);
-        } else {
-          addDomainMarker(prmz, color, alpha);
-        }
+      if (showPrecursorWindow && info != null && info.getIsolationWindow() != null) {
+        addDomainMarker(info.getIsolationWindow(), color, alpha);
+      } else if (prmz != null) {
+        addDomainMarker(prmz, color, alpha);
       }
     } else if (scan.getMSLevel() > 2) {
       // add all parent precursors
@@ -566,59 +548,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    * Checks if the spectra processing is enabled & allowed and executes the controller if it is.
    * Processing is forbidden for instances of ParameterSetupDialogWithScanPreviews
    */
-  public void checkAndRunController() {
-
-    // if controller != null, processing on the current spectra has already
-    // been executed. When
-    // loading a new spectrum, the controller is set to null in
-    // removeAllDataSets()
-    DataPointProcessingManager inst = DataPointProcessingManager.getInst();
-
-    if (!isProcessingAllowed() || !inst.isEnabled()) {
-      return;
-    }
-
-    if (controller != null) {
-      controller = null;
-    }
-
-    // if a controller is re-run then delete previous results
-    removeDataPointProcessingResultDataSets();
-
-    // if enabled, do the data point processing as set up by the user
-    ScanDataSet dataSet = getMainScanDataSet();
-    if (dataSet != null) {
-      Scan scan = dataSet.getScan();
-      MSLevel mslevel = inst.decideMSLevel(scan);
-      controller = new DataPointProcessingController(inst.getProcessingQueue(mslevel), this, scan);
-      inst.addController(controller);
-    }
-  }
-
-  public boolean isProcessingAllowed() {
-    return processingAllowed;
-  }
-
-  public void setProcessingAllowed(boolean processingAllowed) {
-    this.processingAllowed = processingAllowed;
-  }
-
-  public synchronized void removeDataPointProcessingResultDataSets() {
-    applyWithNotifyChanges(false, () -> {
-
-      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-      for (int i = 0; i < numDatasets; i++) {
-        XYDataset dataSet = plot.getDataset(i);
-        if (dataSet instanceof DPPResultsDataSet) {
-          plot.removeDataSet(i);
-        }
-      }
-      // when adding DPPResultDataSet the label generator is overwritten,
-      // revert here
-      SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
-      plot.getRenderer().setDefaultItemLabelGenerator(labelGenerator);
-    });
-  }
 
   @Override
   public void setLabelColorMatch(boolean matchColor) {

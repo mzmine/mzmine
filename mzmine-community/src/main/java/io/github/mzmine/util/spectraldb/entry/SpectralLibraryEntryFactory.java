@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -142,6 +142,15 @@ public class SpectralLibraryEntryFactory {
   }
 
   /**
+   * General spectral library creation for parsers that already produce the two value arrays instead
+   * of {@link DataPoint}
+   */
+  public static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage,
+      Map<DBEntryField, Object> fields, double[] mzs, double[] intensities) {
+    return new SpectralDBEntry(storage, mzs, intensities, fields);
+  }
+
+  /**
    * Filenames usually from the scan (all source scans of a merged or simple scan) or if scan is
    * null from feature
    */
@@ -224,7 +233,7 @@ public class SpectralLibraryEntryFactory {
     polarity.ifPresent(pol -> entry.putIfNotNull(DBEntryField.POLARITY, pol));
 
     final Optional<IonType> ionType = FeatureUtils.extractBestIonIdentity(match, row);
-    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString(false)));
+    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString()));
 
     // online reactivity workflow
     addOnlineReactivityFlags(entry, row);
@@ -425,6 +434,7 @@ public class SpectralLibraryEntryFactory {
         entry.putIfNotNull(DBEntryField.INCHI, match.getInChI());
         entry.putIfNotNull(DBEntryField.INCHIKEY, match.getInChIKey());
         entry.putIfNotNull(DBEntryField.SMILES, match.getSmiles());
+        entry.putIfNotNull(DBEntryField.ISOMERIC_SMILES, match.getIsomericSmiles());
       }
     }
   }
@@ -455,8 +465,9 @@ public class SpectralLibraryEntryFactory {
     }
     for (var dbentry : match.getFields().entrySet()) {
       switch (dbentry.getKey()) {
-        case RT, NAME, FORMULA, SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE, SYNONYMS, CAS,
-             PUBCHEM, PUBMED, MOLWEIGHT -> entry.putIfNotNull(dbentry.getKey(), dbentry.getValue());
+        case RT, NAME, FORMULA, SMILES, ISOMERIC_SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE,
+             SYNONYMS, CAS, PUBCHEM, PUBMED, MOLWEIGHT ->
+            entry.putIfNotNull(dbentry.getKey(), dbentry.getValue());
       }
     }
   }

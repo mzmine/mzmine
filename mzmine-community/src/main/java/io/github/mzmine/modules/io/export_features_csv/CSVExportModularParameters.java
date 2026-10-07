@@ -25,14 +25,17 @@
 
 package io.github.mzmine.modules.io.export_features_csv;
 
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.CompoundFeatureRowSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -45,8 +48,9 @@ import org.jetbrains.annotations.NotNull;
 public class CSVExportModularParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the exported file", ",");
+  public static final CompoundFeatureRowSelectionParameter compoundRowSelection = CompoundFeatureRowSelectionParameter.createDefault();
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forWriting(
+      "Character used to separate the columns of the exported file.", FieldSeparator.COMMA);
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate multi object columns in the exported file", ";");
   public static final BooleanParameter omitEmptyColumns = new BooleanParameter(
@@ -66,8 +70,8 @@ public class CSVExportModularParameters extends SimpleParameterSet {
 
 
   public CSVExportModularParameters() {
-    super(new Parameter[]{featureLists, filename, fieldSeparator, idSeparator, omitEmptyColumns,
-        filter});
+    super(featureLists, compoundRowSelection, filename, fieldSeparator, idSeparator,
+        omitEmptyColumns, filter);
   }
 
   @Override
@@ -89,8 +93,9 @@ public class CSVExportModularParameters extends SimpleParameterSet {
   }
 
   public static CSVExportModularParameters create(File csvExportFile,
-      FeatureListRowsFilter rowsFilter, boolean omitEmpty, String idSeparator, String fieldSep,
-      FeatureListsSelection featureListsSelection) {
+      FeatureListRowsFilter rowsFilter, boolean omitEmpty, String idSeparator,
+      FieldSeparator fieldSep, FeatureListsSelection featureListsSelection,
+      CompoundRowSelection compoundRowSelection) {
     final ParameterSet parameters = new CSVExportModularParameters().cloneParameterSet();
     parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
     parameters.setParameter(CSVExportModularParameters.filter, rowsFilter);
@@ -98,6 +103,7 @@ public class CSVExportModularParameters extends SimpleParameterSet {
     parameters.setParameter(CSVExportModularParameters.idSeparator, idSeparator);
     parameters.setParameter(CSVExportModularParameters.fieldSeparator, fieldSep);
     parameters.setParameter(CSVExportModularParameters.featureLists, featureListsSelection);
+    parameters.setParameter(CSVExportModularParameters.compoundRowSelection, compoundRowSelection);
     return (CSVExportModularParameters) parameters;
   }
 

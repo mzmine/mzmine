@@ -288,15 +288,14 @@ public class FormulaPredictionSubTask extends AbstractTask {
     IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
     IsotopePattern predictedIsotopePattern = null;
     Float isotopeScore = null;
-    if ((checkIsotopes) && (detectedPattern != null)) {
-
-      final IMolecularFormula clonedFormula = FormulaUtils.cloneFormula(cdkFormula);
-      ionType.ionizeFormula(clonedFormula);
+    final IMolecularFormula ionFormula =
+        checkIsotopes ? ionType.ionizeFormula(cdkFormula).orElse(null) : null;
+    if ((checkIsotopes) && (detectedPattern != null) && ionFormula != null) {
 
       final double detectedPatternHeight = detectedPattern.getBasePeakIntensity();
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
-      predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(clonedFormula,
+      predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula,
           minPredictedAbundance, ionType.getCharge(), ionType.getPolarity());
 
       isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,

@@ -30,8 +30,11 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.CompoundFeatureRowSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
@@ -45,12 +48,13 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
       LegacyExportRowCommonElement.values());
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
+  public static final CompoundFeatureRowSelectionParameter compoundRowSelection = CompoundFeatureRowSelectionParameter.createDefault();
   public static final MultiChoiceParameter<LegacyExportRowDataFileElement> exportDataFileItems = new MultiChoiceParameter<>(
       "Export data file elements", "Selection of feature's elements to export",
       LegacyExportRowDataFileElement.values());
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the exported file", ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forWriting(
+      "Character used to separate the columns of the exported file.", FieldSeparator.COMMA);
   public static final BooleanParameter exportAllFeatureInfo = new BooleanParameter(
       "Export quantitation results and other information",
       "If checked, all feature-information results for a feature will be exported. ", false);
@@ -61,10 +65,9 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
   );
   public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
       "Filename", "Name of the output CSV file. "
-                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-                  + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-                  + "If the file already exists, it will be overwritten.", extensions,
-      "quant_mzmine");
+      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+      + "If the file already exists, it will be overwritten.", extensions, "quant_mzmine");
 
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate identification results in the exported file", ";");
@@ -74,8 +77,8 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
       FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
 
   public LegacyCSVExportParameters() {
-    super(featureLists, filename, fieldSeparator, exportCommonItems, exportDataFileItems,
-        exportAllFeatureInfo, idSeparator, filter);
+    super(featureLists, compoundRowSelection, filename, fieldSeparator, exportCommonItems,
+        exportDataFileItems, exportAllFeatureInfo, idSeparator, filter);
   }
 
   @Override

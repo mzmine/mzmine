@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,8 +32,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
@@ -281,7 +281,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
   public static Set<RawDataFileType> getSupportedFileTypes() {
     return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
-        RawDataFileType.SCIEX_WIFF, RawDataFileType.SCIEX_WIFF2, RawDataFileType.AGILENT_D,
+        /*RawDataFileType.SCIEX_WIFF,*/ RawDataFileType.AGILENT_D,
         RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
   }
 
@@ -321,8 +321,9 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
     if (convertToFile) {
       ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(FileAndPathUtil.getTempDir());
+      Process process = null;
       try {
-        final Process process = builder.start();
+        process = builder.start();
         while (process.isAlive()) { // wait for conversion to finish
           if (isCanceled()) {
             process.destroy();
@@ -330,6 +331,13 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
           TimeUnit.MILLISECONDS.sleep(100);
         }
       } catch (IOException | InterruptedException e) {
+        // an interrupt would otherwise leave msconvert running after mzmine exits
+        if (process != null) {
+          process.destroy();
+        }
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+        }
         logger.log(Level.WARNING, "Error while converting %s to mzML file.".formatted(rawFilePath),
             e);
         setStatus(TaskStatus.ERROR);

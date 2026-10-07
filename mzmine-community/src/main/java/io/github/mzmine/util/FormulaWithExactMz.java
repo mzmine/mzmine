@@ -29,7 +29,6 @@ import io.github.mzmine.main.ConfigService;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Used to cache the formula + mz results
@@ -59,29 +58,11 @@ public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
   }
 
   public @NotNull String formulaString() {
-    return MolecularFormulaManipulator.getString(formula);
+    return FormulaUtils.getFormulaString(formula, true);
   }
 
   public int getCharge() {
     return Objects.requireNonNullElse(formula.getCharge(), 0);
   }
 
-  /**
-   * Charge string as
-   *
-   * @return +1
-   */
-  @NotNull
-  public String getChargeString() {
-    int charge = getCharge();
-    String chargeStr = charge > 1 ? "" + charge : "";
-    if (charge > 0) {
-      return "+" + chargeStr;
-    }
-    if (charge < 0) {
-      return "-" + chargeStr;
-    } else {
-      return "";
-    }
-  }
 }

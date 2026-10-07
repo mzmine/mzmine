@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,8 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
   public GroupedParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
       boolean showSummary, @Nullable List<? extends Parameter<?>> fixedParameters,
       @NotNull List<ParameterGroup> groups, @NotNull GroupView viewType) {
-    this(valueCheckRequired, parameters, null, showSummary, fixedParameters, groups, viewType);
+    this(valueCheckRequired, parameters, parameters.getMessage(), showSummary, fixedParameters,
+        groups, viewType);
   }
 
   /**

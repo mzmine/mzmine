@@ -547,7 +547,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // only do this with smaller sample set size
     var maxSamples = parameters.getValue(
         ChromatogramAndSpectraVisualizerParameters.maxSamplesFeaturePick);
-    if (getRawDataFiles().size() <= maxSamples) {
+    if (getRawDataFiles().size() <= maxSamples && !pnChromControls.cbXIC.isSelected()) {
       chromDelay.setOnFinished((event) -> delayedFeatureDataUpdate(mz));
       chromDelay.playFromStart();
     }

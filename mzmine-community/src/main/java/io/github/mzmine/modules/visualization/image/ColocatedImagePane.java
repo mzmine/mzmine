@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
@@ -191,11 +192,14 @@ public class ColocatedImagePane extends StackPane {
     String mz = "m/z " + MZmineCore.getConfiguration().getGuiFormats().mz(row.getAverageMZ());
     if (row.getPreferredAnnotationName() != null) {
       return row.getPreferredAnnotationName() + " " + mz;
-    } else if (row.getBestIonIdentity() != null) {
-      return row.getBestIonIdentity().getAdduct() + " " + row.getBestIonIdentity()
-          .getBestMolFormula().map(MolecularFormulaIdentity::getFormulaAsString) + " " + mz;
     } else {
-      return mz;
+      final IonIdentity bestIon = row.getBestIonIdentity();
+      if (bestIon != null) {
+        return bestIon.toString() + " " + bestIon.getBestMolFormula()
+            .map(MolecularFormulaIdentity::getFormulaAsString) + " " + mz;
+      } else {
+        return mz;
+      }
     }
   }
 

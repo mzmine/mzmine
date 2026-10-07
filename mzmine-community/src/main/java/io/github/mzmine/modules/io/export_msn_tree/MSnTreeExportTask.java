@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,11 +70,12 @@ public class MSnTreeExportTask extends AbstractTask {
     outFile = parameters.getValue(MSnTreeExportParameters.FILENAME);
     raws = parameters.getValue(MSnTreeExportParameters.RAW_FILES).getMatchingRawDataFiles();
     mzTol = parameters.getValue(MSnTreeExportParameters.MZ_TOL);
-    sep = parameters.getValue(MSnTreeExportParameters.SEPARATOR);
+    sep = parameters.getValue(MSnTreeExportParameters.SEPARATOR).separator();
     description = String.format("Exporting %d raw files as MSn trees to tabular file %s",
         raws.length, outFile.getAbsolutePath());
 
-    mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    // own copy, this task formats every precursor of every MSn tree
+    mzFormat = (NumberFormat) MZmineCore.getConfiguration().getMZFormat().clone();
   }
 
   @Override

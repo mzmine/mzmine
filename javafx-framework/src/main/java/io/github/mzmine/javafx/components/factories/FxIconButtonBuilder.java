@@ -26,6 +26,7 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
 import java.util.Objects;
@@ -38,7 +39,9 @@ import javafx.scene.control.ButtonBase;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxIconButtonBuilder<T extends ButtonBase> {
@@ -58,8 +61,10 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
 
   private final EventHandling eventHandling;
   private final FontIcon icon;
+  private final String iconCode;
   private final T button;
   private BooleanExpression flashingProperty;
+  private @Nullable Color color;
 
   public FxIconButtonBuilder(@NotNull final T button, @NotNull IconCodeSupplier iconCode) {
     this(button, iconCode, EventHandling.DEFAULT_PASS);
@@ -77,6 +82,7 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
   public FxIconButtonBuilder(@NotNull final T button, @NotNull String iconCode,
       @NotNull EventHandling eventHandling) {
     icon = new FontIcon(iconCode);
+    this.iconCode = iconCode;
     this.eventHandling = eventHandling;
     icon.setIconSize(FxIconUtil.DEFAULT_ICON_SIZE);
     this.button = button;
@@ -84,6 +90,14 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
   }
 
   public T build() {
+    if (color != null) {
+      // somehow this is not enough because button style overwrites the color
+      icon.setIconColor(color);
+      button.getStyleClass().remove("icon-button");
+      button.getStyleClass().add("colored-icon-button");
+      button.setStyle("-my-icon-color: %s;".formatted(FxColorUtil.colorToHex(color)));
+    }
+
     if (flashingProperty != null) {
       FxFlashingAnimation.animate(icon, flashingProperty);
     }
@@ -98,7 +112,7 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
   }
 
   public static FxIconButtonBuilder<Button> ofIconButton(IconCodeSupplier iconCode,
-      @NotNull EventHandling eventHandling) {
+      @NotNull FxIconButtonBuilder.EventHandling eventHandling) {
     return new FxIconButtonBuilder<>(new Button(), iconCode.getIconCode(), eventHandling);
   }
 
@@ -116,6 +130,11 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
 
   public static FxIconButtonBuilder<ToggleButton> ofToggleIconButton(String iconCode) {
     return new FxIconButtonBuilder<>(new ToggleButton(), iconCode);
+  }
+
+  public FxIconButtonBuilder<T> color(@Nullable Color color) {
+    this.color = color;
+    return this;
   }
 
   public FxIconButtonBuilder<T> tooltip(String tooltip) {

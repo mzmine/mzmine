@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,8 @@ public class AutoSaveBatchParameters extends SimpleParameterSet {
           List.of(ExtensionFilters.MZ_BATCH), "batch"));
 
   public AutoSaveBatchParameters() {
-    super(savePath);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/batch_autosave/autosave_batch.html",
+        savePath);
   }
 }

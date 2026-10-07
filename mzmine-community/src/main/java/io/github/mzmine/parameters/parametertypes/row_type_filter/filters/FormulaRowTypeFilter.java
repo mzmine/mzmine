@@ -49,7 +49,7 @@ class FormulaRowTypeFilter extends AbstractRowTypeFilter {
       @NotNull MatchingMode matchingMode, @NotNull String query) {
     super(selectedType, matchingMode, query);
 
-    final IMolecularFormula internal = FormulaUtils.createMajorIsotopeMolFormula(query);
+    final IMolecularFormula internal = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(query);
     if (internal == null) {
       throw new QueryFormatException(query + " is not a valid formula");
     }
@@ -77,7 +77,8 @@ class FormulaRowTypeFilter extends AbstractRowTypeFilter {
   }
 
   private boolean matchesFormula(@Nullable String formulaStr) {
-    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+        formulaStr);
     if (formula == null) {
       return false;
     }

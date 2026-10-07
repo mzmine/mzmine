@@ -25,11 +25,6 @@
 
 package io.github.mzmine.datamodel.features.types.abstr;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.function.Function;
@@ -59,9 +54,7 @@ public abstract class StringType extends DataType<String> {
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value) throws XMLStreamException {
     if (value == null) { // null shall stay null, empty strings shall stay empty.
       writer.writeCharacters(CONST.XML_NULL_VALUE);
       return;
@@ -75,9 +68,7 @@ public abstract class StringType extends DataType<String> {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull XMLStreamReader reader) throws XMLStreamException {
     String text = reader.getElementText();
     if (text.equals(
         CONST.XML_NULL_VALUE)) {  // null shall stay null, empty strings shall stay empty.

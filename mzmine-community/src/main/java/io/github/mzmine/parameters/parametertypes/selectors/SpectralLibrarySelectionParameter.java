@@ -43,6 +43,7 @@ public class SpectralLibrarySelectionParameter implements
 
   private static final String name = "Spectral libraries";
 
+  private final boolean required;
   private SpectralLibrarySelection value;
 
   public SpectralLibrarySelectionParameter() {
@@ -50,6 +51,10 @@ public class SpectralLibrarySelectionParameter implements
   }
 
   public SpectralLibrarySelectionParameter(SpectralLibrarySelection value) {
+    this(true, value);
+  }
+  public SpectralLibrarySelectionParameter(boolean required, SpectralLibrarySelection value) {
+    this.required = required;
     this.value = value;
   }
 
@@ -71,7 +76,7 @@ public class SpectralLibrarySelectionParameter implements
 
   @Override
   public SpectralLibrarySelectionParameter cloneParameter() {
-    return new SpectralLibrarySelectionParameter(value);
+    return new SpectralLibrarySelectionParameter(required, value);
   }
 
   @Override
@@ -86,7 +91,7 @@ public class SpectralLibrarySelectionParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value.getSelectionType() == SpectralLibrarySelectionType.SPECIFIC
+    if (required && value.getSelectionType() == SpectralLibrarySelectionType.SPECIFIC
         && value.getSpecificLibraryNames().isEmpty()) {
       errorMessages.add(
           "When selecting specific libraries, setup the selected library files. Currently 0 are selected.");

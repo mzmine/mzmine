@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.swing;
 
+import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
@@ -45,9 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.EntityCollection;
 
 /**
  * Handles all MouseEvents (like a MouseAdapter) and transforms them into {@link ChartGestureEvent}s
@@ -174,17 +173,11 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
 
     if (lastEntity != null && x == lastEntityX && y == lastEntityY)
       return lastEntity;
-    else {
-      ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
-      ChartEntity entity = null;
-      if (info != null) {
-        EntityCollection entities = info.getEntityCollection();
-        if (entities != null) {
-          entity = entities.getEntity(x, y);
-        }
-      }
-      return entity;
-    }
+    final ChartEntity entity = ChartLogics.findChartEntity(chartPanel, e.getX(), e.getY());
+    lastEntity = entity;
+    lastEntityX = x;
+    lastEntityY = y;
+    return entity;
   }
 
   @Override

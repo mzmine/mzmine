@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -146,8 +147,8 @@ class PeakFinderTask extends AbstractTask {
 
           if (sourcePeak == null) {
             // Create a new gap
-            Range<Double> mzRange = mzTolerance.getToleranceRange(newRow.getAverageMZ());
-            Range<Float> rtRange = rtTolerance.getToleranceRange(newRow.getAverageRT());
+            SimpleDoubleRange mzRange = mzTolerance.getSimpleToleranceRange(newRow.getAverageMZ());
+            SimpleFloatRange rtRange = rtTolerance.getSimpleToleranceRange(newRow.getAverageRT());
 
             Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
             gaps.add(newGap);
@@ -257,8 +258,8 @@ class PeakFinderTask extends AbstractTask {
               float rt = (float) info.predict(rt2);
 
               if (rt != -1) {
-                Range<Double> mzRange = mzTolerance.getToleranceRange(mz);
-                Range<Float> rtRange = rtTolerance.getToleranceRange(rt);
+                SimpleDoubleRange mzRange = mzTolerance.getSimpleToleranceRange(mz);
+                SimpleFloatRange rtRange = rtTolerance.getSimpleToleranceRange(rt);
 
                 Gap newGap = new Gap(newRow, datafile1, mzRange, rtRange, intTolerance);
                 gaps.add(newGap);

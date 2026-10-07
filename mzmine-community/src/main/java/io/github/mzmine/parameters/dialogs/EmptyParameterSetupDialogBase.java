@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.StageWindowSettingsUtil;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -46,6 +47,7 @@ import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
@@ -56,6 +58,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -158,6 +161,21 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
     setMinWidth(500.0);
     setMinHeight(400.0);
+
+    showingProperty().subscribe(showing -> {
+      if(!showing) {
+        return;
+      }
+      final Screen screen = StageWindowSettingsUtil.getCurrentScreenOrPrimary(this);
+      // primary.getBounds is already scaling aware.
+      final Rectangle2D resolution = screen.getBounds();
+      // no dialogs larger than the screen
+      if (mainPane.getHeight() > resolution.getHeight() * 0.8
+          || scene.getHeight() > resolution.getHeight() * 0.8) {
+        setHeight(resolution.getHeight() * 0.8);
+        centerOnScreen();
+      }
+    });
 
     centerOnScreen();
   }

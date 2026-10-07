@@ -35,7 +35,11 @@ public record WindowSettings(double x, double y, double width, double height, bo
    * creates a maximized setting on the primary screen
    */
   public static @NotNull WindowSettings createDefaultMaximized() {
-    final Rectangle2D bounds = Screen.getPrimary().getBounds();
+    return createMaximizedOnScreen(Screen.getPrimary());
+  }
+
+  public static @NotNull WindowSettings createMaximizedOnScreen(Screen screen) {
+    final Rectangle2D bounds = screen.getBounds();
     return new WindowSettings(bounds.getMinX() + 10, bounds.getMinY() + 10, bounds.getWidth() - 20,
         bounds.getHeight() - 20, true);
   }

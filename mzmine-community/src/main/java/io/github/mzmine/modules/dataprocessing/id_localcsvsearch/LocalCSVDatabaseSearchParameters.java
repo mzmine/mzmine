@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SynonymsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -55,6 +56,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxFileChooser;
@@ -72,11 +74,11 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParameter;
@@ -115,9 +117,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Name of file that contains information for peak identification",
       ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
-      ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forReading(
+      "Character used to separate fields in the database file. Auto detect determines the separator from the file itself.");
 
   public static final OptionalParameter<StringParameter> filterSamples = new OptionalParameter<>(
       new StringParameter("Filter filename header",
@@ -139,10 +140,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new PercentParameter("CCS tolerance (%)",
           "Maximum allowed difference (in per cent) for two ccs values.", 0.05), false);
 
-  public static final OptionalModuleParameter<IonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
-      "Use adducts",
-      "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
-      EmbeddedComponentOptions.VIEW_IN_WINDOW, new IonLibraryParameterSet());
+  public static final OptionalParameter<IonLibraryParameter> ionLibrary = new OptionalParameter<>(
+      new IonLibraryParameter("Use adducts",
+          "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN));
 
   public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
       "Use isotope matcher",
@@ -188,7 +189,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType<>(false, new Q3QuantMzType().getUniqueID(), new Q3QuantMzType()),//
       new ImportType<>(false, new IupacNameType()), //
       new ImportType<>(false, new CASType()), //
-      new ImportType<>(false, new InternalIdType()));
+      new ImportType<>(false, new InternalIdType()), //
+      new ImportType<>(false, new SynonymsType()) //
+  );
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
@@ -302,6 +305,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
     map.put(commentFields.getName(), commentFields);
+    // IonLibraryParameter#cloneParameter used to drop the custom name, old xml uses default name
+    map.put(IonLibraryParameter.DEFAULT_NAME, getParameter(ionLibrary));
     return map;
   }
 

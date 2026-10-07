@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.datamodel.identities.global;
+
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * One static image of the global ion library at a specific version. Used to access all variables
+ * within a read lock. All unmodifiable.
+ */
+public record GlobalIonLibraryDTO(int version, @NotNull List<IonLibrary> libraries,
+                                  @NotNull List<IonType> types, @NotNull List<IonPart> parts,
+                                  List<IonPartDefinition> partDefinitions) {
+
+  public @NotNull GlobalIonLibraryDTO cascadeIonDefinitionsFromLibraries() {
+    Set<IonType> nt = HashSet.newHashSet(types.size());
+    nt.addAll(types);
+    Set<IonPart> np = HashSet.newHashSet(parts.size());
+    np.addAll(parts);
+    Set<IonPartDefinition> npd = HashSet.newHashSet(partDefinitions.size());
+    npd.addAll(partDefinitions);
+
+    for (IonLibrary library : libraries) {
+      nt.addAll(library.ions());
+      for (IonType ion : library.ions()) {
+        np.addAll(ion.parts());
+        for (IonPart part : ion.parts()) {
+          final IonPartDefinition def = IonPartDefinition.of(part);
+          if (def.isDefinitionRequired()) {
+            npd.add(def);
+          }
+        }
+      }
+    }
+
+    return new GlobalIonLibraryDTO(version, libraries, List.copyOf(nt), List.copyOf(np),
+        List.copyOf(npd));
+  }
+
+}

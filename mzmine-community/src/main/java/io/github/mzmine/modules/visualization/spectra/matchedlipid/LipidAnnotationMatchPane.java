@@ -33,6 +33,7 @@ import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
@@ -56,7 +57,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
 
@@ -121,9 +121,9 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
     public static final double MAX_MSMS_SCORE_COLOR_VALUE = 100.0;
 
     private static final DecimalFormat MSMS_SCORE_FORM = new DecimalFormat("0.0");
-    public static Color MAX_MSMS_SCORE_COLOR = MZmineCore.getConfiguration()
+    public static Color MAX_MSMS_SCORE_COLOR = ConfigService.getConfiguration()
         .getDefaultColorPalette().getPositiveColor();
-    public static Color MIN_MSMS_SCORE_COLOR = MZmineCore.getConfiguration()
+    public static Color MIN_MSMS_SCORE_COLOR = ConfigService.getConfiguration()
         .getDefaultColorPalette().getNegativeColor();
     private final MatchedLipid matchedLipid;
     private final LipidSpectrumPlot lipidSpectrumPlot;
@@ -139,7 +139,7 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
       var pnTitle = createTitlePane();
       metaDataScroll = createMetaDataPane();
 
-      lipidSpectrumPlot = new LipidSpectrumPlot(matchedLipid, true, RunOption.THIS_THREAD);
+      lipidSpectrumPlot = new LipidSpectrumPlot(matchedLipid, true, RunOption.THIS_THREAD, true);
 
       // put into main
       ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
@@ -244,17 +244,17 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
       annotation.setWrapText(true);
       panelOther.getChildren().addAll(annotation);
 
-      Label formula = new Label("Formula: " + MolecularFormulaManipulator.getString(
+      Label formula = new Label("Formula: " + FormulaUtils.getFormulaString(
           matchedLipid.getLipidAnnotation().getMolecularFormula()));
       formula.setWrapText(true);
       panelOther.getChildren().addAll(formula);
 
+      final String ionMz = matchedLipid.getIonizationType()
+          .ionizeFormula(matchedLipid.getLipidAnnotation().getMolecularFormula()).map(
+              ionFormula -> MZmineCore.getConfiguration().getMZFormat()
+                  .format(FormulaUtils.calculateMzRatio(ionFormula))).orElse("NA");
       Label ion = new Label(
-          "Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " "
-              + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
-              FormulaUtils.ionizeFormula(MolecularFormulaManipulator.getString(
-                      matchedLipid.getLipidAnnotation().getMolecularFormula()),
-                  matchedLipid.getIonizationType()))));
+          "Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " " + ionMz);
       ion.setWrapText(true);
       panelOther.getChildren().addAll(ion);
 

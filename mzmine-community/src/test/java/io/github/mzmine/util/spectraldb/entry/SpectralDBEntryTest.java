@@ -26,9 +26,10 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import io.github.mzmine.datamodel.identities.iontype.IonPartParsingException;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import java.util.Map;
@@ -37,18 +38,18 @@ import org.junit.jupiter.api.Test;
 class SpectralDBEntryTest {
 
   @Test
-  void getAdductTypeParsesLegacyStringValue() {
+  void getAdductTypeParsesLegacyStringValue() throws IonPartParsingException {
     final String adductString = "[M+H]+";
     final SpectralDBEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
         Map.of(DBEntryField.ION_TYPE, adductString));
 
-    final IonType expected = IonTypeParser.parse(adductString);
+    final IonType expected = IonTypeParser.parseOrThrow(adductString);
     assertEquals(expected, entry.getAdductType());
   }
 
   @Test
-  void getAdductTypeReturnsTypedIonTypeValue() {
-    final IonType adduct = IonTypeParser.parse("[M+Na]+");
+  void getAdductTypeReturnsTypedIonTypeValue() throws IonPartParsingException {
+    final IonType adduct = IonTypeParser.parseOrThrow("[M+Na]+");
     final SpectralDBEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
         Map.of(DBEntryField.ION_TYPE, adduct));
 

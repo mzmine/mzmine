@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,19 +33,24 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.GapDataPoint;
-import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -61,7 +66,7 @@ public class ImsGap extends Gap {
 
   private static final Logger logger = Logger.getLogger(ImsGap.class.getName());
 
-  private final Range<Float> mobilityRange;
+  private final SimpleFloatRange mobilityRange;
   private final BinningMobilogramDataAccess mobilogramBinning;
 
   /**
@@ -75,7 +80,7 @@ public class ImsGap extends Gap {
    * @param mobilogramBinning
    */
   public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull SimpleDoubleRange mzRange, @NotNull SimpleFloatRange rtRange,
       @NotNull Range<Float> mobilityRange, double intTolerance,
       @NotNull BinningMobilogramDataAccess mobilogramBinning) {
     this(peakListRow, rawDataFile, mzRange, rtRange, mobilityRange, intTolerance, mobilogramBinning,
@@ -83,11 +88,11 @@ public class ImsGap extends Gap {
   }
 
   public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull SimpleDoubleRange mzRange, @NotNull SimpleFloatRange rtRange,
       @NotNull Range<Float> mobilityRange, double intTolerance,
       @NotNull BinningMobilogramDataAccess mobilogramBinning, boolean validateRtShape) {
     super(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, validateRtShape);
-    this.mobilityRange = mobilityRange;
+    this.mobilityRange = SimpleRange.ofFloat(mobilityRange);
     this.mobilogramBinning = mobilogramBinning;
   }
 
@@ -131,7 +136,7 @@ public class ImsGap extends Gap {
     final Frame frame = access.getFrame();
     final MobilityType mobilityType = frame.getMobilityType();
 //    final double featureMz = peakListRow.getAverageMZ();
-    final double featureMz = RangeUtils.rangeCenter(mzRange);
+    final double featureMz = mzCenter;
 
     /*if (frame.getRetentionTime() < rtRange.lowerEndpoint()) {
       return null;
@@ -152,27 +157,25 @@ public class ImsGap extends Gap {
         return null;
       }
 
-      if ((mobilityType != MobilityType.TIMS && scan.getMobility() < mobilityRange.lowerEndpoint())
-          || (mobilityType == MobilityType.TIMS
-          && scan.getMobility() > mobilityRange.upperEndpoint())) {
+      if ((mobilityType != MobilityType.TIMS && scan.getMobility() < mobilityRange.lower())
+          || (mobilityType == MobilityType.TIMS && scan.getMobility() > mobilityRange.upper())) {
         continue;
-      } else if (
-          (mobilityType != MobilityType.TIMS && scan.getMobility() > mobilityRange.upperEndpoint())
+      } else if ((mobilityType != MobilityType.TIMS && scan.getMobility() > mobilityRange.upper())
               || (mobilityType == MobilityType.TIMS
-              && scan.getMobility() < mobilityRange.lowerEndpoint())) {
+          && scan.getMobility() < mobilityRange.lower())) {
         break;
       }
 
       int bestIndex = -1;
       double bestDelta = Double.POSITIVE_INFINITY;
 
-      final int startIndex = access.binarySearch(mzRange.lowerEndpoint(), DefaultTo.GREATER_EQUALS);
+      final int startIndex = access.binarySearch(mzRange.lower(), DefaultTo.GREATER_EQUALS);
       if (startIndex == -1) {
         continue;
       }
       for (int i = startIndex; i < access.getNumberOfDataPoints(); i++) {
         final double mz = access.getMzValue(i);
-        if (mz > mzRange.upperEndpoint()) {
+        if (mz > mzRange.upper()) {
           break;
         }
 
@@ -207,7 +210,71 @@ public class ImsGap extends Gap {
     ModularFeature f = new ModularFeature((ModularFeatureList) featureListRow.getFeatureList(),
         rawDataFile, trace, FeatureStatus.ESTIMATED);
 
+    tagPotentialDuplicates(f);
+
     featureListRow.addFeature(rawDataFile, f, false);
     return true;
+  }
+
+  /**
+   * Ion mobility variant of the m/z comparison: matches frames by retention time and, within each
+   * shared frame, matches mobility scans by mobility, comparing the m/z stored in the
+   * {@link IonMobilitySeries} of the {@link IonMobilogramTimeSeries}. m/z is unaffected by
+   * smoothing, so a true duplicate matches.
+   *
+   * @param gapFilled the gap-filled feature
+   * @param other     a real feature from the same raw data file in another row
+   * @return fraction of the gap-filled feature's mobility data points that match, in [0, 1]
+   */
+  @Override
+  protected double fractionOfEqualMz(@NotNull final Feature gapFilled,
+      @NotNull final Feature other) {
+    if (!(gapFilled.getFeatureData() instanceof IonMobilogramTimeSeries a)
+        || !(other.getFeatureData() instanceof IonMobilogramTimeSeries b)) {
+      return 0d; // mixed dimensionality; cannot be the same peak
+    }
+    final int bFrames = b.getNumberOfValues();
+    int total = 0;
+    int matches = 0;
+    for (int fi = 0; fi < a.getNumberOfValues(); fi++) {
+      final IonMobilitySeries am = a.getMobilogram(fi);
+      total += am.getNumberOfValues();
+      // match the frame in b by retention time (frames sorted ascending in RT)
+      final int fj = BinarySearch.binarySearch(a.getRetentionTime(fi),
+          DefaultTo.MINUS_INSERTION_POINT, bFrames, b::getRetentionTime);
+      if (fj < 0) {
+        continue; // frame not shared
+      }
+      final IonMobilitySeries bm = b.getMobilogram(fj);
+      for (int i = 0; i < am.getNumberOfValues(); i++) {
+        final int j = matchMobility(bm, am.getMobility(i));
+//        if (j >= 0 && MZTolerance.NARROW_5_PPM_OR_1_MDA.checkWithinTolerance(am.getMZ(i), bm.getMZ(j))) {
+        if (j >= 0 && Precision.equalFloatSignificance(am.getMZ(i), bm.getMZ(j))) {
+          matches++;
+        }
+      }
+    }
+    return total == 0 ? 0d : (double) matches / total;
+  }
+
+  /**
+   * Finds the index of the mobility scan in {@code series} with the exact given mobility, or -1.
+   * Mobility within a mobilogram is monotonic but may be ascending (processed) or descending (raw
+   * TIMS), so the direction is detected and the binary search adapted accordingly (it requires
+   * ascending order).
+   */
+  private static int matchMobility(@NotNull final IonMobilitySeries series, final double mobility) {
+    final int size = series.getNumberOfValues();
+    if (size == 0) {
+      return -1;
+    }
+    if (size == 1) {
+      return Double.compare(series.getMobility(0), mobility) == 0 ? 0 : -1;
+    }
+    final boolean ascending = series.getMobility(size - 1) >= series.getMobility(0);
+    // negate for descending mobilograms so the binary search sees ascending values
+    final double key = ascending ? mobility : -mobility;
+    return BinarySearch.binarySearch(key, DefaultTo.MINUS_INSERTION_POINT, size,
+        i -> ascending ? series.getMobility(i) : -series.getMobility(i));
   }
 }

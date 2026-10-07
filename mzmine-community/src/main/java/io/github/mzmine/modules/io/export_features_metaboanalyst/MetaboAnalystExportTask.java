@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -62,7 +66,10 @@ class MetaboAnalystExportTask extends AbstractTask {
   private final @NotNull MetadataTable metadata;
   private final MetadataColumn<?> metadataColumn;
   private final String grouping;
-  private final AbundanceMeasure FEATURE_INTENSITY;
+  private final AbundanceMeasure abundanceMeasure;
+  private final CompoundRowSelection rowSelection;
+  // clone to avoid contention on synchronized block
+  private final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats().createCopy();
   private int processedRows = 0, totalRows = 0;
 
   // parameter values
@@ -75,7 +82,8 @@ class MetaboAnalystExportTask extends AbstractTask {
         .getMatchingFeatureLists();
 
     fileName = parameters.getValue(MetaboAnalystExportParameters.filename);
-    FEATURE_INTENSITY=parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
+    abundanceMeasure = parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
+    rowSelection = parameters.getValue(MetaboAnalystExportParameters.compoundRowSelection);
 //    statsFormat = parameters.getValue(MetaboAnalystExportParameters.format);
     grouping = parameters.getValue(MetaboAnalystExportParameters.grouping);
     metadata = MZmineCore.getProjectMetadata();
@@ -110,13 +118,20 @@ class MetaboAnalystExportTask extends AbstractTask {
     String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    // Total number of rows
+    // Total number of rows to export (based on the selected rows, not all rows)
     for (FeatureList featureList : featureLists) {
-      totalRows += featureList.getNumberOfRows();
+      totalRows += featureList.getNumberOfCompoundSelectionRows(rowSelection);
     }
 
     // Process feature lists
     for (FeatureList featureList : featureLists) {
+
+      if (!featureList.hasFeatureType(abundanceMeasure.type())) {
+        error("Feature list %s has no %s values.".formatted(featureList.getName(),
+            abundanceMeasure.toString()) + (!abundanceMeasure.isNormalized() ? ""
+            : " did you run normalization?"));
+        return;
+      }
 
       // Filename
       File curFile = fileName;
@@ -138,9 +153,6 @@ class MetaboAnalystExportTask extends AbstractTask {
 
       // Open file
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(curFile, false))) {
-        // Get number of rows
-        totalRows = featureList.getNumberOfRows();
-
         exportFeatureList(featureList, writer);
 
       } catch (Exception e) {
@@ -160,7 +172,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private boolean checkFeatureList(FeatureList featureList) {
     var raws = new HashSet<>(featureList.getRawDataFiles());
     // Check if each sample group has at least 3 samples
-    Map<RawDataFile, Object> data = metadata.getData().get(metadataColumn);
+    Map<RawDataFile, Object> data = metadata.getColumnData(metadataColumn);
     Map<Object, Integer> counts = data.entrySet().stream().filter(e -> raws.contains(e.getKey()))
         .map(Entry::getValue).collect(Collectors.toMap(v -> v, value -> 1, Math::addExact));
 
@@ -205,7 +217,7 @@ class MetaboAnalystExportTask extends AbstractTask {
     writer.append("\n");
 
     // Write data rows
-    for (FeatureListRow featureListRow : featureList.getRows()) {
+    for (FeatureListRow featureListRow : featureList.getRowsCopy(rowSelection)) {
       // Cancel?
       if (isCanceled()) {
         return;
@@ -220,14 +232,7 @@ class MetaboAnalystExportTask extends AbstractTask {
 
         Feature feature = featureListRow.getFeature(dataFile);
         if (feature != null) {
-          if(FEATURE_INTENSITY==AbundanceMeasure.Area){
-            final double area = feature.getArea();
-            writer.append(String.valueOf(area));
-          }else{
-            final double height = feature.getHeight();
-            writer.append(String.valueOf(height));
-          }
-
+          writer.append(String.valueOf(abundanceMeasure.getOrNaN((ModularDataModel) feature)));
         }
       }
 
@@ -244,26 +249,27 @@ class MetaboAnalystExportTask extends AbstractTask {
     final double mz = row.getAverageMZ();
     final Float rt = row.getAverageRT();
     final Float mobility = row.getAverageMobility();
-    final int rowId = row.getID();
 
     final StringBuilder generatedName = new StringBuilder();
-    generatedName.append(rowId);
+    // CompoundRow is identified by its compound ID prefixed with CID, regular rows use the row ID
+    if (row instanceof CompoundRow compoundRow) {
+      generatedName.append("CID").append(compoundRow.getCompoundId());
+    } else {
+      generatedName.append(row.getID());
+    }
 
     String name = row.getPreferredAnnotationName();
     if (name != null) {
       generatedName.append("/").append(CSVUtils.escape(name, fieldSeparator));
     }
 
-    generatedName.append("/").append(MZmineCore.getConfiguration().getMZFormat().format(mz))
-        .append("mz");
+    generatedName.append("/").append(formats.mzFormat().format(mz)).append("mz");
 
     if (rt != null) {
-      generatedName.append("/").append(MZmineCore.getConfiguration().getRTFormat().format(rt))
-          .append("min");
+      generatedName.append("/").append(formats.rtFormat().format(rt)).append("min");
     }
     if (mobility != null) {
-      generatedName.append("/")
-          .append(MZmineCore.getConfiguration().getMobilityFormat().format(mobility));
+      generatedName.append("/").append(formats.mobilityFormat().format(mobility));
     }
 
     return generatedName.toString();

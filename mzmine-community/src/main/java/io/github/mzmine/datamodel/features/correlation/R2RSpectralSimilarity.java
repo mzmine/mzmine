@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Cosine similarity between two rows (the best MS2 spectra)
  */
-public class R2RSpectralSimilarity extends InternalTypedRowsRelationship {
+public final class R2RSpectralSimilarity extends InternalTypedRowsRelationship {
 
   private final SpectralSimilarity similarity;
 
@@ -55,9 +55,21 @@ public class R2RSpectralSimilarity extends InternalTypedRowsRelationship {
   }
 
   @NotNull
+  public SpectralSimilarity getSimilarity() {
+    return similarity;
+  }
+
+  @NotNull
   @Override
   public String getAnnotation() {
     return "cos=" + getScoreFormatted();
+  }
+
+  @Override
+  public @NotNull R2RSpectralSimilarity withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new R2RSpectralSimilarity(a, b, getInternalType(),
+        swapsRows(a, b) ? similarity.swapAB() : similarity);
   }
 
 }

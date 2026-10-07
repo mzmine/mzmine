@@ -26,12 +26,12 @@
 package io.github.mzmine.datamodel.structures;
 
 
+import io.github.mzmine.util.FormulaUtils;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public sealed interface MolecularStructure permits PrecomputedMolecularStructure,
     SimpleMolecularStructure {
@@ -55,11 +55,9 @@ public sealed interface MolecularStructure permits PrecomputedMolecularStructure
     };
   }
 
-  @NotNull
-  IAtomContainer structure();
+  @NotNull IAtomContainer structure();
 
-  @NotNull
-  IMolecularFormula formula();
+  @Nullable IMolecularFormula formula();
 
   @Nullable
   default String formulaString() {
@@ -67,7 +65,7 @@ public sealed interface MolecularStructure permits PrecomputedMolecularStructure
     if (f == null) {
       return null;
     }
-    return MolecularFormulaManipulator.getString(f);
+    return FormulaUtils.getFormulaString(f);
   }
 
   String canonicalSmiles();

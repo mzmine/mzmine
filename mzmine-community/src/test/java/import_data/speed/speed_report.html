@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mzmine batch speed report</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1c1c1e; --muted: #6b7280; --bg: #ffffff;
+          --panel: #f6f7f9; --grid: #d9dce1; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #e8e8ea; --muted: #9aa0a6; --bg: #16181c; --panel: #1e2126;
+            --grid: #33383f; }
+  }
+  body { margin: 0; padding: 20px 24px 40px; background: var(--bg); color: var(--fg);
+         font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; }
+  h1 { font-size: 19px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+              margin-bottom: 12px; font-size: 13px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-bottom: 18px;
+            font-size: 12px; }
+  .legend div { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  .panels { display: grid; gap: 14px;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+  .panel { background: var(--panel); border-radius: 10px; padding: 10px 10px 4px; }
+  #overview .panel { margin-bottom: 14px; }
+  #overview svg { min-width: 100%; }
+  .scroll { overflow-x: auto; }
+  .panel h2 { font-size: 13px; margin: 0 0 2px; }
+  .panel .note { color: var(--muted); font-size: 11px; margin: 0 0 4px; }
+  svg { width: 100%; height: auto; display: block; }
+  text { fill: var(--fg); }
+  .axis { stroke: var(--grid); stroke-width: 1; }
+  .tick { fill: var(--muted); font-size: 9px; }
+  .xlabel { fill: var(--muted); font-size: 10px; }
+</style>
+</head>
+<body>
+<h1>mzmine batch speed report</h1>
+<div class="sub" id="sub"></div>
+<div class="controls">
+  <label>Metric
+    <select id="metric">
+      <option value="timeSeconds">time (seconds)</option>
+      <option value="gbRamUsed">RAM (GB)</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="log"> log scale</label>
+  <label><input type="checkbox" id="zero" checked> start axis at 0</label>
+  <label><input type="checkbox" id="total" checked> include WHOLE BATCH in overview</label>
+</div>
+<div class="legend" id="legend"></div>
+<div id="overview"></div>
+<div class="panels" id="panels"></div>
+<script>
+const DATA = [{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":41.437,"gbRamUsed":4.09},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":4.327,"gbRamUsed":2.96},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.302,"gbRamUsed":2.83},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":7.708,"gbRamUsed":3.5},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":45.186,"gbRamUsed":3.66},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":36.282,"gbRamUsed":3.68},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":46.344,"gbRamUsed":3.21},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":138.346,"gbRamUsed":3.36},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":10.465,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":34.466,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":199.93,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":573.883,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":55.224,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":4.056,"gbRamUsed":2.97},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.351,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":6.625,"gbRamUsed":3.5},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":41.034,"gbRamUsed":3.67},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":38.157,"gbRamUsed":3.69},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":43.425,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":151.757,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":9.076,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":33.233,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":213.59,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":605.243,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":56.78,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":4.356,"gbRamUsed":2.97},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.257,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":6.92,"gbRamUsed":3.5},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":40.908,"gbRamUsed":3.68},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":30.866,"gbRamUsed":3.69},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":28.231,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":86.196,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":8.007,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":21.619,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":123.557,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":416.021,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":45.883,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.449,"gbRamUsed":2.98},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":2.766,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":5.903,"gbRamUsed":3.51},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":22.441,"gbRamUsed":3.67},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":23.678,"gbRamUsed":3.69},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":27.89,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":83.672,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":6.773,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":22.183,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":120.299,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":369.824,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":44.186,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.424,"gbRamUsed":2.97},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":2.577,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":5.903,"gbRamUsed":3.5},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":20.035,"gbRamUsed":3.67},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":21.839,"gbRamUsed":3.69},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":25.649,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":83.684,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":6.832,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":21.336,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":126.666,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":366.939,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":43.201,"gbRamUsed":4.09},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.331,"gbRamUsed":2.96},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":2.491,"gbRamUsed":2.83},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":7.75,"gbRamUsed":3.49},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":20.885,"gbRamUsed":3.67},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":21.656,"gbRamUsed":3.69},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":26.645,"gbRamUsed":3.21},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":80.402,"gbRamUsed":3.36},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":7.584,"gbRamUsed":3.23},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":21.258,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":110.62,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":350.878,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":43.494,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.572,"gbRamUsed":2.97},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":2.74,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":5.718,"gbRamUsed":3.51},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":20.281,"gbRamUsed":3.67},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":21.641,"gbRamUsed":3.69},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":25.987,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":110.516,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":8.72,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":30.691,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":195.6,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":474.288,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":58.381,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":4.169,"gbRamUsed":2.98},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.263,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":6.376,"gbRamUsed":3.5},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":37.172,"gbRamUsed":3.67},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":48.004,"gbRamUsed":3.69},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":42.584,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":120.917,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":8.345,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":29.241,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":171.656,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":535.724,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":55.011,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":4.104,"gbRamUsed":2.97},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.14,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":6.39,"gbRamUsed":3.5},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":35.539,"gbRamUsed":3.68},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":35.563,"gbRamUsed":3.7},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":39.876,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":113.827,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":9.858,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":31.643,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":177.32,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":518.203,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":58.468,"gbRamUsed":4.1},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":4.273,"gbRamUsed":2.97},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":3.352,"gbRamUsed":2.84},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":6.774,"gbRamUsed":3.5},{"step":"Join aligner","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":38.693,"gbRamUsed":3.68},{"step":"Feature list rows filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":30.147,"gbRamUsed":3.7},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":37.276,"gbRamUsed":3.22},{"step":"Duplicate peak filter","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":124.543,"gbRamUsed":3.37},{"step":"Spectral library search","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":9.451,"gbRamUsed":3.24},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":32.148,"gbRamUsed":3.25},{"step":"Intensity normalizer","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":174.997,"gbRamUsed":3.35},{"step":"WHOLE BATCH","series":"mzmine4.10.25_master GUIimport once","files":250,"timeSeconds":525.977,"gbRamUsed":3.35},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":51.055,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.119,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.442,"gbRamUsed":2.29},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.206,"gbRamUsed":2.87},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":24.808,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.791,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.865,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.29,"gbRamUsed":2.69},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":10.891,"gbRamUsed":2.62},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":30.284,"gbRamUsed":2.63},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":57.108,"gbRamUsed":2.7},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":223.272,"gbRamUsed":2.7},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":60.235,"gbRamUsed":2.91},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.607,"gbRamUsed":2.35},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.378,"gbRamUsed":2.29},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.322,"gbRamUsed":2.87},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":25.234,"gbRamUsed":2.94},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.139,"gbRamUsed":2.95},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.635,"gbRamUsed":2.61},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.866,"gbRamUsed":2.69},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.025,"gbRamUsed":2.62},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":30.1,"gbRamUsed":2.63},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":64.055,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":239.171,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":50.067,"gbRamUsed":2.91},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.908,"gbRamUsed":2.35},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.211,"gbRamUsed":2.29},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.482,"gbRamUsed":2.87},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":24.723,"gbRamUsed":2.94},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.582,"gbRamUsed":2.95},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":13.967,"gbRamUsed":2.61},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.951,"gbRamUsed":2.69},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.3,"gbRamUsed":2.62},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":31.769,"gbRamUsed":2.63},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":70.722,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":237.743,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":52.141,"gbRamUsed":2.91},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.106,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":2.814,"gbRamUsed":2.29},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":6.719,"gbRamUsed":2.87},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":26.846,"gbRamUsed":2.94},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.213,"gbRamUsed":2.95},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":13.828,"gbRamUsed":2.61},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.89,"gbRamUsed":2.69},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.375,"gbRamUsed":2.62},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":30.755,"gbRamUsed":2.63},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":61.676,"gbRamUsed":2.7},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":228.471,"gbRamUsed":2.7},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":55.885,"gbRamUsed":2.91},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.095,"gbRamUsed":2.35},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.751,"gbRamUsed":2.29},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.441,"gbRamUsed":2.87},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":24.138,"gbRamUsed":2.94},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.367,"gbRamUsed":2.95},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.883,"gbRamUsed":2.61},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.733,"gbRamUsed":2.69},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.561,"gbRamUsed":2.62},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":29.817,"gbRamUsed":2.63},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":64.75,"gbRamUsed":2.7},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":234.713,"gbRamUsed":2.7},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":55.191,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.731,"gbRamUsed":2.33},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.968,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.241,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":24.578,"gbRamUsed":2.92},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.363,"gbRamUsed":2.93},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":15.61,"gbRamUsed":2.59},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.228,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":11.324,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":29.95,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":53.978,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":232.832,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":63.833,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.974,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.661,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.57,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":24.728,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.203,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":13.72,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.943,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":10.153,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":30.863,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":53.829,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":235.749,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":39.423,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.507,"gbRamUsed":2.33},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":2.473,"gbRamUsed":2.27},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":6.267,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":13.009,"gbRamUsed":2.92},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.708,"gbRamUsed":2.93},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.652,"gbRamUsed":2.59},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.48,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.706,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":19.503,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":36.243,"gbRamUsed":2.68},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":152.554,"gbRamUsed":2.68},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":37.574,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.406,"gbRamUsed":2.33},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":2.344,"gbRamUsed":2.27},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.473,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.841,"gbRamUsed":2.92},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.609,"gbRamUsed":2.93},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.749,"gbRamUsed":2.59},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.778,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.792,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":19.498,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":37.986,"gbRamUsed":2.68},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":151.211,"gbRamUsed":2.68},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":39.506,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":2.921,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":2.325,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.597,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.731,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.674,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.797,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.823,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":6.729,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":19.328,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":38.322,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":151.994,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":39.188,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":3.052,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":2.336,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.649,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.973,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.286,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.794,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.802,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":6.868,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":19.583,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":61.937,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":175.699,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":61.021,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":6.384,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.178,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.577,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":27.459,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.557,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":17.862,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":10.253,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":12.104,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":35.679,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":68.954,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":272.247,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":60.483,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":6.954,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.402,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":11.678,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":27.904,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":8.453,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":16.855,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":10.676,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":11.902,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":34.631,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":65.102,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":266.673,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":56.909,"gbRamUsed":2.89},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.004,"gbRamUsed":2.33},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":2.622,"gbRamUsed":2.27},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.973,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":19.781,"gbRamUsed":2.92},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":21.713,"gbRamUsed":2.93},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":28.965,"gbRamUsed":2.59},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":89.504,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.607,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":21.853,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":122.705,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":388.358,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":56.388,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.056,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.588,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.626,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":23.684,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":22.258,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":42.526,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":143.029,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":10.93,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":40.23,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":199.66,"gbRamUsed":2.68},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":563.722,"gbRamUsed":2.68},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":63.889,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":6.649,"gbRamUsed":2.34},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.157,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":11.032,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":48.269,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":48.137,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":43.016,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":156.042,"gbRamUsed":2.6},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":10.969,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":35.155,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":194.849,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":629.372,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":63.744,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":5.863,"gbRamUsed":2.33},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":4.611,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":11.272,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":39.714,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":40.338,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":50.401,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":158.016,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":11.555,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":34.427,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":149.269,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":575.334,"gbRamUsed":2.69},{"step":"Chromatogram builder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":73.633,"gbRamUsed":2.9},{"step":"Local minimum feature resolver","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.828,"gbRamUsed":2.33},{"step":"13C isotope filter (formerly: isotope grouper)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":7.072,"gbRamUsed":2.28},{"step":"Isotopic peaks finder","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.145,"gbRamUsed":2.86},{"step":"Join aligner","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":39.391,"gbRamUsed":2.93},{"step":"Feature list rows filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":39.821,"gbRamUsed":2.94},{"step":"Feature finder (multithreaded)","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":52.246,"gbRamUsed":2.6},{"step":"Duplicate peak filter","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":226.547,"gbRamUsed":2.68},{"step":"Spectral library search","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":9.919,"gbRamUsed":2.61},{"step":"Spectral / Molecular Networking","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":41.609,"gbRamUsed":2.62},{"step":"Intensity normalizer","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":258.252,"gbRamUsed":2.69},{"step":"WHOLE BATCH","series":"mzmine4.10.25_fastercopy GUIimport once","files":250,"timeSeconds":771.843,"gbRamUsed":2.69}];
+const META = {"measurements":336,"source":"D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.csv"};
+const COLORS = ['#4c78a8', '#f58518', '#54a24b', '#e45756', '#9d755d', '#b279a2',
+                '#72b7b2', '#eeca3b'];
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+// grouping: panel per step, box per version, replicates from repeated runs
+const seriesOrder = [];
+const steps = new Map();
+for (const row of DATA) {
+  if (!seriesOrder.includes(row.series)) seriesOrder.push(row.series);
+  if (!steps.has(row.step)) steps.set(row.step, new Map());
+  const bySeries = steps.get(row.step);
+  if (!bySeries.has(row.series)) bySeries.set(row.series, []);
+  bySeries.get(row.series).push(row);
+}
+// the total is most interesting last
+const stepOrder = [...steps.keys()].sort((a, b) => rank(a) - rank(b));
+function rank(step) {
+  return step.toUpperCase().includes('WHOLE BATCH') ? 1 : 0;
+}
+
+const el = (tag, attrs, text) => {
+  const node = document.createElementNS(SVGNS, tag);
+  for (const key in attrs) node.setAttribute(key, attrs[key]);
+  if (text !== undefined) node.textContent = text;
+  return node;
+};
+
+function stats(values) {
+  const v = [...values].sort((a, b) => a - b);
+  const q = p => {
+    const idx = (v.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx);
+    return lo === hi ? v[lo] : v[lo] + (v[hi] - v[lo]) * (idx - lo);
+  };
+  const q1 = q(0.25), med = q(0.5), q3 = q(0.75), iqr = q3 - q1;
+  const loFence = q1 - 1.5 * iqr, hiFence = q3 + 1.5 * iqr;
+  const inner = v.filter(x => x >= loFence && x <= hiFence);
+  const mean = v.reduce((a, b) => a + b, 0) / v.length;
+  return {
+    n: v.length, q1, med, q3, mean, min: v[0], max: v[v.length - 1],
+    whiskerLo: inner.length ? inner[0] : v[0],
+    whiskerHi: inner.length ? inner[inner.length - 1] : v[v.length - 1],
+    outliers: v.filter(x => x < loFence || x > hiFence), values: v
+  };
+}
+
+const fmt = x => Math.abs(x) >= 100 ? x.toFixed(0)
+               : Math.abs(x) >= 10 ? x.toFixed(1) : x.toFixed(2);
+
+function ticks(min, max, log) {
+  if (log) {
+    const out = [];
+    for (let e = Math.floor(Math.log10(min)); e <= Math.ceil(Math.log10(max)); e++) {
+      for (const m of [1, 2, 5]) {
+        const t = m * Math.pow(10, e);
+        if (t >= min && t <= max) out.push(t);
+      }
+    }
+    return out.length > 1 ? out : [min, max];
+  }
+  const raw = (max - min) / 5;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw) ?? mag * 10;
+  const out = [];
+  for (let t = Math.ceil(min / step) * step; t <= max + step * 1e-6; t += step) out.push(t);
+  return out;
+}
+
+/**
+ * All boxes of one step, in the global version order. Steps without values for the current
+ * metric return an empty array.
+ */
+function boxesOfStep(step, metric) {
+  const bySeries = steps.get(step);
+  return seriesOrder.map(series => {
+    const values = (bySeries.get(series) ?? [])
+        .map(r => r[metric]).filter(v => typeof v === 'number' && isFinite(v));
+    return { series, stats: values.length ? stats(values) : null };
+  }).filter(b => b.stats);
+}
+
+function axisRange(allStats, log, fromZero) {
+  let max = Math.max(...allStats.map(s => s.max));
+  let min = Math.min(...allStats.map(s => s.min));
+  if (log) {
+    min = Math.max(min * 0.8, 1e-3);
+    max = max * 1.2;
+  } else {
+    const pad = (max - min) * 0.08 || Math.max(max * 0.08, 0.01);
+    min = fromZero ? 0 : Math.max(0, min - pad);
+    max = max + pad;
+  }
+  if (max <= min) max = min + 1;
+  return { min, max };
+}
+
+function makeScale(min, max, log, mT, plotH) {
+  return v => {
+    const t = log
+        ? (Math.log10(Math.max(v, 1e-3)) - Math.log10(min))
+          / (Math.log10(max) - Math.log10(min))
+        : (v - min) / (max - min);
+    return mT + plotH - t * plotH;
+  };
+}
+
+function drawGrid(svg, min, max, log, scale, mL, mR, mT, plotH, W) {
+  for (const t of ticks(min, max, log)) {
+    const y = scale(t);
+    svg.appendChild(el('line', { class: 'axis', x1: mL, x2: W - mR, y1: y, y2: y }));
+    svg.appendChild(el('text', { class: 'tick', x: mL - 5, y: y + 3,
+        'text-anchor': 'end' }, fmt(t)));
+  }
+  svg.appendChild(el('line', { class: 'axis', x1: mL, x2: mL, y1: mT, y2: mT + plotH }));
+}
+
+function drawBox(svg, s, cx, bw, color, scale, tooltip) {
+  const g = el('g', {});
+  g.appendChild(el('title', {}, tooltip + '\n' + 'n=' + s.n + ', median ' + fmt(s.med)
+      + ', mean ' + fmt(s.mean) + ', min ' + fmt(s.min) + ', max ' + fmt(s.max)));
+  // whiskers
+  g.appendChild(el('line', { x1: cx, x2: cx, y1: scale(s.whiskerLo),
+      y2: scale(s.whiskerHi), stroke: color, 'stroke-width': 1 }));
+  for (const v of [s.whiskerLo, s.whiskerHi]) {
+    g.appendChild(el('line', { x1: cx - bw / 4, x2: cx + bw / 4, y1: scale(v),
+        y2: scale(v), stroke: color, 'stroke-width': 1 }));
+  }
+  // box and median
+  g.appendChild(el('rect', { x: cx - bw / 2, y: scale(s.q3), width: bw,
+      height: Math.max(scale(s.q1) - scale(s.q3), 1), fill: color,
+      'fill-opacity': 0.25, stroke: color, 'stroke-width': 1, rx: 2 }));
+  g.appendChild(el('line', { x1: cx - bw / 2, x2: cx + bw / 2, y1: scale(s.med),
+      y2: scale(s.med), stroke: color, 'stroke-width': 2 }));
+  // all replicates as jittered points, deterministic offsets
+  s.values.forEach((v, j) => {
+    const offset = ((j % 5) - 2) * (bw / 12);
+    g.appendChild(el('circle', { cx: cx + offset, cy: scale(v), r: 1.9, fill: color,
+        'fill-opacity': 0.85 }));
+  });
+  for (const v of s.outliers) {
+    g.appendChild(el('circle', { cx: cx, cy: scale(v), r: 2.6, fill: 'none',
+        stroke: color, 'stroke-width': 1 }));
+  }
+  svg.appendChild(g);
+}
+
+const colorOf = series => COLORS[seriesOrder.indexOf(series) % COLORS.length];
+
+function render() {
+  const metric = document.getElementById('metric').value;
+  const log = document.getElementById('log').checked;
+  const fromZero = document.getElementById('zero').checked && !log;
+  const withTotal = document.getElementById('total').checked;
+  const overview = document.getElementById('overview');
+  const panels = document.getElementById('panels');
+  overview.textContent = '';
+  panels.textContent = '';
+
+  const groups = stepOrder.map(step => ({ step, boxes: boxesOfStep(step, metric) }))
+      .filter(g => g.boxes.length);
+  if (!groups.length) return;
+
+  const forOverview = groups.filter(g => withTotal || rank(g.step) === 0);
+  if (forOverview.length) {
+    overview.appendChild(overviewPanel(forOverview, metric, log, fromZero));
+  }
+  for (const group of groups) {
+    panels.appendChild(panel(group.step, group.boxes, log, fromZero));
+  }
+}
+
+/**
+ * Combined plot: grouped by step on the x axis, one box per version within each step.
+ */
+function overviewPanel(groups, metric, log, fromZero) {
+  const mL = 54, mR = 12, mT = 10, mB = 104, H = 400;
+  const boxSlot = 22;
+  const groupPad = 14;
+  const groupW = groups.map(g => g.boxes.length * boxSlot + groupPad);
+  const W = Math.max(760, mL + mR + groupW.reduce((a, b) => a + b, 0));
+  const plotH = H - mT - mB;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'panel';
+  const title = document.createElement('h2');
+  title.textContent = 'All steps'
+      + (metric === 'timeSeconds' ? ' - time (seconds)' : ' - RAM (GB)');
+  const note = document.createElement('p');
+  note.className = 'note';
+  note.textContent = 'grouped by step, one box per version - hover a box for details';
+  wrap.appendChild(title);
+  wrap.appendChild(note);
+
+  const allStats = groups.flatMap(g => g.boxes.map(b => b.stats));
+  const { min, max } = axisRange(allStats, log, fromZero);
+  const scale = makeScale(min, max, log, mT, plotH);
+
+  const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H });
+  drawGrid(svg, min, max, log, scale, mL, mR, mT, plotH, W);
+
+  let x = mL;
+  groups.forEach((group, gi) => {
+    const width = groupW[gi];
+    group.boxes.forEach((box, i) => {
+      const cx = x + groupPad / 2 + boxSlot * (i + 0.5);
+      drawBox(svg, box.stats, cx, boxSlot * 0.62, colorOf(box.series), scale,
+          group.step + ' - ' + box.series);
+    });
+    // separator between step groups
+    if (gi > 0) {
+      svg.appendChild(el('line', { class: 'axis', x1: x, x2: x, y1: mT, y2: mT + plotH,
+          'stroke-dasharray': '2 3' }));
+    }
+    const cx = x + width / 2;
+    const y = mT + plotH + 8;
+    // long step names are shortened, the full name stays in the tooltip
+    const label = el('text', { class: 'xlabel', x: cx, y: y, 'text-anchor': 'end',
+        transform: 'rotate(-35 ' + cx + ' ' + y + ')' },
+        group.step.length > 26 ? group.step.slice(0, 25) + '...' : group.step);
+    label.appendChild(el('title', {}, group.step));
+    svg.appendChild(label);
+    x += width;
+  });
+  const scroller = document.createElement('div');
+  scroller.className = 'scroll';
+  scroller.appendChild(svg);
+  wrap.appendChild(scroller);
+  return wrap;
+}
+
+function panel(step, boxes, log, fromZero) {
+  const W = 420, H = 250, mL = 48, mR = 10, mT = 8, mB = 34;
+  const wrap = document.createElement('div');
+  wrap.className = 'panel';
+  const title = document.createElement('h2');
+  title.textContent = step;
+  const note = document.createElement('p');
+  note.className = 'note';
+  note.textContent = boxes.map(b => b.series + ': n=' + b.stats.n + ', median '
+      + fmt(b.stats.med)).join('  |  ');
+  wrap.appendChild(title);
+  wrap.appendChild(note);
+
+  const { min, max } = axisRange(boxes.map(b => b.stats), log, fromZero);
+  const plotH = H - mT - mB;
+  const scale = makeScale(min, max, log, mT, plotH);
+
+  const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H });
+  drawGrid(svg, min, max, log, scale, mL, mR, mT, plotH, W);
+
+  const slot = (W - mL - mR) / boxes.length;
+  const bw = Math.min(slot * 0.55, 46);
+  boxes.forEach((box, i) => {
+    const s = box.stats;
+    const cx = mL + slot * (i + 0.5);
+    drawBox(svg, s, cx, bw, colorOf(box.series), scale, box.series);
+    svg.appendChild(el('text', { class: 'xlabel', x: cx, y: H - mB + 14,
+        'text-anchor': 'middle' }, String(seriesOrder.indexOf(box.series) + 1)));
+    svg.appendChild(el('text', { class: 'xlabel', x: cx, y: H - mB + 26,
+        'text-anchor': 'middle' }, fmt(s.med)));
+  });
+  wrap.appendChild(svg);
+  return wrap;
+}
+
+function renderLegend() {
+  const legend = document.getElementById('legend');
+  seriesOrder.forEach((series, i) => {
+    const item = document.createElement('div');
+    const swatch = document.createElement('span');
+    swatch.className = 'swatch';
+    swatch.style.background = COLORS[i % COLORS.length];
+    item.appendChild(swatch);
+    item.appendChild(document.createTextNode((i + 1) + ' - ' + series));
+    legend.appendChild(item);
+  });
+}
+
+document.getElementById('sub').textContent = META.measurements + ' measurements, '
+    + stepOrder.length + ' steps, ' + seriesOrder.length + ' versions - '
+    + META.source;
+renderLegend();
+for (const id of ['metric', 'log', 'zero', 'total']) {
+  document.getElementById(id).addEventListener('change', render);
+}
+render();
+</script>
+</body>
+</html>

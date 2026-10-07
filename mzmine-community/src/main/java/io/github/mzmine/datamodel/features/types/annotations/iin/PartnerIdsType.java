@@ -33,7 +33,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * All partner FeatureListRows that were correlated, matched, or connected by a specific module.
  * Used in {@link IonNetwork} to relate ion identities of the same molecule
+ * <p>
+ * Not used anymore after IIN rework as this was redundant information
  */
+@Deprecated
 public class PartnerIdsType extends StringType implements AnnotationType {
 
   @NotNull

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.dan2097.jnainchi.InchiKeyOutput;
 import io.github.dan2097.jnainchi.InchiKeyStatus;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
@@ -36,16 +37,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.openscience.cdk.aromaticity.Aromaticity;
 import org.openscience.cdk.aromaticity.Aromaticity.Model;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.inchi.InChIGenerator;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Stereo;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.interfaces.IStereoElement;
+import org.openscience.cdk.smiles.SmiFlavor;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -80,13 +84,20 @@ public class StructureUtils {
 
 
   /**
-   * Canonical + isomeric + stereo chemistry
+   * Canonical + isomeric + stereo chemistry + isotopes
    */
-  public static final SmilesGenerator isomericSmiGen = SmilesGenerator.absolute();
+  public static final SmilesGenerator isomericSmiGen = new SmilesGenerator(
+      SmiFlavor.Stereo | SmiFlavor.Canonical | SmiFlavor.AtomicMass);
   /**
-   * canonical smiles
+   * canonical smiles + isotopes
    */
-  public static final SmilesGenerator canonSmiGen = SmilesGenerator.unique();
+  public static final SmilesGenerator canonSmiGen = new SmilesGenerator(
+      SmiFlavor.Canonical | SmiFlavor.AtomicMass);
+
+  /*
+   * absolute smiles generator adds atom mass numbers to all elements even 12C
+   */
+//  public static final SmilesGenerator absoluteSmiGen = SmilesGenerator.absolute();
 
   /**
    * Structure parsing
@@ -107,8 +118,11 @@ public class StructureUtils {
   @Nullable
   public static String getSmilesOrThrow(SmilesFlavor flavor, IAtomContainer structure)
       throws CDKException {
-    // otherwise structure CC(OH) will contain H in smiles
-    structure = AtomContainerManipulator.copyAndSuppressedHydrogens(structure);
+    // otherwise structure CC(OH) will contain H in smiles. decision: the copy is only needed when
+    // explicit hydrogens are actually present. Structures from StructureParser are already suppressed
+    if (hasExplicitHydrogens(structure)) {
+      structure = AtomContainerManipulator.copyAndSuppressedHydrogens(structure);
+    }
     return getSmilesGen(flavor).create(structure);
   }
 
@@ -121,6 +135,19 @@ public class StructureUtils {
     }
   }
 
+  /**
+   * @return true if the structure contains at least one hydrogen as its own atom
+   */
+  public static boolean hasExplicitHydrogens(@NotNull IAtomContainer structure) {
+    for (IAtom atom : structure.atoms()) {
+      final Integer atomicNumber = atom.getAtomicNumber();
+      if (atomicNumber != null && atomicNumber == 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Nullable
   public static InChIGenerator getInchiGenerator(IAtomContainer structure) {
     try {
@@ -130,8 +157,7 @@ public class StructureUtils {
     }
   }
 
-  @Nullable
-  public static InChIGenerator getInchiGeneratorOrThrow(IAtomContainer structure)
+  public static @NonNull InChIGenerator getInchiGeneratorOrThrow(IAtomContainer structure)
       throws CDKException {
     return getDefaultParser().getInchiFactory().getInChIGenerator(structure);
   }
@@ -213,9 +239,16 @@ public class StructureUtils {
     return null;
   }
 
-  @NotNull
+  /**
+   * @return null on issue like unknown atoms
+   */
+  @Nullable
   public static IMolecularFormula getFormula(@NotNull IAtomContainer structure) {
-    return MolecularFormulaManipulator.getMolecularFormula(structure);
+    IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(structure);
+    if (formula != null) {
+      formula = FormulaUtils.replaceAllIsotopesWithoutExactMass(formula);
+    }
+    return formula;
   }
 
   public static double getMonoIsotopicMass(IAtomContainer structure) {
@@ -231,7 +264,10 @@ public class StructureUtils {
   }
 
   /**
-   * @return true if there are stereo elements
+   * Whether the structure carries any defined stereo chemistry, either as stereo elements or as a
+   * wedge/hash bond from a 2D depiction.
+   *
+   * @return true if there is defined stereo chemistry
    */
   public static boolean hasStereoChemistry(@NotNull IAtomContainer structure) {
     final Iterator<IStereoElement> iterator = structure.stereoElements().iterator();
@@ -240,7 +276,14 @@ public class StructureUtils {
     }
 
     for (IBond bond : structure.bonds()) {
-      if (Stereo.NONE != bond.getStereo()) {
+      final Stereo stereo = bond.getStereo();
+      // decision: CDK marks every double bond E_Z_BY_COORDINATES by default. That only says the
+      // configuration would have to be read off 2D coordinates, not that any is defined - both
+      // C/C=C/C and CC=CC carry it. Defined E/Z is reported by the stereo elements checked above.
+      // Counting it would make even benzene report stereo chemistry, which in turn made
+      // SubstructureMatcher keep stereo for every query containing a double bond and so matched
+      // stereo sensitively where it should not.
+      if (stereo != null && stereo != Stereo.NONE && stereo != Stereo.E_Z_BY_COORDINATES) {
         return true;
       }
     }

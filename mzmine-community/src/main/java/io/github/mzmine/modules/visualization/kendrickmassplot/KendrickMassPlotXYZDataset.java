@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,8 +38,7 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
@@ -61,7 +60,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
       TaskStatus.WAITING);
   protected String errorMessage = null;
-  private List<TaskStatusListener> listener;
+  private final @NotNull CopyOnWriteArrayList<TaskStatusListener> listeners = new CopyOnWriteArrayList<>();
   private double finishedSteps;
   private final FeatureListRow[] selectedRows;
   private double[] xValues;
@@ -417,37 +416,28 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     setStatus(TaskStatus.CANCELED);
   }
 
-  public final void setStatus(TaskStatus newStatus) {
-    TaskStatus old = getStatus();
+  public final void setStatus(final @NotNull TaskStatus newStatus) {
+    final TaskStatus old = getStatus();
     status.setValue(newStatus);
-    if (listener != null && !newStatus.equals(old)) {
-      for (TaskStatusListener listener : listener) {
-        listener.taskStatusChanged(this, newStatus, old);
+    if (!newStatus.equals(old)) {
+      for (final TaskStatusListener taskStatusListener : listeners) {
+        taskStatusListener.taskStatusChanged(this, newStatus, old);
       }
     }
   }
 
-  public void addTaskStatusListener(TaskStatusListener list) {
-    if (listener == null) {
-      listener = new ArrayList<>();
-    }
-    listener.add(list);
+  public void addTaskStatusListener(final @NotNull TaskStatusListener list) {
+    listeners.add(list);
   }
 
   @Override
-  public boolean removeTaskStatusListener(TaskStatusListener list) {
-    if (listener != null) {
-      return listener.remove(list);
-    } else {
-      return false;
-    }
+  public boolean removeTaskStatusListener(final @NotNull TaskStatusListener list) {
+    return listeners.remove(list);
   }
 
   @Override
   public void clearTaskStatusListener() {
-    if (listener != null) {
-      listener.clear();
-    }
+    listeners.clear();
   }
 
   @Override

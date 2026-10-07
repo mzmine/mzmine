@@ -92,7 +92,8 @@ public enum RawDataFileType {
       }
       case SCIEX_WIFF, SCIEX_WIFF2 -> {
         final String extension = FileAndPathUtil.getExtension(file.getName());
-        yield List.of(new File(file.getParent(), file.getName().replace(extension, "wiff.scan")));
+        yield List.of(new File(file.getParent(), file.getName().replace(extension, "wiff.scan")),
+            new File(file.getParent(), file.getName().replace(extension, "timeseries.data")));
       }
     };
   }

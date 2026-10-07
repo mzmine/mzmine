@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Simple list of similarities
  */
-public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
+public final class R2RSimpleSimilarityList extends AbstractRowsRelationship {
 
   private final Type type;
 
@@ -106,5 +106,13 @@ public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
   @Override
   public @NotNull String getAnnotation() {
     return "sim=" + getScoreFormatted();
+  }
+
+  @Override
+  public @NotNull R2RSimpleSimilarityList withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    final R2RSimpleSimilarityList copy = new R2RSimpleSimilarityList(a, b, type);
+    copy.similarities.addAll(similarities);
+    return copy;
   }
 }

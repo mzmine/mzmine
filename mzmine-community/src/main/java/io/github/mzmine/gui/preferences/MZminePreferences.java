@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
@@ -114,10 +115,10 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final NumberFormatParameter percentFormat = new NumberFormatParameter(
       "Percent format", "Format used for percentages, e.g., relative errors (except ppm) etc.",
-      false, new DecimalFormat("0.0 %"));
+      false, new DecimalFormat("0.0%"), true);
 
   public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>("Unit format",
-      "The default unit format to format e.g. axis labels in MZmine.",
+      "The default unit format to format e.g. axis labels in mzmine.",
       FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
 
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
@@ -139,7 +140,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   //  public static final BooleanParameter sendStatistics = new BooleanParameter(
-//      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
+//      "Send anonymous statistics", "Allow mzmine to send anonymous statistics on the module usage?",
 //      true);
 //  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
 //      "Send error e-Mail notifications", "Send error e-Mail notifications",
@@ -149,12 +150,12 @@ public class MZminePreferences extends SimpleParameterSet {
       true);
   public static final ColorPaletteParameter defaultColorPalette = new ColorPaletteParameter(
       "Default color palette",
-      "Defines the default color palette used to create charts throughout MZmine");
+      "Defines the default color palette used to create charts throughout mzmine");
   public static final PaintScalePaletteParameter defaultPaintScale = new PaintScalePaletteParameter(
       "Default paint scale",
-      "Defines the default paint scale used to create charts throughout MZmine");
+      "Defines the default paint scale used to create charts throughout mzmine");
   public static final ParameterSetParameter<ChartThemeParameters> chartParam = new ParameterSetParameter<>(
-      "Chart parameters", "The default chart parameters to be used throughout MZmine",
+      "Chart parameters", "The default chart parameters to be used throughout mzmine",
       new ChartThemeParameters());
 
   /*
@@ -169,15 +170,18 @@ public class MZminePreferences extends SimpleParameterSet {
 //      "Options to control the default rendering of molecular structures. Some views may add a separate zoom factor on top of the base zoom.",
 //      new StructureRenderParameters());
 
-  public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
-      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.JABREF_LIGHT);
+  public static final ComboParameter<ThemeStyle> themeStyle = new ComboParameter<>("Theme style",
+      "Select the structural UI style for controls, tabs, and layout.", ThemeStyle.values(),
+      ThemeStyle.JABREF);
+  public static final ComboParameter<ThemeColors> themeColors = new ComboParameter<>("Theme colors",
+      "Select the color palette for the UI.", ThemeColors.values(), ThemeColors.LIGHT);
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
-      "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
+      "If checked, fonts in the mzmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
       + " will be stored. Directory should be located on a drive with fast read and write "
-      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+      + "(e.g., an SSD). Requires a restart of mzmine to take effect (the program argument --temp "
       + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
@@ -240,6 +244,10 @@ public class MZminePreferences extends SimpleParameterSet {
       .cloneParameter();
   public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
       .cloneParameter();
+  public static final ComboParameter<TdfPressureCompensation> brukerPressureComp = VendorImportParameters.applyTimsPressureCompensation.getEmbeddedParameter()
+      .cloneParameter();
+
+
   public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
       new BooleanParameter("Show temp alert", "Show temp folder alert", true));
   public static final HiddenParameter<String> username = new HiddenParameter<>(
@@ -284,22 +292,23 @@ public class MZminePreferences extends SimpleParameterSet {
             // how to format unit strings
             unitFormat,
             // other preferences
-            defaultColorPalette, defaultPaintScale, chartParam, theme,
+            defaultColorPalette, defaultPaintScale, chartParam, themeStyle, themeColors,
             presentationMode, imageNormalization, imageTransformation, showPrecursorWindow,
             imsModuleWarnings, windowSettings, useTabSubtitles,
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
             applyVendorCentroiding, watersLockmass, massLynxImportChoice, msConvertPath,
-            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses},
+            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses,
+            brukerPressureComp},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
-      var oldTheme = getValue(theme);
-
-      if (oldTheme.isDark() != state) {
-        var theme = state ? Themes.JABREF_DARK : Themes.JABREF_LIGHT;
-        setParameter(MZminePreferences.theme, theme);
+      final var oldColors = getValue(themeColors);
+      if (oldColors.isDark() != state) {
+        final Themes oldTheme = getThemeConfig();
+        // decision: switch to default light/dark when toggling dark mode
+        setParameter(MZminePreferences.themeColors, state ? ThemeColors.DARK : ThemeColors.LIGHT);
         applyConfig(oldTheme);
       }
     });
@@ -312,7 +321,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
     assert Platform.isFxApplicationThread();
-    final Themes previousTheme = getValue(MZminePreferences.theme);
+    final Themes previousTheme = getThemeConfig();
 
     final List<UserParameter<?, ? extends Region>> fixed = List.of();
 
@@ -323,11 +332,11 @@ public class MZminePreferences extends SimpleParameterSet {
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
-            chartParam, theme, presentationMode, showPrecursorWindow,
+            chartParam, themeStyle, themeColors, presentationMode, showPrecursorWindow,
             imageTransformation, imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
             watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,
-            excludeThermoExceptionMasses) //
+            excludeThermoExceptionMasses, brukerPressureComp) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
@@ -363,15 +372,15 @@ public class MZminePreferences extends SimpleParameterSet {
     final KeepInMemory keepInMemory = getValue(MZminePreferences.memoryOption);
     keepInMemory.enforceToMemoryMapping();
 
-    final Themes theme = getValue(MZminePreferences.theme);
+    final Themes currentTheme = getThemeConfig();
     if (previousTheme != null) {
-      showDialogToAdjustColorsToTheme(previousTheme, theme);
+      showDialogToAdjustColorsToTheme(previousTheme, currentTheme);
     }
     // need to check as MZmineCore.getDesktop() throws exception if not initialized
     // if apply is called before window is opened the new settings will by taken up during window creation
     if (DesktopService.isGUI()) {
-      theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      darkModeProperty.set(theme.isDark());
+      currentTheme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      darkModeProperty.set(currentTheme.isDark());
 
       Boolean presentation = getValue(MZminePreferences.presentationMode);
       if (presentation) {
@@ -413,7 +422,7 @@ public class MZminePreferences extends SimpleParameterSet {
           || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
           || ColorUtils.isDark(subTitleFont.getColor()))) {
         if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
-            MZmine detected that you changed the GUI theme.
+            mzmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
             Would you like to adapt them?
             """)) {
@@ -423,7 +432,7 @@ public class MZminePreferences extends SimpleParameterSet {
           axisFont.getColor()) || ColorUtils.isLight(itemFont.getColor()) || ColorUtils.isLight(
           titleFont.getColor()) || ColorUtils.isLight(subTitleFont.getColor()))) {
         if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
-            MZmine detected that you changed the GUI theme.
+            mzmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
             Would you like to adapt them?
             """)) {
@@ -523,7 +532,7 @@ public class MZminePreferences extends SimpleParameterSet {
       final int loadedVersion) {
     updateSystemProxySettings();
     updateGuiFormat();
-    darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
+    darkModeProperty.set(getThemeConfig().isDark());
     String username = ConfigService.getPreference(MZminePreferences.username);
     // this will set the current user to CurrentUserService
     // loads all users already logged in from the user folder
@@ -563,6 +572,11 @@ public class MZminePreferences extends SimpleParameterSet {
           new ManualProxyConfig(type, address, port, List.of()));
       ProxyUtils.applyConfig(config);
     }
+
+    if (!loadedParams.containsKey(brukerPressureComp.getName())) {
+      getParameter(brukerPressureComp).setValue(
+          VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
+    }
   }
 
   private void updateSystemProxySettings() {
@@ -586,6 +600,13 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public NumberFormats getGuiFormats() {
     return guiFormat;
+  }
+
+  /**
+   * @return the combined theme configuration from the selected style and color palette.
+   */
+  public Themes getThemeConfig() {
+    return new Themes(getValue(themeStyle), getValue(themeColors));
   }
 
   public boolean isDarkMode() {

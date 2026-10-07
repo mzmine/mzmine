@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,9 +25,11 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardModule;
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCALoadingsExtractionModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
@@ -70,12 +73,15 @@ import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule;
 import io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMs2RefinementModule;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel.SetLipidAnnotationLevelModule;
 import io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
@@ -91,6 +97,8 @@ import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedF
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityrepresentation.ConfigCompoundRepresentationModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -109,7 +117,6 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formul
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
@@ -118,9 +125,11 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
 import io.github.mzmine.modules.dataprocessing.id_postcolumnreaction.PostColumnReactionModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
@@ -154,6 +163,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
+import io.github.mzmine.modules.io.spectral_library_from_matches.MatchesSubsetLibraryModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
@@ -168,6 +178,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionMod
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
@@ -185,6 +196,7 @@ import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
 import io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
@@ -238,6 +250,7 @@ public class BatchModeModulesList {
            */
           ProjectMetadataImportModule.class, //
           ProjectMetadataExportModule.class, //
+          SampleMetadataExtractionModule.class, //
           ColorByMetadataModule.class, //
 
           /*
@@ -339,20 +352,25 @@ public class BatchModeModulesList {
           PCALoadingsExtractionModule.class, //
           SplitAlignedFeatureListModule.class, //
           PreferredAnnotationRankingModule.class, //
+          FeatureListPreferencesModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
            */
           ClearFeatureAnnotationsModule.class, //
+          LipidAnnotationCleanupModule.class, //
           IntensityNormalizerModule.class, //
           RTCorrectionModule.class, //
           ScanRtCorrectionModule.class, //
+          RemoveScanRtCorrectionModule.class, //
           RICalculationModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
            */
           CorrelateGroupingModule.class, //
+          CompoundGrouperModule.class, //
+          ConfigCompoundRepresentationModule.class, //
           ImageCorrelateGroupingModule.class, //
           MainSpectralNetworkingModule.class, //
           AnnotateIsomersModule.class, //
@@ -367,7 +385,6 @@ public class BatchModeModulesList {
           IonNetworkMSMSCheckModule.class, //
           FormulaPredictionIonNetworkModule.class, //
           CreateAvgNetworkFormulasModule.class, //
-          IonNetRelationsModule.class, //
           OnlineLcReactivityModule.class, //
           ClearIonIdentitiesModule.class, //
 
@@ -388,11 +405,13 @@ public class BatchModeModulesList {
           FormulaPredictionFeatureListModule.class, //
           IsotopePeakScannerModule.class, //
           LipidAnnotationModule.class, //
+          SetLipidAnnotationLevelModule.class, //
           LocalCSVDatabaseSearchModule.class, //
           Ms2SearchModule.class, //
           NistMsSearchModule.class, //
           PrecursorDBSearchModule.class, //
           SpectralLibrarySearchModule.class, //
+          AnalogSpectralLibrarySearchModule.class, //
           BioTransformerModule.class, //
           SiriusApiResultsImportModule.class, //
           SiriusApiFingerIdModule.class, //
@@ -419,6 +438,7 @@ public class BatchModeModulesList {
           LibraryAnalysisCSVExportModule.class, //
           LibraryBatchGenerationModule.class, //
           GNPSLibraryBatchExportModule.class, //
+          MatchesSubsetLibraryModule.class, //
           ExportScansFeatureModule.class, //
           FeatureMLExportModularModule.class, //
           MsMsQualityExportModule.class, //
@@ -451,6 +471,7 @@ public class BatchModeModulesList {
   public static final List<Class<? extends MZmineRunnableModule>> TOOLS_AND_VISUALIZERS = new ArrayList<>(
       List.of(
           // tools
+          GlobalIonLibrariesModule.class, //
           IsotopePatternPreviewModule.class, //
           QualityParametersModule.class, //
           LibraryAnalysisCSVExportModule.class, //
@@ -482,7 +503,9 @@ public class BatchModeModulesList {
           VanKrevelenDiagramModule.class, //
           EquivalentCarbonNumberModule.class, //
           LipidAnnotationSummaryModule.class, //
+          CompoundDashboardModule.class, //
           IntegrationDashboardModule.class, //
+          LipidAnnotationQCDashboardModule.class, //
           MultidetectorVisualizerModule.class, //
 
           // stats

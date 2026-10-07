@@ -41,13 +41,12 @@ public class FragmentGraphTest {
   private final MassList caffeineSpectrum = new SimpleMassList(null, caffeineMzs,
       caffeineIntensities);
 
-
 //  @Test
 //  void testFormulaGeneration() {
 //
 //    FragGraphPrecursorFormulaTask formulaTask = new FragGraphPrecursorFormulaTask(new FragDashboardModel(), 195.08994,
 //        PolarityType.POSITIVE, 1,
-//        List.of(new IonType(IonModification.H), new IonType(IonModification.NA)), null,
+//        List.of(IonTypes.H.asIonType(), IonTypes.NA.asIonType()), null,
 //        new MZTolerance(0.005, 10), true, true);
 //
 //    final MolecularFormulaGenerator generator = formulaTask.setUpFormulaGenerator();
@@ -56,7 +55,7 @@ public class FragmentGraphTest {
 //    final ConcurrentLinkedQueue<IMolecularFormula> formulae = formulaTask.get();
 //
 //    final Optional<IMolecularFormula> caffeineOptional = formulae.stream()
-//        .filter(f -> MolecularFormulaManipulator.getString(f).equals("[C8H11N4O2]+")).findAny();
+//        .filter(f -> FormulaUtils.getFormulaString(f).equals("[C8H11N4O2]+")).findAny();
 //    Assertions.assertTrue(caffeineOptional.isPresent());
 //    final IMolecularFormula caf = caffeineOptional.get();
 //

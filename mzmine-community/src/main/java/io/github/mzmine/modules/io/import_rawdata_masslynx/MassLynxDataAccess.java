@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -70,9 +71,13 @@ import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -85,6 +90,9 @@ import org.jetbrains.annotations.Nullable;
 public class MassLynxDataAccess implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(MassLynxDataAccess.class.getName());
+
+  private final DateTimeFormatter watersDateFormatter = DateTimeFormatter.ofPattern(
+      "dd-MMM-uuuu HH:mm:ss", Locale.ENGLISH);
 
   private final Arena arena = Arena.ofConfined();
   private final MemorySegment handle;
@@ -141,12 +149,17 @@ public class MassLynxDataAccess implements AutoCloseable {
    * contains floats
    */
   private MemorySegment analogIntensityBuffer = arena.allocate(0);
+  /**
+   * UTF-8 header items
+   */
+  private MemorySegment headerItemBuffer = arena.allocate(1024);
 
   public MassLynxDataAccess(@NotNull File rawFolder,
       @NotNull final VendorImportParameters vendorParam, @Nullable MemoryMapStorage storage,
       @NotNull ScanImportProcessorConfig processor) {
     MemorySegment tempHandle = null;
-    for (int tryCount = 0; tryCount < 10; tryCount++) {
+    int tryCount = 0;
+    for (; tryCount < 10; tryCount++) {
       tempHandle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
       if (tempHandle.address() == 0x0) {// nullptr returned on error
         logger.finest("Unable to open file %s. Try %d/10.".formatted(rawFolder, tryCount + 1));
@@ -162,7 +175,10 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     if (tempHandle == null || tempHandle.address() == 0x0) {
       throw new RuntimeException(
-          "Error opening file. Returned handle: %s".formatted(Objects.toString(tempHandle)));
+          ("Error opening file %s. Returned handle: %s after %d attempts. This may occur if the file "
+              + "is a virtual file and not yet available on this computer. Try again after the file "
+              + "has been downloaded. Otherwise the file may be corrupt.").formatted(
+              rawFolder.getAbsolutePath(), Objects.toString(tempHandle.address()), tryCount));
     }
     handle = tempHandle;
 
@@ -758,7 +774,19 @@ public class MassLynxDataAccess implements AutoCloseable {
     return MassLynxLib.isSonarFile(handle) > 0;
   }
 
-  public String getAcqDate() {
-    return acqDate;
+  @Nullable
+  public LocalDateTime getAcqDate() {
+    try {
+      LocalDateTime date = LocalDateTime.parse(acqDate, watersDateFormatter);
+      return date;
+    } catch (DateTimeParseException e) {
+      return null;
+    }
+  }
+
+  public String getHeaderItem(MassLynxHeaderItem item) {
+    final int readBytes = MassLynxLib.getHeaderItem(handle, item.getValue(), headerItemBuffer,
+        (int) headerItemBuffer.byteSize());
+    return headerItemBuffer.asSlice(0, readBytes).getString(0, StandardCharsets.UTF_8);
   }
 }

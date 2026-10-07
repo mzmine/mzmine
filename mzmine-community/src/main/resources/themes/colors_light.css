@@ -1,0 +1,145 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/* Light - the default light color palette with warm neutral tones. */
+.root {
+    -jr-theme: #3391C1;
+    -jr-accent: #156CA2;
+    -jr-accent-below-text: #8cbadc;
+    -jr-transparent-accent: rgba(163, 183, 230, 0.16);
+    -jr-selected: -jr-accent;
+    -jr-checked: -jr-theme;
+    -jr-hover: #0002;
+
+    -jr-base: #ebebeb;
+
+    -jr-white: #ffffff;
+    -jr-gray-0: #f2f2f2;
+    -jr-gray-1: #dddddd;
+    -jr-gray-2: #808080;
+    -jr-gray-3: #404040;
+    -jr-black: #000;
+
+    -jr-blue: #0abde3;
+    -jr-light-blue: #48dbfb;
+    -jr-purple: #7559C2;
+    -jr-light-purple: #ff9ff3;
+    -jr-green: #10ac84;
+    -jr-light-green: #1dd1a1;
+    -jr-red: #ee5253;
+    -jr-light-red: #ff6b6b;
+    -jr-yellow: #feca57;
+    -jr-orange: #ff9f43;
+
+    -jr-blue-gray-1: #c8d6e5;
+    -jr-blue-gray-2: #8395a7;
+    -jr-blue-gray-3: #576574;
+    -jr-blue-gray-4: #222f3e;
+
+    -jr-background-alt: -fx-background;
+    -jr-text-area-background: derive(-jr-base, 80%);
+    -jr-search-background: -jr-text-area-background;
+    -jr-toolbar: derive(-jr-base, 46.4%);
+    -jr-menu-background: derive(-jr-base, 46.4%);
+    -jr-menu-background-active: -jr-hover;
+
+    -jr-menu-foreground: -fx-dark-text-color;
+    -jr-menu-item-foreground: -fx-dark-text-color;
+    -jr-menu-forground-active: -fx-dark-text-color;
+
+    -jr-head-fg: -fx-text-inner-color;
+    -jr-theme-text: -jr-theme;
+
+    -jr-icon-background: transparent;
+    -jr-icon-background-active: #0001;
+    -jr-icon-background-armed: #0002;
+
+    -jr-info: -jr-light-green;
+    -jr-warn: -jr-orange;
+    -jr-error: -jr-light-red;
+
+    -jr-group-hits-bg: derive(-jr-sidepane-background, -50%);
+    -jr-group-hits-fg: ladder(
+            -jr-group-hits-bg,
+            -fx-light-text-color 45%,
+            -fx-dark-text-color 46%,
+            -fx-dark-text-color 59%,
+            -fx-mid-text-color 60%
+    );
+
+    -jr-tooltip-bg: -jr-theme;
+    -jr-tooltip-fg: -jr-white;
+
+    -jr-sidepane-background: -jr-gray-1;
+    -jr-sidepane-header-background: -jr-gray-1;
+    -jr-sidepane-header-color: -jr-theme-text;
+
+    -jr-scrollbar-thumb: derive(-fx-outer-border, -30%);
+    -jr-scrollbar-track: derive(-fx-control-inner-background, -10%);
+
+    -jr-separator: derive(-fx-color, -5%);
+    -jr-search-text: -fx-text-base-color;
+
+    -jr-drag-target: -jr-purple;
+    -jr-drag-target-hover: derive(-jr-purple, 80%);
+
+    -jr-row-odd-background: -fx-control-inner-background-alt;
+    -jr-row-even-background: -fx-control-inner-background;
+    -jr-accent-alt: derive(-jr-accent, 15%);
+
+    -js-summary-text-color: #000000;
+    -js-summary-text-color-selected: #000000;
+
+    -fx-base: -jr-base;
+    -fx-background: derive(-fx-base, 26.4%);
+    -fx-control-inner-background: derive(-fx-base, 95%);
+    -fx-control-inner-background-alt: derive(-fx-control-inner-background, -0%);
+    -fx-dark-text-color: -jr-black;
+    -fx-mid-text-color: -jr-gray-3;
+    -fx-light-text-color: -jr-white;
+    -fx-accent: red;
+    -fx-default-button: derive(-jr-accent, 50%);
+    -fx-focus-color: -jr-accent;
+    -fx-faint-focus-color: derive(-jr-accent, 50%);
+    -fx-color: -fx-base;
+    -fx-hover-base: derive(-fx-base, 30%);
+    -fx-pressed-base: derive(-fx-base, -6%);
+    -fx-box-border: derive(-fx-color, -5%);
+    -fx-text-box-border: derive(-fx-background, -15%);
+    -fx-shadow-highlight-color: rgba(255, 255, 255, 0.07) 70%;
+    -fx-outer-border: derive(-fx-color, -5%);
+    -fx-inner-border: derive(-fx-color, 65%);
+    -fx-inner-border-horizontal: derive(-fx-color, 65%);
+    -fx-inner-border-bottomup: derive(-fx-color, 65%);
+    -fx-body-color: derive(-fx-color, 20%);
+    -fx-body-color-bottomup: derive(-fx-color, 20%);
+    -fx-body-color-to-right: derive(-fx-color, 20%);
+    -fx-mark-color: -fx-text-base-color;
+    -fx-mark-highlight-color: transparent;
+    -fx-selection-bar: -jr-accent;
+    -fx-selection-bar-non-focused: lightgrey;
+    -fx-selection-bar-text: -fx-text-background-color;
+    -fx-cell-focus-inner-border: derive(-fx-selection-bar, 30%);
+    -fx-focused-mark-color: -fx-focused-text-base-color;
+}

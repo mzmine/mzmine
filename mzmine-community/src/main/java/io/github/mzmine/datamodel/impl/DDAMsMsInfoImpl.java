@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,17 +32,10 @@ import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -85,98 +78,6 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
     this(isolationMz, charge, null, null, null, msLevel, null, null);
-  }
-
-  public static DDAMsMsInfo fromMzML(MzMLPrecursorElement precursorElement, int msLevel) {
-    Optional<MzMLPrecursorSelectedIonList> list = precursorElement.getSelectedIonList();
-    if (list.isEmpty()) {
-      return null;
-    }
-
-    Double precursorMz = null;
-    Integer charge = null;
-    Float energy = null;
-    // this energy should be preferred over the also defined CID energy in EAD which is used to transfer the ions
-    Float energyEAD = null;
-    ActivationMethod method = ActivationMethod.UNKNOWN;
-
-    MzMLPrecursorActivation activation = precursorElement.getActivation();
-    for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
-      if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationEnergy) || mzMLCVParam.getAccession()
-          .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
-          .equals(MzMLCV.cvActivationEnergy2)) {
-        energy = Float.parseFloat(mzMLCVParam.getValue().get());
-      }
-      if (mzMLCVParam.getAccession().equals(MzMLCV.cvElectronBeamEnergyEAD)) {
-        energyEAD = Float.parseFloat(mzMLCVParam.getValue().get());
-      }
-      if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
-        method = ActivationMethod.CID;
-      }
-      if (mzMLCVParam.getAccession().equals(MzMLCV.cvElectronCaptureDissociation)) {
-        method = ActivationMethod.ECD;
-      }
-      if (mzMLCVParam.getAccession().equals(MzMLCV.cvHighEnergyCID)) {
-        method = ActivationMethod.HCD;
-      }
-      if (mzMLCVParam.getAccession().equals(MzMLCV.cvLowEnergyCID)) {
-        method = ActivationMethod.CID;
-      }
-    }
-
-    if (energyEAD != null) {
-      // the regular energy is only used for ion transfer?
-      energy = energyEAD;
-      method = ActivationMethod.EAD;
-    }
-
-    List<MzMLCVParam> cvParamsList = list.get().getSelectedIonList().get(0).getCVParamsList();
-    for (MzMLCVParam param : cvParamsList) {
-      if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
-        precursorMz = Double.parseDouble(param.getValue().get());
-      }
-      if (param.getAccession().equals(MzMLCV.cvChargeState)) {
-        charge = Integer.parseInt(param.getValue().get());
-      }
-    }
-
-    Double lower = null;
-    Double upper = null;
-    Double targetWindowCenter = null;
-    final Optional<MzMLIsolationWindow> mzmlWindow = precursorElement.getIsolationWindow();
-    if (mzmlWindow.isPresent()) {
-      for (var param : mzmlWindow.get().getCVParamsList()) {
-        if (param.getAccession().equals(MzMLCV.cvIsolationWindowLowerOffset)) {
-          lower = Double.parseDouble(param.getValue().get());
-        }
-        if (param.getAccession().equals(MzMLCV.cvIsolationWindowUpperOffset)) {
-          upper = Double.parseDouble(param.getValue().get());
-        }
-        if (param.getAccession().equals(MzMLCV.cvIsolationWindowTarget)) {
-          targetWindowCenter = Double.parseDouble(param.getValue().get());
-        }
-      }
-    }
-
-    /*
-     use center of isolation window. At least for Orbitrap instruments and
-     msconvert conversion we found that the isolated ion actually refers to the main peak in
-     an isotope pattern whereas the isolation window is the correct isolation mz
-     see issue https://github.com/mzmine/mzmine3/issues/717
-    */
-    if (targetWindowCenter != null) {
-      precursorMz = targetWindowCenter;
-    }
-
-    if (precursorMz == null) {
-      return null;
-    }
-
-    Range<Double> mzwindow = null;
-    if (lower != null && upper != null) {
-      mzwindow = Range.closed(precursorMz - lower, precursorMz + upper);
-    }
-    return new DDAMsMsInfoImpl(precursorMz, charge, energy, null, null, msLevel, method, mzwindow);
   }
 
   /**

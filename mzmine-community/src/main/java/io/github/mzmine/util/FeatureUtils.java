@@ -50,6 +50,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
@@ -58,8 +59,8 @@ import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatc
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -597,6 +598,9 @@ public class FeatureUtils {
   @NotNull
   public static List<CompoundDBAnnotation> extractAllCompoundAnnotations(
       FeatureListRow selectedRow) {
+    if(selectedRow instanceof ModularCompoundRow comp) {
+      selectedRow = comp.getPreferredRow();
+    }
     final List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
     final Set<DataType> dataTypes = selectedRow.getTypes();
     for (DataType dataType : dataTypes) {

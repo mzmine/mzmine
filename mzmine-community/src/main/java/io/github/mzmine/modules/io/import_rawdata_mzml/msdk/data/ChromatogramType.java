@@ -32,18 +32,19 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public enum ChromatogramType implements UniqueIdSupplier {
+  // order is used to determine auto selection in OtherFeatureSelectionPane
+  ION_CURRENT(MzMLCV.cvChromatogramIonCurrent, "Ion current chromatogram"),//
+  ABSORPTION(MzMLCV.cvChromatogramAbsorption, "Absorption chromatogram"), //
+  EMISSION(MzMLCV.cvChromatogramEmission, "Emission chromatogram"), //
+  ELECTROMAGNETIC_RADIATION(MzMLCV.cvChromatogramElectromagneticRadiation,
+      "Radiation chromatogram"),//
+  PRESSURE(MzMLCV.cvChromatogramPressure, "Pressure chromatogram"), //
+  FLOW_RATE(MzMLCV.cvChromatogramFlowRate, "Flow rate chromatogram"), //
   TIC(MzMLCV.cvChromatogramTIC, "Total ion chromatogram"), //
   MRM_SRM(MzMLCV.cvChromatogramMRM_SRM, "Mixed reaction monitoring"),//
   SIM(MzMLCV.cvChromatogramSIM, "Selected ion monitoring"),//
   SIC(MzMLCV.cvChromatogramSIC, "Selected ion chromatogram"), //
   BPC(MzMLCV.cvChromatogramBPC, "Base peak chromatogram"), //
-  ELECTROMAGNETIC_RADIATION(MzMLCV.cvChromatogramElectromagneticRadiation,
-      "Radiation chromatogram"),//
-  ABSORPTION(MzMLCV.cvChromatogramAbsorption, "Absorption chromatogram"), //
-  EMISSION(MzMLCV.cvChromatogramEmission, "Emission chromatogram"), //
-  ION_CURRENT(MzMLCV.cvChromatogramIonCurrent, "Ion current chromatogram"),//
-  PRESSURE(MzMLCV.cvChromatogramPressure, "Pressure chromatogram"), //
-  FLOW_RATE(MzMLCV.cvChromatogramFlowRate, "Flow rate chromatogram"), //
   UNKNOWN("Unknown", "Unknown chromatogram");
 
   private static final Map<String, ChromatogramType> map = Arrays.stream(values())

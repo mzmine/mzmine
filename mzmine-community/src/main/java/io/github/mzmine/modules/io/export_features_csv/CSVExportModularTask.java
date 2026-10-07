@@ -33,6 +33,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
@@ -45,6 +48,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.SampleRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -94,6 +98,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final String headerSeparator = ":";
   private final FeatureListRowsFilter rowFilter;
   private final boolean removeEmptyCols;
+  private final CompoundRowSelection rowSelection;
   private final ParameterSet parameters;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
@@ -104,23 +109,26 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.featureLists = parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
         .getMatchingFeatureLists();
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(CSVExportModularParameters.fieldSeparator).getValue();
+    fieldSeparator = parameters.getValue(CSVExportModularParameters.fieldSeparator).separator();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
     removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
+    rowSelection = parameters.getValue(CSVExportModularParameters.compoundRowSelection);
     this.parameters = parameters;
   }
 
   /**
-   * @param featureLists   feature lists to export
-   * @param fileName       export file name
-   * @param fieldSeparator separation of columns
-   * @param idSeparator    identity field separation
-   * @param rowFilter      Row filter
+   * @param compoundRowSelection
+   * @param featureLists         feature lists to export
+   * @param fileName             export file name
+   * @param fieldSeparator       separation of columns
+   * @param idSeparator          identity field separation
+   * @param rowFilter            Row filter
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator, String idSeparator, FeatureListRowsFilter rowFilter,
-      boolean removeEmptyCols, @NotNull Instant moduleCallDate) {
+      boolean removeEmptyCols, @NotNull Instant moduleCallDate,
+      CompoundRowSelection compoundRowSelection) {
     super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat.format(
@@ -132,6 +140,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.idSeparator = idSeparator;
     this.rowFilter = rowFilter;
     this.removeEmptyCols = removeEmptyCols;
+    this.rowSelection = compoundRowSelection;
     parameters = null;
   }
 
@@ -237,13 +246,21 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   @SuppressWarnings("rawtypes")
   private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer)
       throws IOException {
-    final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept)
+    final List<FeatureListRow> selectedRows = new ArrayList<>(flist.getRowsCopy(rowSelection));
+    final List<FeatureListRow> rows = selectedRows.stream().filter(rowFilter::accept)
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
     final Comparator<DataType> sorter = DataTypes.getDefaultSorterFeatureTable();
 
-    List<DataType> rowTypes = flist.getRowTypes().stream().filter(this::filterType)
+    // when compound rows are exported, also offer the compound-only row types as columns
+    final Set<DataType> rowTypeSource = new LinkedHashSet<>(flist.getRowTypes());
+    final CompoundList compoundList = flist.getCompoundList();
+    if (compoundList != null && rows.stream().anyMatch(row -> row instanceof CompoundRow)) {
+      rowTypeSource.addAll(compoundList.getCompoundRowSchema().getTypes());
+    }
+
+    List<DataType> rowTypes = rowTypeSource.stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1)).sorted(sorter)
         .collect(Collectors.toList());
 
@@ -338,6 +355,12 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       for (int i = 0; i < definedSubTypes; i++) {
         // check if we keep the "static" sub types
         DataType subType = subFactory.getType(i);
+
+        if (subType.equals(subFactory)) {
+          // never remove the main type
+          typesList.add(subType);
+          continue;
+        }
         if (!filterType(subType) || (removeEmptyCols && !typeContainData(mainType, rows, false,
             i))) {
           continue;
@@ -402,6 +425,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   }
 
   private void excludeSubTypesFromMain(DataType mainType, Set<DataType> typesList) {
+    if (mainType instanceof SampleRsdType rsdType) {
+      // the value of this type is the row itself, so the loop above added all row types as sub
+      // types. Only the RSD types are actually sub columns of it
+      typesList.retainAll(rsdType.getSubDataTypes());
+    }
     if (mainType instanceof PreferredAnnotationType) {
       // preferred annotation type inherits many sub types from CompoundDB, SpectralLibrary etc.
       // remove the main types because otherwise we get duplicates here

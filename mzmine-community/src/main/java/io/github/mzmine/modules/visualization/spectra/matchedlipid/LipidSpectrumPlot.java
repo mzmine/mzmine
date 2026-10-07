@@ -36,7 +36,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.LipidSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -44,6 +44,7 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -53,20 +54,30 @@ import org.jetbrains.annotations.Nullable;
 @Deprecated
 public class LipidSpectrumPlot extends SpectraPlot {
 
-  public LipidSpectrumPlot(MatchedLipid matchedLipid, boolean showLegend, RunOption runOption) {
+  private final boolean showSignalLabels;
+
+  public LipidSpectrumPlot(@Nullable final MatchedLipid matchedLipid, final boolean showLegend,
+      final @NotNull RunOption runOption) {
+    this(matchedLipid, showLegend, runOption, true);
+  }
+
+  public LipidSpectrumPlot(@Nullable final MatchedLipid matchedLipid, final boolean showLegend,
+      final @NotNull RunOption runOption, final boolean showSignalLabels) {
     super(false, showLegend);
+    this.showSignalLabels = showSignalLabels;
 
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
 
-    getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
-    getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
+    final var chartTheme = ConfigService.getConfiguration().getDefaultChartTheme();
+    getChart().setBackgroundPaint(chartTheme.getChartBackgroundPaint());
+    getXYPlot().setBackgroundPaint(chartTheme.getPlotBackgroundPaint());
 
     updateLipidSpectrum(matchedLipid, showLegend, runOption);
   }
 
-  public void updateLipidSpectrum(@Nullable MatchedLipid matchedLipid, boolean showLegend,
-      RunOption runOption) {
+  public void updateLipidSpectrum(@Nullable final MatchedLipid matchedLipid,
+      final boolean showLegend, final @NotNull RunOption runOption) {
 
     final List<LipidFragment> matchedFragments;
 
@@ -79,13 +90,21 @@ public class LipidSpectrumPlot extends SpectraPlot {
     final Scan matchedMsMsScan = matchedFragments.stream().map(LipidFragment::getMsMsScan)
         .findFirst().orElse(null);
 
-    final SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    final SimpleColorPalette palette = ConfigService.getConfiguration().getDefaultColorPalette();
     final List<XYDatasetAndRenderer> datasets = new ArrayList<>();
     if (matchedMsMsScan != null) {
       PlotXYDataProvider spectrumProvider = new SingleSpectrumProvider(matchedMsMsScan,
           "MS2 Spectrum", palette.getNegativeColor());
       ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
-      datasets.add(new DatasetAndRenderer(spectrumDataSet, new ColoredXYBarRenderer(true)));
+      final ColoredXYBarRenderer spectrumRenderer = new ColoredXYBarRenderer(true);
+      spectrumRenderer.setDefaultItemLabelsVisible(showSignalLabels);
+      if (showSignalLabels) {
+        spectrumRenderer.setDefaultItemLabelPaint(
+            ConfigService.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
+        spectrumRenderer.setDefaultItemLabelGenerator(
+            new MatchedLipidLabelGenerator(this, matchedFragments, false));
+      }
+      datasets.add(new DatasetAndRenderer(spectrumDataSet, spectrumRenderer));
     }
 
     List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint)
@@ -97,12 +116,15 @@ public class LipidSpectrumPlot extends SpectraPlot {
           "Matched Signals", palette.getPositiveColorAWT());
       final ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider,
           runOption);
-      final MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
-          this, matchedFragments);
-      final ColoredXYBarRenderer matchedRenderer = new ColoredXYBarRenderer(true);
+      final ColoredXYBarRenderer matchedRenderer = new StyledLipidSpectrumBarRenderer(true,
+          palette.getPositiveColorAWT());
 
-      matchedRenderer.setDefaultItemLabelsVisible(true);
-      matchedRenderer.setSeriesItemLabelGenerator(1, matchedLipidLabelGenerator);
+      matchedRenderer.setDefaultItemLabelsVisible(showSignalLabels);
+      if (showSignalLabels) {
+        final MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
+            this, matchedFragments, true);
+        matchedRenderer.setDefaultItemLabelGenerator(matchedLipidLabelGenerator);
+      }
       datasets.add(new DatasetAndRenderer(fragmentDataSet, matchedRenderer));
     }
 

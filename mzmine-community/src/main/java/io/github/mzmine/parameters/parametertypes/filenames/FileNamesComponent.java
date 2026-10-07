@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,8 +50,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
@@ -90,9 +92,9 @@ public class FileNamesComponent extends BorderPane {
    *                       files and directories matching the filter and the function may apply
    *                       transformation like Bruker path validation
    */
-  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
+  public FileNamesComponent(@NotNull List<ExtensionFilter> filters, @Nullable Path defaultDir,
       @Nullable String dragPrompt, @NotNull Function<File[], File[]> allFilesMapper) {
-    this(filters, defaultDir, List.of(), dragPrompt, allFilesMapper);
+    this(filters, defaultDir, List.of(), dragPrompt, allFilesMapper, null);
   }
 
   /**
@@ -100,9 +102,21 @@ public class FileNamesComponent extends BorderPane {
    *                       files and directories matching the filter and the function may apply
    *                       transformation like Bruker path validation
    */
-  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
+  public FileNamesComponent(@NotNull List<ExtensionFilter> filters, @Nullable Path defaultDir,
       @NotNull List<DownloadAsset> assets, @Nullable String dragPrompt,
       @NotNull Function<File[], File[]> allFilesMapper) {
+    this(filters, defaultDir, assets, dragPrompt, allFilesMapper, null);
+  }
+
+  /**
+   * @param allFilesMapper this mapper is applied when all * files button is clicked. Input is all
+   *                       files and directories matching the filter and the function may apply
+   *                       transformation like Bruker path validation
+   */
+  public FileNamesComponent(@NotNull List<ExtensionFilter> filters, @Nullable Path defaultDir,
+      @NotNull List<DownloadAsset> assets, @Nullable String dragPrompt,
+      @NotNull Function<File[], File[]> allFilesMapper,
+      @Nullable Function<FileNamesComponent, @Nullable Node> buttonBarTopControlsFactory) {
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
     this.assets = assets;
@@ -120,26 +134,7 @@ public class FileNamesComponent extends BorderPane {
     Button btnFileBrowser = new Button("Select files");
     btnFileBrowser.setMaxWidth(Double.MAX_VALUE);
     btnFileBrowser.setOnAction(e -> {
-      // Create chooser.
-      FileChooser fileChooser = new FileChooser();
-      if (defaultDir != null) {
-        fileChooser.setInitialDirectory(defaultDir.toFile());
-      }
-      fileChooser.setTitle("Select files");
-
-      fileChooser.getExtensionFilters().addAll(this.filters);
-
-      String[] currentPaths = txtFilename.getText().split("\n");
-      if (currentPaths.length > 0) {
-        File currentFile = new File(currentPaths[0].trim());
-        File currentDir = currentFile.getParentFile();
-        if (currentDir != null && currentDir.exists()) {
-          fileChooser.setInitialDirectory(currentDir);
-        }
-      }
-
-      // Open chooser.
-      List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+      final List<File> selectedFiles = showSelectMultiFilesDialog(defaultDir);
       if (selectedFiles == null) {
         return;
       }
@@ -156,6 +151,14 @@ public class FileNamesComponent extends BorderPane {
     final GridPane buttonGrid = createButtonGrid(new Insets(0, 0, 0, 5));
 
     int row = 0;
+    final Node buttonBarTopControls =
+        buttonBarTopControlsFactory == null ? null : buttonBarTopControlsFactory.apply(this);
+    if (buttonBarTopControls != null) {
+      buttonGrid.add(buttonBarTopControls, 0, row, 2, 1);
+      GridPane.setHalignment(buttonBarTopControls, HPos.CENTER);
+      row++;
+    }
+
     // add asset button if assets available
     if (!assets.isEmpty()) {
       var downloadButton = new DownloadAssetButton(assets);
@@ -199,6 +202,34 @@ public class FileNamesComponent extends BorderPane {
     // main gridpane
     this.setCenter(stack);
     this.setRight(buttonGrid);
+  }
+
+  /**
+   *
+   * @param defaultDir
+   * @return null if dialog was closed without selection
+   */
+  public @Nullable List<File> showSelectMultiFilesDialog(@Nullable Path defaultDir) {
+    // Create chooser.
+    FileChooser fileChooser = new FileChooser();
+    if (defaultDir != null) {
+      fileChooser.setInitialDirectory(defaultDir.toFile());
+    }
+    fileChooser.setTitle("Select files");
+
+    fileChooser.getExtensionFilters().addAll(this.filters);
+
+    String[] currentPaths = txtFilename.getText().split("\n");
+    if (currentPaths.length > 0) {
+      File currentFile = new File(currentPaths[0].trim());
+      File currentDir = currentFile.getParentFile();
+      if (currentDir != null && currentDir.exists()) {
+        fileChooser.setInitialDirectory(currentDir);
+      }
+    }
+
+    // Open chooser.
+    return fileChooser.showOpenMultipleDialog(null);
   }
 
   private static @NotNull GridPane createButtonGrid(@NotNull Insets insets) {
@@ -323,6 +354,10 @@ public class FileNamesComponent extends BorderPane {
     }
     txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath)
         .collect(Collectors.joining("\n")));
+  }
+
+  public @NotNull StringProperty textProperty() {
+    return txtFilename.textProperty();
   }
 
   public void setToolTipText(String toolTip) {

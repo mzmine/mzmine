@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,10 +30,12 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
@@ -44,6 +46,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PCAModel {
 
@@ -68,9 +71,16 @@ public class PCAModel {
 
   private final ObjectProperty<@NotNull ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
       ImputationFunctions.OneFifthOfMinimum);
-  private final ObjectProperty<SampleTypeFilter> sampleTypeFilter = new SimpleObjectProperty<>(
-      SampleTypeFilter.sample());
+  /**
+   * The open ended "all sample types" mode is part of the filter, so it survives a round trip
+   * through {@link PCALoadingsExtractionParameters}.
+   */
+  private final ObjectProperty<@NotNull SampleTypeFilter> sampleTypeFilter = new SimpleObjectProperty<>(
+      SampleTypeFilter.of(SampleType.SAMPLE));
 
+  // null = feature list rows; non-null = use compound list with the given selection level
+  private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+      null);
 
   // after missing value imputation etc
   private final ObjectProperty<FeaturesDataTable> featureDataTable = new SimpleObjectProperty<>();
@@ -224,15 +234,23 @@ public class PCAModel {
     return imputationFunction;
   }
 
-  public SampleTypeFilter getSampleTypeFilter() {
+  public @NotNull SampleTypeFilter getSampleTypeFilter() {
     return sampleTypeFilter.get();
   }
 
-  public ObjectProperty<SampleTypeFilter> sampleTypeFilterProperty() {
+  public ObjectProperty<@NotNull SampleTypeFilter> sampleTypeFilterProperty() {
     return sampleTypeFilter;
   }
 
   public void setSampleTypeFilter(@NotNull SampleTypeFilter filter) {
     sampleTypeFilter.set(filter);
+  }
+
+  public @Nullable CompoundRowSelection getCompoundRowSelection() {
+    return compoundRowSelection.get();
+  }
+
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return compoundRowSelection;
   }
 }

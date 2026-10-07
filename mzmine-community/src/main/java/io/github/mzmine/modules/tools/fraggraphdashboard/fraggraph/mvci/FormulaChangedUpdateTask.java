@@ -43,7 +43,6 @@ import java.util.List;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
 
@@ -77,8 +76,7 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
     // make sure we have a root signal
     SignalWithFormulae root = generateRootSignal(newFormula, ms2);
     final FragmentGraphGenerator graphGenerator = new FragmentGraphGenerator(
-        "Fragment graph for " + MolecularFormulaManipulator.getString(newFormula),
-        peaksWithFormulae, root);
+        "Fragment graph for " + FormulaUtils.getFormulaString(newFormula), peaksWithFormulae, root);
     graph = graphGenerator.getGraph();
 
     allNodeModels = graphGenerator.getNodeModelMap().values().stream()
@@ -117,8 +115,8 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
 
   @Override
   public String getTaskDescription() {
-    return "Calculating fragment graph for " + (model.getPrecursorFormula() != null
-        ? MolecularFormulaManipulator.getString(model.getPrecursorFormula()) : "");
+    return "Calculating fragment graph for " + FormulaUtils.getFormulaString(
+        model.getPrecursorFormula());
   }
 
   @Override

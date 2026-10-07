@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,11 @@ import static integrationtest.IntegrationTestUtils.urlToFile;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import io.github.mzmine.util.ArrayUtils;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +42,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
-                              @Nullable File[] rawFiles, @Nullable File[] specLibs) {
+                              @Nullable File[] rawFiles, @Nullable File[] specLibs,
+                              @Nullable File metadataFile) {
+
+  private static List<String> mzminePaths = List.of("D:\\git\\mzmine3\\",
+      "C:\\Users\\Steffen\\git\\mzmine3\\");
 
   public static Builder builder(final @NotNull String baseDirectory, @NotNull String batchFile) {
     return new Builder(baseDirectory, batchFile);
@@ -49,8 +57,42 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
   }
 
   public List<CheckResult> runBatchGetCheckResults(String expectedResultsFullPath) {
-    return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath,
-        runBatchGetCsvFile(), batchFile().getName());
+    // run batch
+    final File batchExportedFile = runBatchGetCsvFile();
+
+    // This is used to overwrite each expected results csv with the actual processing results
+//    overwriteResultFileSHOULD_BE_COMMENTED_OUT(expectedResultsFullPath, batchExportedFile);
+
+    // compare
+    return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath, batchExportedFile,
+        batchFile().getName());
+  }
+
+  private static void overwriteResultFileSHOULD_BE_COMMENTED_OUT(String expectedResultsFullPath,
+      File batchExportedFile) {
+    try {
+      // add local resources path to overwrite files
+      Path localResPath = null;
+      for (String mzminePath : mzminePaths) {
+        Path candidatePath = Path.of(mzminePath, "mzmine-community\\src\\test\\resources");
+        if (Files.exists(candidatePath)) {
+          localResPath = candidatePath;
+          break;
+        }
+      }
+      if (localResPath != null) {
+        Files.copy(batchExportedFile.toPath(), localResPath.resolve(expectedResultsFullPath),
+            StandardCopyOption.REPLACE_EXISTING);
+      }
+
+      // copy to res folder and also to out/resources folder so that test succeeds first time
+      Files.copy(batchExportedFile.toPath(), urlToFile(IntegrationTestUtils.class.getClassLoader()
+          .getResource(expectedResultsFullPath)).toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    throw new IllegalStateException(
+        "This method should be commented out for production use. The integration test result files were overwritten and now comment out this method.");
   }
 
   // -----------------------------------------------------------
@@ -64,6 +106,7 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
     private @Nullable File tempDir;
     private @Nullable File[] specLibs;
     private @Nullable File[] rawFiles;
+    private @Nullable File metadataFile;
 
     public Builder(final @NotNull String baseDirectory, final @NotNull String batchFile) {
       this.baseDir = baseDirectory;
@@ -95,6 +138,18 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
 
     public @NotNull Builder tempDir(@Nullable final File tempDir) {
       this.tempDir = tempDir;
+      return this;
+    }
+
+    /**
+     * Adds the metadata file relative to the base directory
+     */
+    public @NotNull Builder metadataFile(@Nullable final String file) {
+      if (file == null) {
+        return this;
+      }
+      // attach base directory
+      this.metadataFile = getFileFromBaseDir(file);
       return this;
     }
 
@@ -155,7 +210,7 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
     }
 
     public IntegrationTest build() {
-      return new IntegrationTest(batchFile, tempDir, rawFiles, specLibs);
+      return new IntegrationTest(batchFile, tempDir, rawFiles, specLibs, metadataFile);
     }
   }
 }

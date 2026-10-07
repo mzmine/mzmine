@@ -37,14 +37,15 @@ public class MSMSIonIdentity extends AbstractMSMSDataPointIdentity {
 
   protected final IonType type;
 
-  public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp, IonType b) {
+  public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp,
+      IonType b) {
     super(mzTolerance, dp);
     this.type = b;
   }
 
   @Override
   public String getName() {
-    return type.toString(false);
+    return type.toString();
   }
 
   /**

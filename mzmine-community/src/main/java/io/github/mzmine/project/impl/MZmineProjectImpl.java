@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -47,7 +48,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
@@ -73,9 +73,8 @@ public class MZmineProjectImpl implements MZmineProject {
   // use read lock to allow unlimited reads while no write is happening
   private final ReadWriteLock rawLock = new ReentrantReadWriteLock();
   private final ReadWriteLock featureLock = new ReentrantReadWriteLock();
-
-  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private final MetadataTable projectMetadata;
+  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private File projectFile;
 
   @Nullable
@@ -105,14 +104,14 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public @NotNull MetadataTable getProjectMetadata() {
-    return projectMetadata;
-  }
-
-  @Override
   public void setProjectParametersAndValues(
       Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
     this.projectParametersAndValues = projectParametersAndValues;
+  }
+
+  @Override
+  public @NotNull MetadataTable getProjectMetadata() {
+    return projectMetadata;
   }
 
   @Nullable
@@ -134,14 +133,12 @@ public class MZmineProjectImpl implements MZmineProject {
       rawLock.writeLock().lock();
       // avoid duplicate file names and check the actual names of the files of the raw data files
       // since that will be the problem during project save (duplicate zip entries)
-      final List<String> names = rawDataFiles.stream().map(RawDataFile::getAbsolutePath)
-          .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
+      final List<ProjectFile> names = rawDataFiles.stream().map(ProjectFile::new).toList();
       // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
-      final String name =
-          newFile.getAbsolutePath() != null ? new File(newFile.getAbsolutePath()).getName() : null;
-      if (names.contains(name)) {
+      final ProjectFile newProjectFile = new ProjectFile(newFile);
+      if (names.contains(newProjectFile)) {
         if (!MZmineCore.isHeadLessMode()) {
-          MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
+          MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + newProjectFile
               + " because a file with the same name already exists in the project. Please copy "
               + "the file and rename it, if you want to import it twice.");
         }
@@ -170,10 +167,10 @@ public class MZmineProjectImpl implements MZmineProject {
       rawDataFiles.removeAll(file);
       fireDataFilesChangeEvent(List.of(file), Type.REMOVED);
 
-      for (RawDataFile f : file) {
-        // Remove the file from the metadata table
-        projectMetadata.removeFile(f);
+      // Remove the files from the metadata table in one update
+      projectMetadata.removeFiles(List.of(file));
 
+      for (RawDataFile f : file) {
         // Close the data file, which also removed the temporary data
         f.close();
       }
@@ -501,6 +498,18 @@ public class MZmineProjectImpl implements MZmineProject {
     } catch (InvalidPathException e) {
       logger.log(Level.SEVERE, "Cannot resolve file path relative to project.", e);
       return null;
+    }
+  }
+
+  @Override
+  public void clearFeatureLists() {
+    try {
+      featureLock.writeLock().lock();
+      final List<FeatureList> current = getCurrentFeatureLists();
+      featureLists.clear();
+      fireFeatureListsChangeEvent(current, Type.REMOVED);
+    } finally {
+      featureLock.writeLock().unlock();
     }
   }
 }

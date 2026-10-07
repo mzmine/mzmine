@@ -24,41 +24,18 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.parameters.parametertypes.combowithinput.IntOrAutoValue.IntOrAuto;
 import org.jetbrains.annotations.NotNull;
 
-public record IntOrAutoValue(IntOrAuto value, int manual) implements ComboWithInputValue<IntOrAuto, Integer> {
+public record IntOrAutoValue(ValueOrAuto value, int manual) implements ComboWithInputValue<ValueOrAuto, Integer> {
 
   @Override
-  public @NotNull IntOrAuto getSelectedOption() {
+  public @NotNull ValueOrAuto getSelectedOption() {
     return value;
   }
 
   @Override
   public Integer getEmbeddedValue() {
     return manual;
-  }
-
-  public enum IntOrAuto implements UniqueIdSupplier {
-    AUTO, MANUAL;
-
-    @Override
-    public @NotNull String getUniqueID() {
-      return switch (this) {
-        case AUTO -> "auto";
-        case MANUAL -> "manual";
-      };
-    }
-
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case AUTO -> "auto";
-        case MANUAL -> "manual";
-      };
-    }
   }
 
 }

@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.PreferredEditComboCellFactory;
@@ -81,7 +82,8 @@ public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotat
       new MolecularStructureType(), //
       new ScoreType(), //
       new PrecursorMZType(), //
-      new AnnotationMethodType() //
+      new AnnotationMethodType(), //
+      new DatabaseNameType() //
   );
 
   @Override
@@ -152,6 +154,10 @@ public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotat
     if (!(value instanceof FeatureAnnotation a)) {
       return null;
     }
+    if (this.equals(sub)) {
+      // mainly needed for the export
+      return a;
+    }
     return CompoundAnnotationUtils.getTypeValue(a, sub);
   }
 
@@ -207,5 +213,22 @@ public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotat
     }
 
     return id;
+  }
+
+  @Override
+  public boolean requiresFeatureListContext() {
+    return true;
+  }
+
+  @Override
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value) {
+    throw new UnsupportedOperationException(
+        getClass().getName() + " requires feature list context for XML save/load");
+  }
+
+  @Override
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader) {
+    throw new UnsupportedOperationException(
+        getClass().getName() + " requires feature list context for XML save/load");
   }
 }

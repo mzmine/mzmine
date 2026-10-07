@@ -24,10 +24,10 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.MetadataNormalizationConfig.Mode;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.project.ProjectService;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -36,21 +36,27 @@ import org.jetbrains.annotations.Nullable;
 
 public class MetadataColumnNormalizationTypeParameters extends SimpleParameterSet {
 
-  public static final MetadataGroupingParameter metadataColumn = new MetadataGroupingParameter(
-      "Metadata column",
-      "Select numeric metadata values used to normalize each raw file. Each data file must have a value in that column. Use 0 to disable normalization for that file.",
-      AvailableTypes.NUMBER);
+  public static final MetadataNormalizationConfigParameter metadataColumn = new MetadataNormalizationConfigParameter(
+      IntensityNormalizerParameters.metadataNormFactorCol.getName(),
+      IntensityNormalizerParameters.metadataNormFactorCol.getDescription(),
+      MetadataNormalizationConfig.getDefault());
 
   public MetadataColumnNormalizationTypeParameters() {
     super(metadataColumn);
   }
 
   public static @NotNull MetadataColumnNormalizationTypeParameters create(
-      final @Nullable String selectedMetadataColumn) {
+      final @Nullable MetadataNormalizationConfig selectedMetadataColumn) {
     final MetadataColumnNormalizationTypeParameters parameters = (MetadataColumnNormalizationTypeParameters) new MetadataColumnNormalizationTypeParameters().cloneParameterSet();
     parameters.setParameter(MetadataColumnNormalizationTypeParameters.metadataColumn,
         selectedMetadataColumn);
     return parameters;
+  }
+
+  @NotNull
+  public static MetadataColumnNormalizationTypeParameters create(@NotNull String column,
+      @NotNull Mode mode) {
+    return create(new MetadataNormalizationConfig(column, mode));
   }
 
   @Override
@@ -63,13 +69,12 @@ public class MetadataColumnNormalizationTypeParameters extends SimpleParameterSe
       return superCheck;
     }
 
-    final MetadataColumn<?> column = ProjectService.getMetadata()
-        .getColumnByName(getValue(metadataColumn));
+    final String columnName = getValue(metadataColumn).metadataColumn();
+    final MetadataColumn<?> column = ProjectService.getMetadata().getColumnByName(columnName);
     if (column == null) {
-      errorMessages.add(
-          "Metadata column %s does not exist. (columns = %s)".formatted(getValue(metadataColumn),
-              ProjectService.getMetadata().getColumns().stream().map(MetadataColumn::getTitle)
-                  .collect(Collectors.joining(", "))));
+      errorMessages.add("Metadata column %s does not exist. (columns = %s)".formatted(columnName,
+          ProjectService.getMetadata().getColumns().stream().map(MetadataColumn::getTitle)
+              .collect(Collectors.joining(", "))));
     }
     if (column != null && column.getType() != AvailableTypes.NUMBER) {
       errorMessages.add("Metadata column does  must be numeric.");

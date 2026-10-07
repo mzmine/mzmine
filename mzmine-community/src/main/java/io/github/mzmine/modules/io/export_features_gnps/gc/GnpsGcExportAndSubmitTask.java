@@ -41,6 +41,7 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
@@ -244,8 +245,8 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     full = new File(full.getParentFile(), name + "_quant_full.csv");
 
     CSVExportModularTask quanExportModular = new CSVExportModularTask(new ModularFeatureList[]{
-        (ModularFeatureList) featureList}, full, ",", ";", FeatureListRowsFilter.ALL,
-        true, getModuleCallDate());
+        (ModularFeatureList) featureList}, full, ",", ";", FeatureListRowsFilter.ALL, true,
+        getModuleCallDate(), CompoundRowSelection.ALL_FEATURE_ROWS);
 
     if (tasks != null) {
       tasks.add(quanExportModular);
@@ -274,7 +275,8 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
     LegacyCSVExportTask quanExport = new LegacyCSVExportTask(new FeatureList[]{featureList}, full,
-        ",", common, rawdata, false, ";", FeatureListRowsFilter.ALL, getModuleCallDate());
+        ",", common, rawdata, false, ";", FeatureListRowsFilter.ALL, getModuleCallDate(),
+        CompoundRowSelection.ALL_FEATURE_ROWS);
     if (tasks != null) {
       tasks.add(quanExport);
     }

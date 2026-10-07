@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,18 +37,25 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -63,10 +70,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -682,11 +693,16 @@ public class FeatureListUtils {
   }
 
   /**
-   * Copies the selected scans from a collection of feature lists to the target feature list.
+   * Copies the selected scans from a collection of feature lists to the target feature list. Only
+   * the raw data files of the target are transferred.
    */
   public static void transferSelectedScans(FeatureList target, Collection<FeatureList> flists) {
+    final Set<RawDataFile> targetFiles = new HashSet<>(target.getRawDataFiles());
     for (FeatureList flist : flists) {
       for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
+        if (!targetFiles.contains(rawDataFile)) {
+          continue;
+        }
         if (target.getSeletedScans(rawDataFile) != null) {
           throw new IllegalStateException(
               "Error, selected scans for file " + rawDataFile + " already set.");
@@ -702,11 +718,13 @@ public class FeatureListUtils {
    */
   public static List<RawDataFile> getAllDataFiles(Collection<FeatureList> flists) {
     List<RawDataFile> allDataFiles = new ArrayList<>();
+    // set lookup: a linear contains check is O(files^2) when aligning many samples
+    Set<RawDataFile> seen = new HashSet<>();
     for (FeatureList featureList : flists) {
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
         // Each data file can only have one column in aligned feature
         // list
-        if (allDataFiles.contains(dataFile)) {
+        if (!seen.add(dataFile)) {
           throw new IllegalArgumentException(
               "File " + dataFile + " is present in multiple feature lists");
         }
@@ -714,6 +732,33 @@ public class FeatureListUtils {
       }
     }
     return allDataFiles;
+  }
+
+  /**
+   * Among all raw data files referenced by {@code rows} (union of each row's
+   * {@link FeatureListRow#getRawDataFiles()}), return the file in which the largest number of rows
+   * has a non-null {@link Feature}. Returns {@code null} only if {@code rows} is empty or no row
+   * has any feature.
+   */
+  public static @Nullable RawDataFile pickRawDataFileWithMostRowCoverage(
+      @NotNull final List<? extends FeatureListRow> rows) {
+    if (rows.isEmpty()) {
+      return null;
+    }
+
+    final Map<RawDataFile, int[]> counts = new LinkedHashMap<>();
+    for (final FeatureListRow r : rows) {
+      for (final RawDataFile f : r.getRawDataFiles()) {
+        final Feature feat = r.getFeature(f);
+        if (feat == null) {
+          continue;
+        }
+        counts.computeIfAbsent(f, _ -> new int[1])[0]++;
+      }
+    }
+    return counts.entrySet().stream()
+        .max(Comparator.comparingInt((Map.Entry<RawDataFile, int[]> e) -> e.getValue()[0]))
+        .map(Map.Entry::getKey).orElse(null);
   }
 
   /**
@@ -728,6 +773,54 @@ public class FeatureListUtils {
       map.put(row.getID(), row);
     }
     return map;
+  }
+
+  /**
+   * Create a copy of a compound list (given its top-level compound rows {@code sourceTopRows})
+   * attached to {@code target}. Each member feature row is remapped via {@code rowMapping}; members
+   * whose row is absent (mapping returns {@code null}) are dropped and compound rows that end up
+   * empty are removed. Compound rows for which {@code compoundRowFilter} returns false are skipped
+   * — both top-level rows and nested compound members ({@code null} keeps all). Derived values and
+   * compound features are recomputed by the new list's bindings via
+   * {@link CompoundList#setRows(List)}.
+   *
+   * @param sourceTopRows     top-level compound rows of the source compound list
+   * @param target            feature list the new compound list is attached to
+   * @param rowMapping        mapping function applied to each member's feature row, or {@code null}
+   *                          when the row was removed. This means that the original
+   *                          {@link FeatureListRow} are already copied before calling this method
+   *                          to allow copying members of compound rows.
+   * @param compoundRowFilter keep predicate for top-level compound rows, or {@code null} to keep
+   *                          all
+   * @param storage           memory map storage for the new compound list schemas
+   * @return the new compound list, or {@code null} if nothing remains
+   */
+  public static @Nullable CompoundList copyCompoundList(
+      @NotNull final List<ModularCompoundRow> sourceTopRows,
+      @NotNull final ModularFeatureList target,
+      @NotNull final Function<FeatureListRow, ModularFeatureListRow> rowMapping,
+      @Nullable final Predicate<ModularCompoundRow> compoundRowFilter,
+      @Nullable final MemoryMapStorage storage) {
+    if (sourceTopRows.isEmpty()) {
+      return null;
+    }
+    final CompoundList newList = new CompoundList(target, storage, sourceTopRows.size());
+    final List<ModularCompoundRow> newTopRows = new ArrayList<>(sourceTopRows.size());
+    for (final ModularCompoundRow src : sourceTopRows) {
+      if (compoundRowFilter != null && !compoundRowFilter.test(src)) {
+        continue;
+      }
+      final ModularCompoundRow copy = CompoundRowUtils.copyRowFiltered(src, newList, rowMapping,
+          compoundRowFilter);
+      if (copy != null) {
+        newTopRows.add(copy);
+      }
+    }
+    if (newTopRows.isEmpty()) {
+      return null;
+    }
+    newList.setRows(newTopRows);
+    return newList;
   }
 
   /**
@@ -804,43 +897,153 @@ public class FeatureListUtils {
     transferMetadata(featureList, newFlist, true);
 
     if (copyRows) {
-      copyRows(featureList, newFlist, renumberIDs);
+      final Map<FeatureListRow, ModularFeatureListRow> rowMapping = copyRows(featureList, newFlist,
+          renumberIDs);
+      transferRowRelationsAndIIN(featureList, newFlist, rowMapping);
     }
 
     return newFlist;
   }
 
-  public static void copyRows(final FeatureList featureList,
-      final ModularFeatureList newFeatureList, final boolean renumberIDs) {
-    int id = 1;
-    for (final FeatureListRow row : featureList.getRows()) {
-      FeatureListRow copy = new ModularFeatureListRow(newFeatureList,
-          renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
-      newFeatureList.addRow(copy);
-      id++;
-    }
+  /**
+   * A copy of a feature list that contains copies of {@code rowsToKeep} only, the typical result of
+   * a module that filters or extracts rows. Prefer this over building the new feature list and its
+   * rows by hand: it transfers the metadata and, through
+   * {@link #transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Function)}, the
+   * relationship maps and the ion identity networks, so a module cannot copy rows and forget the
+   * relations between them.
+   *
+   * @param rowsToKeep  the source rows to copy, in any order and may contain duplicates. The result
+   *                    is sorted by {@link ModularFeatureList#setRowsApplySort}.
+   * @param renumberIDs true assigns new IDs 1..n in the sorted row order, false keeps the IDs of
+   *                    the source rows
+   */
+  public static ModularFeatureList createCopyWithRows(@NotNull final FeatureList source,
+      @Nullable final String fullTitle, @Nullable final String suffix,
+      @Nullable final MemoryMapStorage storage,
+      @NotNull final Collection<? extends FeatureListRow> rowsToKeep, final boolean renumberIDs) {
+    final int totalFeatures = rowsToKeep.stream().mapToInt(FeatureListRow::getNumberOfFeatures)
+        .sum();
+    final ModularFeatureList target = createCopy(source, fullTitle, suffix, storage, false,
+        source.getRawDataFiles(), false, rowsToKeep.size(), totalFeatures);
+
+    // identity map of source to target rows
+    final Map<FeatureListRow, ModularFeatureListRow> rowMapping = copyRows(rowsToKeep, target,
+        renumberIDs);
+    transferRowRelationsAndIIN(source, target, rowMapping);
+    return target;
   }
 
   /**
-   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   * Copies all rows of a feature list into the new feature list.
+   *
+   * @return maps each source row to its copy. Pass this to
+   * {@link #transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Function)} to also transfer
+   * everything that references rows directly.
+   */
+  public static Map<FeatureListRow, ModularFeatureListRow> copyRows(final FeatureList featureList,
+      final ModularFeatureList newFeatureList, final boolean renumberIDs) {
+    return copyRows(featureList.getRows(), newFeatureList, renumberIDs);
+  }
+
+  /**
+   * Copies all input rows into the new feature list, sorted by
+   * {@link #getDefaultRowSorter(FeatureList)}: a new feature list is expected to be sorted.
+   * Renumbering in that order.
+   *
+   * @return maps each source row to its copy. Pass this to
+   * {@link #transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Function)} to also transfer
+   * everything that references rows directly.
+   */
+  public static Map<FeatureListRow, ModularFeatureListRow> copyRows(
+      final Collection<? extends FeatureListRow> rowsToCopy,
+      final ModularFeatureList newFeatureList, final boolean renumberIDs) {
+    final List<FeatureListRow> orderedRows = new ArrayList<>(rowsToCopy);
+    orderedRows.sort(getDefaultRowSorter(newFeatureList));
+
+    final Map<FeatureListRow, ModularFeatureListRow> rowMapping = new IdentityHashMap<>(
+        rowsToCopy.size());
+    int id = 1;
+    for (final FeatureListRow row : orderedRows) {
+      if (rowMapping.containsKey(row)) {
+        // the same row may be selected more than once, e.g. by two regions or by two compounds
+        continue;
+      }
+      ModularFeatureListRow copy = new ModularFeatureListRow(newFeatureList,
+          renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
+      newFeatureList.addRow(copy);
+      rowMapping.put(row, copy);
+      id++;
+    }
+    return rowMapping;
+  }
+
+  /**
+   * Transfers everything that references feature list rows directly and therefore cannot simply be
+   * shared with the source: the row-to-row relationship maps ({@link FeatureList#getRowMaps()}) and
+   * the ion identity networks. Both are recreated against the rows of the target.
+   * <p>
+   * This has to be called by every module that copies rows into a new feature list, because a
+   * copied row initially still carries the ion identities of its source row, and the relationship
+   * maps are keyed by row ID. Without it, the new feature list silently describes relations between
+   * the rows of the original list, and correlation groups, ion identity networks and everything
+   * derived from them are lost.
+   * <p>
+   * {@code source} and {@code target} may be the same feature list, for a module that filters rows
+   * in place: removing rows or renumbering their IDs invalidates the relationship map keys just the
+   * same. The relationship maps of the target are therefore replaced, not merged.
+   *
+   * @param source     the feature list the rows were copied from
+   * @param target     the feature list holding the copied rows, may be {@code source} itself
+   * @param rowMapping maps a source row to its row in the target, or to null if that row is gone.
+   *                   Relations of rows that are not mapped are dropped.
+   */
+  public static void transferRowRelationsAndIIN(@NotNull FeatureList source,
+      @NotNull ModularFeatureList target,
+      @NotNull Map<FeatureListRow, ? extends FeatureListRow> rowMapping) {
+    transferRowRelationsAndIIN(source, target, rowMapping::get);
+  }
+
+  /**
+   * @param source     the feature list the rows were copied from
+   * @param target     the feature list holding the copied rows, may be {@code source} itself
+   * @param rowMapping maps a source row to its row in the target, or to null if that row is gone.
+   *                   Relations of rows that are not mapped are dropped.
+   * @see FeatureListUtils#transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Map)
+   */
+  public static void transferRowRelationsAndIIN(@NotNull FeatureList source,
+      @NotNull ModularFeatureList target,
+      @NotNull Function<FeatureListRow, ? extends FeatureListRow> rowMapping) {
+    // remap before clearing: the maps of source and target are the same instance when a feature
+    // list is filtered in place
+    final R2RNetworkingMaps remapped = source.getRowMaps().createRemappedCopy(rowMapping);
+    target.getRowMaps().clearAll();
+    target.addRowMaps(remapped);
+    IonNetworkLogic.remapIonNetworks(source.getRows(), rowMapping);
+  }
+
+  /**
+   * Transfer selected scans, applied methods, annotation sort config, preferences, row and feature
+   * types
    *
    * @param source        copy from
    * @param target        copy to
    * @param transferTypes true then transfer all row and feature types
    */
-  public static void transferMetadata(@NotNull FeatureList source, @NotNull ModularFeatureList target,
-      boolean transferTypes) {
+  public static void transferMetadata(@NotNull FeatureList source,
+      @NotNull ModularFeatureList target, boolean transferTypes) {
     transferMetadata(List.of(source), target, transferTypes);
   }
+
   /**
    * Transfer selected scans, applied methods, annotation sort config, row and feature types
    *
-   * @param sources        copy from
+   * @param sources       copy from
    * @param target        copy to
    * @param transferTypes true then transfer all row and feature types
    */
-  public static void transferMetadata(@NotNull List<FeatureList> sources, @NotNull ModularFeatureList target,
-      boolean transferTypes) {
+  public static void transferMetadata(@NotNull List<FeatureList> sources,
+      @NotNull ModularFeatureList target, boolean transferTypes) {
     if (sources.isEmpty()) {
       throw new IllegalArgumentException("No source feature list");
     }
@@ -852,6 +1055,7 @@ public class FeatureListUtils {
     }
     FeatureListUtils.transferSelectedScans(target, sources);
     target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
+    target.setPreferences(source.getPreferences().copy());
   }
 
   /**
@@ -971,4 +1175,19 @@ public class FeatureListUtils {
         .thenComparing(FeatureList::getName);
   }
 
+
+  public static List<FeatureListRow> getRowsInsideScanAndMZRange(@NotNull FeatureList flist,
+      @NotNull SimpleFloatRange rtRange, @NotNull SimpleDoubleRange mzRange) {
+    List<FeatureListRow> results = new ArrayList<>();
+    final List<FeatureListRow> rows = flist.getRows();
+    for (var row : rows) {
+      Float rt = row.getAverageRT();
+      if (rt == null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+        results.add(row);
+      } else if (rt > rtRange.upper()) {
+        break;
+      }
+    }
+    return results;
+  }
 }

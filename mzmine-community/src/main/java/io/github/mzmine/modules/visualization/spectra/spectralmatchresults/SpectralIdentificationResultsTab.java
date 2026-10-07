@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.types.annotations.AbstractSpectralLibraryMatchesType;
 import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureUtils;
@@ -37,10 +38,14 @@ public class SpectralIdentificationResultsTab extends SimpleFeatureListTab {
 
   private final SpectraIdentificationResultsPane matchPane;
 
-  public SpectralIdentificationResultsTab(final FeatureTableFX table) {
+  public SpectralIdentificationResultsTab(final FeatureTableFX table,
+      Class<? extends AbstractSpectralLibraryMatchesType>... types) {
     super("Spectral matches", true, true);
 
     matchPane = new SpectraIdentificationResultsPane(getParentGroup());
+    if (types != null && types.length > 0) {
+      matchPane.setAnnotationTypes(types);
+    }
     setContent(matchPane);
     matchPane.setFeatureTable(table);
     matchPane.autoUpdateProperty().bindBidirectional(updateOnSelectionProperty());

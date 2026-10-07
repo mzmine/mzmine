@@ -40,6 +40,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
+import java.util.Objects;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
@@ -113,7 +114,7 @@ public class ChromatogramFeatureShapeCell extends ChartCell<SimpleXYChart<?>> {
     featureRTRange = RangeUtils.withinBounds(featureRTRange, 0f, null);
     final Range rtRange = RangeUtils.guavaToJFree(featureRTRange);
 
-    final double finalMaxHeight = maxHeight * 1.2;
+    final double finalMaxHeight = Math.max(1d, Objects.requireNonNullElse(maxHeight, 1f) * 1.2);
     getChart().applyWithNotifyChanges(false, true, () -> {
       getChart().setDatasets(datasets);
 

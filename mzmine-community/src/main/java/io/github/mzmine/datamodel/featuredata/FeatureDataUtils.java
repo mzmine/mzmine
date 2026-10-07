@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -35,8 +36,6 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
@@ -44,7 +43,6 @@ import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.AreaPercentType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
@@ -407,14 +405,16 @@ public class FeatureDataUtils {
     }
 
     if (calcQuality) {
-      calculateQualityParameters(feature);
+      QualityParameters.calculateAndSetQualityParameters(feature);
     }
 
     // auto-apply normalization if present
-    final NormalizationFunction normalizer = IntensityNormalizerModule.getNormalizationFunctionOfLatestCallForFile(
-        feature.getFeatureList(), feature.getRawDataFile());
-    if (normalizer != null) {
-      normalizeAbundances(feature, normalizer);
+    if (feature.getRawDataFile() != null) {
+      // normalize or reset normalized intensities
+      IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
+              feature.getFeatureList(), feature.getRawDataFile())
+          .ifPresentOrElse(normalizer -> normalizeAbundances(feature, normalizer),
+              () -> clearIntensityNormalization(feature));
     }
   }
 
@@ -481,21 +481,6 @@ public class FeatureDataUtils {
     return smallestDelta;
   }
 
-  private static void calculateQualityParameters(@NotNull ModularFeature feature) {
-    float fwhm = QualityParameters.calculateFWHM(feature);
-    if (!Float.isNaN(fwhm)) {
-      feature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(feature);
-    if (!Float.isNaN(tf)) {
-      feature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(feature);
-    if (!Float.isNaN(af)) {
-      feature.set(AsymmetryFactorType.class, af);
-    }
-  }
-
   public static void normalizeAbundances(@NotNull ModularFeature feature,
       @Nullable final NormalizationFunction normalizer) {
     if (normalizer == null) {
@@ -505,5 +490,17 @@ public class FeatureDataUtils {
     final double factor = normalizer.getNormalizationFactor(feature.getMZ(), feature.getRT());
     feature.set(NormalizedAreaType.class, (float) (feature.getArea() * factor));
     feature.set(NormalizedHeightType.class, (float) (feature.getHeight() * factor));
+  }
+
+  /**
+   * Reset all {@link NormalizedAreaType} and {@link NormalizedHeightType}
+   */
+  public static void clearIntensityNormalization(FeatureList flist) {
+    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalization);
+  }
+
+  private static void clearIntensityNormalization(ModularFeature feature) {
+    feature.set(NormalizedAreaType.class, null);
+    feature.set(NormalizedHeightType.class, null);
   }
 }

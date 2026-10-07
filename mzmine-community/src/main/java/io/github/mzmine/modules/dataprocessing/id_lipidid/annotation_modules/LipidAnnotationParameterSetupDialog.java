@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,9 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_c
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidDatabaseCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.parametertypes.ComboComponent;
+import io.github.mzmine.parameters.parametertypes.WeightSliderComponent;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,6 +50,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parameter setup dialog for lipid annotation module
@@ -65,6 +70,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
   public LipidAnnotationParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
     super(valueCheckRequired, parameters, message);
+    setupCustomQcWeightsUi(parameters);
 
     // Add buttons
     Button showDatabaseTable = new Button("Show database");
@@ -118,6 +124,73 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
       }
     });
     getButtonBar().getButtons().add(showDatabaseTable);
+  }
+
+  private void setupCustomQcWeightsUi(final @NotNull ParameterSet parameters) {
+    final @Nullable ComboComponent<LipidAnalysisType> lipidAnalysisTypeComponent = getComponentForParameter(
+        LipidAnnotationParameters.lipidAnalysisType);
+    final @Nullable OptionalModuleComponent customQcWeightsComponent = getComponentForParameter(
+        LipidAnnotationParameters.customQcWeights);
+    if (lipidAnalysisTypeComponent == null || customQcWeightsComponent == null) {
+      return;
+    }
+
+    final LipidQcWeightParameters weightParameters = parameters.getParameter(
+        LipidAnnotationParameters.customQcWeights).getEmbeddedParameters();
+    final @Nullable WeightSliderComponent elutionNoTrendComponent =
+        customQcWeightsComponent.getEmbeddedParameterPane() == null ? null
+            : customQcWeightsComponent.getEmbeddedParameterPane()
+                .getComponentForParameter(LipidQcWeightParameters.elutionOrderNoTrendWeight);
+    final @Nullable WeightSliderComponent elutionWithTrendComponent =
+        customQcWeightsComponent.getEmbeddedParameterPane() == null ? null
+            : customQcWeightsComponent.getEmbeddedParameterPane()
+                .getComponentForParameter(LipidQcWeightParameters.elutionOrderWithTrendWeight);
+
+    applyDefaultsIfOverridesDisabled(customQcWeightsComponent, weightParameters,
+        lipidAnalysisTypeComponent.getValue());
+    applyAnalysisTypeUiState(lipidAnalysisTypeComponent.getValue(), elutionNoTrendComponent,
+        elutionWithTrendComponent);
+
+    lipidAnalysisTypeComponent.valueProperty().addListener((_, _, analysisType) -> {
+      applyDefaultsIfOverridesDisabled(customQcWeightsComponent, weightParameters, analysisType);
+      applyAnalysisTypeUiState(analysisType, elutionNoTrendComponent, elutionWithTrendComponent);
+    });
+    customQcWeightsComponent.selectedProperty().addListener((_, _, isSelected) -> {
+      if (Boolean.TRUE.equals(isSelected)) {
+        return;
+      }
+      applyDefaultsIfOverridesDisabled(customQcWeightsComponent, weightParameters,
+          lipidAnalysisTypeComponent.getValue());
+    });
+  }
+
+  private static void applyDefaultsIfOverridesDisabled(
+      final @NotNull OptionalModuleComponent customQcWeightsComponent,
+      final @NotNull LipidQcWeightParameters weightParameters,
+      final @Nullable LipidAnalysisType analysisType) {
+    if (customQcWeightsComponent.isSelected()) {
+      return;
+    }
+    LipidQcWeightParameters.applyDefaultsForAnalysisType(weightParameters, analysisType);
+    customQcWeightsComponent.setParameterValuesToComponents(weightParameters);
+  }
+
+  private static void applyAnalysisTypeUiState(final @Nullable LipidAnalysisType analysisType,
+      final @Nullable WeightSliderComponent elutionNoTrendComponent,
+      final @Nullable WeightSliderComponent elutionWithTrendComponent) {
+    final boolean hasRetentionTimePattern =
+        analysisType == null || analysisType.hasRetentionTimePattern();
+    final String tooltip =
+        hasRetentionTimePattern ? "Weight used by RT/elution-order scoring for this analysis mode."
+            : "Elution-order scoring is disabled for this lipid analysis type.";
+    if (elutionNoTrendComponent != null) {
+      elutionNoTrendComponent.setDisable(!hasRetentionTimePattern);
+      elutionNoTrendComponent.setToolTipText(tooltip);
+    }
+    if (elutionWithTrendComponent != null) {
+      elutionWithTrendComponent.setDisable(!hasRetentionTimePattern);
+      elutionWithTrendComponent.setToolTipText(tooltip);
+    }
   }
 
 }

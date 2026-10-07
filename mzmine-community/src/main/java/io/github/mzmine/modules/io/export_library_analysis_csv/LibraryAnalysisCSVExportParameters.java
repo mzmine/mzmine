@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,13 @@
 package io.github.mzmine.modules.io.export_library_analysis_csv;
 
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -45,8 +45,8 @@ import org.jetbrains.annotations.NotNull;
 public class LibraryAnalysisCSVExportParameters extends SimpleParameterSet {
 
   public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the exported file", ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forWriting(
+      "Character used to separate the columns of the exported file.", FieldSeparator.COMMA);
   public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
       "Weights for m/z and intensity", Weights.VALUES, Weights.SQRT);
   public static final OptionalParameter<MZToleranceParameter> removePrecursorRange = new OptionalParameter<>(
@@ -73,8 +73,10 @@ public class LibraryAnalysisCSVExportParameters extends SimpleParameterSet {
 
 
   public LibraryAnalysisCSVExportParameters() {
-    super(new Parameter[]{libraries, filename, fieldSeparator, weight, removePrecursorRange,
-        deisotoping, minMatch, mzTolerance});
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io_export_library_analysis/library_analysis_csv_export.html",
+        libraries, filename, fieldSeparator, weight, removePrecursorRange, deisotoping, minMatch,
+        mzTolerance);
   }
 
   @Override

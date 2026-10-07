@@ -26,6 +26,7 @@ package io.github.mzmine.util.javafx.groupabletreeview;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.util.Comparators;
 import java.util.Comparator;
 import java.util.List;
 import javafx.scene.control.TreeItem;
@@ -67,7 +68,6 @@ public final class FeatureListByProcessingStepStrategy implements GroupingStrate
 
   @Override
   public @NotNull Comparator<FeatureList> itemComparator() {
-    // more applied methods first
-    return Comparator.<FeatureList>comparingInt(fl -> fl.getAppliedMethods().size()).reversed();
+    return Comparators.FEATURE_LIST_DEFAULT;
   }
 }

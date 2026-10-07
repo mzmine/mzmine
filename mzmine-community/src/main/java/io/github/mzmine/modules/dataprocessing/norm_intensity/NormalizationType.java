@@ -28,17 +28,13 @@ import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import org.jetbrains.annotations.NotNull;
 
 public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModule> {
-
-  AverageIntensity("Average intensity", "average_intensity",
-      AverageIntensityNormalizationTypeModule.class), //
-  MedianFeatureIntensity("Median feature intensity", "median_feature_intensity",
-      MedianFeatureIntensityNormalizationTypeModule.class), //
-  MaximumFeatureHeight("Maximum peak intensity", "maximum_feature_height",
-      MaximumFeatureHeightNormalizationTypeModule.class), //
-  TotalRawSignal("TIC normalization", "tic", TotalRawSignalNormalizationTypeModule.class), //
-  MetadataColumn("Metadata column", "metadata_column",
+  NoNormalization("No normalization", "no_normalization", NoNormalizationTypeModule.class), //
+  ByFeatureIntensity("By feature abundances", "feature_intensity_normalization",
+      FeatureIntensityNormalizationModule.class), //
+  TotalRawSignal("Spectral TIC", "spectral_tic", TotalRawSignalNormalizationTypeModule.class), //
+  MetadataColumn("Metadata column (weight, dilution, ...)", "metadata_column",
       MetadataColumnNormalizationTypeModule.class),  //
-  StandardCompounds("Standard compounds", "standard_compounds",
+  StandardCompounds("Internal standard compounds", "internal_standard_compounds",
       StandardCompoundNormalizationTypeModule.class);
 
   private final String name;
@@ -50,6 +46,21 @@ public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModu
     this.name = name;
     this.stableId = stableId;
     this.moduleClass = moduleClass;
+  }
+
+  /**
+   * @return All internal normalizers. Currently only standard compound normalzier but could be
+   * extended for lipid normalizer or similar.
+   */
+  public static NormalizationType[] intraSampleNormalizers() {
+    return new NormalizationType[]{NoNormalization, StandardCompounds};
+  }
+
+  /**
+   * @return all normalizers that correct intra batch drift
+   */
+  public static NormalizationType[] intraBatchDriftNormalizers() {
+    return new NormalizationType[]{NoNormalization, ByFeatureIntensity, TotalRawSignal};
   }
 
   @Override
@@ -65,5 +76,12 @@ public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModu
   @Override
   public String toString() {
     return name;
+  }
+
+  /**
+   * @return Active if not NoNormalization
+   */
+  public boolean isActive() {
+    return this != NoNormalization;
   }
 }

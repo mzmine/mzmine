@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import java.util.List;
@@ -38,10 +39,13 @@ import org.jetbrains.annotations.Nullable;
  *                       was not detected.
  * @param chromatogram   the chromatogram within 2x the rt range of the row
  * @param additionalData additional chromatograms, e.g. from mrm traces. May be empty
+ * @param mzRange        the m/z window used to extract the chromatogram. Needed to reproduce a
+ *                       manual integration.
  */
 public record FeatureIntegrationData(@NotNull RawDataFile file,
                                      @Nullable IntensityTimeSeries feature,
                                      @NotNull IntensityTimeSeries chromatogram,
-                                     @NotNull List<IntensityTimeSeriesToXYProvider> additionalData) {
+                                     @NotNull List<IntensityTimeSeriesToXYProvider> additionalData,
+                                     @NotNull SimpleDoubleRange mzRange) {
 
 }

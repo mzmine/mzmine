@@ -26,13 +26,15 @@
 package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -61,12 +63,12 @@ class FormulaRangeRowTypeFilter extends AbstractRowTypeFilter {
     }
 
     final String min = split[0].trim();
-    final IMolecularFormula minInternal = FormulaUtils.createMajorIsotopeMolFormula(min);
+    final IMolecularFormula minInternal = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(min);
     if (minInternal == null) {
       throw new QueryFormatException(min + " is not a valid formula");
     }
     final String max = split[1].trim();
-    final IMolecularFormula maxInternal = FormulaUtils.createMajorIsotopeMolFormula(max);
+    final IMolecularFormula maxInternal = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(max);
     if (maxInternal == null) {
       throw new QueryFormatException(max + " is not a valid formula");
     }
@@ -104,7 +106,8 @@ class FormulaRangeRowTypeFilter extends AbstractRowTypeFilter {
   }
 
   private boolean matchesFormula(@Nullable String formulaStr) {
-    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+        formulaStr);
     if (formula == null) {
       return false;
     }

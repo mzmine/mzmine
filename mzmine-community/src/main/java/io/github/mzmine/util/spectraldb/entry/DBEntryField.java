@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,8 +38,10 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
+import io.github.mzmine.datamodel.features.types.annotations.SynonymsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -72,6 +74,8 @@ import io.github.mzmine.datamodel.features.types.numbers.TotalSamplesType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.DreaMSEmbeddingType_1_0;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.MS2DeepscoreEmbeddingType_2_0;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MathUtils;
@@ -79,8 +83,10 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.JsonUtils;
+import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,11 +103,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum DBEntryField {
   // Compound specific
-  ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
+  ENTRY_ID, NAME, SYNONYMS(List.class), COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
       Double.class), IUPAC_NAME, INTERNAL_ID,
 
   // structure
-  FORMULA, INCHI, INCHIKEY, SMILES, PEPTIDE_SEQ,
+  FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, PEPTIDE_SEQ,
 
   //Structure classifiers
   CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY,
@@ -168,8 +174,22 @@ public enum DBEntryField {
   ONLINE_REACTIVITY,
 
   // number of signals
-  NUM_PEAKS(Integer.class), // only used for everything that cannot easily be mapped
+  NUM_PEAKS(Integer.class),
+
+  // Runtime-only ML embedding caches per MLModelId. Vectors are recomputed when the library is
+  // loaded; no persistence keys, no MSP/JSON/MGF/JDX round-trip. Added as DBEntryFields so a future
+  // change can wire serialization without altering call sites.
+  ML_EMBEDDING_MS2DEEPSCORE_2_0(float[].class), ML_EMBEDDING_DREAMS_1_0(float[].class),
+
+  // only used for everything that cannot easily be mapped
   UNSPECIFIED;
+
+  /**
+   * Fields that are populated and consumed in memory only — never written to library files or the
+   * project XML. Used by exporters/serializers to skip these without per-format opt-out logic.
+   */
+  public static final EnumSet<DBEntryField> RUNTIME_ONLY_FIELDS = EnumSet.of(
+      ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS_1_0);
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -191,6 +211,24 @@ public enum DBEntryField {
    */
   private static final Map<String, DBEntryField> FIELD_ALTERNATIVE_KEYS = HashMap.newHashMap(
       DBEntryField.values().length * 4);
+
+  /**
+   * Exact, case-sensitive {@link #getMZmineJsonID()} key to field. Built once so line-based parsers
+   * such as {@link MZmineJsonParser} can look up the field for a json key instead of testing every
+   * field against every entry.
+   */
+  private static final Map<String, DBEntryField> MZMINE_JSON_KEYS = createMZmineJsonKeys();
+
+  private static Map<String, DBEntryField> createMZmineJsonKeys() {
+    final Map<String, DBEntryField> keys = HashMap.newHashMap(values().length);
+    for (final DBEntryField f : values()) {
+      final String id = f.getMZmineJsonID();
+      if (id != null && !id.isEmpty()) {
+        keys.putIfAbsent(id, f);
+      }
+    }
+    return keys;
+  }
 
   static {
     for (DBEntryField f : values()) {
@@ -231,6 +269,7 @@ public enum DBEntryField {
     addAlternativeKey("ms_dissociation_method",
         DBEntryField.FRAGMENTATION_METHOD); // matchms_cleaned mgf
     addAlternativeKey("spectrum_id", DBEntryField.ENTRY_ID); // matchms_cleaned mgf
+    addAlternativeKey("sys_name", DBEntryField.IUPAC_NAME); // GNPS2 json
     addAlternativeKey("retention_time", DBEntryField.RT); // GNPS cleaned mgf
     addAlternativeKey("raw_filename", DBEntryField.FILENAME); // GNPS cleaned mgf
 //    addAlternativeKey("", DBEntryField.);
@@ -271,18 +310,23 @@ public enum DBEntryField {
     this.clazz = clazz;
   }
 
+  @Nullable
+  public static DBEntryField forMZmineJsonID(@NotNull final String key) {
+    // all mzmine json keys are lower case, lower casing the input keeps this as robust against
+    // library inconsistencies as the previous equalsIgnoreCase scan
+    final DBEntryField exact = forMZmineJsonIDExact(key);
+    return exact != null ? exact : MZMINE_JSON_KEYS.get(key.toLowerCase());
+  }
+
   /**
-   * DBENtryField for GNPS json key
+   * Case sensitive counterpart of {@link #forMZmineJsonID(String)} for parsers that read files
+   * written by mzmine itself and therefore know the exact key spelling.
+   *
+   * @return the field for this exact mzmine json key or null
    */
-  public static DBEntryField forMZmineJsonID(String key) {
-    for (DBEntryField f : values()) {
-      // equalsIgnoreCase is more robust against changes in library
-      // consistency
-      if (f.getMZmineJsonID().equalsIgnoreCase(key)) {
-        return f;
-      }
-    }
-    return null;
+  @Nullable
+  public static DBEntryField forMZmineJsonIDExact(@NotNull final String key) {
+    return MZMINE_JSON_KEYS.get(key);
   }
 
   /**
@@ -373,13 +417,21 @@ public enum DBEntryField {
       case JsonStringType _ -> JSON_STRING;
       case AcquisitionMethodType _ -> ACQUISITION_METHOD;
       case RIRecordType _ -> RETENTION_INDEX;
-//        case SynonymType _ -> DBEntryField.SYNONYM;
+      case SynonymsType _ -> SYNONYMS;
       default -> UNSPECIFIED;
     };
   }
 
   public Class getObjectClass() {
     return clazz;
+  }
+
+  /**
+   * @return true if this field is populated and consumed in memory only and must not be written to
+   * library files or the project XML. See {@link #RUNTIME_ONLY_FIELDS}.
+   */
+  public boolean isRuntimeOnly() {
+    return RUNTIME_ONLY_FIELDS.contains(this);
   }
 
   @Override
@@ -404,7 +456,7 @@ public enum DBEntryField {
     return switch (this) {
       case UNSPECIFIED, ACQUISITION, SOFTWARE, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
            INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, //
-           CHEMSPIDER, MONA_ID, GNPS_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
+           CHEMSPIDER, MONA_ID, GNPS_ID, RESOLUTION, FRAGMENTATION_METHOD, //
            QUALITY, QUALITY_CHIMERIC, FILENAME, //
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
@@ -412,6 +464,7 @@ public enum DBEntryField {
            MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID ->
           StringType.class;
       case COMMENT -> CommentType.class;
+      case SYNONYMS -> SynonymsType.class;
       case CAS -> CASType.class;
       case PUBCHEM -> PubChemIdType.class;
       case ENTRY_ID -> EntryIdType.class;
@@ -438,6 +491,7 @@ public enum DBEntryField {
       case NAME -> CompoundNameType.class;
       case RT -> RTType.class;
       case SMILES -> SmilesStructureType.class;
+      case ISOMERIC_SMILES -> SmilesIsomericStructureType.class;
       case PEPTIDE_SEQ -> PeptideSequenceType.class;
       case CCS -> CCSType.class;
       case ACQUISITION_METHOD -> AcquisitionMethodType.class;
@@ -454,6 +508,8 @@ public enum DBEntryField {
       case INTERNAL_ID -> InternalIdType.class;
       case JSON_STRING -> JsonStringType.class;
       case RETENTION_INDEX -> RIRecordType.class;
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0 -> MS2DeepscoreEmbeddingType_2_0.class;
+      case ML_EMBEDDING_DREAMS_1_0 -> DreaMSEmbeddingType_1_0.class;
     };
   }
 
@@ -463,8 +519,8 @@ public enum DBEntryField {
   public String getMZmineJsonID() {
     return switch (this) {
       case CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY ->
-          name().toLowerCase();
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY,
+           ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS_1_0 -> name().toLowerCase();
       case SCAN_NUMBER -> "scan_number";
       case FEATURE_MS1_HEIGHT -> "feature_ms1_height";
       case FEATURE_MS1_REL_HEIGHT -> "feature_ms1_relative_height";
@@ -497,6 +553,7 @@ public enum DBEntryField {
       case RT -> "rt";
       case RETENTION_INDEX -> "ri";
       case SMILES -> "smiles";
+      case ISOMERIC_SMILES -> "isomeric_smiles";
       case MS_LEVEL -> "ms_level";
       case PUBCHEM -> "pubchem";
       case CHEMSPIDER -> "chemspider";
@@ -547,7 +604,8 @@ public enum DBEntryField {
       case CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, ACQUISITION, GNPS_ID,
            MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR,
-           CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI -> this.name().toLowerCase();
+           CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI, ML_EMBEDDING_MS2DEEPSCORE_2_0,
+           ML_EMBEDDING_DREAMS_1_0 -> this.name().toLowerCase();
       case MOLWEIGHT -> "MW"; // found in massbank NIST format
       case SCAN_NUMBER -> "scan_number";
       case MERGED_SPEC_TYPE -> "merge_type";
@@ -577,6 +635,7 @@ public enum DBEntryField {
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
       case SMILES -> "SMILES";
+      case ISOMERIC_SMILES -> "ISOMERIC_SMILES";
       case INCHI -> "INCHI";
       case PEPTIDE_SEQ -> "peptide_sequence";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
@@ -616,8 +675,8 @@ public enum DBEntryField {
       case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER,
            PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
-          name();
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI,
+           ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS_1_0 -> name();
       case RT -> "RTINSECONDS";
       case RETENTION_INDEX -> "";
       case SCAN_NUMBER -> "SCANS";
@@ -645,6 +704,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "PI";
       case PUBMED -> "PUBMED";
       case SMILES -> "SMILES";
+      case ISOMERIC_SMILES -> "ISOMERIC_SMILES";
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
@@ -686,7 +746,8 @@ public enum DBEntryField {
       case GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, SOFTWARE,
            COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, CLASSYFIRE_SUPERCLASS,
            CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS,
-           NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI -> this.name();
+           NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI, ML_EMBEDDING_MS2DEEPSCORE_2_0,
+           ML_EMBEDDING_DREAMS_1_0 -> this.name();
       case FILENAME -> "FILENAME";
       case PEPTIDE_SEQ -> "SEQ";
       case NAME -> "COMPOUND_NAME";
@@ -696,6 +757,7 @@ public enum DBEntryField {
       case IMS_TYPE -> "IMS_TYPE";
       case SCAN_NUMBER -> "EXTRACTSCAN";
       case SMILES -> "SMILES";
+      case ISOMERIC_SMILES -> "ISOMERIC_SMILES";
       case INCHI -> "INCHI";
       case INCHIKEY -> "INCHIAUX";
       case CHARGE -> "CHARGE";
@@ -758,7 +820,7 @@ public enum DBEntryField {
       case SIRIUS_MERGED_STATS, ONLINE_REACTIVITY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, MERGED_N_SAMPLES,
-           SOURCE_SCAN_USI -> "";
+           SOURCE_SCAN_USI, ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS_1_0 -> "";
       case SCAN_NUMBER -> "";
       case MERGED_SPEC_TYPE -> "";
       case ENTRY_ID -> "";
@@ -790,6 +852,7 @@ public enum DBEntryField {
       case RT -> "RT";
       case RETENTION_INDEX -> "";
       case SMILES -> "";
+      case ISOMERIC_SMILES -> "";
       case MS_LEVEL -> "";
       case PUBCHEM -> "";
       case CHEMSPIDER -> "";
@@ -866,7 +929,11 @@ public enum DBEntryField {
    * @return the original value or Double, Float, Integer
    * @throws NumberFormatException if the object class was specified as number but was not parsable
    */
-  public Object convertValue(String content) throws NumberFormatException {
+  public @Nullable Object convertValue(@Nullable final String content)
+      throws NumberFormatException {
+    if (this == SYNONYMS) {
+      return SynonymsType.parse(content);
+    }
     if (this == MS_LEVEL) {
       if (content.toLowerCase().startsWith("ms")) {
         // sometimes for example in MS the ms level is gives as MS or MS2
@@ -942,8 +1009,8 @@ public enum DBEntryField {
            PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, FEATURE_FULL_ID, PUBMED, SYNONYMS, NAME,
            ENTRY_ID, NUM_PEAKS, //
            MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
-           COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS,
-           ACQUISITION_METHOD, //
+           COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, CAS,
+           CCS, ACQUISITION_METHOD, //
            ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
            COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
            MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
@@ -997,6 +1064,9 @@ public enum DBEntryField {
       // SIRIUS 6.0.7 had issues with Polarity and would parse the spectrum without extended metadata like the adduct
       // Therefore it was changed from Positive to POSITIVE
       case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "NEGATIVE" : "POSITIVE";
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS_1_0 ->
+          throw new UnsupportedOperationException(
+              "Runtime-only field " + this + " must not be exported to MGF");
     };
   }
 }
