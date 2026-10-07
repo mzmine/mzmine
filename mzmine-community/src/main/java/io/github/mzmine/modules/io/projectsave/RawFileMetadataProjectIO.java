@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.io.IOException;
 import java.io.InputStream;
@@ -187,6 +188,9 @@ public final class RawFileMetadataProjectIO {
               logger.warning(
                   "Cannot load raw file metadata for %s. File does not exist in project.".formatted(
                       name));
+            } else if (currentFile instanceof CachedIMSRawDataFile cached) {
+              currentFile = cached.getOriginalFile(); // should not be the case as caching is
+              // enabled and disabled in the featurelistloadtask, but handle it in case that changes.
             }
           } else if (CONST.XML_DATA_TYPE_ELEMENT.equals(element)) {
             readDataType(reader, currentFile);

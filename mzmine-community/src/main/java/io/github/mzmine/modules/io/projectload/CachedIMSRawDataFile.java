@@ -315,7 +315,7 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
 
   @Override
   public @NotNull ModularDataModel getFileMetadata() {
-    return originalFile.getFileMetadata();
+    throw new UnsupportedOperationException("Unsupported during project load.");
   }
 
   public RawDataFile getOriginalFile() {
