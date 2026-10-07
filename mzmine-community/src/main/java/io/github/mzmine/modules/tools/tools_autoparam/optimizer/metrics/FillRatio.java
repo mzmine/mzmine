@@ -41,6 +41,11 @@ public record FillRatio() implements SweepMetric {
   }
 
   @Override
+  public @NotNull String getUniqueID() {
+    return "fill_ratio";
+  }
+
+  @Override
   public @NotNull String toString() {
     return name();
   }
@@ -51,7 +56,7 @@ public record FillRatio() implements SweepMetric {
   }
 
   @Override
-  public double evaluate(@NotNull FeatureList featureList) {
+  public double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context) {
     final int maxFeatures = featureList.getNumberOfRows() * featureList.getNumberOfRawDataFiles();
     if (maxFeatures == 0) {
       return 0;

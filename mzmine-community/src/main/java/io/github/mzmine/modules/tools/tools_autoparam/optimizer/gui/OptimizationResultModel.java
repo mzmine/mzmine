@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.gui;
 
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
@@ -59,6 +60,12 @@ public class OptimizationResultModel {
   private final BooleanProperty stopSearchRequested = new SimpleBooleanProperty(false);
 
   /**
+   * Shows all evaluated solutions and their diagnostic attributes instead of only the estimate and
+   * the current front with their parameters and scores.
+   */
+  private final boolean showExtendedStatistics;
+
+  /**
    * Every solution shown in the results table: the raw data estimate first, followed by the
    * optimizer result.
    * <p>
@@ -68,10 +75,38 @@ public class OptimizationResultModel {
   private final ObservableList<Solution> displayedSolutions = FXCollections.observableArrayList();
 
   /**
+   * Every evaluated solution in evaluation order, independent of what the table shows, so the
+   * progress chart always plots the whole search.
+   */
+  private final ObservableList<Solution> evaluatedSolutions = FXCollections.observableArrayList();
+
+  /**
    * decision: identity based, because {@link Solution} does not define value equality and two
    * distinct candidates can carry identical numbers.
    */
   private final Set<Solution> frontSolutions = Collections.newSetFromMap(new IdentityHashMap<>());
+
+  public OptimizationResultModel(final boolean showExtendedStatistics) {
+    this.showExtendedStatistics = showExtendedStatistics;
+  }
+
+  public boolean isShowExtendedStatistics() {
+    return showExtendedStatistics;
+  }
+
+  /**
+   * Whether a solution attribute is shown in the results table and exported to csv. Internal
+   * attributes (prefixed with '_') and the MOEA penalty are never shown.
+   */
+  public boolean isAttributeShown(@NotNull String attribute) {
+    if (attribute.startsWith("_") || attribute.equalsIgnoreCase("penalty")) {
+      return false;
+    }
+    // decision: without extended statistics the benchmark feature matches are the only attribute
+    // kept, because they directly reflect the user-supplied expectation
+    return showExtendedStatistics || attribute.equals(
+        WizardOptimizationProblem.ATTR_BENCHMARK_FEATURES);
+  }
 
   @Nullable
   public NondominatedPopulation getResult() {
@@ -136,6 +171,10 @@ public class OptimizationResultModel {
 
   public @NotNull ObservableList<Solution> getDisplayedSolutions() {
     return displayedSolutions;
+  }
+
+  public @NotNull ObservableList<Solution> getEvaluatedSolutions() {
+    return evaluatedSolutions;
   }
 
   /**

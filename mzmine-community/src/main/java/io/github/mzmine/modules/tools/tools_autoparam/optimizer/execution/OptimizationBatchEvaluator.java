@@ -49,13 +49,14 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.PrecisionDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.time.Instant;
@@ -80,6 +81,7 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
 
   private final File @NotNull [] files;
   private final @NotNull List<SweepMetric> metrics;
+  private final @NotNull MetricContext metricContext;
   private final @NotNull List<FeatureRecord> benchmarkFeatures;
   private final @NotNull AtomicReference<TaskStatus> externalStatus;
   /** Raw data is imported here once, never into the user's active project. */
@@ -97,11 +99,12 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
   private final @NotNull AtomicBoolean imported = new AtomicBoolean();
 
   OptimizationBatchEvaluator(@NotNull MZmineProject sourceProject, File @NotNull [] files,
-      @NotNull List<SweepMetric> metrics,
+      @NotNull List<SweepMetric> metrics, @NotNull MetricContext metricContext,
       @NotNull List<FeatureRecord> benchmarkFeatures,
       @NotNull AtomicReference<TaskStatus> externalStatus) {
     this.files = files.clone();
     this.metrics = List.copyOf(metrics);
+    this.metricContext = metricContext;
     this.benchmarkFeatures = List.copyOf(benchmarkFeatures);
     this.externalStatus = externalStatus;
     sourceMetadata = snapshotMetadata(sourceProject.getProjectMetadata());
@@ -188,8 +191,9 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       boolean shapeDiagnosticEnabled, @NotNull IntSupplier reserveBatchExecution) {
     ensureNotCanceledOrClosed();
     final BatchQueue queue = createEvaluationQueue(sequence);
-    initializeImports(queue);
+    // Private imports inherit the source metadata below; UI-bound followups must never run here.
     disableTrialImportFollowups(queue);
+    initializeImports(queue);
     // decision: reserve immediately before launch so a generational algorithm cannot overshoot
     // the full-batch budget between termination checks.
     final int batchExecutionIndex = reserveBatchExecution.getAsInt();
@@ -355,18 +359,19 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
   private void applyScores(@NotNull FeatureList featureList, @NotNull Solution solution) {
     int objectiveIndex = 0;
     for (final SweepMetric metric : metrics) {
-      solution.setObjectiveValue(objectiveIndex++, metric.evaluate(featureList));
+      solution.setObjectiveValue(objectiveIndex++, metric.evaluate(featureList, metricContext));
       metric.applyAttributes(featureList, solution);
     }
 
     if (!benchmarkFeatures.isEmpty()) {
       final List<FeatureListRow> rows = featureList.getRowsCopy();
       rows.sort(Comparator.comparing(FeatureListRow::getAverageMZ));
-      solution.setAttribute("Target features",
+      solution.setAttribute(WizardOptimizationProblem.ATTR_BENCHMARK_FEATURES,
           benchmarkFeatures.stream().parallel().mapToLong(record -> record.getNumMatches(rows))
               .sum());
     }
-    solution.setAttribute("Total features", featureList.streamFeatures().count());
+    solution.setAttribute(WizardOptimizationProblem.ATTR_TOTAL_FEATURES,
+        featureList.streamFeatures().count());
     solution.setAttribute("Rows (incl. isotopes)", featureList.getRows().size());
   }
 }

@@ -32,37 +32,101 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometer
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
-import io.github.mzmine.modules.tools.tools_autoparam.RawDataParameterEstimation;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataParameterEstimation;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard context for interpreting measurements; construction performs no processing.
  */
 public final class ParameterEstimationContext {
 
+  private static final Logger logger = Logger.getLogger(ParameterEstimationContext.class.getName());
+
   private final @NotNull RawDataAnalysis analysis;
   private final @NotNull WizardSequence sequence;
-  private final @Nullable MZTolerance sampleMzTolerance;
-
+  private final @NotNull PresetSelection presetSelection;
   /**
-   *
+   * Wizard settings fixed for the whole run before the statistics were computed, see
+   * {@link PreclassificationParameters}.
    */
+  private final @NotNull ParameterSet preclassification;
+
   private ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
-      @NotNull WizardSequence sequence, @Nullable MZTolerance sampleMzTolerance) {
+      @NotNull WizardSequence sequence, @NotNull PresetSelection presetSelection,
+      @NotNull ParameterSet preclassification) {
     this.analysis = analysis;
     this.sequence = sequence;
-    this.sampleMzTolerance = sampleMzTolerance;
+    this.presetSelection = presetSelection;
+    this.preclassification = preclassification;
   }
 
+  /**
+   * Estimates for the presets selected in the sequence without pre-classified settings, i.e., no
+   * polarity filter.
+   */
   public ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence) {
-    this(analysis, sequence,
-        ParameterEstimators.estimateSampleToSampleMzTolerance(analysis.sampleMzToleranceCounts(),
-            0.8f));
+    this(analysis, sequence, new PreclassificationParameters().cloneParameterSet());
+  }
+
+  /**
+   * Estimates for the presets selected in the sequence.
+   *
+   * @param preclassification the settings the statistics were computed with, see
+   *                          {@link PreclassificationParameters}
+   */
+  public ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
+      @NotNull WizardSequence sequence, @NotNull ParameterSet preclassification) {
+    this(analysis, sequence, PresetSelection.NONE, preclassification);
+  }
+
+  /**
+   * Offers the ion interface and mass spectrometer presets that fit the raw data, see
+   * {@link PresetSelection}, and estimates for them if confirmed. The context sequence is then a
+   * copy with the default parameters of the new presets.
+   *
+   * @param sequence          the wizard sequence, is not modified
+   * @param preclassification the settings the statistics were computed with, see
+   *                          {@link PreclassificationParameters}
+   * @param confirmation      called with the fitting presets if they differ from the sequence,
+   *                          returns true to estimate for them. Usually asks the user and switches
+   *                          the wizard.
+   */
+  public static @NotNull ParameterEstimationContext withFittingPresets(
+      @NotNull RawDataAnalysis analysis, @NotNull WizardSequence sequence,
+      @NotNull ParameterSet preclassification,
+      @NotNull Predicate<@NotNull PresetSelection> confirmation) {
+    final PresetSelection fitting = PresetSelection.select(analysis, sequence);
+    // also reaches headless runs, which never confirm
+    if (fitting.hasWarnings()) {
+      logger.warning("Check the wizard presets for the raw data:\n" + fitting.describeWarnings());
+    }
+    if (fitting.isEmpty() || !confirmation.test(fitting)) {
+      return new ParameterEstimationContext(analysis, sequence, preclassification);
+    }
+    final WizardSequence estimationSequence = sequence.copy();
+    fitting.applyDefaultPresets(estimationSequence);
+    return new ParameterEstimationContext(analysis, estimationSequence, fitting, preclassification);
+  }
+
+  /**
+   * @return the wizard settings fixed before the statistics were computed, see
+   * {@link PreclassificationParameters}
+   */
+  public @NotNull ParameterSet preclassification() {
+    return preclassification;
+  }
+
+  /**
+   * @return the presets that were switched to in {@link #sequence()} to fit the raw data
+   */
+  public @NotNull PresetSelection presetSelection() {
+    return presetSelection;
   }
 
   public @NotNull MassDetectorWizardOptions massDetectorType() {
@@ -89,34 +153,6 @@ public final class ParameterEstimationContext {
 
   public @NotNull WizardSequence sequence() {
     return sequence;
-  }
-
-  public @Nullable MZTolerance sampleMzTolerance() {
-    return sampleMzTolerance;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
-    }
-    var that = (ParameterEstimationContext) obj;
-    return Objects.equals(this.analysis, that.analysis) && Objects.equals(this.sequence,
-        that.sequence) && Objects.equals(this.sampleMzTolerance, that.sampleMzTolerance);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(analysis, sequence, sampleMzTolerance);
-  }
-
-  @Override
-  public String toString() {
-    return "ParameterEstimationContext[" + "analysis=" + analysis + ", " + "sequence=" + sequence
-        + ", " + "sampleMzTolerance=" + sampleMzTolerance + ']';
   }
 
 }

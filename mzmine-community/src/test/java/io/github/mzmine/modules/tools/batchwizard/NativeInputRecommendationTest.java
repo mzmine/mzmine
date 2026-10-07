@@ -1,7 +1,7 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import static org.junit.jupiter.api.Assertions.*;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataPreparation;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import java.io.File;
 import java.util.Arrays;
 import java.util.stream.IntStream;

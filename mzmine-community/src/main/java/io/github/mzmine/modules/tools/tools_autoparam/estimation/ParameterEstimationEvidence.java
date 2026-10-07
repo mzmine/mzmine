@@ -24,7 +24,7 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
 import io.github.mzmine.modules.tools.tools_autoparam.StatisticsPlotType;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,7 +72,7 @@ public record ParameterEstimationEvidence(@NotNull String basis, @NotNull String
     if (definition.equals(OptimizationParameterRegistry.MINIMUM_FEATURE_HEIGHT)) {
       return measured(parameter, analysis.heights().length, "lowest-isotope heights",
           Map.of("median_lowest_isotope_height", median(analysis.heights())),
-          "Median measured lowest-isotope height.");
+          "Median lowest-isotope height, corrected to each file's reference injection time when available; raw heights are used otherwise.");
     }
     if (definition.equals(OptimizationParameterRegistry.MINIMUM_CONSECUTIVE_SCANS)) {
       return measured(parameter, analysis.consecutiveScans().length, "isotope-trace scan counts",
@@ -84,6 +84,25 @@ public record ParameterEstimationEvidence(@NotNull String basis, @NotNull String
     }
     if (definition.equals(OptimizationParameterRegistry.MZ_TOLERANCE)) {
       return mzToleranceEvidence(parameter, analysis);
+    }
+    if (definition.equals(OptimizationParameterRegistry.SAMPLE_TO_SAMPLE_MZ_TOLERANCE)) {
+      return measured(parameter, analysis.sampleMzToleranceCounts().values().stream()
+              .mapToInt(Integer::intValue).sum(), "aligned rows with m/z deviations",
+          Map.of("target_coverage_fraction", 0.8d),
+          "Smallest predefined tolerance covering at least 80% of the aligned-row m/z deviations; fixed during optimization.");
+    }
+    if (definition.equals(OptimizationParameterRegistry.CROP_RT)) {
+      final long effectiveRanges = analysis.files().stream()
+          .filter(file -> file.effectiveRtRange() != null).count();
+      final boolean detected = effectiveRanges > 0 && effectiveRanges >= 0.5 * analysis.files().size();
+      return measured(parameter, analysis.files().size(), "analyzed files",
+          Map.of("files_with_detected_separation_range", (double) effectiveRanges),
+          detected ? "Median start and end of detected separation ranges; fixed during optimization."
+              : "Union of recorded MS1 retention-time ranges because fewer than half the files have a detected separation range; fixed during optimization.");
+    }
+    if (definition.equals(OptimizationParameterRegistry.POLARITY)) {
+      return measured(parameter, analysis.files().size(), "analyzed files",
+          Map.of(), "Polarity fixed before statistics were computed, from the wizard choice checked against the files or from unambiguous raw-file polarity; fixed during optimization.");
     }
     if (definition.equals(OptimizationParameterRegistry.INTER_SAMPLE_RT)) {
       return measured(parameter, analysis.rtDeviations().length, "aligned feature RT deviations",

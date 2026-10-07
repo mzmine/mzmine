@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.search;
 
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,11 +97,6 @@ final class CanonicalParameterSpace {
   double ordinalStep(int dimension) {
     final int range = upperIntegerBounds[dimension] - lowerIntegerBounds[dimension];
     return range > 0 ? 1d / range : 1d;
-  }
-
-  int ordinalLevels(int dimension) {
-    return ordinal[dimension] ? upperIntegerBounds[dimension] - lowerIntegerBounds[dimension] + 1
-        : 0;
   }
 
   @NotNull double[] encode(@NotNull Solution solution) {

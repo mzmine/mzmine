@@ -29,7 +29,8 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchDomain;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -67,11 +68,21 @@ public record IndexedParameter<T>(@NotNull PreparedParameter<T> parameter, int i
   }
 
   public void initialize(@NotNull Solution solution) {
-    final RealVariable variable = parameter.searchDomain()
-        .createVariable(parameter.definition().name());
+    final RealVariable variable = createVariable(parameter.searchDomain(),
+        parameter.definition().name());
     variable.setValue(Math.clamp(parameter.searchDomain().encode(parameter.initialValue()),
         variable.getLowerBound(), variable.getUpperBound()));
     solution.setVariable(index, variable);
+  }
+
+  /**
+   * The only place that converts a search domain into a MOEA variable. Ordinal domains become
+   * {@link OrdinalIntegerVariable}s, which the search algorithms round and sample per integer.
+   */
+  private static @NotNull RealVariable createVariable(@NotNull SearchDomain<?> domain,
+      @NotNull String name) {
+    return domain.ordinal() ? new OrdinalIntegerVariable(name, (int) domain.lower(),
+        (int) domain.upper()) : new RealVariable(name, domain.lower(), domain.upper());
   }
 
   public @NotNull T value(@NotNull Solution solution) {

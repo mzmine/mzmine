@@ -26,20 +26,34 @@
 package io.github.mzmine.modules.tools.tools_autoparam.estimation.domain;
 
 import java.util.function.DoubleFunction;
+import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import org.jetbrains.annotations.NotNull;
-import org.moeaframework.core.variable.RealVariable;
 
 /**
- * A continuous search coordinate that controls a composite parameter value.
+ * A continuous search coordinate that controls a composite or unit-carrying parameter value.
+ *
+ * @param formatter formats values for logs and notifications, the coordinate by default
  */
 public record MappedSearchDomain<T>(@NotNull DoubleSearchDomain coordinate,
                                     @NotNull ToDoubleFunction<T> encoder,
-                                    @NotNull DoubleFunction<T> decoder) implements SearchDomain<T> {
+                                    @NotNull DoubleFunction<T> decoder,
+                                    @NotNull Function<T, String> formatter) implements
+    SearchDomain<T> {
+
+  public MappedSearchDomain(@NotNull DoubleSearchDomain coordinate,
+      @NotNull ToDoubleFunction<T> encoder, @NotNull DoubleFunction<T> decoder) {
+    this(coordinate, encoder, decoder, value -> Double.toString(encoder.applyAsDouble(value)));
+  }
 
   @Override
-  public @NotNull RealVariable createVariable(@NotNull String name) {
-    return coordinate.createVariable(name);
+  public double lower() {
+    return coordinate.lower();
+  }
+
+  @Override
+  public double upper() {
+    return coordinate.upper();
   }
 
   @Override
@@ -59,6 +73,6 @@ public record MappedSearchDomain<T>(@NotNull DoubleSearchDomain coordinate,
 
   @Override
   public @NotNull String format(@NotNull T value) {
-    return Double.toString(encode(value));
+    return formatter.apply(value);
   }
 }

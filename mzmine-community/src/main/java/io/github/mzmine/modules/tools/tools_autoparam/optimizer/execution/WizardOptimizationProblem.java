@@ -29,28 +29,27 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationEvidence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.BenchmarkTargetCount;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SearchScaleProvider;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.project.ProjectService;
 import java.io.File;
@@ -66,6 +65,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.moeaframework.core.Solution;
@@ -93,6 +93,15 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * Wall-clock time of this proposal's batch queue. Zero when no batch ran because of a cache hit.
    */
   public static final String ATTR_BATCH_RUNTIME_SECONDS = "Runtime / s";
+  /**
+   * Number of benchmark features from the user-supplied file that were matched in the result. Only
+   * set when a benchmark features file was supplied.
+   */
+  public static final String ATTR_BENCHMARK_FEATURES = "Target features";
+  /**
+   * Number of features in the evaluated feature list.
+   */
+  public static final String ATTR_TOTAL_FEATURES = "Total features";
   private static final Logger logger = Logger.getLogger(WizardOptimizationProblem.class.getName());
   /**
    * Whether the result was taken from {@link #evaluationCache} instead of running a batch. Kept
@@ -125,7 +134,6 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    */
   private final @NotNull Map<String, ParameterEstimationEvidence> estimationEvidence;
   private final int estimationFileCount;
-  private final @Nullable MZTolerance mzSampleToSampleTolerance;
   private final @NotNull List<FeatureRecord> fileOnlyBenchmarkFeatures;
   private final @NotNull BatchExecutionBudget batchExecutionBudget;
   private final @NotNull ElapsedTimeTracker elapsedTimeTracker = new ElapsedTimeTracker();
@@ -166,10 +174,18 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
       @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param,
       @NotNull AtomicReference<TaskStatus> externalStatus, int maxBatchExecutions,
       @NotNull BooleanSupplier stopSearchRequestedSupplier) {
+    this(estimationContext, prepared, param, resolveParamToOptimize(prepared, param),
+        externalStatus, maxBatchExecutions, stopSearchRequestedSupplier);
+  }
+
+  private WizardOptimizationProblem(@NotNull ParameterEstimationContext estimationContext,
+      @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param,
+      @NotNull List<ParameterDefinition<?>> paramToOptimize,
+      @NotNull AtomicReference<TaskStatus> externalStatus, int maxBatchExecutions,
+      @NotNull BooleanSupplier stopSearchRequestedSupplier) {
 
     // decision: super() must be first — use static helper for objective count before enabledMetrics field is assigned
-    super(param.getValue(OptimizerParameters.paramToOptimize).size(),
-        calculateNumberOfObjectives(param, estimationContext.analysis().files()),
+    super(paramToOptimize.size(), calculateNumberOfObjectives(param),
         calculateNumberOfConstraints(param));
 
     final List<DataFileStatistics> stats = estimationContext.analysis().files();
@@ -180,15 +196,15 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
             param.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
     batchExecutionBudget = new BatchExecutionBudget(maxBatchExecutions);
     target = Objects.requireNonNull(BenchmarkFeatureLoader.fromStatistics(stats));
-    paramToOptimize = List.copyOf(param.getValue(OptimizerParameters.paramToOptimize));
+    this.paramToOptimize = List.copyOf(paramToOptimize);
     this.stopSearchRequestedSupplier = stopSearchRequestedSupplier;
-    enabledMetrics = buildEnabledMetrics(param, stats);
+    enabledMetrics = List.copyOf(OptimizerParameters.getOptimizationTargets(param));
 
     initialSequence = estimationContext.sequence();
     final File[] files = stats.stream().map(DataFileStatistics::file)
         .map(RawDataFile::getAbsoluteFilePath).toArray(File[]::new);
-    batchEvaluator = new OptimizationBatchEvaluator(ProjectService.getProject(), files, enabledMetrics,
-        fileOnlyBenchmarkFeatures, externalStatus);
+    batchEvaluator = new OptimizationBatchEvaluator(ProjectService.getProject(), files,
+        enabledMetrics, new MetricContext(target), fileOnlyBenchmarkFeatures, externalStatus);
 
     preparedParameters = prepared;
     estimationEvidence = prepared.parameters().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
@@ -196,32 +212,30 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
         parameter -> ParameterEstimationEvidence.describe(estimationContext, parameter)));
     estimationFileCount = stats.size();
     indexedParameters = IndexedParameter.bind(preparedParameters, paramToOptimize);
-    mzSampleToSampleTolerance = estimationContext.sampleMzTolerance();
   }
 
   /**
-   * Builds the enabled {@link SweepMetric} list from the user's checklist selection.
-   * {@link BenchmarkTargetCount} placeholder instances are replaced with real instances carrying
-   * the actual target features derived from file statistics.
+   * Only the selected parameters that apply to the final wizard presets are optimized. Must be
+   * static because it is needed inside the {@code super(...)} call.
+   *
+   * @throws IllegalStateException if none of the selected parameters applies
    */
-  private static @NotNull List<SweepMetric> buildEnabledMetrics(@NotNull ParameterSet param,
-      @Nullable List<@NotNull DataFileStatistics> stats) {
-    final List<SweepMetric> selected = OptimizerParameters.getOptimizationTargets(param);
-    final List<SweepMetric> metrics = new ArrayList<>();
-    for (final SweepMetric metric : selected) {
-      if (metric instanceof BenchmarkTargetCount) {
-        // decision: only include benchmark metric when file statistics are available to derive targets
-        if (stats != null) {
-          final List<FeatureRecord> targets = BenchmarkFeatureLoader.fromStatistics(stats);
-          if (targets != null) {
-            metrics.add(new BenchmarkTargetCount(targets));
-          }
-        }
-      } else {
-        metrics.add(metric);
-      }
+  static @NotNull List<ParameterDefinition<?>> resolveParamToOptimize(
+      @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param) {
+    final List<ParameterDefinition<?>> selected = param.getValue(
+        OptimizerParameters.paramToOptimize);
+    final List<ParameterDefinition<?>> applicable = prepared.applicable(selected);
+    if (applicable.isEmpty()) {
+      throw new IllegalStateException("""
+          None of the selected parameters to optimize applies to the wizard presets. \
+          Select at least one of the listed parameters.""");
     }
-    return List.copyOf(metrics);
+    if (applicable.size() < selected.size()) {
+      logger.fine(() -> "Not optimized, the wizard presets do not use: " + selected.stream()
+          .filter(definition -> !applicable.contains(definition)).map(ParameterDefinition::name)
+          .collect(Collectors.joining(", ")));
+    }
+    return applicable;
   }
 
   /**
@@ -232,12 +246,12 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     return param.getValue(OptimizerParameters.maxShapeRejectionFactor) ? 1 : 0;
   }
 
-  static int calculateNumberOfObjectives(@NotNull ParameterSet param,
-      @Nullable List<DataFileStatistics> stats) {
-    final List<SweepMetric> selected = OptimizerParameters.getOptimizationTargets(param);
-    // BenchmarkTargetCount only counts as an objective when file statistics are available
-    return (int) selected.stream()
-        .filter(m -> !(m instanceof BenchmarkTargetCount) || stats != null).count();
+  /**
+   * One objective per selected metric. Must be static because it is needed inside the
+   * {@code super(...)} call.
+   */
+  static int calculateNumberOfObjectives(@NotNull ParameterSet param) {
+    return OptimizerParameters.getOptimizationTargets(param).size();
   }
 
   @Override
@@ -335,6 +349,14 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
   @Override
   public @NotNull SearchScale searchScale(int parameterIndex) {
     return indexedParameters.get(parameterIndex).parameter().searchDomain().searchScale();
+  }
+
+  /**
+   * @return a copy of the wizard sequence the optimization started from, with the presets that fit
+   * the raw data if the user switched to them
+   */
+  public @NotNull WizardSequence getInitialSequence() {
+    return initialSequence.copy();
   }
 
   public @NotNull List<IndexedParameter<?>> getIndexedParameters() {
@@ -451,10 +473,6 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
     disableExportPath(workflowParam);
 
-    if (mzSampleToSampleTolerance != null) {
-      msParam.setParameter(MassSpectrometerWizardParameters.sampleToSampleMzTolerance,
-          mzSampleToSampleTolerance);
-    }
     return wizardSequence;
   }
 
@@ -484,6 +502,26 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     if (workflow.getNameParameterMap()
         .get(WorkflowDdaWizardParameters.exportPath.getName()) instanceof OptionalParameter<?>) {
       workflow.setParameter(WorkflowDdaWizardParameters.exportPath, false);
+    }
+  }
+
+  /**
+   * Applies only the estimated and optimized values of a solution to an existing wizard sequence,
+   * the same way as applying the raw data estimates. All other parameters keep their current
+   * values. The applied values equal the ones the solution was evaluated with in
+   * {@link #createWizardSequenceFromSolution(Solution)} as long as the sequence uses the same
+   * presets as the optimization.
+   * <p>
+   * assumption: parameters with a {@link ValueOrigin#PRESET_DEFAULT} value that were not optimized
+   * are not estimates and are therefore left unchanged.
+   *
+   * @param solution the solution to apply
+   * @param sequence the wizard sequence to modify
+   */
+  public void applySolutionToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence) {
+    preparedParameters.applyEstimates(sequence, Set.copyOf(paramToOptimize));
+    for (final IndexedParameter<?> parameter : indexedParameters) {
+      parameter.applyToWizard(solution, sequence);
     }
   }
 

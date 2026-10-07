@@ -133,6 +133,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     scopeComboBox.setMaxWidth(Double.MAX_VALUE);
 
     TableView<ParameterOverride> overridesTable = new TableView<>();
+    model.setNodeForDecoration(overridesTable);
 
     // --- Wire tree -> model selection ---
     moduleTreePane.addModuleFocusedListener(model::setSelectedModule);
@@ -584,8 +585,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     model.getOverrides().remove(new OverrideKey(moduleClass, paramName, override.scope()));
     model.getOverrides().put(new OverrideKey(moduleClass, paramName, newScope),
         ParameterOverride.fromParameter(moduleClass, override.moduleUniqueId(),
-            override.parameterWithValue(),
-            newScope));
+            override.parameterWithValue(), newScope));
   }
 
   private String getModuleUniqueId(Class<? extends MZmineRunnableModule> moduleClass) {

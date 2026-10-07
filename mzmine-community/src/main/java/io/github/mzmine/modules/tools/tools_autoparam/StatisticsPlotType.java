@@ -25,11 +25,8 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam;
 
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -95,36 +92,19 @@ public enum StatisticsPlotType {
 
   /**
    * Extracts the raw data array for histogram plotting from the given statistics. Not applicable
-   * for {@link #BEST_TOLERANCE_FREQUENCY} — use {@link #extractToleranceCounts} instead.
+   * for {@link #BEST_TOLERANCE_FREQUENCY} — use
+   * {@link DataFileStatistics#extractToleranceCounts()} instead.
    */
   public double @NotNull [] extractData(@NotNull DataFileStatistics stats) {
     return switch (this) {
       case FWHM -> stats.getIsotopePeakFwhms();
       case EDGE_INTENSITY -> stats.getEdgeIntensities();
-      case LOWEST_ISOTOPE_HEIGHT -> stats.getLowestIsotopeHeights();
+      // the same values the min height is estimated from, so the marked estimate fits the histogram
+      case LOWEST_ISOTOPE_HEIGHT -> stats.getInjectionTimeCorrectedLowestIsotopeHeights();
       case ISOTOPE_DATA_POINTS ->
           Arrays.stream(stats.getNumberOfLowestIsotopeDataPoints()).asDoubleStream().toArray();
       case BEST_TOLERANCE_FREQUENCY -> new double[0];
     };
-  }
-
-  /**
-   * Counts how often each tolerance in {@link MzToleranceSearchOptions#ALL_TOLERANCE_OPTIONS}
-   * was selected as best tolerance. Returns a map from tolerance label to count, preserving the
-   * order of the tolerance array.
-   */
-  public static @NotNull Map<String, Integer> extractToleranceCounts(
-      @NotNull DataFileStatistics stats) {
-    final MZTolerance[] allTolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
-    final Map<String, Integer> counts = new LinkedHashMap<>();
-    for (MZTolerance tol : allTolerances) {
-      counts.put(tol.toString(), 0);
-    }
-    for (MzToMzTolerancePair pair : stats.getBestTolerances()) {
-      final String key = pair.tolerance().toString();
-      counts.merge(key, 1, Integer::sum);
-    }
-    return counts;
   }
 
   @Override

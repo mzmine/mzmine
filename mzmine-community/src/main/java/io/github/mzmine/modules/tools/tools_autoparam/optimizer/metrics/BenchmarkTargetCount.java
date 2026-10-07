@@ -27,23 +27,24 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Maximise: number of benchmark target features found in the result. Mirrors
- * {@link WizardOptimizationProblem}'s {@code maximizeNumBenchmark} objective.
- *
- * @param targets the list of expected benchmark features to match against
+ * Maximise: number of benchmark target features found in the result. The targets are derived
+ * from the raw data statistics of the run and passed in the {@link MetricContext}.
  */
-public record BenchmarkTargetCount(@NotNull List<FeatureRecord> targets) implements SweepMetric {
+public record BenchmarkTargetCount() implements SweepMetric {
 
   @Override
   public @NotNull String name() {
     return "Benchmark target count";
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return "benchmark_target_count";
   }
 
   @Override
@@ -57,9 +58,9 @@ public record BenchmarkTargetCount(@NotNull List<FeatureRecord> targets) impleme
   }
 
   @Override
-  public double evaluate(@NotNull FeatureList featureList) {
+  public double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context) {
     final List<FeatureListRow> rows = featureList.getRowsCopy();
     rows.sort(Comparator.comparing(FeatureListRow::getAverageMZ));
-    return targets.stream().parallel().filter(r -> r.isPresent(rows)).count();
+    return context.benchmarkTargets().stream().parallel().filter(r -> r.isPresent(rows)).count();
   }
 }

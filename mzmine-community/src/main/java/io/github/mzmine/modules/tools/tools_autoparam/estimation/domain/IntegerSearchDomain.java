@@ -36,8 +36,18 @@ public record IntegerSearchDomain(int lowerBound, int upperBound) implements Sea
   }
 
   @Override
-  public @NotNull OrdinalIntegerVariable createVariable(@NotNull String name) {
-    return new OrdinalIntegerVariable(name, lowerBound, upperBound);
+  public double lower() {
+    return lowerBound;
+  }
+
+  @Override
+  public double upper() {
+    return upperBound;
+  }
+
+  @Override
+  public boolean ordinal() {
+    return true;
   }
 
   @Override

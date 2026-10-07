@@ -25,30 +25,55 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import java.util.Set;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Index-free parameter identity, estimator, and typed wizard/batch binding.
  */
-public sealed interface ParameterDefinition<T> permits WizardParameterDefinition,
-    BatchParameterDefinition {
+public sealed interface ParameterDefinition<T> extends UniqueIdSupplier permits
+    WizardParameterDefinition, BatchParameterDefinition {
 
   /**
    * Derived from the actual target, independently of the optimization display label.
    */
   @NotNull String id();
 
+  /**
+   * The stable ID for saving a selection, see {@link #id()}.
+   */
+  @Override
+  default @NotNull String getUniqueID() {
+    return id();
+  }
+
   @NotNull String name();
+
+  /**
+   * How the optimizer treats this definition.
+   */
+  @NotNull OptimizationRole role();
+
+  /**
+   * The wizard presets this definition applies to. It is estimated and applied, and can be
+   * optimized, only if the sequence contains one of them.
+   */
+  @NotNull Set<WizardParameterFactory> presets();
+
+  default boolean appliesTo(@NotNull WizardSequence sequence) {
+    return sequence.stream().map(WizardStepParameters::getFactory).anyMatch(presets()::contains);
+  }
 
   @NotNull Function<ParameterEstimationContext, ParameterEstimate<T>> estimator();
 
   void apply(@NotNull WizardSequence sequence, @NotNull T value);
 
   default @NotNull PreparedParameter<T> prepare(@NotNull ParameterEstimationContext context) {
-    final ParameterEstimate<T> estimate = estimator().apply(context);
-    return new PreparedParameter<>(this, estimate.initialValue(), estimate.origin(),
-        estimate.searchDomain());
+    return new PreparedParameter<>(this, estimator().apply(context));
   }
 }

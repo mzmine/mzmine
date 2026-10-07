@@ -34,12 +34,13 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.OptimizationParameterRegistry;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.MoeadOptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.PatternSearchOptimizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.CheckListParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
@@ -53,6 +54,7 @@ import io.github.mzmine.util.files.ExtensionFilters;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,9 +76,14 @@ public class OptimizerParameters extends SimpleParameterSet {
           "Optional file with additional benchmark features.", ExtensionFilters.CSV_TSV_IMPORT,
           FileSelectionType.OPEN));
 
+  /**
+   * The search needs some batches after the raw data estimate to improve on it.
+   */
+  public static final int MIN_ITERATIONS = 30;
+
   public static final IntegerParameter iterations = new IntegerParameter("Iterations",
       "Maximum number of uncached full batch executions, including the raw-data estimate. Cached "
-          + "duplicate proposals do not consume this budget.", 70, 30, 10_000);
+          + "duplicate proposals do not consume this budget.", 70, MIN_ITERATIONS, 10_000);
 
   public static final OptionalParameter<DoubleParameter> maxShapeRejectionFactor = new OptionalParameter<>(
       new DoubleParameter("Max shape rejection factor", """
@@ -94,13 +101,20 @@ public class OptimizerParameters extends SimpleParameterSet {
   private static final List<ParameterDefinition<?>> ALL_SOLUTIONS = OptimizationParameterRegistry.allSolutions();
   private static final List<ParameterDefinition<?>> DEFAULT_SOLUTIONS = OptimizationParameterRegistry.defaultSolutions();
 
-  public static final ParameterDefinitionCheckListParameter paramToOptimize = new ParameterDefinitionCheckListParameter(
+  public static final CheckListParameter<ParameterDefinition<?>> paramToOptimize = new CheckListParameter<>(
       "Parameters to optimize", "Select which parameters should be optimized.", ALL_SOLUTIONS,
       new ArrayList<>(DEFAULT_SOLUTIONS));
 
+  public static final BooleanParameter showExtendedStatistics = new BooleanParameter(
+      "Show extended statistics", """
+      Shows the data file statistics dashboard and all evaluated solutions with their diagnostic \
+      attributes in the results window.
+      If disabled, only the raw data estimate and the current best solutions are shown with their \
+      parameter values and optimization targets.""", false);
+
   public OptimizerParameters() {
     super(benchmarkFeatureTypes, benchmarkFeaturesFile, optimizers, iterations,
-        maxShapeRejectionFactor, paramToOptimize);
+        maxShapeRejectionFactor, paramToOptimize, showExtendedStatistics);
   }
 
   /**
@@ -116,8 +130,8 @@ public class OptimizerParameters extends SimpleParameterSet {
   }
 
   /**
-   * Convenience factory for programmatic use (e.g. tests). Passes the given metrics as the
-   * selection and leaves benchmark file options disabled.
+   * Convenience factory for programmatic use (e.g. tests). Uses MOEA/D, which accepts several
+   * metrics, with the given metrics as targets and leaves benchmark file options disabled.
    */
   public static @NotNull ParameterSet create(@NotNull List<SweepMetric> metrics,
       int numIterations) {
@@ -128,6 +142,7 @@ public class OptimizerParameters extends SimpleParameterSet {
     param.setParameter(iterations, numIterations);
     param.setParameter(maxShapeRejectionFactor, false);
     param.setParameter(paramToOptimize, new ArrayList<>(DEFAULT_SOLUTIONS));
+    param.setParameter(showExtendedStatistics, false);
     return param;
   }
 
@@ -142,17 +157,7 @@ public class OptimizerParameters extends SimpleParameterSet {
 
     final ParameterSet optimizerParameters = parameters.getParameter(optimizers)
         .setOptionGetParameters(optimizer);
-    switch (optimizer) {
-      case PATTERN_SEARCH -> {
-        if (targets.size() != 1) {
-          throw new IllegalArgumentException("Pattern search requires exactly one target.");
-        }
-        optimizerParameters.setParameter(PatternSearchOptimizerParameters.optimizationTarget,
-            targets.getFirst());
-      }
-      case MOEAD -> optimizerParameters.setParameter(MoeadOptimizerParameters.optimizationTargets,
-          new ArrayList<>(targets));
-    }
+    optimizer.getModuleInstance().setOptimizationTargets(optimizerParameters, targets);
   }
 
   public static @NotNull ParameterSet getSelectedOptimizerParameters(
@@ -163,7 +168,8 @@ public class OptimizerParameters extends SimpleParameterSet {
   public static @NotNull List<SweepMetric> getOptimizationTargets(
       @NotNull ParameterSet parameters) {
     final OptimizerOptions optimizer = parameters.getValue(optimizers);
-    return optimizer.getOptimizationTargets(getSelectedOptimizerParameters(parameters));
+    return optimizer.getModuleInstance()
+        .getOptimizationTargets(getSelectedOptimizerParameters(parameters));
   }
 
   @Override
@@ -191,19 +197,23 @@ public class OptimizerParameters extends SimpleParameterSet {
   public @Nullable Region getMessage() {
     return FxTextFlows.newTextFlowInAccordion("Citations", FxTexts.text(
             "When optimizing on these respective metrics, please respect the following citations:"),
-        FxTexts.linebreak(), FxTexts.boldText(SweepMetric.IPO_ISOTOPE_SCORE.name()),
+        FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.IPO_ISOTOPE_SCORE.name()),
         FxTexts.text(": "),
         FxTexts.hyperlinkText("IPO", "https://doi.org/10.1186/s12859-015-0562-8"),
-        FxTexts.linebreak(), FxTexts.boldText(SweepMetric.SLAW_INTEGRATION_SCORE.name()),
+        FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.SLAW_INTEGRATION_SCORE.name()),
         FxTexts.text(": "),
         FxTexts.hyperlinkText("SLAW", "https://pubs.acs.org/doi/10.1021/acs.analchem.1c02687"));
   }
 
   public @NotNull ExitCode showSetupDialog(boolean valueCheckRequired,
       @Nullable WizardSequence sequence) {
-    getParameter(paramToOptimize).setWizardSequence(sequence);
+    // show only the parameters that apply to the wizard presets
+    if (sequence != null) {
+      final Set<ParameterDefinition<?>> applicable = Set.copyOf(collectSolutions(sequence));
+      getParameter(paramToOptimize).setVisibleFilter(applicable::contains);
+    }
     final ExitCode superReturn = super.showSetupDialog(valueCheckRequired);
-    getParameter(paramToOptimize).setWizardSequence(null); // always reset to zero
+    getParameter(paramToOptimize).setVisibleFilter(null); // always reset to all
     return superReturn;
   }
 }

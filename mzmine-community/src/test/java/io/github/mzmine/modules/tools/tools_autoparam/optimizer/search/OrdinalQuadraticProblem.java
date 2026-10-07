@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.search;
 
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import org.jetbrains.annotations.NotNull;
 import org.moeaframework.core.Solution;
 import org.moeaframework.problem.AbstractProblem;

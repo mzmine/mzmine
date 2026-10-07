@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.util.List;
@@ -112,7 +112,7 @@ class RtCorrectionEstimationTest {
     final RawDataFile file = new RawDataFileImpl("empty", null, null, Color.BLACK);
     try {
       final ParameterEstimationContext context = new ParameterEstimationContext(
-          new RawDataAnalysis(List.of(new DataFileStatistics(file, List.of())), new double[0],
+          new RawDataAnalysis(List.of(new DataFileStatistics(file, List.of(), null, null)), new double[0],
               new double[0], new double[0], new double[0], new double[0], new double[0], Map.of()),
           ParameterEstimationTestData.sequence());
       final PreparedParameter<?> parameter = OptimizationParameterRegistry.MZ_TOLERANCE.prepare(

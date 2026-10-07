@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.search;
 
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

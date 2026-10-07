@@ -30,6 +30,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMob
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,10 +77,22 @@ public record BenchmarkDataset(@NotNull String name, @NotNull List<String> files
   private static @NotNull File resolve(@NotNull String path) {
     final File asGiven = new File(path);
     final String root = System.getProperty(DATA_ROOT_PROPERTY);
-    if (asGiven.isAbsolute() || root == null || root.isBlank()) {
-      return asGiven;
+    final File resolved =
+        asGiven.isAbsolute() || root == null || root.isBlank() ? asGiven : new File(root, path);
+    return resolved.exists() ? resolved : convertedFallback(resolved);
+  }
+
+  /**
+   * Vendor files are often only kept as their mzML conversion, which imports the same data.
+   */
+  private static @NotNull File convertedFallback(@NotNull File missing) {
+    final String name = missing.getName();
+    if (!name.toLowerCase(Locale.ROOT).endsWith(".raw")) {
+      return missing;
     }
-    return new File(root, path);
+    final File mzml = new File(missing.getParentFile(),
+        name.substring(0, name.length() - ".raw".length()) + ".mzML");
+    return mzml.exists() ? mzml : missing;
   }
 
   public boolean isAvailable() {

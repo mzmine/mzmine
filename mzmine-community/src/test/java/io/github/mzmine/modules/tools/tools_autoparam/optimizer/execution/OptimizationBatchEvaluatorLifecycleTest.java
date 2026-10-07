@@ -140,7 +140,7 @@ class OptimizationBatchEvaluatorLifecycleTest {
 
   private static @NotNull OptimizationBatchEvaluator evaluator() {
     return new OptimizationBatchEvaluator(new MZmineProjectImpl(), new File[0], List.of(),
-        List.of(), new AtomicReference<>(TaskStatus.PROCESSING));
+        new io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext(List.of()), List.of(), new AtomicReference<>(TaskStatus.PROCESSING));
   }
 
   private static @NotNull WizardSequence sequence(final @NotNull WizardBatchBuilder builder) {

@@ -33,8 +33,8 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 public class PatternSearchOptimizerParameters extends SimpleParameterSet {
 
   public static final ComboParameter<SweepMetric> optimizationTarget = new ComboParameter<>(
-      "Optimization target", "Quality metric that pattern search maximizes.",
-      OptimizationMetrics.ALL, SweepMetric.ISOTOPE_RATIO_CONSISTENCY_SCORE);
+      "Optimization target", "Quality metric that pattern search optimizes.",
+      OptimizationMetrics.ALL, OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE);
 
   public PatternSearchOptimizerParameters() {
     super(optimizationTarget);

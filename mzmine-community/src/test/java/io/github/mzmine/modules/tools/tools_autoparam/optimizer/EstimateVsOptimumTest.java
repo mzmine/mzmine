@@ -31,17 +31,18 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInt
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.MoeadOptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.PatternSearchOptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartSampling;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
@@ -71,8 +72,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestInstance;
 import org.moeaframework.core.Solution;
 import testutils.MZmineTestUtil;
 
@@ -212,7 +213,7 @@ public class EstimateVsOptimumTest {
    * front is a trade-off set and there is no single "the optimization found this" value to compare
    * the estimate against.
    */
-  private static final SweepMetric METRIC = SweepMetric.ISOTOPE_RATIO_CONSISTENCY_SCORE;
+  private static final SweepMetric METRIC = OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE;
 
   private static final String OPTIMIZER_PROPERTY = "mzmine.test.autoparam.optimizer";
 
@@ -253,6 +254,12 @@ public class EstimateVsOptimumTest {
    * after a preset was corrected, instead of paying for the whole sweep again.
    */
   private static final String ONLY_PROPERTY = "mzmine.test.autoparam.only";
+
+  /**
+   * Comma separated parameter names to optimize, e.g. {@code Min height,MS1 noise level}, or unset
+   * for every parameter the sequence exposes. Fewer variables converge in fewer batches.
+   */
+  private static final String PARAMS_PROPERTY = "mzmine.test.autoparam.params";
 
   /**
    * Comma separated random seeds to repeat every dataset with. One seed gives every dataset the
@@ -347,8 +354,8 @@ public class EstimateVsOptimumTest {
         continue;
       }
       final int index = OrdinalIntegerVariable.getInt(solution, i);
-      final MZTolerance[] options = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
-      return index >= 0 && index < options.length ? options[index] : null;
+      final List<MZTolerance> options = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
+      return index >= 0 && index < options.size() ? options.get(index) : null;
     }
     return null;
   }
@@ -478,9 +485,9 @@ public class EstimateVsOptimumTest {
     rows.add(new ComparisonRow(dataset.name(), seed, "metric", METRIC.name(),
         estimate.getObjectiveValue(0), objectiveOrNull(perturbed), objectiveOrNull(front)));
     rows.add(new ComparisonRow(dataset.name(), seed, "diagnostic", "Total features",
-        attributeAsDouble(estimate, "Total features"),
-        attributeAsDouble(perturbed, "Total features"),
-        attributeAsDouble(front, "Total features")));
+        attributeAsDouble(estimate, WizardOptimizationProblem.ATTR_TOTAL_FEATURES),
+        attributeAsDouble(perturbed, WizardOptimizationProblem.ATTR_TOTAL_FEATURES),
+        attributeAsDouble(front, WizardOptimizationProblem.ATTR_TOTAL_FEATURES)));
     rows.add(new ComparisonRow(dataset.name(), seed, "diagnostic",
         ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT,
         attributeAsDouble(estimate, ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT),
@@ -647,6 +654,26 @@ public class EstimateVsOptimumTest {
     };
   }
 
+  /**
+   * Restricts the search to the parameters named in {@link #PARAMS_PROPERTY}. The others are not
+   * searched and stay at their raw data estimates.
+   */
+  private static @NotNull List<ParameterDefinition<?>> selectedParameters(
+      @NotNull List<ParameterDefinition<?>> exposed) {
+    final String configured = System.getProperty(PARAMS_PROPERTY);
+    if (configured == null || configured.isBlank()) {
+      return exposed;
+    }
+    final List<String> names = java.util.Arrays.stream(configured.split(",")).map(String::trim)
+        .filter(s -> !s.isEmpty()).toList();
+    final List<ParameterDefinition<?>> selected = exposed.stream()
+        .filter(p -> names.stream().anyMatch(name -> name.equalsIgnoreCase(p.name()))).toList();
+    Assertions.assertEquals(names.size(), selected.size(),
+        "-D%s=%s does not match the exposed parameters %s".formatted(PARAMS_PROPERTY, configured,
+            exposed.stream().map(ParameterDefinition::name).toList()));
+    return selected;
+  }
+
   private @NotNull OptimizerParameters createParameters(@NotNull WizardSequence sequence) {
     final OptimizerParameters params = new OptimizerParameters();
     final OptimizerOptions optimizer = optimizer();
@@ -666,7 +693,7 @@ public class EstimateVsOptimumTest {
     params.setParameter(OptimizerParameters.maxShapeRejectionFactor, false);
     // only the parameters this sequence actually exposes, same as the wizard's checklist
     params.setParameter(OptimizerParameters.paramToOptimize,
-        OptimizerParameters.collectSolutions(sequence));
+        selectedParameters(OptimizerParameters.collectSolutions(sequence)));
     return params;
   }
 

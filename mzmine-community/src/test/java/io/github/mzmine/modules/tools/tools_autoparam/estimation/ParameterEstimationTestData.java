@@ -31,6 +31,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWiz
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.List;
@@ -47,11 +49,19 @@ public final class ParameterEstimationTestData {
   }
 
   public static @NotNull ParameterEstimationContext context(@NotNull WizardSequence sequence) {
+    return context(sequence, new PreclassificationParameters().cloneParameterSet());
+  }
+
+  /**
+   * @param preclassification the settings fixed by the pre-classification
+   */
+  public static @NotNull ParameterEstimationContext context(@NotNull WizardSequence sequence,
+      @NotNull ParameterSet preclassification) {
     return new ParameterEstimationContext(
         new RawDataAnalysis(List.of(), new double[]{0.01, 0.04, 0.08, 0.1, 0.2},
             new double[]{6, 10, 12, 16, 20}, new double[]{10, 100, 500, 1000, 10000},
             new double[]{800, 1000, 12000, 25000, 250000}, new double[]{0.01, 0.02, 0.03, 0.05},
-            new double[0], java.util.Map.of()), sequence);
+            new double[0], java.util.Map.of()), sequence, preclassification);
   }
 
   public static @NotNull WizardSequence sequence() {

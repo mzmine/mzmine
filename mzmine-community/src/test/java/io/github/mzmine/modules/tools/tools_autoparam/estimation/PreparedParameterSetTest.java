@@ -38,11 +38,12 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInt
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSearchDomain;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -70,8 +71,8 @@ class PreparedParameterSetTest {
   private static <T> @NotNull PreparedParameter<T> withValue(
       @NotNull ParameterDefinition<T> definition, @NotNull T value,
       @NotNull ParameterEstimationContext context) {
-    return new PreparedParameter<>(definition, value, ValueOrigin.RAW_DATA,
-        definition.prepare(context).searchDomain());
+    return new PreparedParameter<>(definition, new ParameterEstimate<>(value, ValueOrigin.RAW_DATA,
+        definition.prepare(context).searchDomain()));
   }
 
   @Test
@@ -123,7 +124,7 @@ class PreparedParameterSetTest {
         withValue(OptimizationParameterRegistry.MS1_NOISE,
             new WizardMassDetectorNoiseLevels(MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, 500,
                 200), context), withValue(OptimizationParameterRegistry.MZ_TOLERANCE,
-            MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[4], context)));
+            MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(4), context)));
     estimates.applyEstimates(sequence);
     final var lc = sequence.get(WizardPart.ION_INTERFACE).orElseThrow();
     Assertions.assertEquals(0.08,
@@ -131,7 +132,7 @@ class PreparedParameterSetTest {
             .getToleranceInMinutes(), 1e-6);
     Assertions.assertEquals(6, lc.getValue(IonInterfaceHplcWizardParameters.minNumberOfDataPoints));
     final var ms = sequence.get(WizardPart.MS).orElseThrow();
-    Assertions.assertEquals(MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[4],
+    Assertions.assertEquals(MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(4),
         ms.getValue(MassSpectrometerWizardParameters.scanToScanMzTolerance));
     final WizardMassDetectorNoiseLevels noise = ms.getValue(
         MassSpectrometerWizardParameters.massDetectorOption);
@@ -290,15 +291,21 @@ class PreparedParameterSetTest {
 
   @Test
   void crossFileMzToleranceIsDerivedFromCountsDuringPreparation() {
-    final var narrow = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[2];
-    final var wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[5];
+    final var narrow = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(2);
+    final var wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.get(5);
     final RawDataAnalysis analysis = new RawDataAnalysis(List.of(), new double[0], new double[0],
         new double[0], new double[0], new double[0], new double[0],
         java.util.Map.of(narrow, 2, wide, 8));
-    Assertions.assertEquals(wide, new ParameterEstimationContext(analysis,
-        ParameterEstimationTestData.sequence()).sampleMzTolerance());
-    Assertions.assertNull(new ParameterEstimationContext(RawDataAnalysis.analyze(List.of()),
-        ParameterEstimationTestData.sequence()).sampleMzTolerance());
+    final var estimated = OptimizationParameterRegistry.SAMPLE_TO_SAMPLE_MZ_TOLERANCE.prepare(
+        new ParameterEstimationContext(analysis, ParameterEstimationTestData.sequence()));
+    Assertions.assertEquals(wide, estimated.initialValue());
+    Assertions.assertEquals(ValueOrigin.RAW_DATA, estimated.origin());
+
+    // without cross-file statistics the preset is kept and not applied to the wizard
+    final var fallback = OptimizationParameterRegistry.SAMPLE_TO_SAMPLE_MZ_TOLERANCE.prepare(
+        new ParameterEstimationContext(RawDataAnalysis.analyze(List.of()),
+            ParameterEstimationTestData.sequence()));
+    Assertions.assertEquals(ValueOrigin.PRESET_DEFAULT, fallback.origin());
   }
 
 }

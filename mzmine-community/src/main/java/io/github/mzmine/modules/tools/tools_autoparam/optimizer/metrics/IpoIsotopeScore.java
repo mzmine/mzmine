@@ -45,6 +45,11 @@ public record IpoIsotopeScore() implements SweepMetric {
   }
 
   @Override
+  public @NotNull String getUniqueID() {
+    return "ipo_isotope_score";
+  }
+
+  @Override
   public @NotNull String toString() {
     return name();
   }
@@ -55,7 +60,7 @@ public record IpoIsotopeScore() implements SweepMetric {
   }
 
   @Override
-  public double evaluate(@NotNull FeatureList featureList) {
+  public double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context) {
     final double noise = MathUtils.calcQuantile(
         featureList.streamFeatures(false).mapToDouble(Feature::getHeight).toArray(), 0.03);
 

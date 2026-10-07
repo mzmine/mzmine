@@ -4,6 +4,8 @@
 package io.github.mzmine.modules.tools.tools_autoparam;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.InterSampleRtStatistics;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
 import java.util.List;

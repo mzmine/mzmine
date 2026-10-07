@@ -41,7 +41,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSearchDomain;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
@@ -63,6 +63,8 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.SplitPane;
@@ -70,12 +72,16 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.objective.Minimize;
+import org.moeaframework.core.objective.Objective;
 import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.core.variable.Variable;
 
@@ -84,6 +90,14 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
   private static final String SOURCE_ESTIMATE = "Raw data estimate";
   private static final String SOURCE_FRONT = "Front";
   private static final String SOURCE_EVALUATED = "Evaluated";
+  /**
+   * Table height without extended statistics: header, about two rows and a horizontal scroll bar.
+   */
+  private static final double COMPACT_TABLE_HEIGHT = 100d;
+  /**
+   * Extra width so a vertical scroll bar in the compact table does not cover the last column.
+   */
+  private static final double VERTICAL_SCROLL_BAR_ALLOWANCE = 20d;
 
   private final NumberFormat threeDecimals = new DecimalFormat("0.###");
   private final NumberFormat noDecimals = new DecimalFormat("0");
@@ -110,6 +124,25 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     this.stage = stage;
   }
 
+  /**
+   * Sets the stage width to the summed effective preferred column widths and the height to the same
+   * value, both limited to the screen size.
+   */
+  private static void fitStageWidthToColumns(@NotNull Stage stage,
+      @NotNull TableView<Solution> table) {
+    // TableColumns only sets the min width, which exceeds the default pref width of 80 px
+    final double columnsWidth = table.getVisibleLeafColumns().stream()
+        .mapToDouble(c -> Math.max(c.getPrefWidth(), c.getMinWidth())).sum();
+    final Scene scene = stage.getScene();
+    final double decorationWidth = scene == null ? 0d : stage.getWidth() - scene.getWidth();
+    final double width = columnsWidth + table.snappedLeftInset() + table.snappedRightInset()
+        + VERTICAL_SCROLL_BAR_ALLOWANCE + decorationWidth;
+    final Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+    final double fittedWidth = Math.min(width, screen.getWidth() * 0.9d);
+    stage.setWidth(fittedWidth);
+    stage.setHeight(Math.min(fittedWidth * 0.6, screen.getHeight() * 0.6d));
+  }
+
   @Override
   public @NotNull Region build() {
     final TableView<Solution> solutionTable = new TableView<>();
@@ -128,14 +161,31 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     focusSolution(solutionTable, model.getPreferredFrontSolution());
 
     final SimpleXYChart<PlotXYDataProvider> progressChart = createProgressChart();
-    model.getDisplayedSolutions()
+    // decision: the chart plots every evaluation, also when the table only shows the front
+    model.getEvaluatedSolutions()
         .addListener((ListChangeListener<Solution>) _ -> updateProgressChart(progressChart));
     updateProgressChart(progressChart);
 
-    final SplitPane content = FxSplitPanes.newSplitPane(0.45, Orientation.VERTICAL, progressChart,
-        solutionTable);
     final BorderPane borderPane = new BorderPane();
-    borderPane.setCenter(content);
+    if (model.isShowExtendedStatistics()) {
+      final SplitPane content = FxSplitPanes.newSplitPane(0.45, Orientation.VERTICAL, progressChart,
+          solutionTable);
+      borderPane.setCenter(content);
+    } else {
+      // decision: the compact table only holds the estimate and the front, so a fixed height of
+      // roughly two rows plus header and scroll bar leaves the space to the chart
+      solutionTable.setPrefHeight(COMPACT_TABLE_HEIGHT);
+      solutionTable.setMinHeight(COMPACT_TABLE_HEIGHT);
+      final BorderPane content = new BorderPane(progressChart);
+      content.setBottom(solutionTable);
+      borderPane.setCenter(content);
+      if (stage != null) {
+        // decision: sized once the window is shown, when the table insets and the window
+        // decoration are known
+        stage.addEventHandler(WindowEvent.WINDOW_SHOWN,
+            _ -> fitStageWidthToColumns(stage, solutionTable));
+      }
+    }
 
     final Button acceptButton = FxButtons.createButton("Apply to wizard", FxIcons.CHECK_CIRCLE,
         null, onAcceptPressed);
@@ -170,8 +220,16 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     }
 
     if (stage != null) {
-      final Button closeButton = FxButtons.createButton("Close", FxIcons.CANCEL, null, stage::hide);
+      final Runnable close = () -> {
+        if (stopSearch != null) {
+          stopSearch.run();
+        }
+        stage.hide();
+      };
+      final Button closeButton = FxButtons.createButton("Close", FxIcons.CANCEL, null, close);
       buttonBar.getButtons().add(closeButton);
+      // the window close button must also stop the search, otherwise it continues hidden
+      stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, _ -> close.run());
     }
 
     return borderPane;
@@ -188,7 +246,11 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     }
     solutionTable.getSelectionModel().select(row);
     solutionTable.getFocusModel().focus(row);
-    solutionTable.scrollTo(row);
+    // decision: the compact table is only about two rows high, scrolling to the selected front
+    // solution would hide the raw data estimate in the first row, which is kept for comparison
+    if (model.isShowExtendedStatistics()) {
+      solutionTable.scrollTo(row);
+    }
     solutionTable.requestFocus();
   }
 
@@ -206,7 +268,7 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
   }
 
   private void updateProgressChart(@NotNull SimpleXYChart<PlotXYDataProvider> chart) {
-    final List<Solution> solutions = List.copyOf(model.getDisplayedSolutions());
+    final List<Solution> solutions = List.copyOf(model.getEvaluatedSolutions());
     if (solutions.isEmpty()) {
       chart.removeAllDatasets();
       return;
@@ -274,17 +336,20 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
             : model.isOnFront(s) ? SOURCE_FRONT : SOURCE_EVALUATED));
     solutionTable.getColumns().add(sourceCol);
 
-    // decision: pinned next to Source instead of left to the generic attribute loop below, which
-    // would scatter it among the diagnostics. Source says how a row got into the table, Origin says
-    // which phase of the run produced its parameters.
-    final TableColumn<Solution, String> originCol = TableColumns.createColumn(
-        SolutionOrigin.ATTRIBUTE, 100, s -> new ReadOnlyStringWrapper(
-            Objects.requireNonNullElse(s.getAttribute(SolutionOrigin.ATTRIBUTE), "").toString()));
-    solutionTable.getColumns().add(originCol);
+    // origin and evaluation index are diagnostics of the search, not of the solution itself
+    if (model.isShowExtendedStatistics()) {
+      // decision: pinned next to Source instead of left to the generic attribute loop below, which
+      // would scatter it among the diagnostics. Source says how a row got into the table, Origin
+      // says which phase of the run produced its parameters.
+      final TableColumn<Solution, String> originCol = TableColumns.createColumn(
+          SolutionOrigin.ATTRIBUTE, 100, s -> new ReadOnlyStringWrapper(
+              Objects.requireNonNullElse(s.getAttribute(SolutionOrigin.ATTRIBUTE), "").toString()));
+      solutionTable.getColumns().add(originCol);
 
-    final TableColumn<Solution, Number> indexCol = TableColumns.createColumn("Evaluation", 80,
-        s -> new ReadOnlyIntegerWrapper(evaluationIndex(s)));
-    solutionTable.getColumns().add(indexCol);
+      final TableColumn<Solution, Number> indexCol = TableColumns.createColumn("Evaluation", 80,
+          s -> new ReadOnlyIntegerWrapper(evaluationIndex(s)));
+      solutionTable.getColumns().add(indexCol);
+    }
 
     for (int i = 0; i < template.getNumberOfVariables(); i++) {
       final Variable variable = template.getVariable(i);
@@ -317,12 +382,11 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
       }
     }
 
-    final List<ObjectiveWrapper> wrappers = ObjectiveWrapper.extract(solutions);
     TableColumn<Solution, Number> preferredSortColumn = null;
-    for (ObjectiveWrapper wrapper : wrappers) {
-      final TableColumn<Solution, Number> col = wrapper.createColumn();
+    for (int i = 0; i < template.getNumberOfObjectives(); i++) {
+      final TableColumn<Solution, Number> col = createObjectiveColumn(template.getObjective(i), i);
       solutionTable.getColumns().add(col);
-      if (wrapper.index() == model.getPreferredSortObjectiveIndex()) {
+      if (i == model.getPreferredSortObjectiveIndex()) {
         preferredSortColumn = col;
       }
     }
@@ -336,11 +400,10 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
 
     for (Entry<String, Serializable> attributeEntry : template.getAttributes().entrySet()) {
       final String attribute = attributeEntry.getKey();
-      // Skip internal attributes (prefixed with '_'), the MOEA penalty attribute and the origin,
-      // which already has its own column next to Source
-      if (attribute.startsWith("_") || attribute.equalsIgnoreCase("penalty") || attribute.equals(
-          SolutionOrigin.ATTRIBUTE) || attribute.equals(
-          WizardOptimizationProblem.ATTR_PROPOSAL_INDEX)) {
+      // Skip hidden attributes and the origin and proposal index, which already have their own
+      // columns next to Source
+      if (!model.isAttributeShown(attribute) || attribute.equals(SolutionOrigin.ATTRIBUTE)
+          || attribute.equals(WizardOptimizationProblem.ATTR_PROPOSAL_INDEX)) {
         continue;
       }
       final TableColumn<Solution, String> col = TableColumns.createColumn(attribute, 120,
@@ -348,6 +411,21 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
               Objects.requireNonNullElse(s.getAttribute(attribute), "").toString()));
       solutionTable.getColumns().add(col);
     }
+  }
+
+  /**
+   * A score column with a bar, colored by the direction of the objective.
+   */
+  private @NotNull TableColumn<Solution, Number> createObjectiveColumn(@NotNull Objective objective,
+      int index) {
+    final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
+    final Color color =
+        objective instanceof Minimize ? palette.getNegativeColor() : palette.getPositiveColor();
+    final TableColumn<Solution, Number> column = TableColumns.createColumn(objective.getName(), 140,
+        threeDecimals, ColumnAlignment.RIGHT,
+        s -> new ReadOnlyDoubleWrapper(s.getObjectiveValue(index)));
+    column.setCellFactory(_ -> new BarTableCell(color, threeDecimals));
+    return column;
   }
 
   private int evaluationIndex(@NotNull Solution solution) {

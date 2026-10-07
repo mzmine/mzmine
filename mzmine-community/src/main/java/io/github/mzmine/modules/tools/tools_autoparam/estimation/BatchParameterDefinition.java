@@ -31,9 +31,11 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,15 +43,22 @@ import org.jetbrains.annotations.Nullable;
 public record BatchParameterDefinition<T>(@NotNull String name, @NotNull String moduleClassName,
                                           @NotNull String parameterName,
                                           @NotNull ApplicationScope scope,
+                                          @NotNull OptimizationRole role,
+                                          @NotNull Set<WizardParameterFactory> presets,
                                           @NotNull Function<T, ParameterOverride> overrideFactory,
                                           @NotNull Function<ParameterEstimationContext, ParameterEstimate<T>> estimator) implements
     ParameterDefinition<T> {
 
+  public BatchParameterDefinition {
+    presets = Set.copyOf(presets);
+  }
+
   public BatchParameterDefinition(@NotNull String name,
       @NotNull Class<? extends MZmineProcessingModule> module,
       @NotNull UserParameter<T, ?> parameter, @NotNull ApplicationScope scope,
+      @NotNull OptimizationRole role, @NotNull Set<WizardParameterFactory> presets,
       @NotNull Function<ParameterEstimationContext, ParameterEstimate<T>> estimator) {
-    this(name, module.getName(), parameter.getName(), scope,
+    this(name, module.getName(), parameter.getName(), scope, role, presets,
         value -> new ParameterOverride(module.getName(), module.getSimpleName(), parameter, value,
             scope), estimator);
   }

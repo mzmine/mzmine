@@ -30,35 +30,34 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatisticsDashboardPane;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimators;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataAnalysis;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataPreparation;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationResult;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.BatchExecutionLimitReachedException;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.OptimizationSearchStoppedException;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.TaskStatusTerminationCondition;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.gui.OptimizationResultsController;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.MoeadOptimizerParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OriginTaggingInitialization;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.PatternSearchAlgorithm;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerAlgorithmModule;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartInitialization;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartSampling;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResult;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -66,8 +65,10 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
@@ -76,22 +77,13 @@ import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.moeaframework.algorithm.AbstractAlgorithm;
-import org.moeaframework.algorithm.MOEAD;
 import org.moeaframework.core.PRNG;
 import org.moeaframework.core.Solution;
-import org.moeaframework.core.initialization.Initialization;
 import org.moeaframework.core.population.NondominatedPopulation;
 
 public class BatchOptimizationMainTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(BatchOptimizationMainTask.class.getName());
-
-  /**
-   * Initial population size for MOEA/D. One evaluation is a full batch
-   * run, so the MOEA Framework default of 100 would spend the entire batch budget on initialization
-   * and leave no generations for the actual search.
-   */
-  private static final int MOEAD_POPULATION_SIZE = 20;
 
   /**
    * Safety limit for cheap duplicate proposals per expensive batch execution.
@@ -132,23 +124,50 @@ public class BatchOptimizationMainTask extends AbstractTask {
    */
   private volatile @Nullable OptimizationOutcome outcome;
   private final long randomSeed;
+  /**
+   * Settings fixed by the pre-classification, see {@link PreclassificationParameters}. Null for
+   * headless runs, which pre-classify the imported files themselves.
+   */
+  private final @Nullable ParameterSet preclassification;
   private final AtomicReference<TaskStatus> externalStatus = new AtomicReference<>(
       TaskStatus.PROCESSING);
   private final AtomicBoolean stopSearchRequested = new AtomicBoolean();
   /**
    * Maximum number of uncached full batch executions, including the raw-data estimate.
    */
-  private int totalBatchExecutions;
+  private final int totalBatchExecutions;
+  /**
+   * The current preparation step for the task description, null once the batches run.
+   */
+  private volatile @Nullable String preparationStep = "importing raw data files";
 
   @Nullable
   private AbstractAlgorithm optimizer;
   @Nullable
   private volatile WizardOptimizationProblem problem;
 
+  /**
+   * @param files             the files that were pre-classified, see
+   *                          {@link RawDataPreclassificationTask}
+   * @param preclassification the settings fixed by the pre-classification, see
+   *                          {@link PreclassificationParameters}
+   */
+  public BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
+      @NotNull BatchWizardTab tab, @NotNull OptimizerParameters params,
+      @NotNull ParameterSet preclassification) {
+    // a copy, so wizard edits during the run do not change later candidates. Must be called on
+    // the JavaFX thread
+    this(storage, moduleCallDate, files, metadata, tab.getSequence().copy(), tab, params,
+        preclassification, DEFAULT_RANDOM_SEED);
+  }
+
+  /** Compatibility overload for callers that predate wizard pre-classification. */
   public BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
       @NotNull BatchWizardTab tab, @NotNull OptimizerParameters params) {
-    this(storage, moduleCallDate, files, metadata, tab.snapshotSequence(), tab, params);
+    this(storage, moduleCallDate, files, metadata, tab.snapshotSequence(), tab, params, null,
+        DEFAULT_RANDOM_SEED);
   }
 
   /**
@@ -164,32 +183,33 @@ public class BatchOptimizationMainTask extends AbstractTask {
   /**
    * Runs headlessly with an explicit random seed, so a caller can measure how much of a result
    * comes from the data and how much from the draw. Use {@link #DEFAULT_RANDOM_SEED} to reproduce
-   * what a user would get.
+   * what a user would get. The pre-classification runs on the imported files and fails the task
+   * if it needs a user choice.
    */
   public BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
       @NotNull WizardSequence sequence, @NotNull OptimizerParameters params, long randomSeed) {
-    this(storage, moduleCallDate, files, metadata, sequence, null, params, randomSeed);
+    this(storage, moduleCallDate, files, metadata, sequence, null, params, null, randomSeed);
   }
 
+  /**
+   * @param preclassification null to pre-classify the imported files without user interaction
+   */
   private BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
       @NotNull WizardSequence sequence, @Nullable BatchWizardTab tab,
-      @NotNull OptimizerParameters params) {
-    this(storage, moduleCallDate, files, metadata, sequence, tab, params, DEFAULT_RANDOM_SEED);
-  }
-
-  private BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
-      @NotNull WizardSequence sequence, @Nullable BatchWizardTab tab,
-      @NotNull OptimizerParameters params, long randomSeed) {
+      @NotNull OptimizerParameters params, @Nullable ParameterSet preclassification,
+      long randomSeed) {
     super(storage, moduleCallDate);
     this.files = files;
     this.metadata = metadata;
     this.sequence = sequence;
     this.tab = tab;
     this.params = params;
+    this.preclassification = preclassification;
     this.randomSeed = randomSeed;
+    totalBatchExecutions = Math.max(params.getValue(OptimizerParameters.iterations),
+        OptimizerParameters.MIN_ITERATIONS);
 
     addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.CANCELED) {
@@ -238,18 +258,52 @@ public class BatchOptimizationMainTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    final int max = totalBatchExecutions > 0 ? totalBatchExecutions : 100;
+    final String step = preparationStep;
     final WizardOptimizationProblem currentProblem = problem;
-    final int completed = currentProblem != null ? currentProblem.getBatchExecutionCount() : 0;
-    return "Performing batch optimization. Full batch %d/%d".formatted(completed, max);
+    if (step != null || currentProblem == null) {
+      return "Parameter optimization: " + Objects.requireNonNullElse(step, "preparing");
+    }
+    return "Parameter optimization: full batch %d/%d".formatted(
+        currentProblem.getBatchExecutionCount(), totalBatchExecutions);
   }
 
   @Override
   public double getFinishedPercentage() {
-    final int max = totalBatchExecutions > 0 ? totalBatchExecutions : 100;
     final WizardOptimizationProblem currentProblem = problem;
     return currentProblem != null ? Math.min(1d,
-        (double) currentProblem.getBatchExecutionCount() / max) : 0d;
+        (double) currentProblem.getBatchExecutionCount() / totalBatchExecutions) : 0d;
+  }
+
+  /**
+   * Pre-classifies the imported files for headless runs.
+   * <p>
+   * decision: a run without a wizard tab cannot ask the user, so a needed choice fails the task
+   * instead of silently picking a value
+   *
+   * @return the decided settings, or null if the task was set to error
+   */
+  private @Nullable ParameterSet preclassifyWithoutUser(@NotNull List<RawDataFile> importedFiles) {
+    final PreclassificationResult resolved = Preclassification.resolve(importedFiles, sequence);
+    if (resolved.hasConflicts()) {
+      error(resolved.describeConflicts());
+      return null;
+    }
+    if (resolved.needsUserChoice()) {
+      error("The raw data require a user choice before the optimization:\n" + String.join("\n",
+          resolved.choiceMessages()));
+      return null;
+    }
+    return resolved.parameters();
+  }
+
+  /**
+   * Asks for the preset switch on the JavaFX thread and waits on the task thread for the answer.
+   */
+  private static boolean confirmPresetsOnFxThread(@NotNull BatchWizardTab wizardTab,
+      @NotNull PresetSelection presets) {
+    final AtomicBoolean confirmed = new AtomicBoolean(false);
+    FxThread.runOnFxThreadAndWait(() -> confirmed.set(wizardTab.confirmAndSwitchPresets(presets)));
+    return confirmed.get();
   }
 
   @Override
@@ -266,25 +320,44 @@ public class BatchOptimizationMainTask extends AbstractTask {
     addTaskStatusListener((_, _, _) -> initialMemoryOption.enforceToMemoryMapping());
 
     final List<RawDataFile> importedFiles = RawDataPreparation.importFilesBlocking(files, metadata);
+    preparationStep = "classifying raw data files";
+    final ParameterSet runPreclassification =
+        preclassification != null ? preclassification : preclassifyWithoutUser(importedFiles);
+    if (runPreclassification == null) {
+      return;
+    }
     final List<FeatureRecord> benchmarkFeatures =
         params.getValue(OptimizerParameters.benchmarkFeaturesFile)
             ? BenchmarkFeatureLoader.fromFile(null,
             params.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
             params.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
 
-    final List<DataFileStatistics> stats = RawDataPreparation.computeFileStatistics(importedFiles,
-        benchmarkFeatures, getMemoryMapStorage());
-    stats.forEach(stat -> logger.info(stat.getMzToleranceForIsotopes().toString()));
+    preparationStep = "computing raw data statistics and estimates";
+    // if confirmed, the wizard switches to the presets that fit the raw data and every candidate is
+    // evaluated with them.
+    // decision: headless runs keep the given presets, so scripted comparisons stay reproducible
+    final Predicate<PresetSelection> presetConfirmation =
+        tab != null ? presetSelection -> confirmPresetsOnFxThread(tab, presetSelection)
+            : _ -> false;
+    final WizardParameterEstimationResult estimation = WizardParameterEstimationResult.estimate(
+        importedFiles, benchmarkFeatures, sequence, runPreclassification, presetConfirmation,
+        getMemoryMapStorage(), () -> getStatus() != TaskStatus.PROCESSING);
+    if (estimation == null) {
+      if (getStatus() == TaskStatus.PROCESSING) {
+        error("Parameter estimation ended without a result.");
+      }
+      return;
+    }
+    final List<DataFileStatistics> stats = estimation.statistics();
+    final ParameterEstimationContext estimationContext = estimation.context();
+    final PreparedParameterSet singlePassEstimates = estimation.estimates();
+    final PresetSelection presets = estimationContext.presetSelection();
+    if (!presets.isEmpty()) {
+      logger.info("Optimizing with presets that fit the raw data:\n" + presets.describe());
+    }
 
     // set a specific seed to make the results deterministic, see DEFAULT_RANDOM_SEED
     PRNG.setSeed(randomSeed);
-
-    totalBatchExecutions = Math.max(params.getValue(OptimizerParameters.iterations), 30);
-    final RawDataAnalysis analysis = RawDataAnalysis.analyze(stats);
-    final ParameterEstimationContext estimationContext = new ParameterEstimationContext(analysis,
-        sequence);
-    final PreparedParameterSet singlePassEstimates = PreparedParameterSet.prepare(
-        estimationContext);
     final WizardOptimizationProblem optimizationProblem = new WizardOptimizationProblem(
         estimationContext, singlePassEstimates, params, externalStatus, totalBatchExecutions,
         stopSearchRequested::get);
@@ -292,22 +365,19 @@ public class BatchOptimizationMainTask extends AbstractTask {
     if (getStatus() == TaskStatus.CANCELED) {
       optimizationProblem.cancel();
     }
+    preparationStep = null;
+    final boolean showExtendedStatistics = params.getValue(
+        OptimizerParameters.showExtendedStatistics);
+    if (DesktopService.isGUI() && showExtendedStatistics) {
+      final List<DataFileStatistics> dashboardStats = List.copyOf(stats);
+      FxThread.runLater(() -> MZmineCore.getDesktop().addTab(new SimpleTab("Auto Param Statistics",
+          new DataFileStatisticsDashboardPane(dashboardStats, estimation.interSampleRtStatistics(),
+              estimationContext.massDetectorType()))));
+    }
+    final AtomicReference<OptimizationResultsController> resultsController = new AtomicReference<>();
+    final AtomicReference<NondominatedPopulation> completedResult = new AtomicReference<>();
+
     try {
-      if (DesktopService.isGUI()) {
-        final List<DataFileStatistics> dashboardStats = List.copyOf(stats);
-        FxThread.runLater(() -> MZmineCore.getDesktop().addTab(new SimpleTab("Auto Param Statistics",
-            new DataFileStatisticsDashboardPane(dashboardStats,
-                ParameterEstimators.interSampleRtStatistics(analysis),
-                estimationContext.massDetectorType()))));
-      }
-      final AtomicReference<OptimizationResultsController> resultsController = new AtomicReference<>();
-      final AtomicReference<NondominatedPopulation> completedResult = new AtomicReference<>();
-
-      final OptimizerOptions optimizerOption = params.getValue(OptimizerParameters.optimizers);
-      final ParameterSet optimizerParameters = OptimizerParameters.getSelectedOptimizerParameters(
-          params);
-      optimizer = optimizerOption.getOptimizer(optimizationProblem);
-
       final Solution singlePassSolution = optimizationProblem.newSolution();
 
       // decision: always derive and evaluate the raw data estimate, also when it is not used to
@@ -315,6 +385,16 @@ public class BatchOptimizationMainTask extends AbstractTask {
       // solutions and the logged comparison is meaningful in both cases
       SolutionOrigin.ESTIMATE.applyTo(singlePassSolution);
       optimizationProblem.evaluate(singlePassSolution);
+      // decision: without features every score is 0, so the search has nothing to improve on
+      if (singlePassSolution.getAttribute(
+          WizardOptimizationProblem.ATTR_TOTAL_FEATURES) instanceof Number features
+          && features.longValue() == 0) {
+        error("""
+            The batch with the raw data estimates produced no features, the optimization was \
+            stopped. Check the selected files and the wizard settings, e.g., the minimum feature \
+            height.""");
+        return;
+      }
 
       // decision: derive the shape rejection limit from the estimate's own measured rate, so the
       // limit adapts to the dataset instead of being an absolute guess
@@ -329,16 +409,6 @@ public class BatchOptimizationMainTask extends AbstractTask {
             Math.max(baseline * factor, MIN_SHAPE_REJECTION_LIMIT));
       }
 
-      // decision: Current is scored through the batch evaluator directly, never through the search
-      // problem, because user values outside the search domain must remain exactly as entered.
-      final WizardSequence currentSequence = sequence;
-      final Solution currentSolution;
-      if (optimizationProblem.currentMatchesEstimate(currentSequence, singlePassSolution)) {
-        currentSolution = skippedCurrentSolution(singlePassSolution);
-      } else {
-        currentSolution = optimizationProblem.evaluateCurrentSequence(currentSequence);
-      }
-
       if (tab != null) {
         optimizationProblem.setEvaluationListener(_ -> {
           final OptimizationResultsController controller = resultsController.get();
@@ -346,37 +416,42 @@ public class BatchOptimizationMainTask extends AbstractTask {
             controller.refreshEvaluatedSolutions();
           }
         });
-        showLiveResultsWindow(tab, optimizationProblem, singlePassSolution, resultsController,
-            completedResult);
+        showLiveResultsWindow(tab, optimizationProblem, singlePassSolution, showExtendedStatistics,
+            resultsController, completedResult);
       }
 
-      final List<Solution> injected = switch (optimizerOption) {
-        // decision: starting at the estimate is intrinsic to local pattern search, not an optional
-        // warm-start strategy.
-        case PATTERN_SEARCH -> WarmStartInitialization.createSolutions(optimizationProblem,
-            PatternSearchAlgorithm.INITIAL_DESIGN_SIZE,
-                WarmStartSampling.GAUSSIAN);
-        case MOEAD -> {
-          if (!optimizerParameters.getValue(MoeadOptimizerParameters.rawDataInitialization)) {
-            yield List.of();
-          }
-          final WarmStartSampling sampling = optimizerParameters.getEmbeddedParameterValue(
-              MoeadOptimizerParameters.rawDataInitialization);
-          yield WarmStartInitialization.createSolutions(optimizationProblem, MOEAD_POPULATION_SIZE,
-              sampling);
-        }
-      };
+      // created after the estimate, so start solutions use the final shape rejection limit
+      final OptimizerAlgorithmModule optimizerModule = params.getValue(OptimizerParameters.optimizers)
+          .getModuleInstance();
+      optimizer = optimizerModule.createAlgorithm(optimizationProblem,
+          OptimizerParameters.getSelectedOptimizerParameters(params));
 
-      if (!injected.isEmpty()) {
-        logger.info("Initialization for %s: injected %d solutions, batch budget %d".formatted(
-            optimizer.getName(), injected.size(), totalBatchExecutions));
-        NotificationService.show(NotificationType.INFO, "Starting optimizer", """
-            Using %d attempts around raw-data based estimations and %d full batch executions.
-            Estimates:
-            %s""".formatted(injected.size(), totalBatchExecutions, singlePassEstimates.describe()));
+      logger.info("Starting %s with a batch budget of %d".formatted(optimizerModule.getName(),
+          totalBatchExecutions));
+      final String presetText =
+          presets.isEmpty() ? "" : "Presets:\n%s\n".formatted(presets.describe());
+      NotificationService.show(NotificationType.INFO, "Starting optimizer", """
+          Using %s with %d full batch executions.
+          %sEstimates:
+          %s""".formatted(optimizerModule.getName(), totalBatchExecutions, presetText,
+          singlePassEstimates.describe()));
+
+      // Current is evaluated through the isolated evaluator so values outside the search domain
+      // remain exactly as entered.
+      final WizardSequence currentSequence = sequence;
+      @Nullable Solution currentSolution;
+      try {
+        currentSolution = optimizationProblem.currentMatchesEstimate(currentSequence,
+            singlePassSolution) ? skippedCurrentSolution(singlePassSolution)
+            : optimizationProblem.evaluateCurrentSequence(currentSequence);
+      } catch (OptimizationSearchStoppedException e) {
+        logger.info(e.getMessage());
+        final NondominatedPopulation estimateOnlyResult = createSearchFront(List.of(),
+            optimizationProblem.getEvaluatedSolutions());
+        completeOptimization(singlePassEstimates, singlePassSolution, currentSequence, null,
+            estimateOnlyResult, optimizationProblem, resultsController, completedResult);
+        return;
       }
-
-      configureOptimizer(optimizerOption, optimizer, optimizationProblem, injected);
 
       try {
         final int maxProposals = Math.multiplyExact(totalBatchExecutions, PROPOSAL_BUDGET_MULTIPLIER);
@@ -398,6 +473,10 @@ public class BatchOptimizationMainTask extends AbstractTask {
         }
       }
 
+      if (getStatus() != TaskStatus.PROCESSING) {
+        return;
+      }
+
       // A hard budget stop can interrupt a generation after some offspring were evaluated but before
       // the algorithm incorporated them. Build the result from every completed observation so those
       // expensive final batches cannot be lost.
@@ -410,30 +489,43 @@ public class BatchOptimizationMainTask extends AbstractTask {
       OptimizationResultLogger.logComparison(singlePassSolution, result,
           optimizationProblem.getEnabledMetrics());
 
-      outcome = new OptimizationOutcome(singlePassEstimates, singlePassSolution, currentSequence,
-          currentSolution, result,
-          optimizationProblem);
-      completedResult.set(result);
-      optimizationProblem.setEvaluationListener(null);
-      final OptimizationResultsController controller = resultsController.get();
-      if (controller != null) {
-        controller.completeOptimization(result);
-      }
-
-      setStatus(TaskStatus.FINISHED);
+      completeOptimization(singlePassEstimates, singlePassSolution, currentSequence, currentSolution,
+          result, optimizationProblem, resultsController, completedResult);
     } finally {
       optimizationProblem.close();
     }
   }
 
+  /** Publishes one completed outcome without overwriting a terminal cancellation or error status. */
+  private void completeOptimization(@NotNull PreparedParameterSet estimates,
+      @NotNull Solution estimateSolution, @Nullable WizardSequence currentSequence,
+      @Nullable Solution currentSolution, @NotNull NondominatedPopulation result,
+      @NotNull WizardOptimizationProblem optimizationProblem,
+      @NotNull AtomicReference<OptimizationResultsController> resultsController,
+      @NotNull AtomicReference<NondominatedPopulation> completedResult) {
+    outcome = new OptimizationOutcome(estimates, estimateSolution, currentSequence, currentSolution,
+        result, optimizationProblem);
+    completedResult.set(result);
+    optimizationProblem.setEvaluationListener(null);
+    final OptimizationResultsController controller = resultsController.get();
+    if (controller != null) {
+      controller.completeOptimization(result);
+    }
+    if (getStatus() == TaskStatus.PROCESSING) {
+      setStatus(TaskStatus.FINISHED);
+    }
+  }
+
   private void showLiveResultsWindow(@NotNull BatchWizardTab resultTab,
       @NotNull WizardOptimizationProblem optimizationProblem, @NotNull Solution singlePassSolution,
+      final boolean showExtendedStatistics,
       @NotNull AtomicReference<OptimizationResultsController> resultsController,
       @NotNull AtomicReference<NondominatedPopulation> completedResult) {
     FxThread.runLater(() -> {
       final Stage stage = new Stage();
       final OptimizationResultsController controller = new OptimizationResultsController(resultTab,
-          optimizationProblem, singlePassSolution, stage, this::requestStopSearch);
+          optimizationProblem, singlePassSolution, showExtendedStatistics, stage,
+          this::requestStopSearch);
       resultsController.set(controller);
       controller.refreshEvaluatedSolutions();
       final NondominatedPopulation alreadyCompleted = completedResult.get();
@@ -450,8 +542,11 @@ public class BatchOptimizationMainTask extends AbstractTask {
       stage.show();
       final double screenWidth = Screen.getPrimary().getBounds().getWidth();
       final double screenHeight = Screen.getPrimary().getBounds().getHeight();
-      stage.setWidth(Math.min(1400d, screenWidth * 0.9d));
-      stage.setHeight(Math.min(900d, screenHeight * 0.85d));
+      // the compact view sizes the stage to its table columns when shown
+      if (showExtendedStatistics) {
+        stage.setWidth(Math.min(1400d, screenWidth * 0.9d));
+        stage.setHeight(Math.min(900d, screenHeight * 0.85d));
+      }
       stage.centerOnScreen();
     });
   }
@@ -478,36 +573,6 @@ public class BatchOptimizationMainTask extends AbstractTask {
       }
     }
     return result;
-  }
-
-  /**
-   * Configures the two supported algorithms and injects raw data-derived start solutions.
-   *
-   * @param injected solutions to seed the search with. May be empty for MOEA/D, which then
-   *                 initializes randomly.
-   */
-  private void configureOptimizer(@NotNull OptimizerOptions option,
-      @NotNull AbstractAlgorithm algorithm,
-      @NotNull WizardOptimizationProblem problem, @NotNull List<Solution> injected) {
-    switch (option) {
-      case MOEAD -> {
-        final MOEAD moead = (MOEAD) algorithm;
-        moead.setInitialPopulationSize(MOEAD_POPULATION_SIZE);
-        final Initialization initialization = new OriginTaggingInitialization(problem, injected);
-        moead.setInitialization(initialization);
-        // at the MOEA/D default of 20 the neighborhood equals the population, so mating draws
-        // from the whole population and the decomposition loses the locality it relies on.
-        // assumption: the floor of 4 keeps the neighborhood above the differential evolution arity
-        // of 4 minus 1, which MOEA/D requires now that the solution vector is all real-valued
-        moead.setNeighborhoodSize(Math.max(4, MOEAD_POPULATION_SIZE / 5));
-        // the variation operator is chosen in the MOEAD constructor from whether every variable is
-        // real-valued, so log it - "de+pm" confirms MOEA/D-DE, "sbx+pm+hux+bf" means the vector
-        // still contains a non-real variable and the decomposition fell back to SBX
-        logger.info("MOEA/D using variation %s, neighborhood %d, population %d".formatted(
-            moead.getVariation().getName(), moead.getNeighborhoodSize(), MOEAD_POPULATION_SIZE));
-      }
-      case PATTERN_SEARCH -> ((PatternSearchAlgorithm) algorithm).setInitialSolutions(injected);
-    }
   }
 
 }

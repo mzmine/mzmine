@@ -28,14 +28,20 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,21 +53,43 @@ public final class WizardParameterEstimationTask extends AbstractTask {
   private final File @NotNull [] files;
   private final @Nullable File metadataFile;
   private final @NotNull WizardSequence sequence;
+  private final @Nullable ParameterSet preclassification;
+  private final @NotNull Predicate<@NotNull PresetSelection> presetConfirmation;
   private final @NotNull Consumer<WizardParameterEstimationResult> onFinished;
   private volatile double progress;
   private volatile @Nullable WizardParameterEstimationResult result;
 
   public @Nullable WizardParameterEstimationResult getResult() { return result; }
 
+  /**
+   * @param files              the files that were pre-classified, see
+   *                           {@link RawDataPreclassificationTask}
+   * @param preclassification  the settings fixed by the pre-classification, see
+   *                           {@link PreclassificationParameters}
+   * @param presetConfirmation called on the JavaFX thread with the presets that fit the raw data,
+   *                           returns true to estimate for them, see
+   *                           {@link ParameterEstimationContext#withFittingPresets}
+   */
   public WizardParameterEstimationTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File @NotNull [] files, @Nullable File metadataFile,
-      @NotNull WizardSequence sequence,
+      @NotNull WizardSequence sequence, @Nullable ParameterSet preclassification,
+      @NotNull Predicate<@NotNull PresetSelection> presetConfirmation,
       @NotNull Consumer<WizardParameterEstimationResult> onFinished) {
     super(storage, moduleCallDate, "Estimate wizard parameters");
     this.files = files.clone();
     this.metadataFile = metadataFile;
     this.sequence = sequence;
+    this.preclassification = preclassification;
+    this.presetConfirmation = presetConfirmation;
     this.onFinished = onFinished;
+  }
+
+  /** Computes a detached proposal; applying fitting presets remains a separate reviewed action. */
+  public WizardParameterEstimationTask(final @Nullable MemoryMapStorage storage,
+      final @NotNull Instant moduleCallDate, final File @NotNull [] files,
+      final @Nullable File metadataFile, final @NotNull WizardSequence sequence,
+      final @NotNull Consumer<WizardParameterEstimationResult> onFinished) {
+    this(storage, moduleCallDate, files, metadataFile, sequence, null, _ -> true, onFinished);
   }
 
   @Override
@@ -84,27 +112,45 @@ public final class WizardParameterEstimationTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-      if (importedFiles.isEmpty()) {
-        throw new IllegalStateException("None of the selected wizard files could be imported.");
-      }
 
-      final List<DataFileStatistics> statistics = RawDataPreparation.computeFileStatistics(
-          importedFiles, null, getMemoryMapStorage());
-      progress = 0.8;
-      if (isCanceled()) {
+      final ParameterSet resolved;
+      if (preclassification == null) {
+        final var classification = Preclassification.resolve(importedFiles, sequence);
+        if (classification.hasConflicts() || classification.needsUserChoice()) {
+          error("Resolve acquisition settings in mzmine before estimation: "
+              + classification.describeConflicts() + String.join("\n", classification.choiceMessages()));
+          return;
+        }
+        resolved = classification.parameters();
+      } else {
+        resolved = preclassification;
+      }
+      final WizardParameterEstimationResult result = WizardParameterEstimationResult.estimate(
+          importedFiles, null, sequence, resolved, this::confirmPresetsOnFxThread,
+          getMemoryMapStorage(), this::isCanceled);
+      if (result == null) {
+        if (!isCanceled()) cancel();
         return;
       }
-
-      final RawDataAnalysis analysis = RawDataAnalysis.analyze(statistics);
-      final ParameterEstimationContext context = new ParameterEstimationContext(analysis, sequence);
-      result = new WizardParameterEstimationResult(context,
-          PreparedParameterSet.prepare(context));
+      if (isCanceled()) return;
+      this.result = result;
       progress = 1d;
-      FxThread.runLater(() -> onFinished.accept(result));
+      FxThread.runLater(() -> {
+        if (!isCanceled()) onFinished.accept(result);
+      });
       setStatus(TaskStatus.FINISHED);
     } catch (Exception e) {
       error("Could not estimate wizard parameters: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * Runs the confirmation on the JavaFX thread and waits on the task thread for the answer.
+   */
+  private boolean confirmPresetsOnFxThread(@NotNull PresetSelection presets) {
+    final AtomicBoolean confirmed = new AtomicBoolean(false);
+    FxThread.runOnFxThreadAndWait(() -> confirmed.set(presetConfirmation.test(presets)));
+    return confirmed.get();
   }
 
 }

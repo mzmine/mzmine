@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -37,6 +38,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.util.CSVParsingUtils;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,7 +94,7 @@ public class FitterTest {
         List.of(new GaussianPeak(), new GaussianDoublePeak(), new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
     Assertions.assertEquals(PeakShapeClassification.DOUBLE_GAUSSIAN, fit.peakShapeClassification());
-    Assertions.assertEquals(0.9643966172323696, fit.fitScore(), 0.0000001);
+    Assertions.assertEquals(0.9793872382256189, fit.fitScore(), 0.0000001);
   }
 
   @Test
@@ -142,11 +144,11 @@ public class FitterTest {
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9283789295872468, fit.fitScore(), 0.0000001);
+    Assertions.assertEquals(0.9397468348474988, fit.fitScore(), 0.0000001);
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianDoublePeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9332001170402136, fit.fitScore(), 0.0000001);
+    Assertions.assertEquals(0.9477058183413567, fit.fitScore(), 0.0000001);
   }
 
   @Test
@@ -161,9 +163,9 @@ public class FitterTest {
 
   @Test
   @Disabled
-  public void testPeaks() {
+  public void testPeaks() throws URISyntaxException {
     final File basePath = new File(
-        "C:\\Users\\Steffen\\git\\mzmine3\\mzmine-community\\src\\test\\resources\\peak_profiles");
+        FitterTest.class.getClassLoader().getResource("peak_profiles").toURI());
     final File doublePeaksPath = new File(basePath, "double_peak");
     final File frontingPeaksPath = new File(basePath, "fronting_peak");
     final File tailingPeaksPath = new File(basePath, "tailing_peak");

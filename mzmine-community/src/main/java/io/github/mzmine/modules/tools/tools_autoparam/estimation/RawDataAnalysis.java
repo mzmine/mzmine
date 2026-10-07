@@ -38,13 +38,14 @@ import io.github.mzmine.modules.dataprocessing.align_common.BaseFeatureListAlign
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.SimpleFeatureCloner;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinRowAlignScorer;
-import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
-import io.github.mzmine.modules.tools.tools_autoparam.FeatureStatistics;
-import io.github.mzmine.modules.tools.tools_autoparam.FeatureWithIsotopeTraces;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureWithIsotopeTraces;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.SimpleRunnableTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -57,8 +58,8 @@ import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -95,7 +96,8 @@ public record RawDataAnalysis(@NotNull List<DataFileStatistics> files, double @N
         .map(DataFileStatistics::getNumberOfLowestIsotopeDataPoints).flatMapToInt(Arrays::stream)
         .mapToDouble(value -> value).toArray();
     final double[] edges = flatten(files, DataFileStatistics::getEdgeIntensities);
-    final double[] heights = flatten(files, DataFileStatistics::getLowestIsotopeHeights);
+    final double[] heights = flatten(files,
+        DataFileStatistics::getInjectionTimeCorrectedLowestIsotopeHeights);
     if (files.size() < 2) {
       return new RawDataAnalysis(files, fwhms, points, edges, heights, new double[0], new double[0],
           Map.of());

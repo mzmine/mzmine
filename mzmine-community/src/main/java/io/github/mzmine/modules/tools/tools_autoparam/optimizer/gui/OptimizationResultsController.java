@@ -38,8 +38,8 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.util.FxFileChooser;
 import io.github.mzmine.javafx.util.FxFileChooser.FileSelectionType;
+import io.github.mzmine.javafx.util.FxFileChooser;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -47,16 +47,16 @@ import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
+import io.github.mzmine.modules.tools.batchwizard.WizardParameterChanges.Source;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.OrdinalIntegerVariable;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.FrontSolutionRanker;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.IsotopeRatioConsistencyScore;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.TaskService;
@@ -87,7 +87,10 @@ import org.moeaframework.core.variable.RealVariable;
 
 public class OptimizationResultsController extends FxController<OptimizationResultModel> {
 
-  private final BatchWizardTab wizardTab;
+  /**
+   * Replaced by a new wizard tab if the original one was closed, see {@link #showWizardTab()}.
+   */
+  private @NotNull BatchWizardTab wizardTab;
   private final WizardOptimizationProblem optimization;
   @Nullable
   private final Stage stage;
@@ -95,39 +98,27 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   private final Runnable stopSearchAction;
 
   /**
-   * @param singlePassSolution the evaluated raw data estimate. Shown as the first row of the
-   *                           results table so it can always be compared against the optimized
-   *                           solutions, regardless of whether it was used to warm-start the
-   *                           optimizer.
+   * @param singlePassSolution     the evaluated raw data estimate. Shown as the first row of the
+   *                               results table so it can always be compared against the optimized
+   *                               solutions, regardless of whether it was used to warm-start the
+   *                               optimizer.
+   * @param showExtendedStatistics show every evaluated solution with all diagnostic attributes
+   *                               instead of only the estimate and the current front
    */
   public OptimizationResultsController(@NotNull BatchWizardTab wizardTab,
       @NotNull WizardOptimizationProblem optimization, @Nullable final Solution singlePassSolution,
-      @Nullable final Stage stage) {
-    this(wizardTab, optimization, singlePassSolution, stage, null);
-  }
-
-  public OptimizationResultsController(@NotNull BatchWizardTab wizardTab,
-      @NotNull WizardOptimizationProblem optimization, @Nullable final Solution singlePassSolution,
-      @Nullable final Stage stage, @Nullable final Runnable stopSearchAction) {
-    super(new OptimizationResultModel());
+      final boolean showExtendedStatistics, @Nullable final Stage stage,
+      @Nullable final Runnable stopSearchAction) {
+    super(new OptimizationResultModel(showExtendedStatistics));
     this.wizardTab = wizardTab;
     this.optimization = optimization;
     model.getParameters().setAll(optimization.getIndexedParameters());
     this.stage = stage;
     this.stopSearchAction = stopSearchAction;
-    model.preferredSortObjectiveIndexProperty().set(preferredSortObjectiveIndex());
+    model.preferredSortObjectiveIndexProperty()
+        .set(FrontSolutionRanker.tieBreakObjectiveIndex(optimization.getEnabledMetrics()));
     model.singlePassSolutionProperty().set(singlePassSolution);
     rebuildDisplayedSolutions();
-  }
-
-  /**
-   * Compatibility constructor for callers that only create the window after optimization.
-   */
-  public OptimizationResultsController(@NotNull BatchWizardTab wizardTab,
-      @NotNull WizardOptimizationProblem optimization, @NotNull NondominatedPopulation result,
-      @Nullable Solution singlePassSolution, @Nullable Stage stage) {
-    this(wizardTab, optimization, singlePassSolution, stage);
-    completeModel(result);
   }
 
   /**
@@ -148,19 +139,17 @@ public class OptimizationResultsController extends FxController<OptimizationResu
 
   private void completeModel(@NotNull NondominatedPopulation result) {
     model.resultProperty().set(result);
-    model.getFrontSolutions().clear();
-    model.getFrontSolutions().addAll(result.asList());
     model.stopSearchRequestedProperty().set(false);
     rebuildDisplayedSolutions();
-    final Solution preferred = FrontSolutionRanker.selectBestAverageRank(result.asList(),
-        model.getPreferredSortObjectiveIndex());
+    final Solution preferred = FrontSolutionRanker.selectBest(result.asList(),
+        optimization.getEnabledMetrics());
     model.preferredFrontSolutionProperty().set(preferred);
     model.selectedSolutionProperty().set(preferred);
     model.optimizationRunningProperty().set(false);
     if (stage != null) {
       stage.setTitle("Optimization Results");
       final String selectionMessage = preferred == null ? "" : preferred.getNumberOfObjectives() > 1
-                                                               ? " The solution with the best average rank across all scores was selected."
+          ? " The solution with the best average rank across all scores was selected."
           : " The highest ranked solution was selected.";
       DialogLoggerUtil.showDialog(AlertType.INFORMATION, stage, "Optimization finished",
           "Parameter optimization has finished." + selectionMessage, true);
@@ -168,42 +157,54 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     }
   }
 
-  private int preferredSortObjectiveIndex() {
-    final List<SweepMetric> metrics = optimization.getEnabledMetrics();
-    for (int i = 0; i < metrics.size(); i++) {
-      if (metrics.get(i) instanceof IsotopeRatioConsistencyScore) {
-        return i;
-      }
-    }
-    return 0;
+  /**
+   * @return the non-dominated solutions among the given evaluations, respecting constraints.
+   */
+  private static @NotNull List<Solution> currentFront(@NotNull List<Solution> evaluated) {
+    final NondominatedPopulation front = new NondominatedPopulation();
+    front.addAll(evaluated);
+    return front.asList();
   }
 
   private void rebuildDisplayedSolutions() {
     final NondominatedPopulation result = model.getResult();
     final Solution singlePassSolution = model.getSinglePassSolution();
+    final List<Solution> evaluatedSolutions = optimization.getEvaluatedSolutions();
 
+    // decision: while the search is running, derive the current front from all completed
+    // evaluations, so the compact table can already show the best solutions found so far
+    final List<Solution> front =
+        result != null ? result.asList() : currentFront(evaluatedSolutions);
+    model.getFrontSolutions().clear();
+    model.getFrontSolutions().addAll(front);
+
+    // identity based, because the estimate is also an evaluated solution and may be on the front
+    final Set<Solution> alreadyShown = Collections.newSetFromMap(new IdentityHashMap<>());
+    final List<Solution> displayed = new ArrayList<>();
     // the raw data estimate is intentionally kept outside the non-dominated population, which
     // would reject it whenever an optimized solution dominates it
-    final List<Solution> displayed = new ArrayList<>();
-    if (singlePassSolution != null) {
+    if (singlePassSolution != null && alreadyShown.add(singlePassSolution)) {
       displayed.add(singlePassSolution);
     }
-    if (result != null) {
-      displayed.addAll(result.asList());
+    for (final Solution solution : front) {
+      if (alreadyShown.add(solution)) {
+        displayed.add(solution);
+      }
     }
 
     // every remaining evaluated solution, so the table shows the whole search and not just the
     // front - dominated and infeasible candidates carry the diagnostics needed to judge where the
     // batch budget went, while cache hits remain visible as cheap proposals
-    final Set<Solution> alreadyShown = Collections.newSetFromMap(new IdentityHashMap<>());
-    alreadyShown.addAll(displayed);
-    for (final Solution evaluated : optimization.getEvaluatedSolutions()) {
-      if (alreadyShown.add(evaluated)) {
-        displayed.add(evaluated);
+    if (model.isShowExtendedStatistics()) {
+      for (final Solution evaluated : evaluatedSolutions) {
+        if (alreadyShown.add(evaluated)) {
+          displayed.add(evaluated);
+        }
       }
     }
 
     model.getDisplayedSolutions().setAll(displayed);
+    model.getEvaluatedSolutions().setAll(evaluatedSolutions);
   }
 
   @Override
@@ -223,21 +224,48 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   }
 
   public void applyToWizardSequence() {
-
-    final ButtonType choice = ((MZmineGUI) DesktopService.getDesktop()).displayConfirmation(
-        "Information", """
-            This will replace the current wizard parameters.
-            Continue?""", ButtonType.YES, ButtonType.NO);
-    if (choice != ButtonType.YES) {
-      return;
+    if (confirmWizardOverride("This will replace the current wizard parameters.")) {
+      applySelectedSolutionToWizard();
     }
+  }
 
-    final WizardSequence sequence = optimization.createWizardSequenceFromSolution(
-        model.getSelectedSolution());
+  /**
+   * @param action explains what replaces the wizard parameters
+   * @return true if the user accepts that the wizard parameters are replaced
+   */
+  private boolean confirmWizardOverride(@NotNull String action) {
+    final ButtonType choice = ((MZmineGUI) DesktopService.getDesktop()).displayConfirmation(
+        "Information", action + "\nContinue?", ButtonType.YES, ButtonType.NO);
+    return choice == ButtonType.YES;
+  }
 
-    sequence.get(WizardPart.DATA_IMPORT).ifPresent(sequence::remove);
-    wizardTab.getTabPane().getSelectionModel().select(wizardTab);
-    wizardTab.applyPartialSequence(sequence);
+  /**
+   * Applies only the estimated and optimized parameter values of the selected solution to the
+   * wizard, keeping all other current wizard values.
+   */
+  private void applySelectedSolutionToWizard() {
+    final Solution solution = Objects.requireNonNull(model.getSelectedSolution(),
+        "No solution selected");
+    showWizardTab().applyParameterValues(
+        sequence -> optimization.applySolutionToWizard(solution, sequence), Source.OPTIMIZATION);
+  }
+
+  /**
+   * Selects the wizard tab of the optimization. If it was closed, opens a new wizard tab with the
+   * sequence the optimization started from, so the solution is applied to the same presets it was
+   * evaluated with.
+   */
+  private @NotNull BatchWizardTab showWizardTab() {
+    if (wizardTab.getTabPane() == null) {
+      final BatchWizardTab reopened = new BatchWizardTab();
+      // runs immediately on the JavaFX thread, so the tab pane is set afterward
+      MZmineCore.getDesktop().addTab(reopened);
+      reopened.applyPartialSequence(optimization.getInitialSequence());
+      wizardTab = reopened;
+    } else {
+      wizardTab.getTabPane().getSelectionModel().select(wizardTab);
+    }
+    return wizardTab;
   }
 
   public void openInBatch() {
@@ -255,13 +283,18 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     }
   }
 
+  /**
+   * Applies the selected solution to the wizard and creates its batch.
+   *
+   * @return the batch, null if the user cancelled or the batch could not be created
+   */
   private @Nullable BatchQueue createOptimizedBatch() {
-    final WizardSequence sequence = optimization.createWizardSequenceFromSolution(
-        model.getSelectedSolution());
-
-    sequence.get(WizardPart.DATA_IMPORT).ifPresent(sequence::remove);
-    wizardTab.getTabPane().getSelectionModel().select(wizardTab);
-    wizardTab.applyPartialSequence(sequence);
+    if (!confirmWizardOverride("""
+        The batch is created from the wizard, so the selected solution replaces the current \
+        wizard parameters.""")) {
+      return null;
+    }
+    applySelectedSolutionToWizard();
 
     final WizardSequence sequenceSteps = wizardTab.snapshotSequence();
 
@@ -285,6 +318,9 @@ public class OptimizationResultsController extends FxController<OptimizationResu
 
   private void runBatchFilterResults() {
     final BatchQueue q = createOptimizedBatch();
+    if (q == null) {
+      return;
+    }
     final BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
@@ -365,22 +401,26 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   private void writeSolutions(@NotNull ICSVWriter writer, @NotNull List<Solution> solutions) {
     final Solution template = solutions.getFirst();
 
+    final boolean showOrigin = model.isAttributeShown(SolutionOrigin.ATTRIBUTE);
+
     final List<String> header = new ArrayList<>();
     header.add("Source");
     // kept next to Source and out of the sorted attribute block below, so the two columns that
     // classify a row stay side by side, exactly as in the results table
-    header.add(SolutionOrigin.ATTRIBUTE);
+    if (showOrigin) {
+      header.add(SolutionOrigin.ATTRIBUTE);
+    }
     for (int i = 0; i < template.getNumberOfVariables(); i++) {
       header.add(template.getVariable(i).getName());
     }
     for (int i = 0; i < template.getNumberOfObjectives(); i++) {
       header.add(template.getObjective(i).getName());
     }
-    // the diagnostic values live in attributes, so the csv has to carry them too - the results
-    // table shows them and an export without them cannot be analysed
-    final List<String> attributes = template.getAttributes().keySet().stream().filter(
-        a -> !a.startsWith("_") && !a.equalsIgnoreCase("penalty") && !a.equals(
-            SolutionOrigin.ATTRIBUTE)).sorted().toList();
+    // the diagnostic values live in attributes, so the csv has to carry the same ones the results
+    // table shows - an export without them cannot be analysed
+    final List<String> attributes = template.getAttributes().keySet().stream()
+        .filter(model::isAttributeShown).filter(a -> !a.equals(SolutionOrigin.ATTRIBUTE)).sorted()
+        .toList();
     header.addAll(attributes);
     writer.writeNext(header.toArray(String[]::new));
 
@@ -389,7 +429,9 @@ public class OptimizationResultsController extends FxController<OptimizationResu
       final List<String> row = new ArrayList<>(header.size());
       row.add(solution == singlePass ? "Raw data estimate"
           : model.isOnFront(solution) ? "Front" : "Evaluated");
-      row.add(Objects.toString(solution.getAttribute(SolutionOrigin.ATTRIBUTE), ""));
+      if (showOrigin) {
+        row.add(Objects.toString(solution.getAttribute(SolutionOrigin.ATTRIBUTE), ""));
+      }
       for (int i = 0; i < solution.getNumberOfVariables(); i++) {
         // the effective value, so the csv matches what the batch was actually run with
         row.add(solution.getVariable(i) instanceof OrdinalIntegerVariable ? Integer.toString(

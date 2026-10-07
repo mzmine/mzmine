@@ -48,6 +48,11 @@ public record GcEiFragmentQuality() implements SweepMetric {
   }
 
   @Override
+  public @NotNull String getUniqueID() {
+    return "gc_ei_fragment_quality";
+  }
+
+  @Override
   public @NotNull String toString() {
     return name();
   }
@@ -58,7 +63,7 @@ public record GcEiFragmentQuality() implements SweepMetric {
   }
 
   @Override
-  public double evaluate(@NotNull FeatureList featureList) {
+  public double evaluate(@NotNull FeatureList featureList, @NotNull MetricContext context) {
     final int totalRows = featureList.getNumberOfRows();
     if (totalRows == 0) {
       return 0.0;

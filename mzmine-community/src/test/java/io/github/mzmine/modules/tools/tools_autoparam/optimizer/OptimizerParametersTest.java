@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.MoeadOptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
@@ -48,23 +49,23 @@ class OptimizerParametersTest {
   void patternSearchOwnsExactlyOneTarget() {
     final OptimizerParameters parameters = new OptimizerParameters();
     OptimizerParameters.setOptimizerAndTargets(parameters, OptimizerOptions.PATTERN_SEARCH,
-        List.of(SweepMetric.IPO_ISOTOPE_SCORE));
+        List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE));
 
     final ParameterSet selected = OptimizerParameters.getSelectedOptimizerParameters(parameters);
     Assertions.assertInstanceOf(PatternSearchOptimizerParameters.class, selected);
-    Assertions.assertEquals(List.of(SweepMetric.IPO_ISOTOPE_SCORE),
+    Assertions.assertEquals(List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE),
         OptimizerParameters.getOptimizationTargets(parameters));
     Assertions.assertThrows(IllegalArgumentException.class,
         () -> OptimizerParameters.setOptimizerAndTargets(parameters,
-            OptimizerOptions.PATTERN_SEARCH,
-            List.of(SweepMetric.IPO_ISOTOPE_SCORE, SweepMetric.SLAW_INTEGRATION_SCORE)));
+            OptimizerOptions.PATTERN_SEARCH, List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE,
+                OptimizationMetrics.SLAW_INTEGRATION_SCORE)));
   }
 
   @Test
   void moeadOwnsMultipleTargetsAndInitialization() {
     final OptimizerParameters parameters = new OptimizerParameters();
-    final List<SweepMetric> targets = List.of(SweepMetric.IPO_ISOTOPE_SCORE,
-        SweepMetric.SLAW_INTEGRATION_SCORE);
+    final List<SweepMetric> targets = List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE,
+        OptimizationMetrics.SLAW_INTEGRATION_SCORE);
     OptimizerParameters.setOptimizerAndTargets(parameters, OptimizerOptions.MOEAD, targets);
 
     final ParameterSet selected = OptimizerParameters.getSelectedOptimizerParameters(parameters);
