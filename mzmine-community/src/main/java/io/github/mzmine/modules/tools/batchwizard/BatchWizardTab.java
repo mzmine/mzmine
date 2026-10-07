@@ -100,6 +100,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TabPane.TabDragPolicy;
 import javafx.scene.control.TabPane;
@@ -177,7 +178,7 @@ public class BatchWizardTab extends SimpleTab {
     tabPane = new TabPane();
     tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
     tabPane.setTabDragPolicy(TabDragPolicy.FIXED);
-    BorderPane centerPane = new BorderPane(new StackPane(tabPane, createTabHeaderActions()));
+    final BorderPane centerPane = new BorderPane(new StackPane(tabPane, createTabHeaderActions()));
     var centerScroll = new ScrollPane(centerPane);
     centerScroll.setFitToWidth(true);
     centerScroll.setFitToHeight(true);
@@ -516,8 +517,6 @@ public class BatchWizardTab extends SimpleTab {
           });
     }
 
-    // decision: workflow = create batch. Presets are the only other action in the header, the
-    // parameter actions sit next to the parameter tabs they fill in
     final Button createBatch = FxButtons.createButton("Create batch", FxIcons.START,
         "Create the batch from the selected workflow and parameters", this::createBatch);
     createBatch.getStyleClass().add("accent-button");
@@ -539,26 +538,10 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   /**
-   * Parameter estimation and optimization, advanced mode, and help. Overlays the right end of the
-   * tab header. Requires the {@link #combos} and {@link #tabPane} to be initialized.
+   * Advanced mode and help. Overlays the right end of the tab header. Requires the {@link #tabPane}
+   * to be initialized.
    */
   private @NotNull HBox createTabHeaderActions() {
-    final Button estimate = FxButtons.createButton("Estimate", Source.ESTIMATION.icon(),
-        "Derive wizard parameters from the same representative files used for optimization.\n"
-            + "Right click to also show the data file statistics.",
-        () -> autoParamActions.estimate(false));
-    estimate.setContextMenu(new ContextMenu(
-        FxMenuUtil.newMenuItem("Estimate parameters and show statistics",
-            () -> autoParamActions.estimate(true))));
-    final Button optimize = FxButtons.createButton("Optimize", Source.OPTIMIZATION.icon(),
-        "Optimize the wizard parameters on representative files", autoParamActions::optimize);
-
-    //disable estimate and optimize on invalid presets
-    final BooleanBinding autoParamDisabled = autoParamActions.createDisabledBinding(
-        combos.get(WizardPart.ION_INTERFACE).getSelectionModel().selectedItemProperty());
-    estimate.disableProperty().bind(autoParamDisabled);
-    optimize.disableProperty().bind(autoParamDisabled);
-
     // advanced mode toggle switch
     final ToggleSwitch advancedToggle = new ToggleSwitch("Advanced mode");
     advancedToggle.setTooltip(new Tooltip("Show or hide the advanced parameter customization tab"));
@@ -573,8 +556,7 @@ public class BatchWizardTab extends SimpleTab {
     final Button help = FxButtons.createHelpButton(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl());
 
     final HBox actions = FxLayout.newHBox(Pos.CENTER_RIGHT,
-        new Insets(0, FxLayout.DEFAULT_SPACE, 0, 0), FxLabels.newLabel("Fill from data:"), estimate,
-        optimize, new Separator(Orientation.VERTICAL), advancedToggle, help);
+        new Insets(0, FxLayout.DEFAULT_SPACE, 0, 0), /*advancedToggle,*/ help);
     actions.getStyleClass().add("tab-header-actions");
     actions.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
     actions.setPickOnBounds(false);
@@ -587,47 +569,20 @@ public class BatchWizardTab extends SimpleTab {
   /// the tab overflow button never run below the actions and centers the actions vertically in the
   /// header.
   private void reserveTabHeaderSpace(@NotNull final Region actions) {
+    final Subscription[] headerSub = {Subscription.EMPTY};
     tabPane.skinProperty().subscribe(skin -> {
+      headerSub[0].unsubscribe();
+      headerSub[0] = Subscription.EMPTY;
+      actions.minHeightProperty().unbind();
       if (skin == null || !(tabPane.lookup(".tab-header-area") instanceof Region header)) {
         return;
       }
       actions.minHeightProperty().bind(header.heightProperty());
       // assumption: the themes set the header area padding to 0 (jabref_light.css,
       // style_modern.css), the inline style only adds the right padding
-      actions.widthProperty().subscribe(
+      headerSub[0] = actions.widthProperty().subscribe(
           width -> header.setStyle("-fx-padding: 0 %.1fpx 0 0;".formatted(width.doubleValue())));
     });
-  }
-
-  /**
-   * Applies estimated or optimized values to the current wizard sequence. Only the parameters set
-   * by the applier change, all other current wizard values are kept. Changed parameters are
-   * highlighted with the given source.
-   *
-   * @param applier sets the new values on the current wizard sequence
-   * @param source  the source to highlight the changed parameters with
-   */
-  public void applyParameterValues(@NotNull Consumer<WizardSequence> applier,
-      @NotNull Source source) {
-    // Preserve unrelated edits made while a background task was running.
-    updateAllParametersFromUi();
-    final WizardSequence before = sequenceSteps.copy();
-    final boolean previousListenersActive = listenersActive;
-    setListenersActive(false);
-    try {
-      // decision: estimation and optimization replace previous customization with their own
-      // overrides, so overrides of a previous run do not linger. This intentionally also discards
-      // overrides the user added manually, without confirmation.
-      sequenceSteps.get(WizardPart.CUSTOMIZATION).ifPresent(WizardStepParameters::resetToDefaults);
-      applier.accept(sequenceSteps);
-      parameterChanges = WizardParameterChanges.diff(before, sequenceSteps, source);
-      advancedMode.set(sequenceSteps.get(WizardPart.CUSTOMIZATION)
-          .map(step -> step.getValue(CustomizationWizardParameters.overrides))
-          .map(overrides -> !overrides.isEmpty()).orElse(false));
-      createParameterPanes();
-    } finally {
-      setListenersActive(previousListenersActive);
-    }
   }
 
   /**
@@ -701,12 +656,13 @@ public class BatchWizardTab extends SimpleTab {
    * Find local preset files and add to the drop-down
    */
   private void findAllLocalPresetFiles() {
-    var newLocalPresets = WizardSequenceIOUtils.findAllLocalPresetFiles();
 
     final List<MenuItem> items = new ArrayList<>();
     items.add(FxMenuUtil.newMenuItem("Load presets...", this::chooseAndLoadLocalSequence));
     items.add(FxMenuUtil.newMenuItem("Save presets...", this::saveLocalWizardSequence));
     items.add(new SeparatorMenuItem());
+
+    final var newLocalPresets = WizardSequenceIOUtils.findAllLocalPresetFiles();
     final MenuItem localHeader = new MenuItem(
         newLocalPresets.isEmpty() ? "No local presets" : "Local presets");
     localHeader.setDisable(true);
