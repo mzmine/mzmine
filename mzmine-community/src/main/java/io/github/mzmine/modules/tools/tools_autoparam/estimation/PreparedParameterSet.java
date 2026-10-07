@@ -83,14 +83,22 @@ public record PreparedParameterSet(@NotNull List<PreparedParameter<?>> parameter
    */
   public void applyEstimates(@NotNull WizardSequence sequence,
       @NotNull Set<ParameterDefinition<?>> excluded) {
-    for (final PreparedParameter<?> parameter : parameters) {
-      // decision: preset defaults are not applied, so values the user changed in the wizard stay
-      // as they are. Unlike applyBaseline, which evaluates with the preset defaults.
-      if (parameter.origin() != ValueOrigin.PRESET_DEFAULT && !excluded.contains(
-          parameter.definition())) {
-        parameter.applyInitialValue(sequence);
-      }
+    for (final PreparedParameter<?> parameter : estimates(excluded)) {
+      parameter.applyInitialValue(sequence);
     }
+  }
+
+  /**
+   * @param excluded parameters that are set by another source, e.g., the optimizer
+   * @return the parameters {@link #applyEstimates(WizardSequence, Set)} applies
+   */
+  public @NotNull List<PreparedParameter<?>> estimates(
+      @NotNull Set<ParameterDefinition<?>> excluded) {
+    // decision: preset defaults are not applied, so values the user changed in the wizard stay
+    // as they are. Unlike applyBaseline, which evaluates with the preset defaults.
+    return parameters.stream().filter(
+        parameter -> parameter.origin() != ValueOrigin.PRESET_DEFAULT && !excluded.contains(
+            parameter.definition())).toList();
   }
 
   /**

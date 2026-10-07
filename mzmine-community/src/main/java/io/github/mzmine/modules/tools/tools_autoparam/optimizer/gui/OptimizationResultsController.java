@@ -32,8 +32,11 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -53,6 +56,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.FrontSolutionRanker;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.SolutionApplyMode;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
@@ -76,8 +80,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,6 +108,11 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   private final Stage stage;
   @Nullable
   private final Runnable stopSearchAction;
+  /**
+   * Preselected in the next apply dialog. Initially the estimated and optimized parameters, so the
+   * wizard reproduces the evaluated solution unless the user asks otherwise.
+   */
+  private @NotNull SolutionApplyMode lastApplyMode = SolutionApplyMode.ESTIMATED_AND_OPTIMIZED;
 
   /**
    * @param singlePassSolution     the evaluated raw data estimate. Shown as the first row of the
@@ -224,30 +241,79 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   }
 
   public void applyToWizardSequence() {
-    if (confirmWizardOverride("This will replace the current wizard parameters.")) {
-      applySelectedSolutionToWizard();
-    }
+    chooseApplyMode("This will replace the current wizard parameters.").ifPresent(
+        this::applySelectedSolutionToWizard);
   }
 
   /**
+   * Asks which values of the selected solution replace the wizard parameters.
+   *
    * @param action explains what replaces the wizard parameters
-   * @return true if the user accepts that the wizard parameters are replaced
+   * @return the selected mode, empty if the user cancelled
    */
-  private boolean confirmWizardOverride(@NotNull String action) {
-    final ButtonType choice = ((MZmineGUI) DesktopService.getDesktop()).displayConfirmation(
-        "Information", action + "\nContinue?", ButtonType.YES, ButtonType.NO);
-    return choice == ButtonType.YES;
+  private @NotNull Optional<SolutionApplyMode> chooseApplyMode(@NotNull String action) {
+    final Solution solution = Objects.requireNonNull(model.getSelectedSolution(),
+        "No solution selected");
+    final Alert alert = new Alert(AlertType.CONFIRMATION, "", ButtonType.OK, ButtonType.CANCEL);
+
+    final ToggleGroup group = new ToggleGroup();
+    final VBox options = FxLayout.newVBox(Insets.EMPTY);
+    for (final SolutionApplyMode mode : SolutionApplyMode.values()) {
+      final RadioButton radio = new RadioButton(mode.getLabel());
+      radio.setUserData(mode);
+      radio.setToggleGroup(group);
+      radio.setSelected(mode == lastApplyMode);
+      Styles.BOLD.addStyleClass(radio);
+      // decision: text flows instead of labels, so the text wraps to the dialog width
+      final TextFlow description = FxTextFlows.newTextFlow(FxTexts.text(mode.getDescription()));
+
+      // decision: collapsed by default, the full list of values would distract from the choice
+      final List<String> applied = optimization.describeAppliedValues(solution, mode);
+      final TitledPane appliedPane = FxLayout.newTitledPane(
+          "Applied parameters (%d)".formatted(applied.size()),
+          FxTextFlows.newTextFlow(FxTexts.text(String.join("\n", applied))));
+      // the dialog window does not resize itself when the content grows or shrinks
+      appliedPane.expandedProperty().subscribe(() -> Platform.runLater(() -> {
+        if (alert.getDialogPane().getScene() != null) {
+          alert.getDialogPane().getScene().getWindow().sizeToScene();
+        }
+      }));
+
+      final VBox details = FxLayout.newVBox(Insets.EMPTY, description,
+          FxLayout.newAccordion(false, appliedPane));
+      details.setPadding(new Insets(0, 0, 0, 25));
+      options.getChildren().add(FxLayout.newVBox(Insets.EMPTY, radio, details));
+    }
+
+    final TextFlow message = FxTextFlows.newTextFlow(FxTexts.text(action));
+
+    if (stage != null) {
+      alert.initOwner(stage);
+    } else {
+      DialogLoggerUtil.applyFocusedWindowStyle(alert);
+    }
+    alert.setTitle("Apply solution to wizard");
+    alert.setHeaderText("Which parameters shall be applied to the wizard?");
+    alert.getDialogPane().setContent(FxLayout.newVBox(message, options));
+    alert.getDialogPane().setPrefWidth(550);
+
+    if (alert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+      return Optional.empty();
+    }
+    lastApplyMode = (SolutionApplyMode) group.getSelectedToggle().getUserData();
+    return Optional.of(lastApplyMode);
   }
 
   /**
-   * Applies only the estimated and optimized parameter values of the selected solution to the
-   * wizard, keeping all other current wizard values.
+   * Applies the optimized and, depending on the mode, the estimated parameter values of the
+   * selected solution to the wizard, keeping all other current wizard values.
    */
-  private void applySelectedSolutionToWizard() {
+  private void applySelectedSolutionToWizard(@NotNull SolutionApplyMode mode) {
     final Solution solution = Objects.requireNonNull(model.getSelectedSolution(),
         "No solution selected");
     showWizardTab().applyParameterValues(
-        sequence -> optimization.applySolutionToWizard(solution, sequence), Source.OPTIMIZATION);
+        sequence -> optimization.applySolutionToWizard(solution, sequence, mode),
+        Source.OPTIMIZATION);
   }
 
   /**
@@ -289,12 +355,13 @@ public class OptimizationResultsController extends FxController<OptimizationResu
    * @return the batch, null if the user cancelled or the batch could not be created
    */
   private @Nullable BatchQueue createOptimizedBatch() {
-    if (!confirmWizardOverride("""
+    final Optional<SolutionApplyMode> mode = chooseApplyMode("""
         The batch is created from the wizard, so the selected solution replaces the current \
-        wizard parameters.""")) {
+        wizard parameters.""");
+    if (mode.isEmpty()) {
       return null;
     }
-    applySelectedSolutionToWizard();
+    applySelectedSolutionToWizard(mode.get());
 
     final WizardSequence sequenceSteps = wizardTab.getSequence();
 

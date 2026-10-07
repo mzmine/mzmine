@@ -50,6 +50,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclass
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -222,6 +223,58 @@ class WizardOptimizationProblemParameterTest {
         .getParameter(MassSpectrometerWizardParameters.sampleToSampleMzTolerance).valueEquals(
             evaluated.get(WizardPart.MS).orElseThrow()
                 .getParameter(MassSpectrometerWizardParameters.sampleToSampleMzTolerance)));
+  }
+
+  @Test
+  void applyingOnlyTheOptimizedParametersKeepsTheEstimatedWizardValues() {
+    final ParameterEstimationContext context = context();
+    final PreparedParameterSet prepared = PreparedParameterSet.prepare(context);
+    final List<ParameterDefinition<?>> selected = List.of(
+        ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT);
+    final WizardOptimizationProblem problem = problem(context, prepared, selected);
+
+    final Solution solution = problem.newSolution();
+    final RealVariable variable = (RealVariable) solution.getVariable(0);
+    variable.setValue((variable.getLowerBound() + variable.getUpperBound()) / 2);
+    final WizardSequence evaluated = problem.createWizardSequenceFromSolution(solution);
+
+    final WizardSequence untouched = context().sequence();
+    final WizardSequence wizard = context().sequence();
+    problem.applySolutionToWizard(solution, wizard, SolutionApplyMode.OPTIMIZED_ONLY);
+
+    boolean estimateDiffers = false;
+    for (final PreparedParameter<?> parameter : prepared.parameters()) {
+      if (!(parameter.definition() instanceof WizardParameterDefinition<?> definition)) {
+        continue;
+      }
+      final var applied = wizard.get(definition.part()).orElseThrow()
+          .getParameter(definition.parameter());
+      final var evaluatedValue = evaluated.get(definition.part()).orElseThrow()
+          .getParameter(definition.parameter());
+      if (selected.contains(definition)) {
+        Assertions.assertTrue(applied.valueEquals(evaluatedValue),
+            () -> definition.name() + " differs from the optimized value");
+        continue;
+      }
+      Assertions.assertTrue(applied.valueEquals(
+              untouched.get(definition.part()).orElseThrow().getParameter(definition.parameter())),
+          () -> definition.name() + " was changed although it was not optimized");
+      estimateDiffers |= !applied.valueEquals(evaluatedValue);
+    }
+    // otherwise the test cannot tell whether the estimates were skipped
+    Assertions.assertTrue(estimateDiffers);
+
+    final List<String> optimizedOnly = problem.describeAppliedValues(solution,
+        SolutionApplyMode.OPTIMIZED_ONLY);
+    Assertions.assertEquals(List.of(
+            ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT.name() + " -> "
+                + problem.getIndexedParameters().getFirst().formatValue(solution) + " (Optimized)"),
+        optimizedOnly);
+    final List<String> all = problem.describeAppliedValues(solution,
+        SolutionApplyMode.ESTIMATED_AND_OPTIMIZED);
+    Assertions.assertEquals(optimizedOnly, all.subList(0, 1));
+    Assertions.assertEquals(prepared.estimates(Set.copyOf(selected)).size() + 1, all.size());
+    Assertions.assertTrue(all.stream().skip(1).allMatch(line -> line.endsWith("(Estimated)")));
   }
 
   @Test

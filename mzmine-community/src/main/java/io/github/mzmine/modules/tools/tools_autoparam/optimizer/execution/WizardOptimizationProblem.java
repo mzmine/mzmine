@@ -26,15 +26,20 @@
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.BatchParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;
@@ -54,6 +59,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -399,9 +405,18 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
   }
 
   /**
-   * Applies only the estimated and optimized values of a solution to an existing wizard sequence,
-   * the same way as applying the raw data estimates. All other parameters keep their current
-   * values. The applied values equal the ones the solution was evaluated with in
+   * Applies the estimated and optimized values of a solution to an existing wizard sequence, see
+   * {@link #applySolutionToWizard(Solution, WizardSequence, SolutionApplyMode)}.
+   */
+  public void applySolutionToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence) {
+    applySolutionToWizard(solution, sequence, SolutionApplyMode.ESTIMATED_AND_OPTIMIZED);
+  }
+
+  /**
+   * Applies the optimized values of a solution to an existing wizard sequence and, depending on the
+   * mode, also the estimated values the same way as applying the raw data estimates. All other
+   * parameters keep their current values. With {@link SolutionApplyMode#ESTIMATED_AND_OPTIMIZED},
+   * the applied values equal the ones the solution was evaluated with in
    * {@link #createWizardSequenceFromSolution(Solution)} as long as the sequence uses the same
    * presets as the optimization.
    * <p>
@@ -410,12 +425,46 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    *
    * @param solution the solution to apply
    * @param sequence the wizard sequence to modify
+   * @param mode     whether the estimates of the not optimized parameters are applied as well
    */
-  public void applySolutionToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence) {
-    preparedParameters.applyEstimates(sequence, Set.copyOf(paramToOptimize));
+  public void applySolutionToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence,
+      @NotNull SolutionApplyMode mode) {
+    if (mode == SolutionApplyMode.ESTIMATED_AND_OPTIMIZED) {
+      preparedParameters.applyEstimates(sequence, Set.copyOf(paramToOptimize));
+    }
     for (final IndexedParameter<?> parameter : indexedParameters) {
       parameter.applyToWizard(solution, sequence);
     }
+  }
+
+  /**
+   * @return one line per parameter that
+   * {@link #applySolutionToWizard(Solution, WizardSequence, SolutionApplyMode)} sets, formatted as
+   * {@code name -> value (Optimized|Estimated)}, optimized parameters first
+   */
+  public @NotNull List<String> describeAppliedValues(@NotNull Solution solution,
+      @NotNull SolutionApplyMode mode) {
+    final List<String> lines = new ArrayList<>();
+    for (final IndexedParameter<?> parameter : indexedParameters) {
+      lines.add("%s: %s -> %s (Optimized)".formatted(switch (parameter.parameter().definition()) {
+        case WizardParameterDefinition<?> w -> w.part().toString();
+        case BatchParameterDefinition<?> b ->
+            Optional.ofNullable(MZmineCore.getModuleInstance(b.moduleClassName()))
+                .map(MZmineModule::getName).orElse("Unknown") + " (Advanced)";
+      }, parameter.parameter().definition().name(), parameter.formatValue(solution)));
+    }
+    if (mode == SolutionApplyMode.ESTIMATED_AND_OPTIMIZED) {
+      for (final PreparedParameter<?> parameter : preparedParameters.estimates(
+          Set.copyOf(paramToOptimize))) {
+        lines.add("%s: %s -> %s (Estimated)".formatted(switch (parameter.definition()) {
+          case WizardParameterDefinition<?> w -> w.part().toString();
+          case BatchParameterDefinition<?> b ->
+              Optional.ofNullable(MZmineCore.getModuleInstance(b.moduleClassName()))
+                  .map(MZmineModule::getName).orElse("Unknown") + " (Advanced)";
+        }, parameter.definition().name(), parameter.formatInitialValue()));
+      }
+    }
+    return lines;
   }
 
   @Override
