@@ -1,10 +1,3 @@
-# General
-
-- This is a composite gradle project. If you don't find a class here, check in "../mzmine3" or "
-  ../mzmine"
-- Use gradlew mzminepro:build to check if mzmine pro compiles, the full project does not have a
-  build script
-
 # Factories
 
 - When creating graphical user interfaces, try using existing factory classes in
