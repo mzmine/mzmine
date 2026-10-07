@@ -27,8 +27,7 @@ package io.github.mzmine.datamodel.features.types.abstr;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.util.io.JsonUtils;
-import java.util.Arrays;
+import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import java.util.function.Function;
 import javax.xml.stream.XMLStreamException;
@@ -38,14 +37,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A list of strings. Formatted as a semicolon separated list, exported and saved as JSON array.
+ * A list of strings. Formatted as a semicolon separated list. Exported and saved as a semicolon
+ * separated list with CSV quoting, see {@link ParsingUtils#stringListToString}.
  */
 public abstract class StringListType extends ListDataType<String> {
 
   public static final String SEPARATOR = "; ";
 
   /**
-   * Accepts JSON arrays and semicolon separated values.
+   * Accepts semicolon separated values with CSV quoting, see
+   * {@link ParsingUtils#stringToStringList(String)}. Values are stripped and empty values are
+   * removed.
    */
   public static @Nullable List<String> parse(@Nullable String text) {
     if (text == null) {
@@ -54,14 +56,8 @@ public abstract class StringListType extends ListDataType<String> {
     if (text.isBlank()) {
       return List.of();
     }
-    text = text.strip();
-    if (text.startsWith("[")) {
-      final Object json = JsonUtils.readValueOrNull(text);
-      if (json instanceof List<?> list && list.stream().allMatch(String.class::isInstance)) {
-        return list.stream().map(String.class::cast).toList();
-      }
-    }
-    return Arrays.stream(text.split(";")).map(String::strip).filter(s -> !s.isEmpty()).toList();
+    return ParsingUtils.stringToStringList(text.strip()).stream().map(String::strip)
+        .filter(s -> !s.isEmpty()).toList();
   }
 
   @Override
@@ -76,7 +72,7 @@ public abstract class StringListType extends ListDataType<String> {
       return "";
     }
     if (export) {
-      return JsonUtils.writeStringOrEmpty(value);
+      return ParsingUtils.stringListToString(value);
     }
     return String.join(SEPARATOR, value);
   }
@@ -84,14 +80,17 @@ public abstract class StringListType extends ListDataType<String> {
   @Override
   public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
       throws XMLStreamException {
-    writer.writeCharacters(value == null ? CONST.XML_NULL_VALUE
-        : JsonUtils.writeStringOrElse(value, CONST.XML_NULL_VALUE));
+    if (!(value instanceof List<?> list)) {
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
+      return;
+    }
+    writer.writeCharacters(ParsingUtils.stringListToString((List<String>) list));
   }
 
   @Override
   public @Nullable List<String> loadFromXML(@NotNull final XMLStreamReader reader)
       throws XMLStreamException {
     final String text = reader.getElementText();
-    return CONST.XML_NULL_VALUE.equals(text) ? null : parse(text);
+    return CONST.XML_NULL_VALUE.equals(text) ? null : ParsingUtils.stringToStringList(text);
   }
 }
