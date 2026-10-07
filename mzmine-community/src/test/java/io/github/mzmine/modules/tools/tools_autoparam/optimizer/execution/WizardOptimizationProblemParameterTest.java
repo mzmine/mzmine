@@ -266,8 +266,8 @@ class WizardOptimizationProblemParameterTest {
 
     final List<String> optimizedOnly = problem.describeAppliedValues(solution,
         SolutionApplyMode.OPTIMIZED_ONLY);
-    Assertions.assertEquals(List.of(
-            ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT.name() + " -> "
+    Assertions.assertEquals(List.of(ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT.part() + ": "
+            + ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT.name() + " -> "
                 + problem.getIndexedParameters().getFirst().formatValue(solution) + " (Optimized)"),
         optimizedOnly);
     final List<String> all = problem.describeAppliedValues(solution,

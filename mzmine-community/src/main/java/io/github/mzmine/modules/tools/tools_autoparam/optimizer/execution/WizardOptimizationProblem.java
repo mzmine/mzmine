@@ -440,7 +440,8 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
   /**
    * @return one line per parameter that
    * {@link #applySolutionToWizard(Solution, WizardSequence, SolutionApplyMode)} sets, formatted as
-   * {@code name -> value (Optimized|Estimated)}, optimized parameters first
+   * {@code part: name -> value (Optimized|Estimated)}, optimized parameters first. Advanced
+   * parameters use the module name instead of the part
    */
   public @NotNull List<String> describeAppliedValues(@NotNull Solution solution,
       @NotNull SolutionApplyMode mode) {
