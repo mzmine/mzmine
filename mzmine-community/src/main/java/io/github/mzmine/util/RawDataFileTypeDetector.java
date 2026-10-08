@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -262,7 +262,7 @@ public class RawDataFileTypeDetector {
       reader2.close();
       if (content.contains("1002476") || content.contains("1002815")) { // accession for
         // mobility
-        return RawDataFileType.MZML_IMS;
+        return RawDataFileType.MZML/*_IMS*/;
       } else {
         return RawDataFileType.MZML;
       }

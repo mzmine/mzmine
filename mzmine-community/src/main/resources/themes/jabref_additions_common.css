@@ -331,3 +331,36 @@ Text.contrast-label {
     -fx-alignment: center;
     -fx-background-color: transparent;
 }
+
+/* the single primary action of a view, e.g., create batch in the mzwizard.
+   Solid accent with bold white text */
+.button.accent-button {
+  -fx-background-color: -jr-accent;
+  -fx-border-color: -jr-accent;
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+}
+
+/* keep the accent, the regular button states replace the background with a gray */
+.button.accent-button:focused {
+  -fx-background-color: -jr-accent;
+}
+
+.button.accent-button:hover {
+  -fx-background-color: derive(-jr-accent, -12%);
+  -fx-border-color: derive(-jr-accent, -12%);
+}
+
+.button.accent-button:pressed {
+  -fx-background-color: derive(-jr-accent, -24%);
+  -fx-border-color: derive(-jr-accent, -24%);
+}
+
+.button.accent-button .ikonli-font-icon {
+  -fx-icon-color: white;
+}
+
+/* compact buttons that overlay the tab header, e.g., parameter actions in the mzwizard */
+.tab-header-actions .button {
+  -fx-padding: 0.15em 0.6em 0.15em 0.6em;
+}

@@ -142,7 +142,6 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     return switch (fileType) {
       case MZML -> true;
       case IMZML -> true;
-      case MZML_IMS -> true;
       case MZXML -> true;
       case MZDATA -> true;
       case NETCDF -> true;

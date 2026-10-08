@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,7 @@ import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
 
@@ -112,6 +113,48 @@ public class JoinAlignerParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/align_join_aligner/join_aligner.html");
   }
 
+  /**
+   * Only align on mz tolerance
+   *
+   * @return
+   */
+  public static ParameterSet create(final MZTolerance mzTol) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(JoinAlignerModule.class).cloneParameterSet();
+    param.setParameter(JoinAlignerParameters.peakLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(JoinAlignerParameters.peakListName, "Aligned feature list");
+    param.setParameter(JoinAlignerParameters.MZTolerance, mzTol);
+    param.setParameter(JoinAlignerParameters.MZWeight, 100d);
+    // RT tolerance is not needed for some workflows
+    param.setParameter(JoinAlignerParameters.RTTolerance, new RTTolerance(9999999, Unit.MINUTES));
+    param.setParameter(JoinAlignerParameters.RTWeight, 0d);
+    // IMS
+    param.setParameter(JoinAlignerParameters.mobilityTolerance, false);
+    param.getParameter(JoinAlignerParameters.mobilityTolerance).getEmbeddedParameter()
+        .setValue(new MobilityTolerance(0.1f));
+    param.setParameter(JoinAlignerParameters.mobilityWeight, 1d);
+    param.setParameter(JoinAlignerParameters.SameChargeRequired, false);
+    param.setParameter(JoinAlignerParameters.SameIDRequired, false);
+    param.setParameter(JoinAlignerParameters.compareIsotopePattern, false);
+    param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
+    param.setParameter(JoinAlignerParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    return param;
+  }
+
+  public static ParameterSet create(final @NotNull MZTolerance mzTol, double mzWeight,
+      final @NotNull RTTolerance rtTol, double rtWeight, @Nullable final MobilityTolerance mobTol,
+      @Nullable Double mobWeight) {
+    final ParameterSet param = create(mzTol);
+    param.setParameter(JoinAlignerParameters.MZWeight, mzWeight);
+    param.setParameter(JoinAlignerParameters.RTTolerance, rtTol);
+    param.setParameter(JoinAlignerParameters.RTWeight, rtWeight);
+    if (mobTol != null && mobWeight != null) {
+      param.setParameter(JoinAlignerParameters.mobilityTolerance, true, mobTol);
+      param.setParameter(JoinAlignerParameters.mobilityWeight, mobWeight);
+    }
+    return param;
+  }
 
   @Override
   public boolean checkParameterValues(final Collection<String> errorMessages,
@@ -139,34 +182,5 @@ public class JoinAlignerParameters extends SimpleParameterSet {
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("m/z tolerance", getParameter(MZTolerance));
     return nameParameterMap;
-  }
-
-
-  /**
-   * Only align on mz tolerance
-   *
-   * @return
-   */
-  public static ParameterSet create(final MZTolerance mzTol) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(JoinAlignerModule.class).cloneParameterSet();
-    param.setParameter(JoinAlignerParameters.peakLists,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(JoinAlignerParameters.peakListName, "Aligned feature list");
-    param.setParameter(JoinAlignerParameters.MZTolerance, mzTol);
-    param.setParameter(JoinAlignerParameters.MZWeight, 100d);
-    // RT tolerance is not needed for some workflows
-    param.setParameter(JoinAlignerParameters.RTTolerance, new RTTolerance(9999999, Unit.MINUTES));
-    param.setParameter(JoinAlignerParameters.RTWeight, 0d);
-    // IMS
-    param.setParameter(JoinAlignerParameters.mobilityTolerance, false);
-    param.getParameter(JoinAlignerParameters.mobilityTolerance).getEmbeddedParameter()
-        .setValue(new MobilityTolerance(0.1f));
-    param.setParameter(JoinAlignerParameters.SameChargeRequired, false);
-    param.setParameter(JoinAlignerParameters.SameIDRequired, false);
-    param.setParameter(JoinAlignerParameters.compareIsotopePattern, false);
-    param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
-    param.setParameter(JoinAlignerParameters.handleOriginal, OriginalFeatureListOption.KEEP);
-    return param;
   }
 }
