@@ -41,7 +41,7 @@ public class NullableFloatInnerColumn extends AbstractInnerColumn<Float> impleme
   @Nullable
   public Float get(MemorySegment data, int index) {
     final float v = (float) varHandle.get(data, 0L, index);
-    return isNull(v) ? null : v;
+    return Float.isNaN(v) ? null : v;
   }
 
   @Override

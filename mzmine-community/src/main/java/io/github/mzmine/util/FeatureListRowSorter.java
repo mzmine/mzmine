@@ -25,8 +25,6 @@
 
 package io.github.mzmine.util;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Comparator;
@@ -57,14 +55,14 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
   }
 
   public int compare(FeatureListRow row1, FeatureListRow row2) {
-
-    Double row1Value = getValue(row1);
-    Double row2Value = getValue(row2);
+    
+    final double row1Value = getValue(row1);
+    final double row2Value = getValue(row2);
 
     if (direction == SortingDirection.Ascending) {
-      return row1Value.compareTo(row2Value);
+      return Double.compare(row1Value, row2Value);
     } else {
-      return row2Value.compareTo(row1Value);
+      return Double.compare(row2Value, row1Value);
     }
 
   }
@@ -86,8 +84,7 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
         for (int i = 0; i < intensityPeaks.length; i++) {
           peakIntensities[i] = intensityPeaks[i].getArea();
         }
-        double medianIntensity = MathUtils.calcQuantile(peakIntensities, 0.5);
-        yield medianIntensity;
+        yield MathUtils.calcQuantile(peakIntensities, 0.5);
       }
       case Height -> {
         Feature[] heightPeaks = row.getFeatures().toArray(new Feature[0]);
@@ -95,17 +92,10 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
         for (int i = 0; i < peakHeights.length; i++) {
           peakHeights[i] = heightPeaks[i].getHeight();
         }
-        double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
-        yield medianHeight;
+        yield MathUtils.calcQuantile(peakHeights, 0.5);
       }
-      case MZ -> {
-        final Double mz = row.getAverageMZ();
-        if (mz == null) {
-          logger.info("yikes " + FeatureUtils.rowToString(row));
-        }
-        yield mz + requireNonNullElse(row.getAverageRT(), 0f) / 10000000.0;
-      }
-      case RT -> requireNonNullElse(row.getAverageRT(), 0f) + row.getAverageMZ() / 10000000.0;
+      case MZ -> row.getAverageMzOrDefault(0d) + row.getAverageRTOrElse(0f) / 10000000.0;
+      case RT -> row.getAverageRTOrElse(0f) + row.getAverageMzOrDefault(0d) / 10000000.0;
       case ID -> row.getID();
     };
 
