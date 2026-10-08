@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,8 @@ import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -376,4 +378,24 @@ public interface RawDataFile extends Comparable<RawDataFile> {
   }
 
   @NotNull List<OtherDataFile> getOtherDataFiles();
+
+  /**
+   * File level metadata read from the raw data file during import, e.g., instrument model or serial
+   * number. The data types are in {@link io.github.mzmine.datamodel.features.rawfiletypes} and may
+   * be tagged with a controlled vocabulary term by
+   * {@link io.github.mzmine.datamodel.features.rawfiletypes.CvTermType}.
+   *
+   * @return the file metadata, never null but may be empty
+   */
+  @NotNull ModularDataModel getFileMetadata();
+
+  /**
+   * Sets a value in the {@link #getFileMetadata() file metadata}.
+   *
+   * @return true if the new value is different than the old
+   */
+  default <T> boolean setFileMetadataValue(@NotNull Class<? extends DataType<T>> typeClass,
+      @Nullable T value) {
+    return getFileMetadata().set(typeClass, value);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,12 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks;
+package io.github.mzmine.datamodel.features.rawfiletypes;
 
-import com.sun.jna.Callback;
-import com.sun.jna.Pointer;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
-public interface ProfileCallback extends Callback {
+/**
+ * Name or path of the mass spectrometer tune method used to acquire the data.
+ */
+public class TuneMethodNameType extends StringType {
 
-  void invoke(long id, long num_points, Pointer intensity_values, Pointer userData);
+  @Override
+  public @NotNull String getUniqueID() {
+    return "rawfile_tune_method_name";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Tune method";
+  }
 }

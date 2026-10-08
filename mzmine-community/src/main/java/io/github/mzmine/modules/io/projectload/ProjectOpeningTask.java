@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
+import io.github.mzmine.modules.io.projectsave.RawFileMetadataProjectIO;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataProjectIO;
 import io.github.mzmine.modules.visualization.acquisitionmetadata.AcquisitionMetadataProjectIO;
 import io.github.mzmine.parameters.ParameterSet;
@@ -54,6 +55,7 @@ import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -200,6 +202,14 @@ public class ProjectOpeningTask extends AbstractTask {
       ProjectMetadataProjectIO.loadFromZip(zipFile);
       AcquisitionMetadataProjectIO.loadFromZip(zipFile,
           rawDataFileOpenHandler.getResolvedRawDataFilePaths());
+
+      currentLoadedObjectName = "Raw file metadata";
+      try {
+        RawFileMetadataProjectIO.loadFromZip(zipFile, newProject);
+      } catch (IOException e) {
+        // decision: missing raw file metadata should not fail the project import
+        logger.log(Level.WARNING, "Cannot load raw file metadata: " + e.getMessage(), e);
+      }
 
       loadFeatureList(zipFile);
 

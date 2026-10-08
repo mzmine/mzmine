@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,29 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks;
+package io.github.mzmine.datamodel.features.rawfiletypes;
 
-import com.sun.jna.Pointer;
-import java.util.HashMap;
-import java.util.Map;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
-public class MultipleProfileData implements ProfileCallback {
+/**
+ * Name of the operator who acquired the data.
+ */
+public class OperatorNameType extends StringType implements CvTermType {
 
-  Map<Long, ProfileDataPoints> spectra = new HashMap<>();
-
-  public class ProfileDataPoints {
-    long precursorId;
-    long num_points;
-    float[] intensities;
-    Pointer userData;
+  @Override
+  public @NotNull String getUniqueID() {
+    return "rawfile_operator_name";
   }
 
   @Override
-  public void invoke(long id, long num_points, Pointer pIntensites, Pointer userData) {
-    ProfileDataPoints msms_spectrum = new ProfileDataPoints();
-    msms_spectrum.precursorId = id;
-    msms_spectrum.num_points = num_points;
-    msms_spectrum.intensities = pIntensites.getFloatArray(0, (int) num_points);
-    spectra.put(id, msms_spectrum);
+  public @NotNull String getHeaderString() {
+    return "Operator";
+  }
+
+  @Override
+  public @NotNull String getCvAccession() {
+    return "MS:1000586";
+  }
+
+  @Override
+  public @NotNull String getCvName() {
+    return "contact name";
   }
 }

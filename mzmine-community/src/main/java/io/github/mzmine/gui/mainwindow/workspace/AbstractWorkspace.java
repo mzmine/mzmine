@@ -238,6 +238,9 @@ public abstract class AbstractWorkspace implements Workspace {
         KeyCombination.SHORTCUT_DOWN);
     addMenuItem(menu, "Acquisition metadata",
         () -> MZmineCore.getDesktop().addTab(new AcquisitionMetadataTab()));
+    addMenuItem(menu, "Raw file metadata",
+        () -> MZmineCore.getDesktop().addTab(
+            new io.github.mzmine.modules.visualization.rawfilemetadata.AcquisitionMetadataTab()));
     addModuleMenuItems(menu, SampleMetadataExtractionModule.class);
     addSeparator(menu);
     addMenuItem(menu, "Set preferences",

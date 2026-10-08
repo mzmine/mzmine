@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,12 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks;
+package io.github.mzmine.datamodel.features.rawfiletypes;
 
-import com.sun.jna.Callback;
-import com.sun.jna.Pointer;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
-public interface CentroidCallback extends Callback {
+/**
+ * Name of the software that acquired the data.
+ */
+public class AcquisitionSoftwareType extends StringType implements CvTermType {
 
-  void invoke(long precursor_id, int num_peaks, Pointer pMz, Pointer pIntensites, Pointer userData);
+  @Override
+  public @NotNull String getUniqueID() {
+    return "rawfile_acquisition_software";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Acquisition software";
+  }
+
+  @Override
+  public @NotNull String getCvAccession() {
+    return "MS:1000531";
+  }
+
+  @Override
+  public @NotNull String getCvName() {
+    return "software";
+  }
 }

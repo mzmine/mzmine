@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,11 +36,13 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.awt.Color;
+import java.time.LocalDateTime;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -315,6 +317,16 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   @Override
   public @NotNull List<OtherDataFile> getOtherDataFiles() {
     return List.of();
+  }
+
+  @Override
+  public @Nullable LocalDateTime getStartTimeStamp() {
+    return originalFile.getStartTimeStamp();
+  }
+
+  @Override
+  public @NotNull ModularDataModel getFileMetadata() {
+    throw new UnsupportedOperationException("Unsupported during project load.");
   }
 
   public RawDataFile getOriginalFile() {

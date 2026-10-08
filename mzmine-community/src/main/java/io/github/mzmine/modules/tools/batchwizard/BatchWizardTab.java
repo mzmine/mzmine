@@ -626,14 +626,18 @@ public class BatchWizardTab extends SimpleTab {
   /// the tab overflow button never run below the actions and centers the actions vertically in the
   /// header.
   private void reserveTabHeaderSpace(@NotNull final Region actions) {
+    final Subscription[] headerSub = {Subscription.EMPTY};
     tabPane.skinProperty().subscribe(skin -> {
+      headerSub[0].unsubscribe();
+      headerSub[0] = Subscription.EMPTY;
+      actions.minHeightProperty().unbind();
       if (skin == null || !(tabPane.lookup(".tab-header-area") instanceof Region header)) {
         return;
       }
       actions.minHeightProperty().bind(header.heightProperty());
       // assumption: the themes set the header area padding to 0 (jabref_light.css,
       // style_modern.css), the inline style only adds the right padding
-      actions.widthProperty().subscribe(
+      headerSub[0] = actions.widthProperty().subscribe(
           width -> header.setStyle("-fx-padding: 0 %.1fpx 0 0;".formatted(width.doubleValue())));
     });
   }
@@ -740,12 +744,11 @@ public class BatchWizardTab extends SimpleTab {
    * Find local preset files and add to the drop-down
    */
   private void findAllLocalPresetFiles() {
-    var newLocalPresets = WizardSequenceIOUtils.findAllLocalPresetFiles();
-
     final List<MenuItem> items = new ArrayList<>();
     items.add(FxMenuUtil.newMenuItem("Load presets...", this::chooseAndLoadLocalSequence));
     items.add(FxMenuUtil.newMenuItem("Save presets...", this::saveLocalWizardSequence));
     items.add(new SeparatorMenuItem());
+    final var newLocalPresets = WizardSequenceIOUtils.findAllLocalPresetFiles();
     final MenuItem localHeader = new MenuItem(
         newLocalPresets.isEmpty() ? "No local presets" : "Local presets");
     localHeader.setDisable(true);
