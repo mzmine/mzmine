@@ -109,6 +109,7 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.Extern
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_gc_ei_ion_notation.GcEiIonNotationModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule;
@@ -383,6 +384,7 @@ public class BatchModeModulesList {
           IonNetworkMSMSCheckModule.class, //
           FormulaPredictionIonNetworkModule.class, //
           CreateAvgNetworkFormulasModule.class, //
+          GcEiIonNotationModule.class, //
           OnlineLcReactivityModule.class, //
           ClearIonIdentitiesModule.class, //
 

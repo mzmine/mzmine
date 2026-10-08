@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraM
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -77,6 +78,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       model.setSelectedMs2Row(null);
       model.getAvailableMs2Scans().clear();
       model.setSelectedMs2Scan(null);
+      model.setDeconvolutedEi(false);
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
       model.getMobilogramDatasets().clear();
@@ -118,6 +120,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     // it by the controller. Always reset to the compound's preferred row on a compound change so
     // the dashboard has a sensible default focus.
     final FeatureListRow preferred = compound.getPreferredRow();
+    model.setDeconvolutedEi(ScanUtils.isGcEiScan(preferred.getMostIntenseFragmentScan()));
     if (model.getSelectedAdductRow() != preferred) {
       model.setSelectedAdductRow(preferred);
     } else {

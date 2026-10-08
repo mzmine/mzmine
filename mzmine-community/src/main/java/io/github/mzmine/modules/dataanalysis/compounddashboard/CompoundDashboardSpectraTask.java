@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -37,6 +38,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassS
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -204,14 +206,30 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
       ms2TitleOut = "";
       return List.of();
     }
-    ms2TitleOut = buildMs2Title(ms2Scan);
-    final String label = "MS2 " + (CompoundDashboardColoring.ionTypeLabel(ms2Row) != null
-        ? CompoundDashboardColoring.ionTypeLabel(ms2Row) : "");
+    final boolean deconvolutedEi = ScanUtils.isGcEiSpectrum(ms2Scan);
+    ms2TitleOut = deconvolutedEi ? buildEiTitle(ms2Scan) : buildMs2Title(ms2Scan);
+    final String label = deconvolutedEi ? "EI spectrum"
+        : "MS2 " + (CompoundDashboardColoring.ionTypeLabel(ms2Row) != null
+            ? CompoundDashboardColoring.ionTypeLabel(ms2Row) : "");
     final Color awt = FxColorUtil.fxColorToAWT(colors.colorFor(ms2Row));
     final ColoredXYBarRenderer renderer = new ColoredXYBarRenderer(false);
     // match the on-plot stick label color to the dataset color
     renderer.setDefaultItemLabelPaint(awt);
     return List.of(new DatasetAndRenderer(new MassSpectrumProvider(ms2Scan, label, awt), renderer));
+  }
+
+  /**
+   * GC-EI pseudo spectra are deconvoluted MS1 spectra. They have no scan number, activation method
+   * or energy.
+   */
+  private static @NotNull String buildEiTitle(@NotNull final Scan spectrum) {
+    if (spectrum instanceof MergedMassSpectrum merged) {
+      final int samples = merged.getSourceSpectra().size();
+      return "Deconvoluted EI spectrum (merged from %d sample%s)".formatted(samples,
+          samples == 1 ? "" : "s");
+    }
+    return "Deconvoluted EI spectrum (%s; RT %s min)".formatted(spectrum.getDataFile().getName(),
+        ConfigService.getGuiFormats().rt(spectrum.getRetentionTime()));
   }
 
   private static @NotNull String buildMs2Title(@NotNull final Scan ms2) {

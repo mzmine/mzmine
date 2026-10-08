@@ -523,10 +523,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath,
       final MZTolerance mzTolScans, final String fileNameSuffix) {
+    makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans, fileNameSuffix,
+        FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
+  }
+
+  protected static void makeAndAddIimnGnpsExportStep(@NotNull final BatchQueue q,
+      @NotNull final File exportPath, @NotNull final MZTolerance mzTolScans,
+      @NotNull final String fileNameSuffix, @NotNull final FeatureListRowsFilter rowsFilter) {
 
     final ParameterSet param = GnpsFbmnExportAndSubmitParameters.create(exportPath, fileNameSuffix,
         mzTolScans, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
-        false, FeatureListRowsFilter.MS2_OR_ION_IDENTITY, false,
+        false, rowsFilter, false,
         IntensityNormalizer.createDefault(), FeatureTableExportType.SIMPLE, AbundanceMeasure.Area);
 
     q.add(new MZmineProcessingStepImpl<>(

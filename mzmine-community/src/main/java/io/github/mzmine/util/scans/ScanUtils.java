@@ -2600,6 +2600,19 @@ public class ScanUtils {
         && pseudo.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI;
   }
 
+  /**
+   * @return true if the scan is a GC-EI deconvoluted pseudo spectrum or a merged spectrum of only
+   * such pseudo spectra
+   */
+  public static boolean isGcEiSpectrum(@Nullable Scan scan) {
+    if (scan instanceof MergedMassSpectrum merged) {
+      final List<MassSpectrum> sources = merged.getSourceSpectra();
+      return !sources.isEmpty() && sources.stream()
+          .allMatch(source -> source instanceof Scan s && isGcEiScan(s));
+    }
+    return isGcEiScan(scan);
+  }
+
 
   /**
    * Checks that all scans have mass lists

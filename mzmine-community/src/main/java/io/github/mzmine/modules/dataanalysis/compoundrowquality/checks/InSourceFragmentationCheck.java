@@ -41,6 +41,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStat
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -66,6 +67,14 @@ public final class InSourceFragmentationCheck implements QualityCheck {
   @Override
   public @NotNull QualityCheckResult evaluate(@NotNull CompoundRow row,
       @NotNull QualityCheckContext context) {
+    // GC-EI pseudo spectra are built from the member features themselves, every lower member m/z
+    // would be reported. EI fragments are expected members of the compound
+    if (ScanUtils.isGcEiScan(row.getPreferredRow().getMostIntenseFragmentScan())) {
+      return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
+          QualityCheckStatus.DOES_NOT_APPLY,
+          "In-source fragment check does not apply to GC-EI deconvoluted compounds", List.of(),
+          List.of());
+    }
     final List<CompoundFeatureMember> members = row.getCompoundMembers();
     final MZTolerance ms2Tol = context.ms2Tolerance();
 
