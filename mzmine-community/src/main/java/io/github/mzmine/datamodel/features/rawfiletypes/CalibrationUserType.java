@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,26 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks;
+package io.github.mzmine.datamodel.features.rawfiletypes;
 
-import com.sun.jna.Pointer;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
-public class ProfileData implements ProfileCallback {
-
-  long id;
-  long num_points;
-  int[] intensities;
-  Pointer userData;
+/**
+ * User who performed the mass calibration.
+ */
+public class CalibrationUserType extends StringType {
 
   @Override
-  public void invoke(long id, long num_points, Pointer intensity_values, Pointer userData) {
-    this.id = id;
-    this.num_points = num_points;
-    this.intensities = intensity_values.getIntArray(0, (int) num_points);
-    this.userData = userData;
+  public @NotNull String getUniqueID() {
+    return "rawfile_calibration_user";
   }
 
-  public int[] getIntensities() {
-    return intensities;
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Calibration user";
   }
 }
