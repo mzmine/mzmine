@@ -111,7 +111,6 @@ public enum RawDataFileType implements UniqueIdSupplier {
   public @NotNull String getUniqueID() {
     return switch (this) {
       case IMZML -> "imzml";
-      case MZML_IMS -> "mzml_ims";
       case MZXML -> "mzxml";
       case MZDATA -> "mzdata";
       case NETCDF -> "netcdf";
