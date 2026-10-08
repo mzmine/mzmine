@@ -28,18 +28,13 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
@@ -84,12 +79,12 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
   protected void process() {
     LOGGER.info("Starting spectral deconvolution on " + featureList.getName());
     try {
-      List<ModularFeature> features = featureList.getFeatures(featureList.getRawDataFile(0));
-      List<List<ModularFeature>> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(
+      final List<ModularFeature> features = featureList.getFeatures(featureList.getRawDataFile(0));
+      final List<List<ModularFeature>> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(
           features);
-      List<FeatureListRow> deconvolutedFeatureListRows = SpectralDeconvolutionUtils.generatePseudoSpectra(
-          groupedFeatures, featureList, mzValuesToIgnore);
-      createNewDeconvolutedFeatureList(deconvolutedFeatureListRows);
+      // all grouped rows are kept and grouped as compounds, the representative holds the pseudo spectrum
+      deconvolutedFeatureList = SpectralDeconvolutionUtils.createDeconvolutedFeatureList(
+          featureList, groupedFeatures, mzValuesToIgnore, suffix, getMemoryMapStorage());
       if (!isCanceled()) {
         handleOriginal.reflectNewFeatureListToProject(suffix, project, deconvolutedFeatureList,
             featureList);
@@ -105,20 +100,6 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
       LOGGER.severe("Error during spectral deconvolution: " + e.getMessage());
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.getMessage());
-    }
-  }
-
-  private void createNewDeconvolutedFeatureList(List<FeatureListRow> deconvolutedFeatureListRows) {
-    deconvolutedFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
-        getMemoryMapStorage(), deconvolutedFeatureListRows.size(),
-        deconvolutedFeatureListRows.size());
-    deconvolutedFeatureListRows.sort(FeatureListRowSorter.DEFAULT_RT);
-    int newID = 1;
-    for (FeatureListRow featureListRow : deconvolutedFeatureListRows) {
-      deconvolutedFeatureList.addRow(
-          new ModularFeatureListRow((ModularFeatureList) deconvolutedFeatureList, newID,
-              (ModularFeatureListRow) featureListRow, true));
-      newID++;
     }
   }
 

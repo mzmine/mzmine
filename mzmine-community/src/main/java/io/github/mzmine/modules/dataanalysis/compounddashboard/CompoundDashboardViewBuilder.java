@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
@@ -50,7 +51,12 @@ import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.Ch
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
@@ -64,6 +70,8 @@ import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
@@ -83,6 +91,12 @@ import org.jfree.chart.axis.ValueAxis;
  * sub-controllers' built views; the controller is responsible for wiring data flow.
  */
 public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboardModel> {
+
+  /// The collapsed member legend shows at most this many rows, e.g. GC-EI compounds may have
+  /// hundreds of fragment ion rows
+  private static final int COLLAPSED_LEGEND_ENTRIES = 12;
+  /// The expanded member legend scrolls above this height to keep space for charts and table
+  private static final double MAX_EXPANDED_LEGEND_HEIGHT = 120;
 
   private final CompoundDashboardController controller;
   private final ChromatogramPlotController eicPlot;
@@ -145,7 +159,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
 
     // Legend FlowPane sits directly under the charts SplitPane and lists every member row of the
     // currently selected compound. Labels mirror the plot colors and are clickable to focus a row.
-    final FlowPane legendPane = buildLegendPane();
+    final Region legendPane = buildLegendPane();
     VBox.setVgrow(mainVerticalChartsSplit, Priority.ALWAYS);
     final VBox chartsWithLegend = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true,
         mainVerticalChartsSplit, legendPane);
@@ -250,6 +264,9 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     adductCombo.setButtonCell(adductCell());
     HBox.setHgrow(adductCombo, Priority.SOMETIMES);
     final Label ms2OfLabel = FxLabels.newBoldLabel("MS2 of");
+    // GC-EI compounds have a deconvoluted MS1 (EI) pseudo spectrum instead of an MS2
+    ms2OfLabel.textProperty().bind(
+        Bindings.when(model.deconvolutedEiProperty()).then("EI spectrum of").otherwise("MS2 of"));
 
     // Scan selector: first item is the merged MS2 (REPRESENTATIVE across samples), followed by the
     // row's individual fragment scans. Prev/next buttons cycle through the list in the controller.
@@ -270,6 +287,9 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     // Overlay a centered bold message when no MS2 dataset is available so the user knows the
     // plot is empty by design, not by glitch.
     final Label noMs2Label = FxLabels.newBoldTitle("No MS2 for selected ion");
+    noMs2Label.textProperty().bind(Bindings.when(model.deconvolutedEiProperty())
+        .then("Deconvoluted EI spectrum only on representative ion")
+        .otherwise("No MS2 for selected ion"));
     noMs2Label.setMouseTransparent(true);
     noMs2Label.visibleProperty().bind(Bindings.isEmpty(model.getMs2Datasets()));
     noMs2Label.managedProperty().bind(noMs2Label.visibleProperty());
@@ -296,7 +316,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
    * bold. Each label is clickable: it sets the selected MS2 row when the row carries an MS2 scan
    * (so the adduct ComboBox stays in sync), otherwise it sets the selected adduct row directly.
    */
-  private @NotNull FlowPane buildLegendPane() {
+  private @NotNull Region buildLegendPane() {
     final FlowPane pane = FxLayout.newFlowPane();
     // Horizontal breathing room so the labels don't touch the left/right edges of the dashboard.
     pane.setPadding(new Insets(0, FxLayout.DEFAULT_SPACE, 0, FxLayout.DEFAULT_SPACE));
@@ -305,15 +325,35 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
         .addListener((ListChangeListener<CompoundDashboardLegendEntry>) _ -> rebuild.run());
     // Rebuild on selection change to swap the bold marker; cheap because there are few entries.
     model.selectedAdductRowProperty().subscribe(_ -> rebuild.run());
-    return pane;
+    model.legendExpandedProperty().subscribe(_ -> rebuild.run());
+
+    // the expanded legend of large compounds scrolls instead of pushing the feature table down
+    final ScrollPane scroll = FxLayout.newScrollPane(pane, ScrollBarPolicy.NEVER,
+        ScrollBarPolicy.AS_NEEDED);
+    scroll.setFitToHeight(false);
+    scroll.setMaxHeight(MAX_EXPANDED_LEGEND_HEIGHT);
+    // the scroll pane asks the flow pane for its height without a width, which uses the wrap length
+    scroll.viewportBoundsProperty().subscribe(
+        bounds -> pane.setPrefWrapLength(Math.max(bounds.getWidth(), 1d)));
+    scroll.getStyleClass().add("edge-to-edge");
+    return scroll;
   }
 
   private void rebuildLegendPane(@NotNull final FlowPane pane) {
     pane.getChildren().clear();
     final FeatureListRow selected = model.getSelectedAdductRow();
+    final List<CompoundDashboardLegendEntry> allEntries = model.getLegendEntries();
+    final boolean collapsible = allEntries.size() > COLLAPSED_LEGEND_ENTRIES;
+    final boolean collapsed = collapsible && !model.isLegendExpanded();
+    final Set<FeatureListRow> shownRows = collapsed ? selectCollapsedLegendRows(allEntries, selected)
+        : null;
+
     final List<CompoundDashboardLegendEntry> ions = new ArrayList<>();
     final List<CompoundDashboardLegendEntry> unknowns = new ArrayList<>();
-    for (final CompoundDashboardLegendEntry entry : model.getLegendEntries()) {
+    for (final CompoundDashboardLegendEntry entry : allEntries) {
+      if (shownRows != null && !shownRows.contains(entry.row())) {
+        continue;
+      }
       if (entry.row().getBestIonIdentity() != null) {
         ions.add(entry);
       } else {
@@ -329,6 +369,40 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
         pane.getChildren().add(buildUnknownLegendLabel(entry, selected));
       }
     }
+    if (collapsible) {
+      final int hidden = allEntries.size() - ions.size() - unknowns.size();
+      final String text = collapsed ? "+ %d more".formatted(hidden) : "Show less";
+      pane.getChildren().add(
+          FxLabels.newHyperlink(() -> model.setLegendExpanded(collapsed), text));
+    }
+  }
+
+  /**
+   * @return the rows of the collapsed legend: the selected row, the representative and then the
+   * most intense member rows up to {@link #COLLAPSED_LEGEND_ENTRIES}
+   */
+  private @NotNull Set<FeatureListRow> selectCollapsedLegendRows(
+      @NotNull final List<CompoundDashboardLegendEntry> entries,
+      @Nullable final FeatureListRow selected) {
+    final Set<FeatureListRow> shown = Collections.newSetFromMap(new IdentityHashMap<>());
+    if (selected != null) {
+      shown.add(selected);
+    }
+    final CompoundRow compound = model.getSelectedCompoundRow();
+    if (compound != null) {
+      shown.add(compound.getPreferredRow());
+    }
+    final List<FeatureListRow> byHeight = entries.stream().map(CompoundDashboardLegendEntry::row)
+        .sorted(Comparator.comparingDouble(
+            (FeatureListRow row) -> Objects.requireNonNullElse(row.getMaxHeight(), 0f)).reversed())
+        .toList();
+    for (final FeatureListRow row : byHeight) {
+      if (shown.size() >= COLLAPSED_LEGEND_ENTRIES) {
+        break;
+      }
+      shown.add(row);
+    }
+    return shown;
   }
 
   private @NotNull Label buildIonLegendLabel(@NotNull final CompoundDashboardLegendEntry entry,
@@ -403,14 +477,19 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     // PASEF_SINGLE is the per-precursor merged mobility frame: a single fragmentation event with
     // a real energy + method, just averaged across mobility scans. Treat it like a regular MS2 in
     // the dropdown so the user sees its energy/method rather than a generic "Merged MS2".
+    final boolean deconvolutedEi = ScanUtils.isGcEiSpectrum(scan);
     if (scan instanceof MergedMassSpectrum merged
         && merged.getMergingType() != MergingType.PASEF_SINGLE) {
-      return "Merged MS2";
+      return deconvolutedEi ? "Merged EI spectrum" : "Merged MS2";
     }
     // 1-based position within the source-scan section of the list (i.e. the position in the
     // dropdown, where index 0 is the merged scan and the first regular scan reads as "1").
     final int idx = items.indexOf(scan);
     final String itemNumber = idx < 0 ? "?" : String.valueOf(idx);
+    if (deconvolutedEi) {
+      // EI pseudo spectra have no activation method or energy, one spectrum per sample
+      return itemNumber + ", " + scan.getDataFile().getName();
+    }
     final MsMsInfo info = scan.getMsMsInfo();
     final ActivationMethod method = info != null ? info.getActivationMethod() : null;
     final Float energy = ScanUtils.extractCollisionEnergy(scan);

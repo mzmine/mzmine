@@ -74,6 +74,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
@@ -282,7 +283,9 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     mobilogramPlot.setRangeAxisLabel("Intensity");
     mobilogramPlot.setShowSeriesLabel(true);
     ms1Chart.rangeAxisLabelProperty().set("Intensity (MS1)");
-    ms2Chart.rangeAxisLabelProperty().set("Intensity (MS2)");
+    ms2Chart.rangeAxisLabelProperty().bind(
+        Bindings.when(model.deconvolutedEiProperty()).then("Intensity (EI)")
+            .otherwise("Intensity (MS2)"));
   }
 
   // --- FxController overrides -----------------------------------------------

@@ -93,7 +93,8 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
       if (newFeature == null) {
         // No data found for this signal in this raw data file - maybe range was too narrow?
         // try to shift to the closest signal in max scan and then use a range around this
-        newFeature = tryRecenterMzToClosestSignal(flist, oldFeature, meanMz, mzTolRangeLength);
+        newFeature = tryRecenterMzToClosestSignal(flist, oldFeature, meanMz, mzTolRangeLength,
+            mzTol);
         if (newFeature != null) {
           shifted++;
         }
@@ -126,7 +127,7 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
   /**
    * Extract a new feature within an mzTolRange and with the same scans as an old feature
    */
-  public @Nullable ModularFeature extractNewFeature(final ModularFeatureList flist,
+  public static @Nullable ModularFeature extractNewFeature(final ModularFeatureList flist,
       final ModularFeature feature, final Range<Double> mzTolRange) {
     // mz mismatch, because GC retains a random m/z as a representative for a feature (deconvoluted pseudo spectrum)
     RawDataFile dataFile = feature.getRawDataFile();
@@ -205,8 +206,15 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
     }).toList();
   }
 
-  private ModularFeature tryRecenterMzToClosestSignal(final ModularFeatureList flist,
-      final ModularFeature oldFeature, final double meanMz, final double maxAllowedMzDistance) {
+  /**
+   * Extract a new feature at the closest signal to meanMz in the representative scan of the old
+   * feature, if this signal is within the maximum allowed distance.
+   *
+   * @return the new feature or null if no signal was found
+   */
+  static @Nullable ModularFeature tryRecenterMzToClosestSignal(
+      final @NotNull ModularFeatureList flist, final @NotNull ModularFeature oldFeature,
+      final double meanMz, final double maxAllowedMzDistance, final @NotNull MZTolerance mzTol) {
     ModularFeature newFeature;
     var scan = oldFeature.getRepresentativeScan();
     int index = scan.binarySearch(meanMz, DefaultTo.CLOSEST_VALUE);
