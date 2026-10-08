@@ -449,6 +449,11 @@ public class SpectralLibraryEntryFactory {
       if (field == DBEntryField.UNSPECIFIED) {
         continue;
       }
+      if (addExperimentalResults) {
+        if (field == DBEntryField.RT || field == DBEntryField.CCS) {
+          continue;
+        }
+      }
       try {
         entry.putIfNotNull(field, dbentry.getValue());
       } catch (Exception ex) {
@@ -465,11 +470,16 @@ public class SpectralLibraryEntryFactory {
     }
     for (var dbentry : match.getFields().entrySet()) {
       switch (dbentry.getKey()) {
-        case RT, NAME, FORMULA, SMILES, ISOMERIC_SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE,
+        case NAME, FORMULA, SMILES, ISOMERIC_SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE,
              SYNONYMS, CAS, PUBCHEM, PUBMED, MOLWEIGHT, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
              CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
              NPCLASSIFIER_PATHWAY, GNPS_ID, MONA_ID, CHEMSPIDER, PEPTIDE_SEQ, INTERNAL_ID,
              IUPAC_NAME -> entry.putIfNotNull(dbentry.getKey(), dbentry.getValue());
+        case RT, CCS -> {
+          if (!addExperimentalResults) { // only add if exp results are not wanted
+            entry.putIfNotNull(dbentry.getKey(), dbentry.getValue());
+          }
+        }
       }
     }
   }
