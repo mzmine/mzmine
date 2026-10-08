@@ -175,6 +175,7 @@ import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFinger
 import io.github.mzmine.modules.tools.siriusapi.modules.import_annotations.SiriusApiResultsImportModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
+import io.github.mzmine.modules.tools.tools_autoparam.AutoParamDashboardModule;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.AutoParamModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
@@ -512,7 +513,8 @@ public class BatchModeModulesList {
           ExternalRowHtmlVisualizerModule.class, //
           PCAModule.class, //
           VolcanoPlotModule.class, //
-          AutoParamModule.class //
+          AutoParamModule.class, //
+          AutoParamDashboardModule.class //
 
 //      , CodingDemoModule.class // only test purpose
       ));

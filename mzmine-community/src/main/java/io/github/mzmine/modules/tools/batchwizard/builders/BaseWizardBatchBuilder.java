@@ -189,7 +189,6 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
@@ -1071,9 +1070,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR, false);
     param.setParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR, false);
     param.setParameter(FeatureFilterParameters.minRtShapeScore, goodPeaksOnly,
-        ShapeScoreDiagnostic.STRICT_SHAPE_SCORE);
+        FeatureFilterParameters.DEFAULT_SHAPE_SCORE);
     param.setParameter(FeatureFilterParameters.minMobilityShapeScore, goodPeaksOnly && isImsActive,
-        ShapeScoreDiagnostic.STRICT_SHAPE_SCORE);
+        FeatureFilterParameters.DEFAULT_SHAPE_SCORE);
     param.setParameter(FeatureFilterParameters.topToEdge, goodPeaksOnly, 2d);
     param.setParameter(FeatureFilterParameters.keepMatching, FeatureFilterChoices.KEEP_MATCHING);
     param.setParameter(FeatureFilterParameters.SUFFIX, "feat_filt");

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.BatchTask;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
@@ -122,7 +123,7 @@ final class OptimizationBatchEvaluator {
     if (shapeDiagnosticEnabled) {
       final long shapeStart = System.nanoTime();
       final ShapeScoreDiagnostic.Result shape = ShapeScoreDiagnostic.evaluate(featureList,
-          ShapeScoreDiagnostic.STRICT_SHAPE_SCORE);
+          FeatureFilterParameters.DEFAULT_SHAPE_SCORE);
       solution.setAttribute(ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT, shape.wouldRemovePercent());
       solution.setConstraintValue(0, shape.wouldRemovePercent());
       solution.setAttribute(ShapeScoreDiagnostic.ATTR_DOUBLE_PEAK_PERCENT,
