@@ -34,6 +34,13 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.CalibrationDateTimeType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -70,15 +77,19 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +104,9 @@ public class MassLynxDataAccess implements AutoCloseable {
 
   private final DateTimeFormatter watersDateFormatter = DateTimeFormatter.ofPattern(
       "dd-MMM-uuuu HH:mm:ss", Locale.ENGLISH);
+  private static final String MASSLYNX_SOFTWARE_NAME = "MassLynx";
+  private final DateTimeFormatter watersDayFormatter = DateTimeFormatter.ofPattern("dd-MMM-uuuu",
+      Locale.ENGLISH);
 
   private final Arena arena = Arena.ofConfined();
   private final MemorySegment handle;
@@ -784,9 +798,95 @@ public class MassLynxDataAccess implements AutoCloseable {
     }
   }
 
-  public String getHeaderItem(MassLynxHeaderItem item) {
+  private static void applyText(@NotNull final MassLynxHeaderItem item, @NotNull final String value,
+      @NotNull final ModularDataModel metadata) {
+    final Class<? extends DataType<?>> typeClass = item.getFileMetadataType();
+    if (typeClass == null) {
+      return;
+    }
+    if (DataTypes.get(typeClass) instanceof StringType stringType) {
+      metadata.set(stringType, value);
+    } else {
+      logger.warning("Header item %s is mapped to %s, which is not a text type".formatted(item,
+          typeClass.getName()));
+    }
+  }
+
+  /**
+   * @return the header item text or an empty string if not available
+   */
+  public @NotNull String getHeaderItem(@NotNull final MassLynxHeaderItem item) {
     final int readBytes = MassLynxLib.getHeaderItem(handle, item.getValue(), headerItemBuffer,
         (int) headerItemBuffer.byteSize());
-    return headerItemBuffer.asSlice(0, readBytes).getString(0, StandardCharsets.UTF_8);
+    if (readBytes <= 0) {
+      return "";
+    }
+    // copy exactly the read bytes, the native string may or may not be null terminated
+    final byte[] bytes = headerItemBuffer.asSlice(0,
+        Math.min(readBytes, headerItemBuffer.byteSize())).toArray(ValueLayout.JAVA_BYTE);
+    int length = bytes.length;
+    while (length > 0 && bytes[length - 1] == 0) {
+      length--;
+    }
+    return new String(bytes, 0, length, StandardCharsets.UTF_8);
+  }
+
+  /**
+   * Reads all header items that have a file metadata type and sets them to the file metadata.
+   */
+  public void applyToFileMetadata(@NotNull final ModularDataModel metadata) {
+    final Map<MassLynxHeaderItem, String> values = new EnumMap<>(MassLynxHeaderItem.class);
+    for (final MassLynxHeaderItem item : MassLynxHeaderItem.values()) {
+      if (!item.hasFileMetadataType()) {
+        continue;
+      }
+      final String value = getHeaderItem(item).strip();
+      if (!value.isEmpty()) {
+        values.put(item, value);
+      }
+    }
+
+    for (final Entry<MassLynxHeaderItem, String> entry : values.entrySet()) {
+      final MassLynxHeaderItem item = entry.getKey();
+      final String value = entry.getValue();
+      switch (item) {
+        case VERSION -> {
+          metadata.set(AcquisitionSoftwareType.class, MASSLYNX_SOFTWARE_NAME);
+          metadata.set(AcquisitionSoftwareVersionType.class, value);
+        }
+        case CAL_DATE ->
+            applyCalibrationDateTime(value, values.get(MassLynxHeaderItem.CAL_TIME), metadata);
+        // decision: the time is combined with the date
+        case CAL_TIME -> {
+        }
+        // decision: the inlet method is the LC method if no HPLC method is set
+        case INLET_METHOD -> {
+          if (!values.containsKey(MassLynxHeaderItem.HPLC_METHOD)) {
+            applyText(item, value, metadata);
+          }
+        }
+        // all other mapped items are plain text
+        default -> applyText(item, value, metadata);
+      }
+    }
+  }
+
+  /**
+   * @param date the calibration date, e.g., 05-Mar-2025
+   * @param time the calibration time, e.g., 15:43:52, or null
+   */
+  private void applyCalibrationDateTime(@NotNull final String date, @Nullable final String time,
+      @NotNull final ModularDataModel metadata) {
+    try {
+      // assumption: same format as the acquisition date and time
+      final LocalDateTime dateTime =
+          time == null ? LocalDate.parse(date, watersDayFormatter).atStartOfDay()
+              : LocalDateTime.parse(date + " " + time, watersDateFormatter);
+      metadata.set(CalibrationDateTimeType.class, dateTime);
+    } catch (DateTimeParseException e) {
+      logger.fine(
+          "Cannot parse calibration date '%s' and time '%s' of file %s".formatted(date, time,
+              rawFolder.getName()));
+    }
   }
 }
