@@ -37,12 +37,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 import org.openscience.cdk.aromaticity.Aromaticity;
 import org.openscience.cdk.aromaticity.Aromaticity.Model;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.inchi.InChIGenerator;
+import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
@@ -62,24 +62,9 @@ public class StructureUtils {
     CANONICAL, ISOMERIC
   }
 
-  public enum HydrogenFlavor {
-    /**
-     * convenience to keep previous
-     */
-    UNCHANGED,
-    /**
-     * Suppresses all hydrogens. Do not do this on target structures in substructure search
-     */
-    SUPRESS_HYDROGENS,
-    /**
-     * Removes only non chiral
-     */
-    REMOVE_NON_CHIRAL_HYDROGENS,
-    /**
-     * Convert implicit (not shown) to explicit hydrogens. This can help in substructure search:
-     * Query structure will ask for x hydrogens and target structure needs explicit hydrogens
-     */
-    CONVERT_IMPLICIT_TO_EXPLICIT;
+  public static @NotNull InChIGenerator getInchiGeneratorOrThrow(IAtomContainer structure)
+      throws CDKException {
+    return InChIGeneratorFactory.getInChIGenerator(structure);
   }
 
 
@@ -157,9 +142,24 @@ public class StructureUtils {
     }
   }
 
-  public static @NonNull InChIGenerator getInchiGeneratorOrThrow(IAtomContainer structure)
-      throws CDKException {
-    return getDefaultParser().getInchiFactory().getInChIGenerator(structure);
+  public enum HydrogenFlavor {
+    /**
+     * convenience to keep previous
+     */
+    UNCHANGED,
+    /**
+     * Suppresses all hydrogens. Do not do this on target structures in substructure search
+     */
+    SUPRESS_HYDROGENS,
+    /**
+     * Removes only non chiral
+     */
+    REMOVE_NON_CHIRAL_HYDROGENS,
+    /**
+     * Convert implicit (not shown) to explicit hydrogens. This can help in substructure search:
+     * Query structure will ask for x hydrogens and target structure needs explicit hydrogens
+     */
+    CONVERT_IMPLICIT_TO_EXPLICIT
   }
 
   /**
