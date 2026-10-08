@@ -497,7 +497,11 @@ public class ReportUtils {
     mirrorChart = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(matches.getFirst());
     mirrorChart.getChart().removeLegend();
     theme.apply(mirrorChart);
-    CombinedDomainXYPlot xyPlot = (CombinedDomainXYPlot) mirrorChart.getChart().getXYPlot();
+    // Reserve space for the end tick label in the narrow report column.
+    final RectangleInsets padding = mirrorChart.getChart().getPadding();
+    mirrorChart.getChart().setPadding(new RectangleInsets(padding.getTop(), padding.getLeft(),
+        padding.getBottom(), Math.max(24, padding.getRight())));
+    final CombinedDomainXYPlot xyPlot = (CombinedDomainXYPlot) mirrorChart.getChart().getXYPlot();
     xyPlot.setGap(1); // best match
     ((XYPlot) xyPlot.getSubplots().getFirst()).getRangeAxis().setLabel("");
     ((XYPlot) xyPlot.getSubplots().getLast()).getRangeAxis()

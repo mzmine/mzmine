@@ -31,6 +31,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.UsersTab;
+import io.github.mzmine.gui.update.UpdateCheckService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
 import io.github.mzmine.javafx.components.factories.FxButtons;
@@ -206,7 +207,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final Button downloadButton = FxButtons.createButton(
         FxIconUtil.getFontIcon(FxIcons.DOWNLOAD, 60, Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
-            .openWebPage("https://github.com/mzmine/mzmine3/releases/latest"));
+            .openWebPage(UpdateCheckService.RELEASE_URL));
     box.getChildren().addAll(label, downloadButton);
 //    box.visibleProperty().bindBidirectional(model.newVersionAvailableProperty());
     box.setAlignment(Pos.CENTER);

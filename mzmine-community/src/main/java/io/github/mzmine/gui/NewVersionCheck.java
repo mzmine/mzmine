@@ -28,18 +28,19 @@ package io.github.mzmine.gui;
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.Semver.SemverType;
 import io.github.mzmine.gui.mainwindow.VersionCheckResult;
+import io.github.mzmine.gui.update.UpdateCheckService;
+import io.github.mzmine.gui.update.UpdateStatus;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.InetUtils;
-import io.github.mzmine.util.io.SemverVersionReader;
-import java.net.URL;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NewVersionCheck implements Runnable {
 
-  public static final String newestVersionAddress = "http://mzmine.github.io/version.txt";
+  public static final String newestVersionAddress = UpdateCheckService.VERSION_URL;
 
   public enum CheckType {
     DESKTOP, MENU
@@ -49,77 +50,57 @@ public class NewVersionCheck implements Runnable {
   private final CheckType checkType;
   private final ObjectProperty<VersionCheckResult> result = new SimpleObjectProperty<>(null);
 
-  public NewVersionCheck(CheckType type) {
+  public NewVersionCheck(@NotNull final CheckType type) {
     checkType = type;
   }
 
   public void run() {
-
-    // Check for updated version
-    Semver currentVersion = SemverVersionReader.getMZmineVersion();
-
-    Semver newestVersion = null;
-
     if (checkType.equals(CheckType.MENU)) {
       logger.info("Checking for updates...");
     }
 
+    final UpdateStatus status = UpdateCheckService.getInstance().check();
+    final VersionCheckResult mapped = toLegacyResult(status);
+    result.set(mapped);
+
     final MZmineDesktop desktop = MZmineCore.getDesktop();
-
-    String newestVersionData = "";
-    try {
-      final URL newestVersionURL = new URL(newestVersionAddress);
-      newestVersionData = InetUtils.retrieveData(newestVersionURL).trim();
-      newestVersion = new Semver(newestVersionData, SemverType.LOOSE);
-    } catch (Exception e) {
-      result.set(new VersionCheckResult(VersionCheckResultType.NO_INTERNET, newestVersion));
-//      logger.log(Level.WARNING, result.get().print(), e);
-    }
-
-    if (newestVersion == null) {
-      result.set(new VersionCheckResult(VersionCheckResultType.CANNOT_PARSE, newestVersion));
-      if (checkType.equals(CheckType.MENU)) {
-        logger.info(result.get().print());
-        desktop.displayMessage(result.get().print());
+    logger.info(mapped.print());
+    if (checkType.equals(CheckType.MENU)) {
+      if (mapped.type() == VersionCheckResultType.NEW_AVAILALABLE) {
+        desktop.displayMessage("New version", mapped.print(), status.releaseUrl());
+      } else {
+        desktop.displayMessage(mapped.print());
       }
-      return;
-    }
-
-    // Version might be: major.minor.patch-suffix+build hash
-    // disregard build hash (that we currently do not use)
-    if (currentVersion.isEquivalentTo(newestVersion)) {
-      result.set(new VersionCheckResult(VersionCheckResultType.CURRENT, newestVersion));
-      if (checkType.equals(CheckType.MENU)) {
-        logger.info(result.get().print());
-        desktop.displayMessage(result.get().print());
-      }
-      return;
-    }
-
-    if (currentVersion.isLowerThan(newestVersion)) {
-      result.set(new VersionCheckResult(VersionCheckResultType.NEW_AVAILALABLE, newestVersion));
-      final String downloadUrl = "https://github.com/mzmine/mzmine3/releases/latest";
-      logger.info(result.get().print());
-      if (checkType.equals(CheckType.MENU)) {
-        desktop.displayMessage("New version", result.get().print(), downloadUrl);
-      } else if (checkType.equals(CheckType.DESKTOP)) {
-        Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
-        desktop.setStatusBarText(result.get().print().replace("\n", ". ") + downloadUrl, color,
-            downloadUrl);
-      }
-    }
-
-    if (currentVersion.isGreaterThan(newestVersion)) {
-      result.set(new VersionCheckResult(VersionCheckResultType.THIS_IS_NEWER, newestVersion));
-      logger.info(result.get().print());
+    } else if (checkType.equals(CheckType.DESKTOP)
+        && mapped.type() == VersionCheckResultType.NEW_AVAILALABLE) {
+      final Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
+      desktop.setStatusBarText(mapped.print().replace("\n", ". ") + status.releaseUrl(), color,
+          status.releaseUrl());
     }
   }
 
+  @Nullable
   public VersionCheckResult getResult() {
     return result.get();
   }
 
+  @NotNull
   public ObjectProperty<VersionCheckResult> resultProperty() {
     return result;
+  }
+
+  @NotNull
+  private static VersionCheckResult toLegacyResult(@NotNull final UpdateStatus status) {
+    final Semver latest = status.latestVersion() == null ? null : new Semver(status.latestVersion(),
+        SemverType.LOOSE);
+    return switch (status.status()) {
+      case UpdateStatus.CURRENT -> new VersionCheckResult(VersionCheckResultType.CURRENT, latest);
+      case UpdateStatus.UPDATE_AVAILABLE -> new VersionCheckResult(VersionCheckResultType.NEW_AVAILALABLE,
+          latest);
+      case UpdateStatus.DEVELOPMENT_NEWER -> new VersionCheckResult(VersionCheckResultType.THIS_IS_NEWER,
+          latest);
+      case UpdateStatus.UNAVAILABLE -> new VersionCheckResult(VersionCheckResultType.NO_INTERNET, null);
+      default -> new VersionCheckResult(VersionCheckResultType.CANNOT_PARSE, null);
+    };
   }
 }
