@@ -372,7 +372,11 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, dataType.getUniqueID());
 
     try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-      dataType.saveToXML(writer, value, flist, row, feature, file);
+      if (dataType.requiresFeatureListContext()) {
+        dataType.saveToXML(writer, value, flist, row, feature, file);
+      } else {
+        dataType.saveToXML(writer, value);
+      }
     } catch (XMLStreamException e) {
       logger.log(Level.WARNING,
           "Error while writing data type " + dataType.getClass().getSimpleName() + " with value "

@@ -66,7 +66,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Class of data types: Provides formatters. Should be added to one {@link ModularDataModel}
+ * Class of data types: Provides formatters. Should be added to one {@link ModularDataModel}.
+ * Implement the context-free XML methods for values that do not need feature list state. Types
+ * that need the project, feature list, row, feature, or raw file implement the full-signature
+ * methods and return {@code true} from {@link #requiresFeatureListContext()}.
  *
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
@@ -425,6 +428,15 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
+    saveToXML(writer, value);
+  }
+
+  /**
+   * Writes the content of an enclosing datatype element without feature list context. Types that
+   * require context override this to throw {@link UnsupportedOperationException}.
+   */
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
+      throws XMLStreamException {
     if (value == null) {
       return;
     }
@@ -441,11 +453,30 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
    * @return The value of the data type being read.
    * @throws XMLStreamException
    */
-  public Object loadFromXML(@NotNull final XMLStreamReader reader,
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader,
       @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist,
       @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
       @Nullable final RawDataFile file) throws XMLStreamException {
+    return loadFromXML(reader);
+  }
+
+  /**
+   * Reads the content of an enclosing datatype element without feature list context. Types that
+   * require context override this to throw {@link UnsupportedOperationException}.
+   */
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader)
+      throws XMLStreamException {
     return null;
+  }
+
+  /**
+   * Return true if saving or loading needs the project, feature list, row, feature, or raw file.
+   * Such types override the full-signature XML methods and override the context-free methods to
+   * throw {@link UnsupportedOperationException}.
+   * Types returning false implement the context-free methods; DataTypesTest checks this.
+   */
+  public boolean requiresFeatureListContext() {
+    return false;
   }
 
   /**

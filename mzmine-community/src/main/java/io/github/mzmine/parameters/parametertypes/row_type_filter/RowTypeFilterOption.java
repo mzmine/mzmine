@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonFormat(with = Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public enum RowTypeFilterOption implements UniqueIdSupplier {
-  ROW_COMMENT, ANNOTATION_COMMENT, ION_IDENTITY_ID, ION_TYPE, COMPOUND_NAME, IUPAC_NAME, FORMULA, FORMULA_RANGE, SMILES, INCHI, SMARTS, LIPID, FRAGMENT_SCANS;
+  ROW_COMMENT, ANNOTATION_COMMENT, ION_IDENTITY_ID, ION_TYPE, COMPOUND_NAME, IUPAC_NAME, FORMULA, FORMULA_RANGE, SMILES, INCHI, SMARTS, LIPID, FRAGMENT_SCANS, TAGS;
 
   @JsonCreator
   @Nullable
@@ -71,6 +71,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
       case SMARTS -> "SMARTS";
       case LIPID -> "Lipid";
       case FRAGMENT_SCANS -> "Fragment scans";
+      case TAGS -> "Tags";
     };
   }
 
@@ -90,6 +91,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
       case ION_IDENTITY_ID -> "ion_identity_id";
       case ION_TYPE -> "ion_type";
       case COMPOUND_NAME -> "compound_name";
+      case TAGS -> "tags";
     };
   }
 
@@ -121,6 +123,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
           'C20:0 - C40:6' matches all lipids within range. Class is matched only for first entry.
           'C18:2_18:0;1O' matches lipid with specific chains separated by _ or /.""";
       case FRAGMENT_SCANS -> "Filter for the number of fragment scans";
+      case TAGS -> "Filter rows by an exact tag selection or by any selected tag";
     };
   }
 
@@ -128,7 +131,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
     return switch (this) {
       case FRAGMENT_SCANS, ION_IDENTITY_ID -> true;
       case FORMULA, SMILES, INCHI, SMARTS, LIPID, ION_TYPE, COMPOUND_NAME, FORMULA_RANGE,
-           IUPAC_NAME, ROW_COMMENT, ANNOTATION_COMMENT -> false;
+           IUPAC_NAME, ROW_COMMENT, ANNOTATION_COMMENT, TAGS -> false;
     };
   }
 
@@ -149,6 +152,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
       case SMARTS -> List.of(CONTAINS);
       case FORMULA -> List.of(GREATER_EQUAL, EQUAL, LESSER_EQUAL);
       case FORMULA_RANGE -> List.of(CONTAINS);
+      case TAGS -> List.of(ANY, EQUAL);
     };
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,22 +24,25 @@
  */
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.javafx.validation.DecorationTargetProvider;
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  *
  */
-public class RTToleranceComponent extends HBox {
+public class RTToleranceComponent extends HBox implements DecorationTargetProvider {
 
   private final ObservableList<RTTolerance.Unit> toleranceTypes;
   private final NumberFormat format = MZmineCore.getConfiguration().getRTFormat();
@@ -99,5 +102,10 @@ public class RTToleranceComponent extends HBox {
 
   public void setToolTipText(String toolTip) {
     toleranceField.setTooltip(new Tooltip(toolTip));
+  }
+
+  @Override
+  public @NotNull Node getDecorationTarget() {
+    return toleranceField;
   }
 }

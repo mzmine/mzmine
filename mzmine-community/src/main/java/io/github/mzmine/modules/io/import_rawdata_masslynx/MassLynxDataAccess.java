@@ -71,9 +71,13 @@ import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -86,6 +90,9 @@ import org.jetbrains.annotations.Nullable;
 public class MassLynxDataAccess implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(MassLynxDataAccess.class.getName());
+
+  private final DateTimeFormatter watersDateFormatter = DateTimeFormatter.ofPattern(
+      "dd-MMM-uuuu HH:mm:ss", Locale.ENGLISH);
 
   private final Arena arena = Arena.ofConfined();
   private final MemorySegment handle;
@@ -142,6 +149,10 @@ public class MassLynxDataAccess implements AutoCloseable {
    * contains floats
    */
   private MemorySegment analogIntensityBuffer = arena.allocate(0);
+  /**
+   * UTF-8 header items
+   */
+  private MemorySegment headerItemBuffer = arena.allocate(1024);
 
   public MassLynxDataAccess(@NotNull File rawFolder,
       @NotNull final VendorImportParameters vendorParam, @Nullable MemoryMapStorage storage,
@@ -763,7 +774,19 @@ public class MassLynxDataAccess implements AutoCloseable {
     return MassLynxLib.isSonarFile(handle) > 0;
   }
 
-  public String getAcqDate() {
-    return acqDate;
+  @Nullable
+  public LocalDateTime getAcqDate() {
+    try {
+      LocalDateTime date = LocalDateTime.parse(acqDate, watersDateFormatter);
+      return date;
+    } catch (DateTimeParseException e) {
+      return null;
+    }
+  }
+
+  public String getHeaderItem(MassLynxHeaderItem item) {
+    final int readBytes = MassLynxLib.getHeaderItem(handle, item.getValue(), headerItemBuffer,
+        (int) headerItemBuffer.byteSize());
+    return headerItemBuffer.asSlice(0, readBytes).getString(0, StandardCharsets.UTF_8);
   }
 }

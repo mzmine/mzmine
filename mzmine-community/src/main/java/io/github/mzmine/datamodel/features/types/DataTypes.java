@@ -225,8 +225,8 @@ public class DataTypes {
   @NotNull
   public static Map<DataType, Integer> getDataTypeOrderFeatureTable() {
     List<Class> priority = List.of(CompoundIdType.class, CompoundMembersJsonType.class,
-        CompoundMembersType.class, IDType.class, DetectionType.class, MZType.class,
-        MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
+        CompoundMembersType.class, IDType.class, TagDataType.class, DetectionType.class,
+        MZType.class, MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
         MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,
