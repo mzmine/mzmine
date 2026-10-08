@@ -30,9 +30,17 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Shared physical axes and intensity scale for every overlaid sample.
+ *
+ * @param invertedY y grows towards the front, images put their origin at the top left as in the
+ *                  image viewer
  */
-public record IntensityMapBounds(double xMin, double xMax, double yMin, double yMax,
-                                 double maximum) {
+public record IntensityMapBounds(double xMin, double xMax, double yMin, double yMax, double maximum,
+                                 boolean invertedY) {
+
+  public IntensityMapBounds(final double xMin, final double xMax, final double yMin,
+      final double yMax, final double maximum) {
+    this(xMin, xMax, yMin, yMax, maximum, false);
+  }
 
   public static @NotNull IntensityMapBounds of(@NotNull final List<IntensityMapGrid> data) {
     if (data.isEmpty()) {
@@ -45,7 +53,8 @@ public record IntensityMapBounds(double xMin, double xMax, double yMin, double y
         data.stream().mapToDouble(d -> d.pixels() ? d.yLow(0) : d.yMin()).min().orElseThrow(),
         data.stream().mapToDouble(d -> d.pixels() ? d.yHigh(d.height() - 1) : d.yMax()).max()
             .orElseThrow(),
-        data.stream().mapToDouble(IntensityMapGrid::maximum).max().orElseThrow());
+        data.stream().mapToDouble(IntensityMapGrid::maximum).max().orElseThrow(),
+        data.stream().allMatch(IntensityMapGrid::pixels));
   }
 
   public boolean containsX(final double x) {
@@ -64,7 +73,21 @@ public record IntensityMapBounds(double xMin, double xMax, double yMin, double y
     return xMin == xMax ? 0.5 : (value - xMin) / (xMax - xMin);
   }
 
+  /**
+   * @return share of the value between the y ends, from the back for inverted y
+   */
   public double normalizeY(final double value) {
-    return yMin == yMax ? 0.5 : (value - yMin) / (yMax - yMin);
+    if (yMin == yMax) {
+      return 0.5;
+    }
+    final double share = (value - yMin) / (yMax - yMin);
+    return invertedY ? 1 - share : share;
+  }
+
+  /**
+   * @param share share of the depth from the back, the inverse of {@link #normalizeY(double)}
+   */
+  public double denormalizeY(final double share) {
+    return yMin + (invertedY ? 1 - share : share) * (yMax - yMin);
   }
 }

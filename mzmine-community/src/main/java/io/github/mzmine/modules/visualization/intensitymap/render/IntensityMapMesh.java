@@ -332,7 +332,13 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
         cell++;
       }
     }
-    return new IntensityMapMesh(points, PIXEL_NORMALS.clone(), texture, faces);
+    final float[] normals = PIXEL_NORMALS.clone();
+    if (bounds.invertedY()) {
+      // walls towards lower y face the back
+      normals[11] = 1;
+      normals[14] = -1;
+    }
+    return new IntensityMapMesh(points, normals, texture, faces);
   }
 
   /**

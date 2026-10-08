@@ -28,6 +28,9 @@ package io.github.mzmine.modules.visualization.intensitymap.plot;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapScale;
+import io.github.mzmine.util.MathUtils;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -71,6 +74,8 @@ final class IntensityMapSeriesState {
   private @Nullable IntensityMapScale meshScale;
   private int triangles;
   private float @NotNull [] envelope = new float[0];
+  // true once the color range was taken from the data; afterwards it is only changed by the user
+  private boolean colorRangeFromData;
 
   IntensityMapSeriesState(@NotNull final Color color, final double opacity) {
     this.color.set(color);
@@ -80,6 +85,37 @@ final class IntensityMapSeriesState {
     // picking is done analytically, see IntensityMapPicker
     view.setMouseTransparent(true);
     view.visibleProperty().bind(visible);
+  }
+
+  /**
+   * Starts the color range at quantiles of the measured intensities, as the image viewer does for
+   * images. Only the first data set the range, a range chosen later is kept.
+   *
+   * @param quantiles lower and upper quantile in [0, 1]
+   */
+  void startColorRange(@NotNull final IntensityMapGrid data, @NotNull final IntensityMapScale scale,
+      final double @NotNull [] quantiles) {
+    if (colorRangeFromData) {
+      return;
+    }
+    colorRangeFromData = true;
+    final List<Double> measured = new ArrayList<>();
+    for (int row = 0; row < data.height(); row++) {
+      for (int column = 0; column < data.width(); column++) {
+        if (data.isPresent(column, row)) {
+          measured.add((double) data.intensity(column, row));
+        }
+      }
+    }
+    final double[] values = MathUtils.calcQuantile(
+        measured.stream().mapToDouble(Double::doubleValue).toArray(), quantiles);
+    final double low = scale.color(data, values[0]);
+    final double high = scale.color(data, values[1]);
+    // a flat image keeps the full range
+    if (high - low >= IntensityMapColorRange.MIN_SPAN) {
+      colorLow.set(low);
+      colorHigh.set(high);
+    }
   }
 
   @NotNull BooleanProperty visibleProperty() {

@@ -258,8 +258,8 @@ final class IntensityMapControls {
     FxPopOvers.install(display, FxPopOvers.newPopOver(displayGrid));
     final Region spacer = new Region();
     HBox.setHgrow(spacer, Priority.ALWAYS);
-    final Button save = FxButtons.createButton(null, FxIcons.SAVE, "Save the current view as PNG",
-        actions.saveImage());
+    final Button save = FxButtons.createButton(null, () -> "bi-camera",
+        "Save the current view as PNG", actions.saveImage());
     // decision: styling of the view next to saving it, top right
     final HBox style = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 2, labelSearch,
         plotBackgroundButton(actions), showScaleBar, showAxes, showGrid, labelsButton());

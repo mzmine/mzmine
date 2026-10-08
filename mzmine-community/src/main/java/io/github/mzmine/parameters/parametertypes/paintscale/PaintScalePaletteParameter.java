@@ -171,7 +171,7 @@ public class PaintScalePaletteParameter implements
   }
 
   public @NotNull List<SimpleColorPalette> getPalettes() {
-    return palettes;
+    return List.copyOf(palettes);
   }
 
   protected void setPalettes(@NotNull List<SimpleColorPalette> palettes) {

@@ -229,7 +229,7 @@ public final class IntensityMapPicker {
   }
 
   public static double dataY(@NotNull final IntensityMapBounds bounds, final double localZ) {
-    return bounds.yMin() + (localZ / DEPTH + 0.5) * (bounds.yMax() - bounds.yMin());
+    return bounds.denormalizeY(localZ / DEPTH + 0.5);
   }
 
   private static boolean slab(final double origin, final double direction, final double min,

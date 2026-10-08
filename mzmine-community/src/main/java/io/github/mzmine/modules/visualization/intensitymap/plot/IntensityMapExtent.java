@@ -126,9 +126,11 @@ final class IntensityMapExtent {
    */
   static @NotNull IntensityMapRegion toData(@NotNull final IntensityMapBounds bounds,
       final double @NotNull [] floor) {
+    final double y0 = IntensityMapPicker.dataY(bounds, floor[2]);
+    final double y1 = IntensityMapPicker.dataY(bounds, floor[3]);
+    // inverted y turns the floor extent around
     return new IntensityMapRegion(Range.closed(IntensityMapPicker.dataX(bounds, floor[0]),
         IntensityMapPicker.dataX(bounds, floor[1])),
-        Range.closed(IntensityMapPicker.dataY(bounds, floor[2]),
-            IntensityMapPicker.dataY(bounds, floor[3])));
+        Range.closed(Math.min(y0, y1), Math.max(y0, y1)));
   }
 }

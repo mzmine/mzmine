@@ -30,7 +30,9 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapLabe
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPeak;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Objects;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
@@ -201,11 +203,17 @@ final class IntensityMapFeatureLabels {
         : (int) Math.clamp(area.getWidth() * area.getHeight() / AREA_PER_LABEL, 1, MAX_LABELS);
     int used = 0;
     int tried = 0;
-    for (final IntensityMapLabel entry : entries) {
+    // groups whose main label is shown, by overlay
+    final Set<String> shownGroups = new HashSet<>();
+    for (final IntensityMapLabel entry : candidates()) {
       if (used == maximum || tried == MAX_CANDIDATES) {
         break;
       }
       if ((annotatedOnly && !entry.annotated()) || !matches(entry)) {
+        continue;
+      }
+      // decision: further ions of a compound are labeled only next to its shown main label
+      if (entry.secondary() && !shownGroups.contains(groupKey(entry))) {
         continue;
       }
       final Point2D point = peaks.position(entry.seriesId(), entry.apex());
@@ -236,6 +244,9 @@ final class IntensityMapFeatureLabels {
       taken.add(bounds);
       taken.add(marker);
       placed.add(new IntensityMapPlacedLabel(entry, point.getX(), point.getY(), bounds));
+      if (!entry.secondary() && entry.group() != null) {
+        shownGroups.add(groupKey(entry));
+      }
       used++;
     }
     hideFrom(used);
@@ -243,6 +254,20 @@ final class IntensityMapFeatureLabels {
     final IntensityMapLabel hovered = highlighted;
     highlighted = null;
     highlight(hovered, peaks);
+  }
+
+  /**
+   * @return main labels first, strongest first, then the further ions of compounds
+   */
+  private @NotNull List<IntensityMapLabel> candidates() {
+    final List<IntensityMapLabel> ordered = new ArrayList<>(entries.size());
+    entries.stream().filter(entry -> !entry.secondary()).forEach(ordered::add);
+    entries.stream().filter(IntensityMapLabel::secondary).forEach(ordered::add);
+    return ordered;
+  }
+
+  private static @NotNull String groupKey(@NotNull final IntensityMapLabel entry) {
+    return entry.seriesId() + " " + entry.group();
   }
 
   /**

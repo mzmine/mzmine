@@ -35,6 +35,7 @@ import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxFileChooser;
+import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapDetail;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
@@ -159,6 +160,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private final ProgressIndicator loadingIndicator = new ProgressIndicator();
   private final Label loadingLabel = new Label();
   private final Label placeholder = FxLabels.newItalicLabel("No data");
+  // problems with the data, e.g. a scan selection that matches no scans of a file
+  private final Label warning = FxLabels.newLabel(FxLabels.Styles.ERROR, "");
   // the detail pane is a collapsible section below the view
   private final IntensityMapSection detailSection = new IntensityMapSection();
   private final BorderPane collapsedDetail = new BorderPane();
@@ -259,6 +262,14 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     StackPane.setAlignment(loadingBox, Pos.TOP_LEFT);
     StackPane.setMargin(loadingBox, new Insets(12));
     placeholder.setMouseTransparent(true);
+    warning.setMouseTransparent(true);
+    warning.setWrapText(true);
+    warning.setMaxWidth(560);
+    warning.setPadding(new Insets(6, 10, 6, 10));
+    warning.setStyle("-fx-background-color: -fx-background; -fx-background-radius: 4;");
+    warning.setVisible(false);
+    StackPane.setAlignment(warning, Pos.TOP_CENTER);
+    StackPane.setMargin(warning, new Insets(12));
     labelLayer.setMouseTransparent(true);
     labelLayer.setPickOnBounds(false);
     scaleBarLayer.setMouseTransparent(true);
@@ -267,7 +278,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     featureLabels.layer().visibleProperty().bind(labelLayer.visibleProperty());
     viewport.getChildren()
         .addAll(scene, scaleBarLayer, labelLayer, featureLabels.layer(), overlay, loadingBox,
-            placeholder);
+            placeholder, warning);
     // labels near the border must not paint over the toolbar or the side panel
     final Rectangle clip = new Rectangle();
     clip.widthProperty().bind(viewport.widthProperty());
@@ -548,7 +559,29 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       return;
     }
     hideHover();
+    if (factor < 1 && projection.fixedPlotArea() && showsAllData()) {
+      // decision: the 2D view does not zoom out beyond all data, the data would shrink inside the
+      // plot area and the axes with them
+      camera.resetPan();
+      camera.setAutoFit(true);
+    }
     requestDetail();
+  }
+
+  /**
+   * @return true if every visible overlay is shown completely
+   */
+  private boolean showsAllData() {
+    final IntensityMapBounds current = bounds;
+    if (current == null) {
+      return false;
+    }
+    final List<IntensityMapSeries> visible = visibleSeries();
+    // the full data of a box zoom count as well, so the crop is ignored
+    final Map<String, IntensityMapOverlayView> views = visibleAreas.of(current, visible, plotTile(),
+        false).overlays();
+    return views.size() == visible.size() && views.values().stream()
+        .allMatch(IntensityMapOverlayView::all);
   }
 
   private void rotate(final double turnDelta, final double tiltDelta) {
@@ -1025,6 +1058,17 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
+   * Shows a problem with the data on top of the view until it is cleared. Unlike the status, it is
+   * not replaced by the next status message.
+   *
+   * @param message null hides the warning
+   */
+  public void setWarning(@Nullable final String message) {
+    warning.setText(message == null ? "" : message);
+    warning.setVisible(message != null);
+  }
+
+  /**
    * @param message  null hides the indicator
    * @param progress progress in [0, 1] or negative for indeterminate
    */
@@ -1124,7 +1168,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
           series.stream().map(IntensityMapSeries::data).toList());
       // decision: the maximum of all data, so heights and colors do not jump with the range
       bounds = new IntensityMapBounds(part.xMin(), part.xMax(), part.yMin(), part.yMax(),
-          all.maximum());
+          all.maximum(), all.invertedY());
     }
     updateDisplayControls();
     rebuild();
@@ -1492,8 +1536,12 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     }
     final IntensityMapScale current = scale;
     for (final IntensityMapSeries value : series) {
-      states.get(value.id()).colorIntensityProperty()
-          .set(color -> current.intensityAtColor(value.data(), color));
+      final IntensityMapSeriesState state = states.get(value.id());
+      state.colorIntensityProperty().set(color -> current.intensityAtColor(value.data(), color));
+      if (value.data().pixels()) {
+        // decision: images start with the color range of the image viewer
+        state.startColorRange(value.data(), current, ImagingPlot.DEFAULT_IMAGING_QUANTILES);
+      }
     }
     for (final IntensityMapSeriesState state : states.values()) {
       updateMaterial(state);

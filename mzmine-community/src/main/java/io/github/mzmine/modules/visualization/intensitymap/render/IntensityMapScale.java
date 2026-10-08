@@ -201,6 +201,7 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
         && noiseFloor == other.noiseFloor && baseline == other.baseline && projection.equals(
         other.projection) && bounds.xMin() == other.bounds.xMin()
         && bounds.xMax() == other.bounds.xMax() && bounds.yMin() == other.bounds.yMin()
-        && bounds.yMax() == other.bounds.yMax() && maximum(data) == other.maximum(data);
+        && bounds.yMax() == other.bounds.yMax() && bounds.invertedY() == other.bounds.invertedY()
+        && maximum(data) == other.maximum(data);
   }
 }

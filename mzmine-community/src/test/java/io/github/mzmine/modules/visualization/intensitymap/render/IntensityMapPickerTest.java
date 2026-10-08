@@ -152,4 +152,17 @@ class IntensityMapPickerTest {
     assertTrue(
         !IntensityMapScreenGeometry.intersects(new javafx.geometry.BoundingBox(30, 0, 5, 5), hull));
   }
+
+  @Test
+  void imagesPutTheirOriginAtTheBack() {
+    final IntensityMapGrid image = new IntensityMapGrid(new double[]{0, 10}, new double[]{0, 10},
+        "X", "Y", true);
+    final IntensityMapBounds bounds = IntensityMapBounds.of(List.of(image));
+
+    assertTrue(bounds.invertedY());
+    // y = 0 lies at the back, the top of the 2D view
+    assertEquals(IntensityMapMesh.DEPTH / 2, IntensityMapMesh.localZ(bounds, bounds.yMin()), 1e-9);
+    assertEquals(-IntensityMapMesh.DEPTH / 2, IntensityMapMesh.localZ(bounds, bounds.yMax()), 1e-9);
+    assertEquals(2.5, IntensityMapPicker.dataY(bounds, IntensityMapMesh.localZ(bounds, 2.5)), 1e-9);
+  }
 }

@@ -35,6 +35,7 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,6 @@ import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
@@ -78,10 +78,9 @@ final class IntensityMapOverlayPanel extends VBox {
 
   private final Label title = FxLabels.newBoldLabel("Overlays");
   private final VBox cards = new VBox(2);
-  private final HBox mzRow;
+  private final VBox mzRow;
   private final TextField mzField = new TextField();
-  private final TextField toleranceField = new TextField("10");
-  private final ComboBox<String> toleranceUnit = new ComboBox<>();
+  private final MZToleranceComponent tolerance = new MZToleranceComponent();
   private final Label mzError = FxLabels.newLabel(FxLabels.Styles.ERROR, "");
   private final Button addFiles;
   private final Button resetMz;
@@ -100,17 +99,18 @@ final class IntensityMapOverlayPanel extends VBox {
     setMinWidth(200);
 
     // rarely used overlay actions are icon buttons in the header
-    addFiles = FxButtons.createButton(null, () -> "bi-file-earmark-plus",
+    addFiles = FxButtons.createButton(null, FxIcons.PLUS,
         "Add the raw files selected in the project", () -> {
           if (onAddFiles != null) {
             onAddFiles.run();
           }
         });
-    resetMz = FxButtons.createButton("m/z", "Show all m/z", () -> {
-      if (onResetMz != null) {
-        onResetMz.run();
-      }
-    });
+    resetMz = FxButtons.createButton("Reset", "Show all m/z again, removes the m/z overlays",
+        () -> {
+          if (onResetMz != null) {
+            onResetMz.run();
+          }
+        });
     FxLayout.bindManagedToVisible(addFiles);
     FxLayout.bindManagedToVisible(resetMz);
     updateActions();
@@ -125,19 +125,21 @@ final class IntensityMapOverlayPanel extends VBox {
     mzField.setOnAction(_ -> addMz());
     mzField.setMinWidth(60);
     HBox.setHgrow(mzField, Priority.ALWAYS);
-    toleranceField.setPrefColumnCount(3);
-    toleranceField.setMinWidth(42);
-    toleranceField.setTooltip(new Tooltip("Tolerance for single m/z values"));
-    toleranceField.setOnAction(_ -> addMz());
-    toleranceUnit.getItems().setAll("ppm", "m/z");
-    toleranceUnit.setValue("ppm");
-    toleranceUnit.setMinWidth(Region.USE_PREF_SIZE);
+    // assumption: wide enough for the mass accuracy of most instruments, the larger one applies
+    tolerance.setValue(new MZTolerance(0.01, 15));
+    tolerance.setToolTipText("Tolerance for single m/z values, the larger one applies");
+    // narrower fields, so that the tolerance fits on one row of the side panel
+    tolerance.getChildren().stream().filter(TextField.class::isInstance).map(TextField.class::cast)
+        .forEach(field -> field.setPrefColumnCount(4));
     final Button add = FxButtons.createButton(null, FxIcons.PLUS,
         "Add m/z overlays for every sample", this::addMz);
     final Label plusMinus = new Label("±");
     plusMinus.setMinWidth(Region.USE_PREF_SIZE);
-    mzRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 4, mzField, plusMinus, toleranceField,
-        toleranceUnit, add);
+    // the tolerance has its own row, the panel is too narrow for both
+    mzRow = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, true,
+        FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 4, mzField, add),
+        FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 4, plusMinus, tolerance));
+    mzRow.setSpacing(4);
     FxLayout.bindManagedToVisible(mzRow);
     mzRow.setVisible(false);
     FxLayout.bindManagedToVisible(mzError);
@@ -185,16 +187,12 @@ final class IntensityMapOverlayPanel extends VBox {
    * @return the entered extraction tolerance, null if invalid
    */
   @Nullable MZTolerance mzTolerance() {
-    try {
-      final double value = Double.parseDouble(toleranceField.getText().trim());
-      if (!(value > 0) || !Double.isFinite(value)) {
-        return null;
-      }
-      return "ppm".equals(toleranceUnit.getValue()) ? new MZTolerance(0, value)
-          : new MZTolerance(value, 0);
-    } catch (final NumberFormatException ex) {
+    final MZTolerance value = tolerance.getValue();
+    if (value == null || value.getMzTolerance() < 0 || value.getPpmTolerance() < 0 || !(
+        value.getMzTolerance() > 0 || value.getPpmTolerance() > 0)) {
       return null;
     }
+    return value;
   }
 
   void setOnAddFiles(@Nullable final Runnable listener) {

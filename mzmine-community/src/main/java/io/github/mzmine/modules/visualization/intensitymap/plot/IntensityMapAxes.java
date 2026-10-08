@@ -204,15 +204,16 @@ final class IntensityMapAxes {
       return new double[]{-WIDTH / 2, WIDTH / 2, -DEPTH / 2, DEPTH / 2};
     }
     final IntensityMapBounds bounds = spec.bounds();
+    final double z0 = Math.clamp(IntensityMapMesh.localZ(bounds, frame.y().lowerEndpoint()),
+        -DEPTH / 2, DEPTH / 2);
+    final double z1 = Math.clamp(IntensityMapMesh.localZ(bounds, frame.y().upperEndpoint()),
+        -DEPTH / 2, DEPTH / 2);
+    // inverted y puts the lower end at the back
     return new double[]{
         Math.clamp(IntensityMapMesh.localX(bounds, frame.x().lowerEndpoint()), -WIDTH / 2,
             WIDTH / 2),
         Math.clamp(IntensityMapMesh.localX(bounds, frame.x().upperEndpoint()), -WIDTH / 2,
-            WIDTH / 2),
-        Math.clamp(IntensityMapMesh.localZ(bounds, frame.y().lowerEndpoint()), -DEPTH / 2,
-            DEPTH / 2),
-        Math.clamp(IntensityMapMesh.localZ(bounds, frame.y().upperEndpoint()), -DEPTH / 2,
-            DEPTH / 2)};
+            WIDTH / 2), Math.min(z0, z1), Math.max(z0, z1)};
   }
 
   /**
@@ -273,8 +274,10 @@ final class IntensityMapAxes {
       tick(format.value(value, spec.xKind(), xStep), new Point3D(x, 0, z0),
           new Point3D(x, 4 * t, z0 - 14 * t), Axis.X);
     }
-    final double yMin = IntensityMapPicker.dataY(bounds, z0);
-    final double yMax = IntensityMapPicker.dataY(bounds, z1);
+    final double yMin = Math.min(IntensityMapPicker.dataY(bounds, z0),
+        IntensityMapPicker.dataY(bounds, z1));
+    final double yMax = Math.max(IntensityMapPicker.dataY(bounds, z0),
+        IntensityMapPicker.dataY(bounds, z1));
     final IntensityMapLanes lanes = spec.lanes();
     if (lanes != null) {
       laneTicks(lanes, bounds, format, yMin, yMax, x0, x1, gridY, t);

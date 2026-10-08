@@ -658,8 +658,12 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
       }
       if (!skipped.isEmpty()) {
         final var first = skipped.entrySet().iterator().next();
-        plot.setStatus(first.getValue() + " in " + String.join(", ", skipped.keySet())
-            + ". Adjust the scan selection of the module.");
+        final String message = first.getValue() + " in " + String.join(", ", skipped.keySet())
+            + ". Adjust the scan selection of the module.";
+        plot.setStatus(message);
+        plot.setWarning(message);
+      } else if (source.isBase()) {
+        plot.setWarning(null);
       }
     });
   }
@@ -686,6 +690,7 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
         task = null;
         plot.setLoading(null, 0);
         plot.setStatus(message);
+        plot.setWarning(message);
       }
     });
   }

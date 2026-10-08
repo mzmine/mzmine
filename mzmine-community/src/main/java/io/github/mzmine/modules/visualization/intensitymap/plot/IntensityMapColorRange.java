@@ -48,7 +48,7 @@ final class IntensityMapColorRange extends Region {
   private static final double HANDLE_WIDTH = 5;
   private static final double LABEL_GAP = 3;
   // assumption: a range below one percent of the scale is not useful and hard to grab
-  private static final double MIN_SPAN = 0.01;
+  static final double MIN_SPAN = 0.01;
 
   private final IntensityMapSeriesState state;
   private final DoubleFunction<String> format;
