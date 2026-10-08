@@ -44,6 +44,21 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
     SimpleDoubleRange, SimpleFloatRange {
 
   @NotNull
+  static SimpleFloatRange singleton(float v) {
+    return SimpleRange.ofFloat(v, v);
+  }
+
+  @NotNull
+  static SimpleDoubleRange singleton(double v) {
+    return SimpleRange.ofDouble(v, v);
+  }
+
+  @NotNull
+  static SimpleIntegerRange singleton(int v) {
+    return SimpleRange.ofInteger(v, v);
+  }
+
+  @NotNull
   public Range<T> guava();
 
   boolean contains(@NotNull T value);
@@ -137,13 +152,22 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
   record SimpleIntegerRange(int lower, int upper) implements SimpleRange<Integer> {
 
+    public static final SimpleIntegerRange ALL = new SimpleIntegerRange(-Integer.MAX_VALUE,
+        Integer.MAX_VALUE);
+
+    /**
+     * For compatibility with guava ranges
+     */
+    public static SimpleIntegerRange all() {
+      return ALL;
+    }
+
     /**
      * Open bounds are substituted by {@link Integer#MIN_VALUE}/{@link Integer#MAX_VALUE}.
      */
     @NotNull
     public static SimpleIntegerRange of(@NotNull Range<Integer> r) {
-      return new SimpleIntegerRange(
-          r.hasLowerBound() ? r.lowerEndpoint() : Integer.MIN_VALUE,
+      return new SimpleIntegerRange(r.hasLowerBound() ? r.lowerEndpoint() : Integer.MIN_VALUE,
           r.hasUpperBound() ? r.upperEndpoint() : Integer.MAX_VALUE);
     }
 
@@ -202,6 +226,16 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
   }
 
   record SimpleDoubleRange(double lower, double upper) implements SimpleRange<Double> {
+
+    public static final SimpleDoubleRange ALL = new SimpleDoubleRange(-Double.MAX_VALUE,
+        Double.MAX_VALUE);
+
+    /**
+     * For compatibility with guava ranges
+     */
+    public static SimpleDoubleRange all() {
+      return ALL;
+    }
 
     /**
      * Open bounds are substituted by -{@link Double#MAX_VALUE}/{@link Double#MAX_VALUE}. Note that
@@ -272,6 +306,16 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
   }
 
   record SimpleFloatRange(float lower, float upper) implements SimpleRange<Float> {
+
+    public static final SimpleFloatRange ALL = new SimpleFloatRange(-Float.MAX_VALUE,
+        Float.MAX_VALUE);
+
+    /**
+     * For compatibility with guava ranges
+     */
+    public static SimpleFloatRange all() {
+      return ALL;
+    }
 
     /**
      * Open bounds are substituted by -{@link Float#MAX_VALUE}/{@link Float#MAX_VALUE}. Note that
