@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import java.util.Map;
 
 public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
 
@@ -45,8 +46,28 @@ public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
   public static final BooleanParameter export_masslist = new BooleanParameter(
       "Export centroid mass list", "Exports the centroid mass list instead of raw data", true);
 
+  /**
+   * Controls append vs. overwrite behaviour. Default is {@link FileWriterOption#APPEND} so that
+   * batch files saved before this parameter was introduced continue to work unchanged --
+   * {@link #handleLoadedParameters} restores the default when the key is absent.
+   */
+  public static final ComboParameter<FileWriterOption> writerOption = new ComboParameter<>(
+      "File write mode",
+      "Append new scans to an existing file, or overwrite it on each run.",
+      FileWriterOption.values(), FileWriterOption.APPEND);
+
   public ExportScansFromRawFilesParameters() {
-    super(new Parameter[]{dataFiles, scanSelect, file, formats, export_masslist});
+    super(new Parameter[]{dataFiles, scanSelect, file, formats, export_masslist, writerOption});
   }
 
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    // writerOption did not exist before it was introduced; old batches must keep APPEND
+    // so behaviour is preserved exactly as it was.
+    if (!loadedParams.containsKey(writerOption.getName())) {
+      setParameter(writerOption, FileWriterOption.APPEND);
+    }
+  }
 }
