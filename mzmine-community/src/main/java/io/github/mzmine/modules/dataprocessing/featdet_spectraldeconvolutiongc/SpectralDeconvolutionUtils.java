@@ -28,10 +28,14 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -78,6 +82,22 @@ public class SpectralDeconvolutionUtils {
       deconvolutedFeatureListRowsByRtOnly.add(mainFeature.getRow());
     }
     return deconvolutedFeatureListRowsByRtOnly;
+  }
+
+  /**
+   * Merges the pseudo spectra of all features of a row into one consensus spectrum. Signals within
+   * the m/z tolerance are combined and their intensities summed.
+   *
+   * @param row         the row with GC-EI pseudo spectra as fragment scans
+   * @param mzTolerance tolerance to merge signals
+   * @return double[2][] with sorted m/z values [0] and summed intensities [1]. Empty arrays if the
+   * row has no pseudo spectrum
+   */
+  public static double @NotNull [] @NotNull [] mergePseudoSpectra(
+      @NotNull final FeatureListRow row, @NotNull final MZTolerance mzTolerance) {
+    final List<Scan> pseudoSpectra = row.getAllFragmentScans();
+    return SpectraMerging.calculatedMergedMzsAndIntensities(pseudoSpectra, mzTolerance,
+        IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, null);
   }
 
   /**
