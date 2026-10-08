@@ -71,6 +71,7 @@ import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeat
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
@@ -94,6 +95,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersMod
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
@@ -332,6 +334,7 @@ public class BatchModeModulesList {
           PeakFinderModule.class, //
           MultiThreadPeakFinderModule.class, //
           SameRangeGapFillerModule.class, //
+          GcEiGapFillingModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_FILTERING}
@@ -343,6 +346,7 @@ public class BatchModeModulesList {
           FeatureListBlankSubtractionModule.class, //
           ChromatogramBlankSubtractionModule.class, //
           DuplicateFilterModule.class, //
+          GcEiDuplicateFilterModule.class, //
           MobilityMzRegionExtractionModule.class, //
           NeutralLossFilterModule.class, //
           PeakComparisonRowFilterModule.class, //
