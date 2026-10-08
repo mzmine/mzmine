@@ -68,11 +68,9 @@ import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.R
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
@@ -88,32 +86,14 @@ public class FeatureConvertors {
    * {@link DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
    *
    * @param chromatogram input ADAP chromatogram
-   * @param mzTolerance
-   * @return output modular feature
+   * @return output modular feature. Fragment scans are assigned by the caller, see
+   * {@link ScanUtils#findMS2FragmentScans(List, Range, Range, Comparator)}
    */
   static public ModularFeature ADAPChromatogramToModularFeature(ModularFeatureList featureList,
-      RawDataFile dataFile, @NotNull ADAPChromatogram chromatogram, final MZTolerance mzTolerance) {
-    // Data points of feature
-    final Collection<DataPoint> dataPoints = chromatogram.getDataPoints();
-    final Collection<Scan> scans = chromatogram.getScanNumbers();
-    if (dataPoints.size() != scans.size()) {
-      throw new IllegalArgumentException(
-          "Number of data points does not match number of scan numbers");
-    }
-
+      RawDataFile dataFile, @NotNull ADAPChromatogram chromatogram) {
     SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(featureList.getMemoryMapStorage(),
-        new ArrayList<>(dataPoints), new ArrayList<>(scans));
-    ModularFeature modularFeature = new ModularFeature(featureList, dataFile, timeSeries,
-        FeatureStatus.DETECTED);
-
-    // use wider mz range to group MS2 with chromatogram
-    Range<Double> toleranceRange = mzTolerance.getToleranceRange(modularFeature.getMZ());
-    Range<Double> mzRange = toleranceRange.span(modularFeature.getRawDataPointsMZRange());
-    List<Scan> allMS2 = ScanUtils.streamAllMS2FragmentScans(dataFile,
-        modularFeature.getRawDataPointsRTRange(), mzRange).toList();
-    modularFeature.setAllMS2FragmentScans(allMS2);
-
-    return modularFeature;
+        chromatogram.getDataPointsMap().entrySet(), chromatogram.getNumberOfDataPoints());
+    return new ModularFeature(featureList, dataFile, timeSeries, FeatureStatus.DETECTED);
   }
 
   public static ModularFeature IonMobilityIonTraceToModularFeature(
@@ -263,9 +243,9 @@ public class FeatureConvertors {
       Chromatogram sameRangePeak) {
     final Hashtable<Scan, DataPoint> dataPointsMap = sameRangePeak.getDataPointsMap();
     final List<Entry<Scan, DataPoint>> sorted = dataPointsMap.entrySet().stream()
-        .sorted(Comparator.comparing(Entry::getKey)).toList();
-    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(featureList.getMemoryMapStorage(),
-        sorted.stream().map(Entry::getValue).toList(), sorted.stream().map(Entry::getKey).toList());
+        .sorted(Entry.comparingByKey()).toList();
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
+        featureList.getMemoryMapStorage(), sorted, sorted.size());
 
     ModularFeature modularFeature = new ModularFeature(featureList, sameRangePeak.getRawDataFile(),
         timeSeries, FeatureStatus.DETECTED);
@@ -319,9 +299,21 @@ public class FeatureConvertors {
       scansList.add(scans.get(i));
       i++;
     }
+    return new SimpleIonTimeSeries(storage, mzs, intensities, scansList);
+  }
 
-    SimpleIonTimeSeries timeSeries = new SimpleIonTimeSeries(storage, mzs, intensities, scansList);
-
-    return timeSeries;
+  public static SimpleIonTimeSeries createSimpleTimeSeries(MemoryMapStorage storage,
+      Iterable<Entry<Scan, DataPoint>> entries, int size) {
+    double[] mzs = new double[size];
+    double[] intensities = new double[size];
+    List<Scan> scansList = new ArrayList<>(size);
+    int i = 0;
+    for (Entry<Scan, DataPoint> entry : entries) {
+      mzs[i] = entry.getValue().getMZ();
+      intensities[i] = entry.getValue().getIntensity();
+      scansList.add(entry.getKey());
+      i++;
+    }
+    return new SimpleIonTimeSeries(storage, mzs, intensities, scansList);
   }
 }
