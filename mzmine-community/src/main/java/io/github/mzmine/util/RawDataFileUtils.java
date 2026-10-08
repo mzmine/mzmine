@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,51 +82,40 @@ public class RawDataFileUtils {
       Task newTask = null;
       var scanProcessorConfig = ScanImportProcessorConfig.createDefault();
       switch (fileType) {
-        case ICPMSMS_CSV:
-          newTask = new IcpMsCVSImportTask(project, fileName, module, parameters, moduleCallDate,
-              storage);
-          break;
-        case MZDATA:
-          newTask = new MzDataImportTask(project, fileName, module, parameters, moduleCallDate,
-              storage);
-          break;
-        case MZML, MZML_IMS:
-          newTask = new MSDKmzMLImportTask(project, fileName, scanProcessorConfig, module,
-              parameters, moduleCallDate, storage);
-          break;
-        case IMZML:
-          newTask = new ImzMLImportTask(project, fileName, scanProcessorConfig, module, parameters,
-              moduleCallDate, storage);
-          break;
-        case MZXML:
-          newTask = new MzXMLImportTask(project, fileName, scanProcessorConfig,
-              module, parameters, moduleCallDate, storage);
-          break;
-        case NETCDF:
-          newTask = new NetCDFImportTask(project, fileName, module, parameters, moduleCallDate,
-              storage);
-          break;
-        case THERMO_RAW:
-          newTask = new ThermoImportTaskDelegator(storage, moduleCallDate, fileName,
-              scanProcessorConfig, project, parameters, module);
-          break;
+        case ICPMSMS_CSV ->
+            newTask = new IcpMsCVSImportTask(project, fileName, module, parameters, moduleCallDate,
+                storage);
+        case MZDATA ->
+            newTask = new MzDataImportTask(project, fileName, module, parameters, moduleCallDate,
+                storage);
+        case MZML ->
+            newTask = new MSDKmzMLImportTask(project, fileName, scanProcessorConfig, module,
+                parameters, moduleCallDate, storage);
+        case IMZML -> newTask = new ImzMLImportTask(project, fileName, scanProcessorConfig, module,
+            parameters, moduleCallDate, storage);
+        case MZXML -> newTask = new MzXMLImportTask(project, fileName, scanProcessorConfig, module,
+            parameters, moduleCallDate, storage);
+        case NETCDF ->
+            newTask = new NetCDFImportTask(project, fileName, module, parameters, moduleCallDate,
+                storage);
+        case THERMO_RAW ->
+            newTask = new ThermoImportTaskDelegator(storage, moduleCallDate, fileName,
+                scanProcessorConfig, project, parameters, module);
+
 /*        case WATERS_RAW:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
               storage);
           newTask = new WatersRawImportTask(project, fileName, newMZmineFile, module, parameters,
               moduleCallDate);
           break;*/
-        case MZML_ZIP:
-        case MZML_GZIP:
-          newTask = new ZipImportTask(project, fileName, scanProcessorConfig, module, parameters,
-              moduleCallDate, storage);
-          break;
-        case BRUKER_TDF:
-          newTask = new TDFImportTask(project, fileName, MemoryMapStorage.forRawDataFile(), module,
-              parameters, moduleCallDate);
-          break;
-        default:
-          break;
+        case MZML_ZIP, MZML_GZIP ->
+            newTask = new ZipImportTask(project, fileName, scanProcessorConfig, module, parameters,
+                moduleCallDate, storage);
+        case BRUKER_TDF ->
+            newTask = new TDFImportTask(project, fileName, MemoryMapStorage.forRawDataFile(),
+                module, parameters, moduleCallDate);
+        case null, default -> {
+        }
       }
       if (newTask != null) {
         taskList.add(newTask);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,6 @@ public enum RawDataFileType {
 
   MZML(ExtensionFilters.MZML, false), //
   IMZML(ExtensionFilters.IMZML, false), //
-  MZML_IMS(ExtensionFilters.MZML, false), //
   MZXML(ExtensionFilters.MZXML, false), //
   MZDATA(ExtensionFilters.MZDATA, false), //
   NETCDF(ExtensionFilters.NETCDF, false), //
@@ -83,8 +82,8 @@ public enum RawDataFileType {
     final RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
 
     return switch (type) {
-      case MZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV,
-           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS, WATERS_RAW, WATERS_RAW_IMS,
+      case MZML, MZXML, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, BRUKER_TDF,
+           BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS, WATERS_RAW, WATERS_RAW_IMS,
            SHIMADZU_LCD, MBI -> List.of();
       case IMZML -> {
         final String extension = FileAndPathUtil.getExtension(file.getName());
