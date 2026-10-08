@@ -124,7 +124,7 @@ public class IntegrationTests {
         "rawdatafiles/integration_tests/workshop_dataset/project.mzmine");
 
     // database name of spectral library matches is not loaded because it is from the library
-    Assertions.assertEquals(7,
+    Assertions.assertEquals(0,
         IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProcessing, csvExportFile,
             "project_load_lcms").size());
     // saving and loading the project should be identical
@@ -178,7 +178,7 @@ public class IntegrationTests {
         "rawdatafiles/integration_tests/mse/expected_results_project.csv", exportedFlist,
         "mse_project.mzmine").size());
 
-    Assertions.assertEquals(2, IntegrationTestUtils.getCsvComparisonResults(
+    Assertions.assertEquals(0, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/mse/expected_results.csv",
         exportedFlist, "mse_project.mzmine").size());
   }
