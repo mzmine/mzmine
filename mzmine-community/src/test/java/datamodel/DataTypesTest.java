@@ -45,6 +45,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -58,6 +59,13 @@ public class DataTypesTest {
 
   private static final Logger logger = Logger.getLogger(DataTypesTest.class.getName());
 
+  /**
+   * Same packages as scanned by {@link DataTypes}
+   */
+  private static final List<String> TYPE_PACKAGES = List.of(
+      "io.github.mzmine.datamodel.features.types",
+      "io.github.mzmine.datamodel.features.rawfiletypes");
+
   @Test
   public void testUniqueID() {
 
@@ -66,7 +74,7 @@ public class DataTypesTest {
 
     try {
       ClassPath classPath = ClassPath.from(DataType.class.getClassLoader());
-      classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
+      TYPE_PACKAGES.stream().map(classPath::getTopLevelClassesRecursive).flatMap(Set::stream)
           .forEach(classInfo -> {
             try {
               final Class<?> clazz = classInfo.load();
@@ -103,7 +111,7 @@ public class DataTypesTest {
 
     try {
       ClassPath classPath = ClassPath.from(DataType.class.getClassLoader());
-      classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
+      TYPE_PACKAGES.stream().map(classPath::getTopLevelClassesRecursive).flatMap(Set::stream)
           .forEach(classInfo -> {
             try {
               final Class<?> clazz = classInfo.load();

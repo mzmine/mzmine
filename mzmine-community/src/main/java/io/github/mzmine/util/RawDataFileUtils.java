@@ -26,7 +26,14 @@
 package io.github.mzmine.util;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMzRangeType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionRtRangeType;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -205,5 +212,43 @@ public class RawDataFileUtils {
     }
 
     return null;
+  }
+
+  /**
+   * Adds metadata derived from the scans and the source file to the
+   * {@link RawDataFile#getFileMetadata() file metadata}: the acquisition m/z range (union of all
+   * scanning m/z ranges, falls back to the data m/z range), the RT range, and the
+   * {@link RawDataFileType} detected by {@link RawDataFileTypeDetector}. Call after all scans were
+   * added to the file.
+   */
+  public static void addAdditionalFileMetadata(@NotNull final RawDataFile file) {
+    final ModularDataModel metadata = file.getFileMetadata();
+
+    if (metadata.get(AcquisitionMzRangeType.class) == null && file.getNumOfScans() > 0) {
+      Range<Double> acquisitionMzRange = null;
+      for (final Scan scan : file.getScans()) {
+        final Range<Double> scanningRange = scan.getScanningMZRange();
+        if (scanningRange == null) {
+          continue;
+        }
+        acquisitionMzRange =
+            acquisitionMzRange == null ? scanningRange : acquisitionMzRange.span(scanningRange);
+      }
+      if (acquisitionMzRange == null) {
+        acquisitionMzRange = file.getDataMZRange();
+      }
+      file.setFileMetadataValue(AcquisitionMzRangeType.class, acquisitionMzRange);
+    }
+    if (metadata.get(AcquisitionRtRangeType.class) == null) {
+      file.setFileMetadataValue(AcquisitionRtRangeType.class, file.getDataRTRange());
+    }
+
+    final String path = file.getAbsolutePath();
+    if (path != null && metadata.get(RawDataFileFormatType.class) == null) {
+      final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(new File(path));
+      if (fileType != null) {
+        file.setFileMetadataValue(RawDataFileFormatType.class, fileType);
+      }
+    }
   }
 }

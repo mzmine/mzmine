@@ -26,17 +26,19 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Enum of supported data file formats
  */
-public enum RawDataFileType {
+public enum RawDataFileType implements UniqueIdSupplier {
 
   MZML(ExtensionFilters.MZML, false), //
   IMZML(ExtensionFilters.IMZML, false), //
@@ -103,5 +105,31 @@ public enum RawDataFileType {
 
   public boolean isFolder() {
     return isFolder;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case IMZML -> "imzml";
+      case MZXML -> "mzxml";
+      case MZDATA -> "mzdata";
+      case NETCDF -> "netcdf";
+      case THERMO_RAW -> "raw_thermo";
+      case WATERS_RAW -> "raw_waters";
+      case WATERS_RAW_IMS -> "raw_waters_ims";
+      case MZML_ZIP -> "mzml_zip";
+      case MZML_GZIP -> "mzml_gzip";
+      case ICPMSMS_CSV -> "csv_icpms";
+      case BRUKER_TDF -> "tdf";
+      case BRUKER_TSF -> "tsf";
+      case BRUKER_BAF -> "baf";
+      case SCIEX_WIFF -> "wiff";
+      case SCIEX_WIFF2 -> "wiff2";
+      case AGILENT_D -> "d_agilent";
+      case AGILENT_D_IMS -> "d_agilent_ims";
+      case SHIMADZU_LCD -> "lcd";
+      case MBI -> "mbi";
+      case MZML -> "mzml";
+    };
   }
 }
