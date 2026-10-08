@@ -52,7 +52,7 @@ public class PostColumnReactionParameters extends SimpleParameterSet {
   // Define parameter set for automated formula prediction!
   public static final OptionalModuleParameter<PostColumnReactionFormulaPredictionParameters> formulaPredictionParameters = new OptionalModuleParameter<>(
       "Predict molecular formulae",
-      "Automatic prediction of tranformation product molecular fomulae based on the parent molecular formula",
+      "Automatic prediction of transformation product molecular formulae based on the parent molecular formula",
       new PostColumnReactionFormulaPredictionParameters(), true);
 
   public static final OptionalParameter<PercentParameter> correlationThreshold = new OptionalParameter<>(
@@ -72,6 +72,6 @@ public class PostColumnReactionParameters extends SimpleParameterSet {
             + "For each annotated compound, it searches for correlated features that are absent in unreacted control samples. "
             + "These transformation products are then annotated with the parent's name, "
             + "a transformation product name (e.g., TP) and the nominal m/z, yielding e.g., Valsartan_TP_123."
-            + "Optionally, the molecular formula of transformation prodcuts can be predicted."));
+            + "Optionally, the molecular formula of transformation products can be predicted."));
   }
 }
