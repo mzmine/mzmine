@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import com.opencsv.RFC4180ParserBuilder;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.io.JsonUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -88,10 +89,7 @@ public class SynonymsType extends ListDataType<String> {
     if (value == null || value.isEmpty()) {
       return "";
     }
-    if (export) {
-      return JsonUtils.writeStringOrEmpty(value);
-    }
-    return String.join("; ", value);
+    return ParsingUtils.stringListToString(value); // plain string, no json
   }
 
   @Override
