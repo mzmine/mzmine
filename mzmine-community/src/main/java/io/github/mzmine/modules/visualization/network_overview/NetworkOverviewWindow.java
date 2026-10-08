@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,6 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -43,40 +42,35 @@ import org.jetbrains.annotations.Nullable;
 public class NetworkOverviewWindow extends Stage {
 
   private static final Logger logger = Logger.getLogger(NetworkOverviewWindow.class.getName());
-  private NetworkOverviewController controller;
+  private NetworkOverviewMvciController mvciController;
 
   public NetworkOverviewWindow(@NotNull ModularFeatureList featureList,
       @Nullable FeatureTableFX externalTable, @Nullable List<? extends FeatureListRow> selectedRows,
       final NetworkOverviewFlavor flavor) {
     setTitle("Network overview: " + featureList.getName());
-    setOnCloseRequest(event -> {
-      if (controller != null) {
-        controller.close();
-      }
-    });
     try {
-      // Load the window FXML
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("NetworkOverviewPane.fxml"));
-      BorderPane rootPane = loader.load();
-      controller = loader.getController();
-      controller.setUp(featureList, externalTable, selectedRows, flavor);
+      mvciController = new NetworkOverviewMvciController(featureList, externalTable, selectedRows,
+          flavor);
+      setOnCloseRequest(_ -> mvciController.close());
 
-      Scene mainScene = new Scene(rootPane);
+      final Scene mainScene = new Scene(mvciController.buildView());
       mainScene.getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      this.setScene(mainScene);
+      setScene(mainScene);
+
+      // Start graph generation on a task thread after the window is ready to show
+      mvciController.initNetwork();
     } catch (Exception ex) {
-      Scene mainScene = new Scene(
+      final Scene mainScene = new Scene(
           new BorderPane(new Label("Could not load pane, see log for more information")));
       mainScene.getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      this.setScene(mainScene);
+      setScene(mainScene);
       logger.log(Level.WARNING, "Could not load network overview pane " + ex.getMessage(), ex);
     }
   }
 
   public NetworkOverviewController getController() {
-    return controller;
+    return mvciController != null ? mvciController.getNetworkOverviewController() : null;
   }
-
 }
