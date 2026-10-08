@@ -28,16 +28,20 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorPreprocessor;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.PreprocessedIntensitiesProvider;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.maths.Weighting;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -349,6 +353,51 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
     return minIdx;
   }
 
+  public static AbundanceMeasure getDefaultAbundanceMeasure(@Nullable RawDataFileType fileType) {
+    if (fileType == null) {
+      return AbundanceMeasure.Height;
+    }
+
+    return switch (fileType) {
+      case MZML, IMZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, ICPMSMS_CSV,
+           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI,
+           MZML_GZIP -> AbundanceMeasure.Height;
+      case WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2 -> AbundanceMeasure.Area;
+    };
+  }
+
+  @Override
+  public @NotNull String getName() {
+    return "Local maximum mass detector";
+  }
+
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return LocalMaxMassDetectorParameters.class;
+  }
+
+  @Override
+  public double[][] getMassValues(double[] mzs, double[] intensities,
+      @NotNull MassSpectrumType type) {
+    return getMassValues(new SimpleMassSpectrum(mzs, intensities, type));
+  }
+
+  @Override
+  public double @Nullable [] getLastPreprocessedIntensities() {
+    return lastPreprocessedIntensities;
+  }
+
+  public static AbundanceMeasure getDefaultAbundanceMeasure(@Nullable RawDataFile file) {
+    return getDefaultAbundanceMeasure(file.getAbsoluteFilePath());
+  }
+
+  public static AbundanceMeasure getDefaultAbundanceMeasure(@Nullable File file) {
+    if (file == null) {
+      return AbundanceMeasure.Height;
+    }
+    return getDefaultAbundanceMeasure(RawDataFileTypeDetector.detectDataFileType(file));
+  }
+
   /**
    * Calculates centroid and intensity for a defined peak and adds to results. The peak edges
    * ({@code startIdx}, {@code endIdx}) should be determined on the (potentially smoothed) detection
@@ -360,8 +409,8 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
    * @param absMinIntensity Absolute minimum intensity of the whole spectrum.
    */
   private void processSinglePeak(final double[] mzs, final double[] intensities, final int startIdx,
-      final int endIdx, final double absMinIntensity,
-      final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
+      final int endIdx, final double absMinIntensity, final DoubleArrayList resultMzs,
+      final DoubleArrayList resultIntensities) {
 
     if (endIdx - startIdx < minNonZeroDp) {
       return;
@@ -428,26 +477,5 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
 
     resultMzs.add(centroidMz);
     resultIntensities.add(finalIntensity);
-  }
-
-  @Override
-  public @NotNull String getName() {
-    return "Local maximum mass detector";
-  }
-
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return LocalMaxMassDetectorParameters.class;
-  }
-
-  @Override
-  public double[][] getMassValues(double[] mzs, double[] intensities,
-      @NotNull MassSpectrumType type) {
-    return getMassValues(new SimpleMassSpectrum(mzs, intensities, type));
-  }
-
-  @Override
-  public double @Nullable [] getLastPreprocessedIntensities() {
-    return lastPreprocessedIntensities;
   }
 }
