@@ -120,10 +120,10 @@ import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDash
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap2DModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
@@ -143,7 +143,6 @@ import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.javafx.FxMenuUtil;
 import io.github.mzmine.util.javafx.ModuleMenuItem;
@@ -336,12 +335,12 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Visualization");
 
     final Menu rawDataVis = FxMenuUtil.addModuleMenuItems(menu, "Raw data",
-        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, ImageVisualizerModule.class,
-        SpectraVisualizerModule.class, FrameVisualizerModule.class);
+        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, SpectraVisualizerModule.class,
+        FrameVisualizerModule.class);
 
     addSeparator(rawDataVis);
-    addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, TwoDVisualizerModule.class,
-        Fx3DVisualizerModule.class, MsMsVisualizerModule.class,
+    addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, IntensityMap2DModule.class,
+        IntensityMap3DModule.class, MsMsVisualizerModule.class,
         MassvoltammogramFromFileModule.class);
     addSeparator(rawDataVis);
     addModuleMenuItems(rawDataVis, RawDataSummaryModule.class, ScanHistogramModule.class,
