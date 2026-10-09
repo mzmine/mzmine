@@ -79,6 +79,28 @@ final class IntensityMapPlotArea {
   }
 
   /**
+   * @param low      screen start of the data along one axis
+   * @param high     screen end of the data
+   * @param areaLow  start of the plot area
+   * @param areaHigh end of the plot area
+   * @return screen shift that brings the data edges to the plot area edges, or that centers data
+   * narrower than the plot area; 0 if the data already cover the plot area
+   */
+  static double correction(final double low, final double high, final double areaLow,
+      final double areaHigh) {
+    if (high - low <= areaHigh - areaLow) {
+      return (areaLow + areaHigh - low - high) / 2;
+    }
+    if (low > areaLow) {
+      return areaLow - low;
+    }
+    if (high < areaHigh) {
+      return areaHigh - high;
+    }
+    return 0;
+  }
+
+  /**
    * @param tile the tile with a fixed plot area, null for none
    * @return screen area of the plot in the current viewport, null if there is none
    */

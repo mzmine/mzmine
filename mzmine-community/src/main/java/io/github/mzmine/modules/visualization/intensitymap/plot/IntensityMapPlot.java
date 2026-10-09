@@ -434,6 +434,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
               || event.getButton() == MouseButton.MIDDLE);
       dragX = event.getSceneX();
       dragY = event.getSceneY();
+      keepDataUnderPlotArea();
       // the axes stay at the view edges while dragging
       updateAxesFrame();
       projectAxes();
@@ -504,8 +505,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
             sideView();
           }
         }
-        case LEFT -> rotate(-5, 0);
-        case RIGHT -> rotate(5, 0);
+        // the same direction as dragging
+        case LEFT -> rotate(5, 0);
+        case RIGHT -> rotate(-5, 0);
         case UP -> rotate(0, 5);
         case DOWN -> rotate(0, -5);
         case PLUS, EQUALS, ADD -> zoom(1.15);
@@ -522,8 +524,38 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   private void pan(final double dx, final double dy) {
     camera.pan(dx, dy);
+    keepDataUnderPlotArea();
     hideHover();
     requestDetail();
+  }
+
+  /**
+   * The 2D view keeps its data under the fixed plot area: panning and zooming stop at the data
+   * edges, so the axes keep their place and size. Data narrower than the plot area are centered.
+   */
+  private void keepDataUnderPlotArea() {
+    final IntensityMapTile tile = projection.fixedPlotArea() ? plotTile() : null;
+    final Rectangle2D area = plotArea.area(tile);
+    if (tile == null || area == null) {
+      return;
+    }
+    final List<Point3D> corners = IntensityMapExtent.corners(tile, IntensityMapExtent.full());
+    final double[] screen = IntensityMapExtent.screen(model, corners, scene);
+    final double[] world = IntensityMapExtent.empty();
+    for (final Point3D corner : corners) {
+      final Point3D point = model.localToParent(corner);
+      IntensityMapExtent.include(world, point.getX(), point.getY());
+    }
+    if (screen == null || !(screen[1] > screen[0]) || !(screen[3] > screen[2])) {
+      return;
+    }
+    final double dx = IntensityMapPlotArea.correction(screen[0], screen[1], area.getMinX(),
+        area.getMaxX());
+    final double dy = IntensityMapPlotArea.correction(screen[2], screen[3], area.getMinY(),
+        area.getMaxY());
+    // assumption: the top view looks straight down, screen and model parent axes are parallel
+    camera.shift(dx * (world[1] - world[0]) / (screen[1] - screen[0]),
+        dy * (world[3] - world[2]) / (screen[3] - screen[2]));
   }
 
   /**
@@ -558,6 +590,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     } else if (!camera.zoomTowards(factor, target)) {
       return;
     }
+    keepDataUnderPlotArea();
     hideHover();
     if (factor < 1 && projection.fixedPlotArea() && showsAllData()) {
       // decision: the 2D view does not zoom out beyond all data, the data would shrink inside the

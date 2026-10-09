@@ -219,6 +219,14 @@ final class IntensityMapCamera {
   }
 
   /**
+   * Moves the model by distances in the coordinates of its parent, e.g. to keep the data in view.
+   */
+  void shift(final double dx, final double dy) {
+    model.setTranslateX(model.getTranslateX() + dx);
+    model.setTranslateY(model.getTranslateY() + dy);
+  }
+
+  /**
    * Mouse drag: rotates, or pans in the 2D view and with the pan modifier.
    */
   void drag(final double dx, final double dy, final boolean pan) {
@@ -227,7 +235,8 @@ final class IntensityMapCamera {
       return;
     }
     autoFit = false;
-    turn.setAngle(turn.getAngle() + dx * 0.35);
+    // the data follow the mouse, as if grabbed
+    turn.setAngle(turn.getAngle() - dx * 0.35);
     tilt.setAngle(Math.clamp(tilt.getAngle() + dy * 0.35, 0, 90));
   }
 
