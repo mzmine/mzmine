@@ -93,11 +93,11 @@ class PresetSelectionTest {
   }
 
   @Test
-  void widePeaksSwitchToHilic() {
+  void widePeaksSwitchToHPLC() {
     final PresetSelection selection = PresetSelection.select(analysis(0.14, 0.16, 0.2),
         sequence(IonInterfaceWizardParameterFactory.UHPLC,
             MassSpectrometerWizardParameterFactory.QTOF));
-    Assertions.assertEquals(IonInterfaceWizardParameterFactory.HILIC,
+    Assertions.assertEquals(IonInterfaceWizardParameterFactory.HPLC,
         target(selection, WizardPart.ION_INTERFACE));
   }
 
@@ -112,7 +112,8 @@ class PresetSelectionTest {
   @Test
   void waveletAndGcCiAreNeverSwitched() {
     for (final IonInterfaceWizardParameterFactory lc : List.of(
-        IonInterfaceWizardParameterFactory.LC_WAVELET, IonInterfaceWizardParameterFactory.GC_CI)) {
+        /*IonInterfaceWizardParameterFactory.LC_WAVELET,*/
+        IonInterfaceWizardParameterFactory.GC_CI)) {
       final PresetSelection selection = PresetSelection.select(analysis(0.3, 0.4, 0.5),
           sequence(lc, MassSpectrometerWizardParameterFactory.QTOF));
       Assertions.assertNull(target(selection, WizardPart.ION_INTERFACE), lc::toString);

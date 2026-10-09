@@ -42,8 +42,8 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchSc
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -264,9 +264,9 @@ class PreparedParameterSetTest {
   @Test
   void supportedWizardPresetsPrepareWithoutRawMeasurements() {
     for (final IonInterfaceWizardParameterFactory ionInterface : IonInterfaceWizardParameterFactory.values()) {
-      if (ionInterface == IonInterfaceWizardParameterFactory.LC_WAVELET) {
-        continue;
-      }
+//      if (ionInterface == IonInterfaceWizardParameterFactory.LC_WAVELET) {
+//        continue;
+//      }
       for (final MassSpectrometerWizardParameterFactory ms : MassSpectrometerWizardParameterFactory.values()) {
         final WizardSequence sequence = ParameterEstimationTestData.sequence();
         sequence.set(WizardPart.ION_INTERFACE, ionInterface.create());

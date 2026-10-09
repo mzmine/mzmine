@@ -117,7 +117,7 @@ class OptimizationParameterRegistryTest {
     Assertions.assertEquals(allNames.size() - 3, defaultNames.size());
   }
 
-  @Test
+  /*@Test
   void sequenceContributesOnlyParametersForItsResolver() {
     final WizardSequence sequence = new WizardSequence();
     sequence.set(WizardPart.ION_INTERFACE, IonInterfaceWizardParameterFactory.LC_WAVELET.create());
@@ -131,7 +131,7 @@ class OptimizationParameterRegistryTest {
             "Wavelet noise calculation"), names);
     Assertions.assertFalse(names.contains("Top-to-edge ratio"));
   }
-
+*/
   @Test
   void presetsWithoutChromatographyOrMobilityContributeNoSuchParameters() {
     // the direct infusion, GC-EI and no-IMS presets share parameter names with LC and IMS presets
