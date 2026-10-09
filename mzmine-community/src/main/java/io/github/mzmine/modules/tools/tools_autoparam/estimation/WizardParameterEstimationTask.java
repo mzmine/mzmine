@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
@@ -34,6 +35,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataP
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
@@ -105,6 +107,10 @@ public final class WizardParameterEstimationTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+    if (TaskService.getController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
+      error("Cannot start estimation or optimization while another Batch is running.");
+      return;
+    }
     try {
       final List<RawDataFile> importedFiles = RawDataPreparation.importFilesBlocking(files,
           metadataFile);

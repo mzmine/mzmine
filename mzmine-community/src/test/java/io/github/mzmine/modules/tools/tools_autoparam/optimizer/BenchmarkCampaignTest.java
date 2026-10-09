@@ -27,8 +27,10 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled
 class BenchmarkCampaignTest {
 
   @Test

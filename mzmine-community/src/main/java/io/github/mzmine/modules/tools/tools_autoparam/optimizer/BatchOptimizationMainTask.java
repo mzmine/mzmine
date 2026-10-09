@@ -30,15 +30,14 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatisticsDashboardPane;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
@@ -213,7 +212,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
 
     addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.CANCELED) {
-        if (optimizer != null) {
+        if (optimizer != null && !optimizer.isTerminated()) {
           optimizer.terminate();
         }
         final WizardOptimizationProblem currentProblem = problem;
@@ -310,14 +309,13 @@ public class BatchOptimizationMainTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    addTaskStatusListener((_, newStatus, _) -> externalStatus.set(newStatus));
-
     // store all in ram while optimizing
     MemoryMapStorage.setStoreAllInRam(true);
     // restore to initial value on change
     final KeepInMemory initialMemoryOption = ConfigService.getPreference(
         MZminePreferences.memoryOption);
     addTaskStatusListener((_, _, _) -> initialMemoryOption.enforceToMemoryMapping());
+    addTaskStatusListener((_, newStatus, _) -> externalStatus.set(newStatus));
 
     final List<RawDataFile> importedFiles = RawDataPreparation.importFilesBlocking(files, metadata);
     preparationStep = "classifying raw data files";
@@ -326,11 +324,8 @@ public class BatchOptimizationMainTask extends AbstractTask {
     if (runPreclassification == null) {
       return;
     }
-    final List<FeatureRecord> benchmarkFeatures =
-        params.getValue(OptimizerParameters.benchmarkFeaturesFile)
-            ? BenchmarkFeatureLoader.fromFile(null,
-            params.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
-            params.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
+    final List<FeatureRecord> benchmarkFeatures = BenchmarkFeatureParameters.loadBenchmarkFeatures(
+        params);
 
     preparationStep = "computing raw data statistics and estimates";
     // if confirmed, the wizard switches to the presets that fit the raw data and every candidate is
@@ -480,7 +475,14 @@ public class BatchOptimizationMainTask extends AbstractTask {
       // A hard budget stop can interrupt a generation after some offspring were evaluated but before
       // the algorithm incorporated them. Build the result from every completed observation so those
       // expensive final batches cannot be lost.
-      final NondominatedPopulation result = createSearchFront(optimizer.getResult(),
+      final NondominatedPopulation optimizerResults = new NondominatedPopulation();
+      try {
+        optimizerResults.addAll(optimizer.getResult());
+      } catch (NullPointerException e) {
+        // Stopping during algorithm initialization can leave its result unavailable.
+        logger.fine("Optimizer stopped before its initial population was complete.");
+      }
+      final NondominatedPopulation result = createSearchFront(optimizerResults,
           optimizationProblem.getEvaluatedSolutions());
 
       // log comparison: single-pass estimate versus the best optimizer result
@@ -492,7 +494,11 @@ public class BatchOptimizationMainTask extends AbstractTask {
       completeOptimization(singlePassEstimates, singlePassSolution, currentSequence, currentSolution,
           result, optimizationProblem, resultsController, completedResult);
     } finally {
-      optimizationProblem.close();
+      try {
+        optimizationProblem.close();
+      } finally {
+        initialMemoryOption.enforceToMemoryMapping();
+      }
     }
   }
 
@@ -534,7 +540,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
       }
 
       final Region region = controller.buildView();
-      stage.setTitle("Parameter optimization - running");
+      // the controller binds the title to the progress
       stage.initOwner(MZmineCore.getDesktop().getMainWindow());
       final Scene scene = new Scene(region);
       ConfigService.getConfiguration().getTheme().apply(scene.getStylesheets());

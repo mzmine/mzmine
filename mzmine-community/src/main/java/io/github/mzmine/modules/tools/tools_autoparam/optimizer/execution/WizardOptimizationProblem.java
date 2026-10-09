@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
@@ -36,9 +38,13 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatur
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationEvidence;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.BatchParameterDefinition;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.BenchmarkFeatureParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
@@ -58,8 +64,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -169,6 +177,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * JavaFX; callers decide which thread consumes the completed solution.
    */
   private volatile @Nullable Consumer<Solution> evaluationListener;
+  private final AtomicInteger completedBatchExecutions = new AtomicInteger();
 
   public WizardOptimizationProblem(@NotNull ParameterEstimationContext estimationContext,
       @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param,
@@ -190,10 +199,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
     final List<DataFileStatistics> stats = estimationContext.analysis().files();
 
-    fileOnlyBenchmarkFeatures =
-        param.getValue(OptimizerParameters.benchmarkFeaturesFile) ? BenchmarkFeatureLoader.fromFile(
-            null, param.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
-            param.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
+    fileOnlyBenchmarkFeatures = BenchmarkFeatureParameters.loadBenchmarkFeatures(param);
     batchExecutionBudget = new BatchExecutionBudget(maxBatchExecutions);
     target = Objects.requireNonNull(BenchmarkFeatureLoader.fromStatistics(stats));
     this.paramToOptimize = List.copyOf(paramToOptimize);
@@ -284,6 +290,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     final int batchExecutionIndex = batchEvaluator.evaluate(wizardSequence, solution,
         getNumberOfConstraints() > 0, batchExecutionBudget::reserve);
 
+    completedBatchExecutions.incrementAndGet();
     solution.setAttribute(ATTR_CACHE_HIT, false);
     solution.setAttribute(ATTR_PROPOSAL_INDEX, evaluatedSolutions.size() + 1);
     solution.setAttribute(ATTR_BATCH_EXECUTION_INDEX, batchExecutionIndex);
@@ -311,6 +318,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     SolutionOrigin.CURRENT.applyTo(current);
     final int batchExecutionIndex = batchEvaluator.evaluate(copyForEvaluation(currentSequence), current,
         getNumberOfConstraints() > 0, batchExecutionBudget::reserve);
+    completedBatchExecutions.incrementAndGet();
     current.setAttribute(ATTR_CACHE_HIT, false);
     current.setAttribute(ATTR_BATCH_EXECUTION_INDEX, batchExecutionIndex);
     current.setAttribute(ATTR_ELAPSED_OPTIMIZATION_SECONDS, elapsedTimeTracker.elapsedSeconds());
@@ -506,9 +514,18 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
   }
 
   /**
-   * Applies only the estimated and optimized values of a solution to an existing wizard sequence,
-   * the same way as applying the raw data estimates. All other parameters keep their current
-   * values. The applied values equal the ones the solution was evaluated with in
+   * Applies the estimated and optimized values of a solution to an existing wizard sequence, see
+   * {@link #applySolutionToWizard(Solution, WizardSequence, SolutionApplyMode)}.
+   */
+  public void applySolutionToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence) {
+    applySolutionToWizard(solution, sequence, SolutionApplyMode.ESTIMATED_AND_OPTIMIZED);
+  }
+
+  /**
+   * Applies the optimized values of a solution to an existing wizard sequence and, depending on the
+   * mode, also the estimated values the same way as applying the raw data estimates. All other
+   * parameters keep their current values. With {@link SolutionApplyMode#ESTIMATED_AND_OPTIMIZED},
+   * the applied values equal the ones the solution was evaluated with in
    * {@link #createWizardSequenceFromSolution(Solution)} as long as the sequence uses the same
    * presets as the optimization.
    * <p>
@@ -517,12 +534,47 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    *
    * @param solution the solution to apply
    * @param sequence the wizard sequence to modify
+   * @param mode     whether the estimates of the not optimized parameters are applied as well
    */
-  public void applySolutionToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence) {
-    preparedParameters.applyEstimates(sequence, Set.copyOf(paramToOptimize));
+  public void applySolutionToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence,
+      @NotNull SolutionApplyMode mode) {
+    if (mode == SolutionApplyMode.ESTIMATED_AND_OPTIMIZED) {
+      preparedParameters.applyEstimates(sequence, Set.copyOf(paramToOptimize));
+    }
     for (final IndexedParameter<?> parameter : indexedParameters) {
       parameter.applyToWizard(solution, sequence);
     }
+  }
+
+  /**
+   * @return one line per parameter that
+   * {@link #applySolutionToWizard(Solution, WizardSequence, SolutionApplyMode)} sets, formatted as
+   * {@code part: name -> value (Optimized|Estimated)}, optimized parameters first. Advanced
+   * parameters use the module name instead of the part
+   */
+  public @NotNull List<String> describeAppliedValues(@NotNull Solution solution,
+      @NotNull SolutionApplyMode mode) {
+    final List<String> lines = new ArrayList<>();
+    for (final IndexedParameter<?> parameter : indexedParameters) {
+      lines.add("%s: %s -> %s (Optimized)".formatted(switch (parameter.parameter().definition()) {
+        case WizardParameterDefinition<?> w -> w.part().toString();
+        case BatchParameterDefinition<?> b ->
+            Optional.ofNullable(MZmineCore.getModuleInstance(b.moduleClassName()))
+                .map(MZmineModule::getName).orElse("Unknown") + " (Advanced)";
+      }, parameter.parameter().definition().name(), parameter.formatValue(solution)));
+    }
+    if (mode == SolutionApplyMode.ESTIMATED_AND_OPTIMIZED) {
+      for (final PreparedParameter<?> parameter : preparedParameters.estimates(
+          Set.copyOf(paramToOptimize))) {
+        lines.add("%s: %s -> %s (Estimated)".formatted(switch (parameter.definition()) {
+          case WizardParameterDefinition<?> w -> w.part().toString();
+          case BatchParameterDefinition<?> b ->
+              Optional.ofNullable(MZmineCore.getModuleInstance(b.moduleClassName()))
+                  .map(MZmineModule::getName).orElse("Unknown") + " (Advanced)";
+        }, parameter.definition().name(), parameter.formatInitialValue()));
+      }
+    }
+    return lines;
   }
 
   @Override
@@ -580,6 +632,21 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    */
   public int getBatchExecutionCount() {
     return batchExecutionBudget.count();
+  }
+
+  /**
+   * Number of uncached full batches that finished with a score, including the raw-data estimate.
+   * Lower than {@link #getBatchExecutionCount()} while a batch runs.
+   */
+  public int getCompletedBatchExecutionCount() {
+    return completedBatchExecutions.get();
+  }
+
+  /**
+   * @return the full batch budget, including the raw-data estimate
+   */
+  public int getMaxBatchExecutions() {
+    return batchExecutionBudget.maximum();
   }
 
   public @NotNull List<FeatureRecord> getAllTargets() {

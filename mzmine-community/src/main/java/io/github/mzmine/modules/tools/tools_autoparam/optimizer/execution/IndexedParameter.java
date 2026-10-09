@@ -89,6 +89,10 @@ public record IndexedParameter<T>(@NotNull PreparedParameter<T> parameter, int i
     return parameter.searchDomain().decode(OrdinalIntegerVariable.effectiveValue(solution, index));
   }
 
+  public @NotNull String formatValue(@NotNull Solution solution) {
+    return parameter.searchDomain().format(value(solution));
+  }
+
   public void applyToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence) {
     parameter.definition().apply(sequence, value(solution));
   }

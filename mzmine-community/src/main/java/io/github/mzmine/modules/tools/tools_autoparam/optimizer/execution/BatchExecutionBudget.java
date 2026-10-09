@@ -60,4 +60,8 @@ final class BatchExecutionBudget {
   int count() {
     return executed.get();
   }
+
+  int maximum() {
+    return maximum;
+  }
 }

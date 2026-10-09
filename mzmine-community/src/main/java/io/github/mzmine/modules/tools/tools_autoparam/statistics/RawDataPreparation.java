@@ -29,8 +29,8 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
-import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -199,8 +199,7 @@ public final class RawDataPreparation {
    */
   public static File @NotNull [] selectOptimizerInputFiles(File @NotNull [] allFiles) {
     final List<File> qcFiles = CollectionUtils.selectRandomElements(Arrays.stream(allFiles)
-        .filter(file -> SampleType.guessFromName(file.getName()) == SampleType.QC).limit(10)
-        .toList(), 10);
+        .filter(file -> SampleType.guessFromName(file.getName()) == SampleType.QC).toList(), 10);
     if (qcFiles.size() >= 3) {
       return qcFiles.toArray(File[]::new);
     }

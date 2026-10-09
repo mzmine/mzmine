@@ -33,7 +33,6 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -96,8 +95,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
     var groupMs2Params = createMs2GrouperParameters();
 
-    Boolean useWavelet = steps.get(WizardPart.ION_INTERFACE)
-        .map(p -> p.getFactory() == IonInterfaceWizardParameterFactory.LC_WAVELET).orElse(false);
+    Boolean useWavelet = false;/*steps.get(WizardPart.ION_INTERFACE)
+        .map(p -> p.getFactory() == IonInterfaceWizardParameterFactory.LC_WAVELET).orElse(false);*/
 
     if (!useWavelet) {
       makeAndAddRtLocalMinResolver(q, groupMs2Params, minRtDataPoints, cropRtRange, rtFwhm,

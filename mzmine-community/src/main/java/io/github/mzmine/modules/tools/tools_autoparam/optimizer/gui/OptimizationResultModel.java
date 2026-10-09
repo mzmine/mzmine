@@ -58,6 +58,7 @@ public class OptimizationResultModel {
   private final IntegerProperty preferredSortObjectiveIndex = new SimpleIntegerProperty(0);
   private final BooleanProperty optimizationRunning = new SimpleBooleanProperty(true);
   private final BooleanProperty stopSearchRequested = new SimpleBooleanProperty(false);
+  private final IntegerProperty completedBatchExecutions = new SimpleIntegerProperty(0);
 
   /**
    * Shows all evaluated solutions and their diagnostic attributes instead of only the estimate and
@@ -167,6 +168,17 @@ public class OptimizationResultModel {
 
   public @NotNull BooleanProperty stopSearchRequestedProperty() {
     return stopSearchRequested;
+  }
+
+  public int getCompletedBatchExecutions() {
+    return completedBatchExecutions.get();
+  }
+
+  /**
+   * Uncached full batches that finished, including the raw-data estimate.
+   */
+  public @NotNull IntegerProperty completedBatchExecutionsProperty() {
+    return completedBatchExecutions;
   }
 
   public @NotNull ObservableList<Solution> getDisplayedSolutions() {

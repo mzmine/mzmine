@@ -29,7 +29,7 @@ import static io.github.mzmine.modules.tools.batchwizard.subparameters.factories
 import static io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory.GC_EI;
 import static io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory.HILIC;
 import static io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory.HPLC;
-import static io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory.LC_WAVELET;
+//import static io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory.LC_WAVELET;
 import static io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory.UHPLC;
 
 import com.google.common.collect.Range;
@@ -79,15 +79,16 @@ public final class OptimizationParameterRegistry {
   static final WizardParameterDefinition<Integer> MINIMUM_CONSECUTIVE_SCANS = new WizardParameterDefinition<>(
       "Min consecutive", WizardPart.ION_INTERFACE,
       IonInterfaceHplcWizardParameters.minNumberOfDataPoints, OptimizationRole.SELECTED_BY_DEFAULT,
-      presets(HPLC, UHPLC, HILIC, GC_CI, LC_WAVELET, GC_EI),
+      presets(HPLC, UHPLC, HILIC, GC_CI, /*LC_WAVELET,*/ GC_EI),
       ParameterEstimators::minimumConsecutiveScans);
   static final WizardParameterDefinition<RTTolerance> INTER_SAMPLE_RT = new WizardParameterDefinition<>(
       "Inter sample RT tolerance", WizardPart.ION_INTERFACE,
       IonInterfaceHplcWizardParameters.interSampleRTTolerance, OptimizationRole.SELECTED_BY_DEFAULT,
-      presets(HPLC, UHPLC, HILIC, GC_CI, LC_WAVELET, GC_EI), ParameterEstimators::interSampleRt);
+      presets(HPLC, UHPLC, HILIC, GC_CI, /*LC_WAVELET,*/ GC_EI),
+      ParameterEstimators::interSampleRt);
   static final WizardParameterDefinition<Boolean> RT_CORRECTION = new WizardParameterDefinition<>(
       "RT correction", WizardPart.ION_INTERFACE, IonInterfaceHplcWizardParameters.scanRtCorrection,
-      OptimizationRole.SELECTED_BY_DEFAULT, presets(HPLC, UHPLC, HILIC, GC_CI, LC_WAVELET),
+      OptimizationRole.SELECTED_BY_DEFAULT, presets(HPLC, UHPLC, HILIC, GC_CI/*, LC_WAVELET*/),
       ParameterEstimators::rtCorrection);
   /**
    * decision: estimate only, prepared and applied for the sequence like every other estimate.
@@ -95,7 +96,7 @@ public final class OptimizationParameterRegistry {
    */
   static final WizardParameterDefinition<Range<Double>> CROP_RT = new WizardParameterDefinition<>(
       "Crop retention time", WizardPart.ION_INTERFACE, IonInterfaceHplcWizardParameters.cropRtRange,
-      OptimizationRole.ESTIMATE_ONLY, presets(HPLC, UHPLC, HILIC, LC_WAVELET),
+      OptimizationRole.ESTIMATE_ONLY, presets(HPLC, UHPLC, HILIC/*, LC_WAVELET*/),
       ParameterEstimators::cropRtRange);
 
   // ---------------- MS

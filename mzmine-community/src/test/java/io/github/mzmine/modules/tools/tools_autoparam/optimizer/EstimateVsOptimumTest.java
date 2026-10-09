@@ -72,8 +72,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.moeaframework.core.Solution;
 import testutils.MZmineTestUtil;
 
@@ -687,7 +687,7 @@ public class EstimateVsOptimumTest {
       optimizerParameters.getParameter(MoeadOptimizerParameters.rawDataInitialization)
           .getEmbeddedParameter().setValue(warmStartSampling());
     }
-    params.setParameter(OptimizerParameters.benchmarkFeaturesFile, false);
+    params.setParameter(OptimizerParameters.benchmarkFeatures, false);
     // decision: off. It was measured inert - three factors from 1.0 to 2.0 reached the identical
     // optimum - and leaving it on costs the peak fitting pass on every evaluation for nothing.
     params.setParameter(OptimizerParameters.maxShapeRejectionFactor, false);

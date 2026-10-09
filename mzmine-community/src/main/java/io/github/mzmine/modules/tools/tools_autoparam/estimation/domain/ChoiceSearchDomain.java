@@ -27,7 +27,10 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation.domain;
 
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Values retain their domain type; only the optimizer sees their ordinal positions. It is necessary
@@ -37,11 +40,16 @@ import org.jetbrains.annotations.NotNull;
  * {@link
  * io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimators#mzTolerance(ParameterEstimationContext)}
  */
-public record ChoiceSearchDomain<T>(@NotNull List<T> choices, int firstIndex) implements
+public record ChoiceSearchDomain<T>(@NotNull List<T> choices, int firstIndex,
+                                    @Nullable Function<@NotNull T, String> formatter) implements
     SearchDomain<T> {
 
+  public ChoiceSearchDomain(@NotNull List<T> choices, int firstIndex) {
+    this(choices, firstIndex, null);
+  }
+
   public ChoiceSearchDomain(@NotNull List<T> choices) {
-    this(choices, 0);
+    this(choices, 0, null);
   }
 
   public ChoiceSearchDomain {
@@ -83,5 +91,13 @@ public record ChoiceSearchDomain<T>(@NotNull List<T> choices, int firstIndex) im
   @Override
   public @NotNull SearchScale searchScale() {
     return SearchScale.LINEAR;
+  }
+
+  @Override
+  public @NotNull String format(@NonNull T value) {
+    if (formatter == null) {
+      return SearchDomain.super.format(value);
+    }
+    return formatter.apply(value);
   }
 }

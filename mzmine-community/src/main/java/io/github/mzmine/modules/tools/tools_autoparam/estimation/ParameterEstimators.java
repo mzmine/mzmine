@@ -46,13 +46,13 @@ import io.github.mzmine.modules.tools.tools_autoparam.statistics.InterSampleRtSt
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataParameterEstimation;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.util.MathUtils;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -63,13 +63,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ParameterEstimators {
 
+  static final String FIXED_DEFAULT = "fixed default";
   // the median of the effective RT ranges is used if at least half of the files have one
   private static final double MIN_FILE_SHARE_FOR_CROP_RT = 0.5;
-
   // notes that explain values that are not estimated from the raw data
   private static final String NO_ISOTOPES = "no isotope envelopes found";
   private static final String NO_ALIGNED_FILES = "needs features aligned across at least two files";
-  static final String FIXED_DEFAULT = "fixed default";
 
   private ParameterEstimators() {
   }
@@ -288,10 +287,13 @@ public final class ParameterEstimators {
       final Range<Double> preset = context.preset(WizardPart.ION_INTERFACE,
           IonInterfaceHplcWizardParameters.cropRtRange);
       return new ParameterEstimate<>(preset, ValueOrigin.PRESET_DEFAULT,
-          new ChoiceSearchDomain<>(List.of(preset)), "no retention time range found");
+          new ChoiceSearchDomain<>(List.of(preset), 0,
+              r -> "%.2f - %.2f".formatted(r.lowerEndpoint(), r.upperEndpoint())),
+          "no retention time range found");
     }
     return new ParameterEstimate<>(range, ValueOrigin.RAW_DATA,
-        new ChoiceSearchDomain<>(List.of(range)));
+        new ChoiceSearchDomain<>(List.of(range), 0,
+            r -> "%.2f - %.2f".formatted(r.lowerEndpoint(), r.upperEndpoint())));
   }
 
   public static @NotNull ParameterEstimate<Double> mobilityFwhm(

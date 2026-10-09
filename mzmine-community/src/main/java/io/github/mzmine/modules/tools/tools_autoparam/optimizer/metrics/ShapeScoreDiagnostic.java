@@ -91,12 +91,6 @@ public final class ShapeScoreDiagnostic {
   public static final String ATTR_DOUBLE_PEAK_PERCENT = "Double peak / %";
 
   /**
-   * The R² threshold {@code BaseWizardBatchBuilder} applies when strict shape filtering is enabled.
-   * Kept here as a constant so the diagnostic reports against the same bar the filter uses.
-   */
-  public static final double STRICT_SHAPE_SCORE = 0.94;
-
-  /**
    * Number of points within which a single slope reversal is tolerated. Two is strict enough to
    * remove jagged noise without rejecting real but sparsely sampled peaks.
    */
@@ -127,7 +121,7 @@ public final class ShapeScoreDiagnostic {
   /**
    * Counts the features a strict shape check would reject.
    *
-   * @param minShapeScore the R² threshold, normally {@link #STRICT_SHAPE_SCORE}
+   * @param minShapeScore the R² threshold, normally {@link io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterParameters#DEFAULT_SHAPE_SCORE}
    */
   public static @NotNull Result evaluate(@NotNull FeatureList featureList, double minShapeScore) {
     // decision: only the detected data points, so leading and trailing zeros neither flatten the fit

@@ -44,8 +44,8 @@ import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureWithIsot
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.SimpleRunnableTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -58,8 +58,8 @@ import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -106,10 +106,10 @@ public record RawDataAnalysis(@NotNull List<DataFileStatistics> files, double @N
     final ModularFeatureList aligned = alignBenchmarkFeatures(files, null,
         new SimpleRunnableTask(() -> {
         }));
-    final int minimumDetections = (int) (files.size() * 0.8);
+    final int minimumDetections = Math.max(2, (int) Math.ceil(files.size() * 0.8));
     return new RawDataAnalysis(files, fwhms, points, edges, heights,
         extractSampleToSampleRtDeviations(aligned, minimumDetections),
-        extractFileMedianRtDeviations(aligned, Math.max(3, (int) Math.ceil(files.size() * 0.8))),
+        extractFileMedianRtDeviations(aligned, Math.max(3, minimumDetections)),
         extractSampleToSampleMzToleranceCounts(aligned, minimumDetections));
   }
 

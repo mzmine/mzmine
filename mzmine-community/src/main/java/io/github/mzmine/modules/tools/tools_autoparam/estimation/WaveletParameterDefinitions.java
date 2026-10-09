@@ -27,7 +27,6 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.DoubleSearchDomain;
@@ -46,7 +45,7 @@ final class WaveletParameterDefinitions {
   private static final String MODULE = "io.mzio.mzminepro.modules.featdet_resolving.wavelet.WaveletResolverModule";
   private static final String PARAMETERS = "io.mzio.mzminepro.modules.featdet_resolving.wavelet.WaveletResolverParameters";
   private static final Set<WizardParameterFactory> PRESETS = Set.of(
-      IonInterfaceWizardParameterFactory.LC_WAVELET);
+      /*IonInterfaceWizardParameterFactory.LC_WAVELET*/);
 
   private WaveletParameterDefinitions() {
   }

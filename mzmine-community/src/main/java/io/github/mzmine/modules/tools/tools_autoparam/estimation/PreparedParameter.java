@@ -67,9 +67,12 @@ public record PreparedParameter<T>(@NotNull ParameterDefinition<T> definition,
     definition.apply(sequence, initialValue());
   }
 
+  public @NotNull String formatInitialValue() {
+    return searchDomain().format(initialValue());
+  }
+
   public @NotNull String describe() {
     final String origin = note().isBlank() ? origin().toString() : origin() + ", " + note();
-    return "%s: %s (%s)".formatted(definition.name(), searchDomain().format(initialValue()),
-        origin);
+    return "%s: %s (%s)".formatted(definition.name(), formatInitialValue(), origin);
   }
 }
