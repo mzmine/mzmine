@@ -550,7 +550,12 @@ public class BatchWizardTab extends SimpleTab {
         FxMenuUtil.newMenuItem("Estimate parameters and show statistics",
             () -> autoParamActions.estimate(true))));
     final Button optimize = FxButtons.createButton("Optimize", Source.OPTIMIZATION.icon(),
-        "Optimize the wizard parameters on representative files", autoParamActions::optimize);
+        "Optimize the wizard parameters on representative files.\n"
+            + "Right click for advanced optimizer settings.",
+        () -> autoParamActions.optimize(false));
+    optimize.setContextMenu(new ContextMenu(
+        FxMenuUtil.newMenuItem("Optimize with advanced settings",
+            () -> autoParamActions.optimize(true))));
 
     //disable estimate and optimize on invalid presets
     final BooleanBinding autoParamDisabled = autoParamActions.createDisabledBinding(

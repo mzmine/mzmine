@@ -62,6 +62,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -165,6 +166,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * JavaFX; callers decide which thread consumes the completed solution.
    */
   private volatile @Nullable Consumer<Solution> evaluationListener;
+  private final AtomicInteger completedBatchExecutions = new AtomicInteger();
 
   public WizardOptimizationProblem(@NotNull ParameterEstimationContext estimationContext,
       @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param,
@@ -276,6 +278,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     final int batchExecutionIndex = batchEvaluator.evaluate(wizardSequence, solution,
         getNumberOfConstraints() > 0, batchExecutionBudget::reserve);
 
+    completedBatchExecutions.incrementAndGet();
     solution.setAttribute(ATTR_CACHE_HIT, false);
     solution.setAttribute(ATTR_PROPOSAL_INDEX, evaluatedSolutions.size() + 1);
     solution.setAttribute(ATTR_BATCH_EXECUTION_INDEX, batchExecutionIndex);
@@ -523,6 +526,21 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    */
   public int getBatchExecutionCount() {
     return batchExecutionBudget.count();
+  }
+
+  /**
+   * Number of uncached full batches that finished with a score, including the raw-data estimate.
+   * Lower than {@link #getBatchExecutionCount()} while a batch runs.
+   */
+  public int getCompletedBatchExecutionCount() {
+    return completedBatchExecutions.get();
+  }
+
+  /**
+   * @return the full batch budget, including the raw-data estimate
+   */
+  public int getMaxBatchExecutions() {
+    return batchExecutionBudget.maximum();
   }
 
   public @NotNull List<FeatureRecord> getAllTargets() {

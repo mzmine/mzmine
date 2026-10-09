@@ -80,6 +80,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -135,6 +136,25 @@ public class OptimizationResultsController extends FxController<OptimizationResu
         .set(FrontSolutionRanker.tieBreakObjectiveIndex(optimization.getEnabledMetrics()));
     model.singlePassSolutionProperty().set(singlePassSolution);
     rebuildDisplayedSolutions();
+    if (stage != null) {
+      bindStageTitle(stage);
+    }
+  }
+
+  /**
+   * Shows the progress as completed / budgeted full batches while the optimization runs.
+   */
+  private void bindStageTitle(@NotNull Stage stage) {
+    final int maxBatches = optimization.getMaxBatchExecutions();
+    stage.titleProperty().bind(Bindings.createStringBinding(() -> {
+          if (!model.isOptimizationRunning()) {
+            return "Optimization Results";
+          }
+          final String state = model.isStopSearchRequested() ? "stopping" : "running";
+          return "Parameter optimization - %s %d/%d".formatted(state,
+              model.getCompletedBatchExecutions(), maxBatches);
+        }, model.optimizationRunningProperty(), model.stopSearchRequestedProperty(),
+        model.completedBatchExecutionsProperty()));
   }
 
   /**
@@ -163,7 +183,6 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     model.selectedSolutionProperty().set(preferred);
     model.optimizationRunningProperty().set(false);
     if (stage != null) {
-      stage.setTitle("Optimization Results");
       final String selectionMessage = preferred == null ? "" : preferred.getNumberOfObjectives() > 1
           ? " The solution with the best average rank across all scores was selected."
           : " The highest ranked solution was selected.";
@@ -186,6 +205,7 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     final NondominatedPopulation result = model.getResult();
     final Solution singlePassSolution = model.getSinglePassSolution();
     final List<Solution> evaluatedSolutions = optimization.getEvaluatedSolutions();
+    model.completedBatchExecutionsProperty().set(optimization.getCompletedBatchExecutionCount());
 
     // decision: while the search is running, derive the current front from all completed
     // evaluations, so the compact table can already show the best solutions found so far

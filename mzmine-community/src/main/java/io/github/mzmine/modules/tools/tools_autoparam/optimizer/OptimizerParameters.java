@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.OptimizationParameterRegistry;
@@ -37,6 +38,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefini
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.OptimizationMetrics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.PatternSearchOptimizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -55,9 +57,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 public class OptimizerParameters extends SimpleParameterSet {
 
@@ -80,11 +84,12 @@ public class OptimizerParameters extends SimpleParameterSet {
    * The search needs some batches after the raw data estimate to improve on it.
    */
   public static final int MIN_ITERATIONS = 30;
-
+  private static final int DEFAULT_ITERATIONS = 70;
   public static final IntegerParameter iterations = new IntegerParameter("Iterations",
       "Maximum number of uncached full batch executions, including the raw-data estimate. Cached "
-          + "duplicate proposals do not consume this budget.", 70, MIN_ITERATIONS, 10_000);
-
+          + "duplicate proposals do not consume this budget.", DEFAULT_ITERATIONS, MIN_ITERATIONS,
+      10_000);
+  private static final double DEFAULT_SHAPE_REJECTION_FACTOR = 1.5;
   public static final OptionalParameter<DoubleParameter> maxShapeRejectionFactor = new OptionalParameter<>(
       new DoubleParameter("Max shape rejection factor", """
           Rejects parameter sets that produce badly shaped peaks, as a multiple of the rate measured \
@@ -92,11 +97,12 @@ public class OptimizerParameters extends SimpleParameterSet {
           Sensitivity metrics reward detecting more signals, which can be satisfied by picking up \
           noise. This limits how much worse than the estimate a solution's chromatographic shape \
           quality may get, without changing any score.""",
-          ConfigService.getGuiFormats().scoreFormat(), 1.5, 1.0, 100.0), true);
+          ConfigService.getGuiFormats().scoreFormat(), DEFAULT_SHAPE_REJECTION_FACTOR, 1.0, 100.0),
+      true);
 
   /**
-   * Definitions carry stable identities, typed estimators, and wizard/batch bindings.
-   * The selection stores definitions; dataset-specific values are prepared only at runtime.
+   * Definitions carry stable identities, typed estimators, and wizard/batch bindings. The selection
+   * stores definitions; dataset-specific values are prepared only at runtime.
    */
   private static final List<ParameterDefinition<?>> ALL_SOLUTIONS = OptimizationParameterRegistry.allSolutions();
   private static final List<ParameterDefinition<?>> DEFAULT_SOLUTIONS = OptimizationParameterRegistry.defaultSolutions();
@@ -113,7 +119,7 @@ public class OptimizerParameters extends SimpleParameterSet {
       parameter values and optimization targets.""", false);
 
   public OptimizerParameters() {
-    super(benchmarkFeatureTypes, benchmarkFeaturesFile, optimizers, iterations,
+    super(benchmarkFeaturesFile, benchmarkFeatureTypes, optimizers, iterations,
         maxShapeRejectionFactor, paramToOptimize, showExtendedStatistics);
   }
 
@@ -142,6 +148,30 @@ public class OptimizerParameters extends SimpleParameterSet {
     param.setParameter(iterations, numIterations);
     param.setParameter(maxShapeRejectionFactor, false);
     param.setParameter(paramToOptimize, new ArrayList<>(DEFAULT_SOLUTIONS));
+    param.setParameter(showExtendedStatistics, false);
+    return param;
+  }
+
+  /**
+   * Maps the simple setup to the full parameters. Only the parameters to optimize are taken from
+   * the simple setup, all other settings are set to their defaults.
+   *
+   * @param simpleParameters the parameters of the {@link SimpleOptimizerModule}
+   * @return new full parameters, independent of the module configuration
+   */
+  public static @NotNull OptimizerParameters create(
+      @NotNull SimpleOptimizerParameters simpleParameters) {
+    final OptimizerParameters param = (OptimizerParameters) new OptimizerParameters().cloneParameterSet();
+    ParameterSet optimizerParameters = param.getParameter(optimizers)
+        .setOptionGetParameters(OptimizerOptions.PATTERN_SEARCH);
+    optimizerParameters.setParameter(PatternSearchOptimizerParameters.optimizationTarget,
+        OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE);
+    param.setParameter(benchmarkFeatureTypes, DEFAULT_IMPORT_TYPES);
+    param.setParameter(benchmarkFeaturesFile, false);
+    param.setParameter(iterations, 50);
+    param.setParameter(maxShapeRejectionFactor, true, DEFAULT_SHAPE_REJECTION_FACTOR);
+    param.setParameter(paramToOptimize,
+        new ArrayList<>(simpleParameters.getValue(SimpleOptimizerParameters.paramToOptimize)));
     param.setParameter(showExtendedStatistics, false);
     return param;
   }
@@ -193,27 +223,48 @@ public class OptimizerParameters extends SimpleParameterSet {
     return superCheck && errorMessages.isEmpty();
   }
 
+  static @NonNull TitledPane createOverrideMessage() {
+    return FxLayout.newTitledPane("Information", FxTextFlows.newTextFlow(FxTexts.text("""
+        Running parameter estimation or optimization will apply multiple mass detection steps to imported and already imported raw data. Present mass detection results will be overridden.""")));
+  }
+
+  /**
+   * Shows the setup dialog with the parameter checklist limited to the parameters that apply to the
+   * wizard presets.
+   *
+   * @param parameters the parameters to show
+   * @param solutions  the parameter checklist of the parameters
+   * @param sequence   the wizard sequence, null shows all parameters
+   */
+  static @NotNull ExitCode showSetupDialogForSequence(@NotNull ParameterSet parameters,
+      @NotNull CheckListParameter<ParameterDefinition<?>> solutions, boolean valueCheckRequired,
+      @Nullable WizardSequence sequence) {
+    if (sequence != null) {
+      final Set<ParameterDefinition<?>> applicable = Set.copyOf(collectSolutions(sequence));
+      parameters.getParameter(solutions).setVisibleFilter(applicable::contains);
+    }
+    final ExitCode exitCode = parameters.showSetupDialog(valueCheckRequired);
+    parameters.getParameter(solutions).setVisibleFilter(null); // always reset to all
+    return exitCode;
+  }
+
   @Override
   public @Nullable Region getMessage() {
-    return FxTextFlows.newTextFlowInAccordion("Citations", FxTexts.text(
-            "When optimizing on these respective metrics, please respect the following citations:"),
-        FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.IPO_ISOTOPE_SCORE.name()),
-        FxTexts.text(": "),
-        FxTexts.hyperlinkText("IPO", "https://doi.org/10.1186/s12859-015-0562-8"),
-        FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.SLAW_INTEGRATION_SCORE.name()),
-        FxTexts.text(": "),
-        FxTexts.hyperlinkText("SLAW", "https://pubs.acs.org/doi/10.1021/acs.analchem.1c02687"));
+    return FxLayout.newAccordion(true, createOverrideMessage(),
+
+        FxLayout.newTitledPane("Citations", FxTextFlows.newTextFlow(FxTexts.text(
+                "When optimizing on these respective metrics, please respect the following citations:"),
+            FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.IPO_ISOTOPE_SCORE.name()),
+            FxTexts.text(": "),
+            FxTexts.hyperlinkText("IPO", "https://doi.org/10.1186/s12859-015-0562-8"),
+            FxTexts.linebreak(),
+            FxTexts.boldText(OptimizationMetrics.SLAW_INTEGRATION_SCORE.name()), FxTexts.text(": "),
+            FxTexts.hyperlinkText("SLAW",
+                "https://pubs.acs.org/doi/10.1021/acs.analchem.1c02687"))));
   }
 
   public @NotNull ExitCode showSetupDialog(boolean valueCheckRequired,
       @Nullable WizardSequence sequence) {
-    // show only the parameters that apply to the wizard presets
-    if (sequence != null) {
-      final Set<ParameterDefinition<?>> applicable = Set.copyOf(collectSolutions(sequence));
-      getParameter(paramToOptimize).setVisibleFilter(applicable::contains);
-    }
-    final ExitCode superReturn = super.showSetupDialog(valueCheckRequired);
-    getParameter(paramToOptimize).setVisibleFilter(null); // always reset to all
-    return superReturn;
+    return showSetupDialogForSequence(this, paramToOptimize, valueCheckRequired, sequence);
   }
 }

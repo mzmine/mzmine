@@ -469,7 +469,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
       }
 
       final Region region = controller.buildView();
-      stage.setTitle("Parameter optimization - running");
+      // the controller binds the title to the progress
       stage.initOwner(MZmineCore.getDesktop().getMainWindow());
       final Scene scene = new Scene(region);
       ConfigService.getConfiguration().getTheme().apply(scene.getStylesheets());
