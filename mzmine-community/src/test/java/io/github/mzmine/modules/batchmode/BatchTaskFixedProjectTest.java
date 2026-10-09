@@ -8,23 +8,102 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskController;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 class BatchTaskFixedProjectTest {
+
+  @ParameterizedTest
+  @EnumSource(value = TaskStatus.class, names = {"FINISHED", "ERROR", "CANCELED"})
+  void recordsOnlyOwnedResultsEvenWhenAStepDoesNotFinish(final @NotNull TaskStatus status) {
+    MZmineCore.getConfiguration().getPreferences();
+    final var project = new MZmineProjectImpl();
+    final var existing = new ModularFeatureList("Existing analysis", null, List.of());
+    final var partial = new ModularFeatureList("Partial trial output", null, List.of());
+    final var unrelated = new ModularFeatureList("Unrelated analysis", null, List.of());
+    project.addFeatureList(existing);
+    final var module = Mockito.mock(MZmineProcessingModule.class);
+    Mockito.when(module.getName()).thenReturn("Trial step");
+    Mockito.when(module.getModuleCategory()).thenReturn(MZmineModuleCategory.OTHER_DATA_PROCESSING);
+    Mockito.when(module.runModule(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+        .thenAnswer(invocation -> {
+          final ParameterSet stepParameters = invocation.getArgument(1);
+          final Collection<Task> tasks = invocation.getArgument(2);
+          final Instant callDate = invocation.getArgument(3);
+          tasks.add(new AbstractTask(null, callDate) {
+            @Override
+            public void run() {
+              partial.addDescriptionOfAppliedTask(
+                  new SimpleFeatureListAppliedMethod(module, stepParameters, callDate));
+              project.addFeatureList(partial);
+              project.addFeatureList(unrelated);
+              if (status == TaskStatus.ERROR) {
+                error("Expected failure after publishing a partial result");
+              } else {
+                setStatus(status);
+              }
+            }
+
+            @Override
+            public @NotNull String getTaskDescription() {
+              return "Trial producing a partial result";
+            }
+
+            @Override
+            public double getFinishedPercentage() {
+              return 1;
+            }
+          });
+          return ExitCode.OK;
+        });
+    final var parameters = new BatchModeParameters();
+    parameters.setParameter(BatchModeParameters.batchQueue, queue(module));
+    final var batch = BatchTask.forFixedProject(project, parameters, Instant.now());
+    final TaskController controller = Mockito.mock(MZmineCore.getTaskController().getClass());
+    Mockito.when(controller.addTasks(Mockito.any(Task[].class))).thenAnswer(invocation ->
+        Arrays.stream(invocation.<Task[]>getArgument(0)).map(task -> {
+          final var wrapped = new WrappedTask(task, TaskPriority.NORMAL);
+          wrapped.run();
+          return wrapped;
+        }).toArray(WrappedTask[]::new));
+    try (final var projects = Mockito.mockStatic(ProjectService.class);
+        final var taskService = Mockito.mockStatic(TaskService.class)) {
+      projects.when(ProjectService::getProject).thenReturn(project);
+      taskService.when(TaskService::getController).thenReturn(controller);
+      batch.run();
+    }
+
+    assertEquals(status, batch.getStatus());
+    assertEquals(List.of(partial), batch.getResultFeatureLists());
+    project.removeFeatureLists(batch.getResultFeatureLists());
+    assertEquals(List.of(existing, unrelated), project.getCurrentFeatureLists());
+  }
 
   @Test
   void fixedProjectTaskCancelsBeforeStartingAgainstAnotherProject() {

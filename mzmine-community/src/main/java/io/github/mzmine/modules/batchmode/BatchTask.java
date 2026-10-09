@@ -651,6 +651,13 @@ public class BatchTask extends AbstractTask {
       status = runTasksIndividually(currentStepTasks);
     }
 
+    if (projectOverride != null) {
+      // Record owned partial results after children drain, even when the step fails or is canceled.
+      final List<FeatureList> stepFeatureLists = new ArrayList<>(getProject().getCurrentFeatureLists());
+      stepFeatureLists.removeAll(beforeFeatureLists);
+      recordFixedProjectResults(stepFeatureLists, method, moduleCallDate);
+    }
+
     if (status != TaskStatus.FINISHED) {
       return;
     }
@@ -664,7 +671,6 @@ public class BatchTask extends AbstractTask {
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
     createdFeatureLists.removeIf(FeatureList::isExcludedFromBatchLastSelection);
-    recordFixedProjectResults(createdFeatureLists, method, moduleCallDate);
 
     // special option to skip already imported files in the AllSpectralDataImportParameters
     // add skipped files

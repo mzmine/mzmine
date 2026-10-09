@@ -431,23 +431,8 @@ public class BatchOptimizationMainTask extends AbstractTask {
           %s""".formatted(optimizerModule.getName(), totalBatchExecutions, presetText,
           singlePassEstimates.describe()));
 
-      // Current is evaluated through the isolated evaluator so values outside the search domain
-      // remain exactly as entered.
-      final WizardSequence currentSequence = sequence;
-      @Nullable Solution currentSolution;
-      try {
-        currentSolution = optimizationProblem.currentMatchesEstimate(currentSequence,
-            singlePassSolution) ? skippedCurrentSolution(singlePassSolution)
-            : optimizationProblem.evaluateCurrentSequence(currentSequence);
-      } catch (OptimizationSearchStoppedException e) {
-        logger.info(e.getMessage());
-        final NondominatedPopulation estimateOnlyResult = createSearchFront(List.of(),
-            optimizationProblem.getEvaluatedSolutions());
-        completeOptimization(singlePassEstimates, singlePassSolution, currentSequence, null,
-            estimateOnlyResult, optimizationProblem, resultsController, completedResult);
-        return;
-      }
-
+      // decision: reserve the batch budget for the estimate and search; retain the Current
+      // comparison infrastructure for later review.
       try {
         final int maxProposals = Math.multiplyExact(totalBatchExecutions, PROPOSAL_BUDGET_MULTIPLIER);
         optimizer.run(new TaskStatusTerminationCondition(totalBatchExecutions, maxProposals,
@@ -491,7 +476,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
       OptimizationResultLogger.logComparison(singlePassSolution, result,
           optimizationProblem.getEnabledMetrics());
 
-      completeOptimization(singlePassEstimates, singlePassSolution, currentSequence, currentSolution,
+      completeOptimization(singlePassEstimates, singlePassSolution, null, null,
           result, optimizationProblem, resultsController, completedResult);
     } finally {
       try {

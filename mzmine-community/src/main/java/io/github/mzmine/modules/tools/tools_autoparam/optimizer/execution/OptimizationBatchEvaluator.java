@@ -33,6 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.BatchTask;
+import io.github.mzmine.modules.batchmode.BatchUtils;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
@@ -80,13 +81,17 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(OptimizationBatchEvaluator.class.getName());
 
+  enum ProjectMode {
+    ACTIVE_PROJECT, ISOLATED_PROJECT
+  }
+
   private final File @NotNull [] files;
   private final @NotNull List<SweepMetric> metrics;
   private final @NotNull MetricContext metricContext;
   private final @NotNull List<FeatureRecord> benchmarkFeatures;
   private final @NotNull AtomicReference<TaskStatus> externalStatus;
-  /** Raw data is imported here once, never into the user's active project. */
-  private final @NotNull MZmineProjectImpl evaluationProject = new MZmineProjectImpl();
+  private final @NotNull ProjectMode projectMode;
+  private final @NotNull MZmineProject evaluationProject;
   private final @NotNull Object lifecycleLock = new Object();
   /** Guarded by {@link #lifecycleLock}. */
   private @Nullable BatchTask activeBatchTask;
@@ -103,12 +108,27 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       @NotNull List<SweepMetric> metrics, @NotNull MetricContext metricContext,
       @NotNull List<FeatureRecord> benchmarkFeatures,
       @NotNull AtomicReference<TaskStatus> externalStatus) {
+    // decision: retain isolation for later review; all normal optimizer runs use the active project.
+    this(sourceProject, files, metrics, metricContext, benchmarkFeatures, externalStatus,
+        ProjectMode.ACTIVE_PROJECT);
+  }
+
+  OptimizationBatchEvaluator(@NotNull MZmineProject sourceProject, File @NotNull [] files,
+      @NotNull List<SweepMetric> metrics, @NotNull MetricContext metricContext,
+      @NotNull List<FeatureRecord> benchmarkFeatures,
+      @NotNull AtomicReference<TaskStatus> externalStatus, @NotNull ProjectMode projectMode) {
     this.files = files.clone();
     this.metrics = List.copyOf(metrics);
     this.metricContext = metricContext;
     this.benchmarkFeatures = List.copyOf(benchmarkFeatures);
     this.externalStatus = externalStatus;
-    sourceMetadata = snapshotMetadata(sourceProject.getProjectMetadata());
+    this.projectMode = projectMode;
+    evaluationProject = switch (projectMode) {
+      case ACTIVE_PROJECT -> sourceProject;
+      case ISOLATED_PROJECT -> new MZmineProjectImpl();
+    };
+    sourceMetadata = projectMode == ProjectMode.ISOLATED_PROJECT
+        ? snapshotMetadata(sourceProject.getProjectMetadata()) : Map.of();
   }
 
   private static @NotNull Map<File, Map<MetadataColumn<?>, Object>> snapshotMetadata(
@@ -125,7 +145,7 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
     return Map.copyOf(snapshot);
   }
 
-  private @NotNull BatchQueue createEvaluationQueue(@NotNull WizardSequence sequence) {
+  private @NotNull BatchQueue createEvaluationQueue(final @NotNull WizardSequence sequence) {
     final WorkflowWizardParameterFactory workflow = (WorkflowWizardParameterFactory) sequence.get(
         WizardPart.WORKFLOW).orElseThrow().getFactory();
 
@@ -136,6 +156,14 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
     final BatchQueue queue = workflow.getBatchBuilder(sequence).createQueue();
     queue.removeIf(step -> isPostProcessingModule(step.getModule())
         || step.getModule() instanceof AutoSaveBatchModule);
+    // decision: match runBatchQueue after wizard overrides; metadata was imported during preparation.
+    if (!queue.setImportFiles(files, null, null)) {
+      throw new IllegalStateException("Could not set the optimization batch input files");
+    }
+    if (!BatchUtils.confirmModuleOrderWarnings(queue)) {
+      throw new IllegalStateException(
+          "Optimization batch was not started because processing-order warnings were declined");
+    }
     return queue;
   }
 
@@ -192,9 +220,11 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       boolean shapeDiagnosticEnabled, @NotNull IntSupplier reserveBatchExecution) {
     ensureNotCanceledOrClosed();
     final BatchQueue queue = createEvaluationQueue(sequence);
-    // Private imports inherit the source metadata below; UI-bound followups must never run here.
-    disableTrialImportFollowups(queue);
-    initializeImports(queue);
+    if (projectMode == ProjectMode.ISOLATED_PROJECT) {
+      // Private imports inherit the source metadata below; UI-bound followups must never run here.
+      disableTrialImportFollowups(queue);
+      initializeImports(queue);
+    }
     // decision: reserve immediately before launch so a generational algorithm cannot overshoot
     // the full-batch budget between termination checks.
     final int batchExecutionIndex = reserveBatchExecution.getAsInt();
@@ -202,11 +232,11 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
     try {
       // BatchTask drains submitted children before returning, including after cancellation.
       runBatch(batchTask);
-      if (batchTask.isCanceled() || externalStatus.get() != TaskStatus.PROCESSING) {
-        throw new RuntimeException("Batch optimization task was canceled");
-      }
       if (batchTask.getStatus() == TaskStatus.ERROR) {
         throw new RuntimeException("Batch optimization task failed: " + batchTask.getErrorMessage());
+      }
+      if (batchTask.isCanceled() || externalStatus.get() != TaskStatus.PROCESSING) {
+        throw new RuntimeException("Batch optimization task was canceled");
       }
 
       final List<FeatureList> createdLists = batchTask.getLatestCreatedFeatureLists();
@@ -221,7 +251,10 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       return batchExecutionIndex;
     } finally {
       try {
-        cleanupFeatureLists();
+        switch (projectMode) {
+          case ACTIVE_PROJECT -> evaluationProject.removeFeatureLists(batchTask.getResultFeatureLists());
+          case ISOLATED_PROJECT -> cleanupFeatureLists();
+        }
       } finally {
         finishBatch(batchTask);
       }
@@ -299,10 +332,13 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
   private @NotNull BatchTask launch(@NotNull BatchQueue queue, @NotNull String description) {
     synchronized (lifecycleLock) {
       ensureNotCanceledOrClosed();
-      final BatchTask batchTask = BatchModeModule.prepareIsolatedBatchTask(evaluationProject, queue,
-          Instant.now());
+      final BatchTask batchTask = switch (projectMode) {
+        case ACTIVE_PROJECT -> BatchModeModule.prepareBatchTask(evaluationProject, queue, Instant.now());
+        case ISOLATED_PROJECT -> BatchModeModule.prepareIsolatedBatchTask(evaluationProject, queue,
+            Instant.now());
+      };
       if (batchTask == null) {
-        throw new IllegalStateException("Could not prepare isolated " + description);
+        throw new IllegalStateException("Could not prepare " + description);
       }
       activeBatchTask = batchTask;
       batchRunning = true;
@@ -313,7 +349,7 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
   private static void runBatch(final @NotNull BatchTask batchTask) {
     // Keep native authorization, task visibility and concurrent-batch guards while draining here.
     if (MZmineCore.getTaskController().runTaskOnThisThreadBlocking(batchTask) == null) {
-      throw new IllegalStateException("The isolated optimization batch could not be submitted");
+      throw new IllegalStateException("The optimization batch could not be submitted");
     }
   }
 
@@ -349,12 +385,14 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       waitForBatchToExitLocked();
       closed = true;
     }
-    cleanupFeatureLists();
-    final RawDataFile[] rawDataFiles = evaluationProject.getDataFiles();
-    if (rawDataFiles.length > 0) {
-      evaluationProject.removeFile(rawDataFiles);
+    if (projectMode == ProjectMode.ISOLATED_PROJECT) {
+      cleanupFeatureLists();
+      final RawDataFile[] rawDataFiles = evaluationProject.getDataFiles();
+      if (rawDataFiles.length > 0) {
+        evaluationProject.removeFile(rawDataFiles);
+      }
+      evaluationProject.clearSpectralLibrary();
     }
-    evaluationProject.clearSpectralLibrary();
   }
 
   private void applyScores(@NotNull FeatureList featureList, @NotNull Solution solution) {

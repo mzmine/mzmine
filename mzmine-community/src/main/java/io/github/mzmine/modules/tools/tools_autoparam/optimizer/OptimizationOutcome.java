@@ -42,10 +42,10 @@ import org.moeaframework.core.population.NondominatedPopulation;
  * @param estimates        the prepared parameter baseline, before any optimization
  * @param estimateSolution the evaluated estimate, so its scores can be compared against the
  *                         optimized solutions
- * @param currentSequence  detached wizard settings used for the Current baseline, or null for a
- *                         legacy outcome that did not evaluate one
- * @param currentSolution  scored Current baseline, or null for a legacy outcome; it is never part
- *                         of {@code front}
+ * @param currentSequence  detached wizard settings used for the Current baseline, or null when
+ *                         the comparison is disabled
+ * @param currentSolution  scored Current baseline, or null when the comparison is disabled; it is
+ *                         never part of {@code front}
  * @param front            non-dominated result across every completed observation
  * @param problem          the problem, which holds every evaluated solution in evaluation order
  */

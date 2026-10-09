@@ -33,7 +33,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.moeaframework.core.Solution;
 
 class OptimizationBatchEvaluatorLifecycleTest {
@@ -42,8 +43,11 @@ class OptimizationBatchEvaluatorLifecycleTest {
     io.github.mzmine.main.MZmineCore.getConfiguration().getPreferences();
   }
 
-  @Test void closeDuringQueueConstructionPreventsAnyImportLaunch() throws Exception {
-    final var evaluator = evaluator();
+  @ParameterizedTest
+  @EnumSource(OptimizationBatchEvaluator.ProjectMode.class)
+  void closeDuringQueueConstructionPreventsAnyBatchLaunch(
+      final @NotNull OptimizationBatchEvaluator.ProjectMode projectMode) throws Exception {
+    final var evaluator = evaluator(projectMode);
     final var builder = mock(WizardBatchBuilder.class);
     final var sequence = sequence(builder);
     final var building = new CountDownLatch(1);
@@ -58,6 +62,8 @@ class OptimizationBatchEvaluatorLifecycleTest {
     final Thread worker = new Thread(() -> {
       try (final var batches = mockStatic(BatchModeModule.class)) {
         batches.when(() -> BatchModeModule.prepareIsolatedBatchTask(any(), any(), any()))
+            .thenAnswer(_ -> { factoryCalled.set(true); return mock(BatchTask.class); });
+        batches.when(() -> BatchModeModule.prepareBatchTask(any(), any(), any()))
             .thenAnswer(_ -> { factoryCalled.set(true); return mock(BatchTask.class); });
         evaluator.evaluate(sequence, new Solution(0, 0), false, () -> 1);
       } catch (Throwable failure) {
@@ -80,8 +86,11 @@ class OptimizationBatchEvaluatorLifecycleTest {
     }
   }
 
-  @Test void cancellationReturnsBeforeChildExitAndCloseWaitsForTheChild() throws Exception {
-    final var evaluator = evaluator();
+  @ParameterizedTest
+  @EnumSource(OptimizationBatchEvaluator.ProjectMode.class)
+  void cancellationReturnsBeforeChildExitAndCloseWaitsForTheChild(
+      final @NotNull OptimizationBatchEvaluator.ProjectMode projectMode) throws Exception {
+    final var evaluator = evaluator(projectMode);
     final var builder = mock(WizardBatchBuilder.class);
     final var sequence = sequence(builder);
     when(builder.createQueue()).thenAnswer(_ -> importQueue());
@@ -106,7 +115,11 @@ class OptimizationBatchEvaluatorLifecycleTest {
       try (final var batches = mockStatic(BatchModeModule.class);
           final var core = mockStatic(MZmineCore.class)) {
         core.when(MZmineCore::getTaskController).thenReturn(controller);
+        core.when(() -> MZmineCore.getModuleInstance(AllSpectralDataImportModule.class))
+            .thenReturn(new AllSpectralDataImportModule());
         batches.when(() -> BatchModeModule.prepareIsolatedBatchTask(any(), any(), any()))
+            .thenReturn(child);
+        batches.when(() -> BatchModeModule.prepareBatchTask(any(), any(), any()))
             .thenReturn(child);
         evaluator.evaluate(sequence, new Solution(0, 0), false, () -> 1);
       } catch (Throwable failure) {
@@ -138,9 +151,11 @@ class OptimizationBatchEvaluatorLifecycleTest {
     }
   }
 
-  private static @NotNull OptimizationBatchEvaluator evaluator() {
+  private static @NotNull OptimizationBatchEvaluator evaluator(
+      final @NotNull OptimizationBatchEvaluator.ProjectMode projectMode) {
     return new OptimizationBatchEvaluator(new MZmineProjectImpl(), new File[0], List.of(),
-        new io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext(List.of()), List.of(), new AtomicReference<>(TaskStatus.PROCESSING));
+        new io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext(List.of()),
+        List.of(), new AtomicReference<>(TaskStatus.PROCESSING), projectMode);
   }
 
   private static @NotNull WizardSequence sequence(final @NotNull WizardBatchBuilder builder) {
