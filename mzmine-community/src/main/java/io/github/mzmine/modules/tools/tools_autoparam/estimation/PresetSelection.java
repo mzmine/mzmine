@@ -69,10 +69,10 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
    * <p>
    * decision: GC-CI is excluded, as it is a different ionization, and the wavelet preset, as it
    * selects a different chromatogram resolver. Both are kept when selected.
+   * HILIC is excluded because it would change the lipid analysis type.
    */
   private static final List<IonInterfaceWizardParameterFactory> FWHM_PRESETS = List.of(
-      IonInterfaceWizardParameterFactory.HPLC, IonInterfaceWizardParameterFactory.UHPLC,
-      IonInterfaceWizardParameterFactory.HILIC);
+      IonInterfaceWizardParameterFactory.HPLC, IonInterfaceWizardParameterFactory.UHPLC);
 
   /**
    * Only these mass spectrometers are told apart by the injection time. Low res., Orbitrap Astral
@@ -117,6 +117,30 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
         newIonMobility);
     if (massSpectrometer != null) {
       changes.add(massSpectrometer);
+    }
+    return changes.isEmpty() ? NONE : new PresetSelection(changes);
+  }
+
+  /**
+   * @param current the wizard sequence with the currently selected presets
+   * @param target  the sequence with the presets to switch to, e.g., the sequence a result was
+   *                computed with
+   * @param reason  why the target presets are needed
+   * @return a switch for each wizard part that has another preset in the target sequence, empty if
+   * the presets match
+   */
+  public static @NotNull PresetSelection differences(@NotNull WizardSequence current,
+      @NotNull WizardSequence target, @NotNull String reason) {
+    final List<PresetChange> changes = new ArrayList<>();
+    for (final WizardPart part : WizardPart.values()) {
+      final WizardParameterFactory to = target.get(part).map(WizardStepParameters::getFactory)
+          .orElse(null);
+      final WizardParameterFactory from = current.get(part).map(WizardStepParameters::getFactory)
+          .orElse(null);
+      // assumption: parts missing in either sequence cannot be switched by preset
+      if (to != null && from != null && !from.equals(to)) {
+        changes.add(new PresetChange(part, from, to, reason));
+      }
     }
     return changes.isEmpty() ? NONE : new PresetSelection(changes);
   }

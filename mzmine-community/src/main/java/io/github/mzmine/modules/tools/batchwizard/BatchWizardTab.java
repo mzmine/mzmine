@@ -525,6 +525,7 @@ public class BatchWizardTab extends SimpleTab {
     comboBoxGrid.add(FxLabels.newLabel("="), column++, 1);
     comboBoxGrid.add(createBatch, column++, 1);
     comboBoxGrid.add(presetsMenu, column, 1);
+    comboBoxGrid.disableProperty().bind(autoParamActions.runningTasksProperty().greaterThan(0));
 
     final FlowPane instrumentComboBoxPane = FxLayout.newFlowPane(comboBoxGrid);
     instrumentComboBoxPane.setAlignment(Pos.CENTER);
@@ -672,6 +673,39 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   /**
+   * Asks the user to switch the wizard back to the presets a result was computed with, if other
+   * presets were selected in the meantime. Switched presets start from their default parameters,
+   * like the estimation and the optimization do. Must be called on the JavaFX thread.
+   *
+   * @param resultSequence the sequence the result was computed with
+   * @param resultName     names the result in the message, e.g., "optimization"
+   * @return true if the presets already match or the wizard was switched, false if the user
+   * declined, so the result must not be applied
+   */
+  public boolean confirmAndRestorePresets(@NotNull WizardSequence resultSequence,
+      @NotNull String resultName) {
+    updateAllParametersFromUi();
+    final PresetSelection presets = PresetSelection.differences(sequenceSteps, resultSequence,
+        "used by the %s".formatted(resultName));
+    if (!presets.hasSwitches()) {
+      return true;
+    }
+    final boolean confirmed = DialogLoggerUtil.showDialogYesNo(AlertType.WARNING,
+        "Switch wizard presets", """
+            The %s was computed with other presets than the ones selected in the wizard:
+            
+            %s
+            
+            Switch the wizard back to these presets? The switched presets start from their \
+            default parameters. The %s results are only applied to the presets they were \
+            computed with.""".formatted(resultName, presets.describeSwitches(), resultName));
+    if (confirmed) {
+      switchPresets(presets);
+    }
+    return confirmed;
+  }
+
+  /**
    * Selects the presets in the wizard. The combo boxes follow when the parameter panes are
    * recreated.
    */
@@ -696,7 +730,7 @@ public class BatchWizardTab extends SimpleTab {
     } finally {
       setListenersActive(previousListenersActive);
     }
-    logger.info("Switched wizard presets to fit the raw data:\n" + presets.describeSwitches());
+    logger.info("Switched wizard presets:\n" + presets.describeSwitches());
   }
 
   /**

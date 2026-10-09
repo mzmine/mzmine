@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
@@ -41,8 +40,8 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.util.FxFileChooser.FileSelectionType;
 import io.github.mzmine.javafx.util.FxFileChooser;
+import io.github.mzmine.javafx.util.FxFileChooser.FileSelectionType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -241,6 +240,9 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   }
 
   public void applyToWizardSequence() {
+    if (!restoreOptimizationPresets()) {
+      return;
+    }
     chooseApplyMode("This will replace the current wizard parameters.").ifPresent(
         this::applySelectedSolutionToWizard);
   }
@@ -306,7 +308,8 @@ public class OptimizationResultsController extends FxController<OptimizationResu
 
   /**
    * Applies the optimized and, depending on the mode, the estimated parameter values of the
-   * selected solution to the wizard, keeping all other current wizard values.
+   * selected solution to the wizard, keeping all other current wizard values. Call
+   * {@link #restoreOptimizationPresets()} before.
    */
   private void applySelectedSolutionToWizard(@NotNull SolutionApplyMode mode) {
     final Solution solution = Objects.requireNonNull(model.getSelectedSolution(),
@@ -314,6 +317,20 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     showWizardTab().applyParameterValues(
         sequence -> optimization.applySolutionToWizard(solution, sequence, mode),
         Source.OPTIMIZATION);
+  }
+
+  /**
+   * The presets can be changed after the optimization finished. The solutions were only evaluated
+   * with the presets of the optimization, so they are not applied to other presets. Called before
+   * the apply mode is chosen, so the user still chooses which values are applied to the switched
+   * presets.
+   *
+   * @return true if the wizard has the presets of the optimization, false if the user declined to
+   * switch back
+   */
+  private boolean restoreOptimizationPresets() {
+    return showWizardTab().confirmAndRestorePresets(optimization.getInitialSequence(),
+        "optimization");
   }
 
   /**
@@ -355,6 +372,9 @@ public class OptimizationResultsController extends FxController<OptimizationResu
    * @return the batch, null if the user cancelled or the batch could not be created
    */
   private @Nullable BatchQueue createOptimizedBatch() {
+    if (!restoreOptimizationPresets()) {
+      return null;
+    }
     final Optional<SolutionApplyMode> mode = chooseApplyMode("""
         The batch is created from the wizard, so the selected solution replaces the current \
         wizard parameters.""");

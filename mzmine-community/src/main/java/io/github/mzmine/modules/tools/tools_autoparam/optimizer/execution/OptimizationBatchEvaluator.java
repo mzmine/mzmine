@@ -107,14 +107,32 @@ final class OptimizationBatchEvaluator {
         || module instanceof CompoundGrouperModule;
   }
 
-  private static void waitForCompletion(@NotNull BatchTask batchTask) {
+  /**
+   * Waits until the batch ends, so it does not add feature lists to the project anymore.
+   */
+  private static void waitForBatchEnd(@NotNull BatchTask batchTask) {
     while (!batchTask.isFinished() && !batchTask.isCanceled()) {
-      try {
-        TimeUnit.MILLISECONDS.sleep(200);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException("Interrupted while waiting for optimized batch", e);
-      }
+      sleepWhileWaiting();
+    }
+  }
+
+  private static void sleepWhileWaiting() {
+    try {
+      TimeUnit.MILLISECONDS.sleep(200);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted while waiting for optimized batch", e);
+    }
+  }
+
+  /**
+   * Waits until the batch ends or the optimization is canceled. Stop search keeps the optimization
+   * status at PROCESSING, so the current batch still finishes.
+   */
+  private void waitForCompletion(@NotNull BatchTask batchTask) {
+    while (!batchTask.isFinished() && !batchTask.isCanceled()
+        && externalStatus.get() == TaskStatus.PROCESSING) {
+      sleepWhileWaiting();
     }
   }
 
@@ -154,19 +172,36 @@ final class OptimizationBatchEvaluator {
     final int batchExecutionIndex = reserveBatchExecution.getAsInt();
     final BatchTask batchTask = BatchModeModule.runBatchQueue(queue, project, files, null, null,
         null, Instant.now(), null, null);
-
-    waitForCompletion(batchTask);
-    if (batchTask.isCanceled() || externalStatus.get() != TaskStatus.PROCESSING) {
-      throw new RuntimeException("Batch optimization task was canceled");
+    if (batchTask == null) {
+      throw new RuntimeException("Cannot run auto-optimizer while another batch is running.");
     }
 
-    final FeatureList newest = batchTask.getLatestCreatedFeatureLists().getFirst();
-    applyScores(newest, solution);
-    applyDiagnostics(newest, solution, shapeDiagnosticEnabled);
-    solution.setAttribute(WizardOptimizationProblem.ATTR_BATCH_RUNTIME_SECONDS,
-        batchTask.getStepTimes().getLast().secondsToFinish());
-    project.removeFeatureLists(batchTask.getLatestCreatedFeatureLists());
-    return batchExecutionIndex;
+    waitForCompletion(batchTask);
+    try {
+      if (externalStatus.get() != TaskStatus.PROCESSING) {
+        // decision: on cancel, stop the candidate instead of letting it run in the background.
+        // The batch stops after its current step.
+        batchTask.cancel();
+        waitForBatchEnd(batchTask);
+        throw new RuntimeException("Batch optimization task was canceled");
+      }
+      if (batchTask.isCanceled()) {
+        throw new RuntimeException("Batch optimization task was canceled");
+      }
+
+      final FeatureList newest = batchTask.getLatestCreatedFeatureLists().getFirst();
+      applyScores(newest, solution);
+      applyDiagnostics(newest, solution, shapeDiagnosticEnabled);
+      solution.setAttribute(WizardOptimizationProblem.ATTR_BATCH_RUNTIME_SECONDS,
+          batchTask.getStepTimes().getLast().secondsToFinish());
+      return batchExecutionIndex;
+    } finally {
+      // also removes the feature lists of canceled or failed candidates
+      final List<FeatureList> created = batchTask.getLatestCreatedFeatureLists();
+      if (created != null) {
+        project.removeFeatureLists(created);
+      }
+    }
   }
 
   private void applyScores(@NotNull FeatureList featureList, @NotNull Solution solution) {

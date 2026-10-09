@@ -1542,8 +1542,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final LipidAnalysisType analysisType = switch (steps.get(WizardPart.ION_INTERFACE)
         .orElse(IonInterfaceWizardParameterFactory.UHPLC.create()).getFactory()) {
-      case IonInterfaceWizardParameterFactory.HPLC, IonInterfaceWizardParameterFactory.UHPLC,
-           IonInterfaceWizardParameterFactory.LC_WAVELET -> LipidAnalysisType.LC_REVERSED_PHASE;
+      case IonInterfaceWizardParameterFactory.HPLC, IonInterfaceWizardParameterFactory.UHPLC/*,
+           IonInterfaceWizardParameterFactory.LC_WAVELET*/ -> LipidAnalysisType.LC_REVERSED_PHASE;
       case IonInterfaceWizardParameterFactory.HILIC -> LipidAnalysisType.LC_HILIC;
       case IonInterfaceWizardParameterFactory.DESI, IonInterfaceWizardParameterFactory.MALDI ->
           LipidAnalysisType.IMAGING;

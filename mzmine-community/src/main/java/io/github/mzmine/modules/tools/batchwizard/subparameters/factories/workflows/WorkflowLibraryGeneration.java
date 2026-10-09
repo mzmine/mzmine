@@ -78,8 +78,8 @@ public class WorkflowLibraryGeneration extends WorkflowWizardParameterFactory {
         List.of(IonInterfaceWizardParameterFactory.DIRECT_INFUSION,
             IonInterfaceWizardParameterFactory.FLOW_INJECT,
             IonInterfaceWizardParameterFactory.GC_CI, IonInterfaceWizardParameterFactory.HPLC,
-            IonInterfaceWizardParameterFactory.UHPLC, IonInterfaceWizardParameterFactory.HILIC,
-            IonInterfaceWizardParameterFactory.LC_WAVELET)));
+            IonInterfaceWizardParameterFactory.UHPLC, IonInterfaceWizardParameterFactory.HILIC/*,
+            IonInterfaceWizardParameterFactory.LC_WAVELET*/)));
   }
 
   @Override

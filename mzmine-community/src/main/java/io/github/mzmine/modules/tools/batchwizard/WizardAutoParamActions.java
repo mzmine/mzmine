@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -57,14 +58,18 @@ import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,6 +114,28 @@ final class WizardAutoParamActions {
    * @param showStatistics opens the data file statistics dashboard after applying the estimates
    */
   void estimate(final boolean showStatistics) {
+    final String noWarningKey =
+        CurrentUserService.getUserName().orElse("no-user") + "-no-estimate-warning";
+    final boolean optedOut = Objects.requireNonNullElse(
+        ConfigService.getPreference(MZminePreferences.otherOptOutWarnings).get(noWarningKey),
+        false);
+    if (!optedOut) {
+      ButtonType clicked = DialogLoggerUtil.createAlertWithOptOutBlocking("Information",
+          "Estimation and optimization will apply processing and alter wizard settings.",
+          FxTextFlows.newTextFlow(FxTexts.text("""
+              Running parameter estimation or optimization will apply multiple mass detection steps to imported and already imported raw data.
+              
+              - Present mass detection results will be overridden.
+              - Current wizard settings will be altered as a result of estimation
+              - Present parameter customisation in the advanced mode will be dropped""")),
+          "Don't show again",
+          optOutSelected -> ConfigService.getPreference(MZminePreferences.otherOptOutWarnings)
+              .put(noWarningKey, optOutSelected));
+      if (clicked == ButtonType.NO) {
+        return;
+      }
+    }
+
     if (runningTasks.get() > 0) {
       return;
     }
@@ -280,6 +307,10 @@ final class WizardAutoParamActions {
       });
     });
     TaskService.getController().addTask(task);
+  }
+
+  public IntegerProperty runningTasksProperty() {
+    return runningTasks;
   }
 
   /**

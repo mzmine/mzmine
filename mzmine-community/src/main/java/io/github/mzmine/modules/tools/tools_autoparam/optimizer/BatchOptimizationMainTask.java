@@ -30,8 +30,8 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
@@ -204,7 +204,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
         OptimizerParameters.MIN_ITERATIONS);
 
     addTaskStatusListener((_, newStatus, _) -> {
-      if (newStatus == TaskStatus.CANCELED && optimizer != null) {
+      if (newStatus == TaskStatus.CANCELED && optimizer != null && !optimizer.isTerminated()) {
         optimizer.terminate();
       }
     });
@@ -282,14 +282,13 @@ public class BatchOptimizationMainTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    addTaskStatusListener((_, newStatus, _) -> externalStatus.set(newStatus));
-
     // store all in ram while optimizing
     MemoryMapStorage.setStoreAllInRam(true);
     // restore to initial value on change
     final KeepInMemory initialMemoryOption = ConfigService.getPreference(
         MZminePreferences.memoryOption);
     addTaskStatusListener((_, _, _) -> initialMemoryOption.enforceToMemoryMapping());
+    addTaskStatusListener((_, newStatus, _) -> externalStatus.set(newStatus));
 
     final List<RawDataFile> importedFiles = RawDataPreparation.importFilesBlocking(files, metadata);
     preparationStep = "classifying raw data files";
@@ -419,13 +418,19 @@ public class BatchOptimizationMainTask extends AbstractTask {
       if (getStatus() != TaskStatus.CANCELED && getStatus() != TaskStatus.ERROR) {
         throw e;
       }
+    } finally {
+      initialMemoryOption.enforceToMemoryMapping();
     }
 
     // A hard budget stop can interrupt a generation after some offspring were evaluated but before
     // the algorithm incorporated them. Build the result from every completed observation so those
     // expensive final batches cannot be lost.
     final NondominatedPopulation result = new NondominatedPopulation();
-    result.addAll(optimizer.getResult());
+    try {
+      result.addAll(optimizer.getResult());
+    } catch (NullPointerException e) {
+      // silent. stopping before initial iterations are done throws an npe
+    }
     result.addAll(optimizationProblem.getEvaluatedSolutions());
 
     // log comparison: single-pass estimate versus the best optimizer result
