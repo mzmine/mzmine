@@ -38,7 +38,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatisticsDashboardPane;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
@@ -297,11 +296,8 @@ public class BatchOptimizationMainTask extends AbstractTask {
     if (runPreclassification == null) {
       return;
     }
-    final List<FeatureRecord> benchmarkFeatures =
-        params.getValue(OptimizerParameters.benchmarkFeaturesFile)
-            ? BenchmarkFeatureLoader.fromFile(null,
-            params.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
-            params.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
+    final List<FeatureRecord> benchmarkFeatures = BenchmarkFeatureParameters.loadBenchmarkFeatures(
+        params);
 
     preparationStep = "computing raw data statistics and estimates";
     // if confirmed, the wizard switches to the presets that fit the raw data and every candidate is

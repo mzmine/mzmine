@@ -41,6 +41,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParamet
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
+import io.github.mzmine.modules.tools.tools_autoparam.optimizer.BenchmarkFeatureParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricContext;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
@@ -188,10 +189,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
     final List<DataFileStatistics> stats = estimationContext.analysis().files();
 
-    fileOnlyBenchmarkFeatures =
-        param.getValue(OptimizerParameters.benchmarkFeaturesFile) ? BenchmarkFeatureLoader.fromFile(
-            null, param.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
-            param.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
+    fileOnlyBenchmarkFeatures = BenchmarkFeatureParameters.loadBenchmarkFeatures(param);
     batchExecutionBudget = new BatchExecutionBudget(maxBatchExecutions);
     target = Objects.requireNonNull(BenchmarkFeatureLoader.fromStatistics(stats));
     this.paramToOptimize = List.copyOf(paramToOptimize);

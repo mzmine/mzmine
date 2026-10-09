@@ -25,9 +25,6 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -44,17 +41,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.CheckListParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ImportType;
-import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.files.ExtensionFilters;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javafx.scene.control.TitledPane;
@@ -69,16 +62,9 @@ public class OptimizerParameters extends SimpleParameterSet {
       "Optimizer", "Choose the search algorithm and configure its specific settings.",
       OptimizerOptions.values(), OptimizerOptions.PATTERN_SEARCH);
 
-  private static final List<ImportType<?>> DEFAULT_IMPORT_TYPES = List.of(
-      new ImportType<>(true, "mz", new MZType()), new ImportType<>(true, "rt", new RTType()),
-      new ImportType<>(false, "mobility", new MobilityType()));
-  public static final ImportTypeParameter benchmarkFeatureTypes = new ImportTypeParameter(
-      "Benchmark feature csv column names", "", DEFAULT_IMPORT_TYPES);
-
-  public static final OptionalParameter<FileNameParameter> benchmarkFeaturesFile = new OptionalParameter<>(
-      new FileNameParameter("Benchmark features file (optional)",
-          "Optional file with additional benchmark features.", ExtensionFilters.CSV_TSV_IMPORT,
-          FileSelectionType.OPEN));
+  public static final OptionalModuleParameter<BenchmarkFeatureParameters> benchmarkFeatures = new OptionalModuleParameter<>(
+      "Benchmark features", "Optional csv file with additional benchmark features.",
+      EmbeddedComponentOptions.VIEW_IN_PANEL, new BenchmarkFeatureParameters(), false);
 
   /**
    * The search needs some batches after the raw data estimate to improve on it.
@@ -119,8 +105,9 @@ public class OptimizerParameters extends SimpleParameterSet {
       parameter values and optimization targets.""", false);
 
   public OptimizerParameters() {
-    super(benchmarkFeaturesFile, benchmarkFeatureTypes, optimizers, iterations,
-        maxShapeRejectionFactor, paramToOptimize, showExtendedStatistics);
+    // decision: the optional benchmark features are grouped at the bottom
+    super(optimizers, iterations, maxShapeRejectionFactor, paramToOptimize, showExtendedStatistics,
+        benchmarkFeatures);
   }
 
   /**
@@ -143,8 +130,7 @@ public class OptimizerParameters extends SimpleParameterSet {
       int numIterations) {
     final ParameterSet param = new OptimizerParameters().cloneParameterSet();
     setOptimizerAndTargets(param, OptimizerOptions.MOEAD, metrics);
-    param.setParameter(benchmarkFeatureTypes, DEFAULT_IMPORT_TYPES);
-    param.setParameter(benchmarkFeaturesFile, false);
+    param.setParameter(benchmarkFeatures, false);
     param.setParameter(iterations, numIterations);
     param.setParameter(maxShapeRejectionFactor, false);
     param.setParameter(paramToOptimize, new ArrayList<>(DEFAULT_SOLUTIONS));
@@ -166,8 +152,7 @@ public class OptimizerParameters extends SimpleParameterSet {
         .setOptionGetParameters(OptimizerOptions.PATTERN_SEARCH);
     optimizerParameters.setParameter(PatternSearchOptimizerParameters.optimizationTarget,
         OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE);
-    param.setParameter(benchmarkFeatureTypes, DEFAULT_IMPORT_TYPES);
-    param.setParameter(benchmarkFeaturesFile, false);
+    param.setParameter(benchmarkFeatures, false);
     param.setParameter(iterations, 50);
     param.setParameter(maxShapeRejectionFactor, true, DEFAULT_SHAPE_REJECTION_FACTOR);
     param.setParameter(paramToOptimize,
@@ -200,27 +185,6 @@ public class OptimizerParameters extends SimpleParameterSet {
     final OptimizerOptions optimizer = parameters.getValue(optimizers);
     return optimizer.getModuleInstance()
         .getOptimizationTargets(getSelectedOptimizerParameters(parameters));
-  }
-
-  @Override
-  public boolean checkParameterValues(@NotNull final Collection<String> errorMessages,
-      final boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
-        skipRawDataAndFeatureListParameters);
-
-    final boolean benchmarkFileSelected = getValue(benchmarkFeaturesFile);
-    final List<ImportType<?>> value = getValue(benchmarkFeatureTypes).stream()
-        .filter(ImportType::isSelected)
-        .filter(i -> i.getDataType().equals(new MZType()) || i.getDataType().equals(new RTType()))
-        .toList();
-
-    if (benchmarkFileSelected && value.size() < 2) {
-      errorMessages.add(
-          "If %s is selected, RT and MZ values must be imported from the csv file.".formatted(
-              benchmarkFeaturesFile.getName()));
-    }
-
-    return superCheck && errorMessages.isEmpty();
   }
 
   static @NonNull TitledPane createOverrideMessage() {
