@@ -126,7 +126,7 @@ final class WizardAutoParamActions {
           "Estimation and optimization will apply processing and alter wizard settings.",
           FxTextFlows.newTextFlow(FxTexts.text("""
               Running parameter estimation or optimization will apply multiple mass detection steps to imported and already imported raw data.
-              
+
               - Present mass detection results will be overridden.
               - Current wizard settings will be altered as a result of estimation
               - Present parameter customisation in the advanced mode will be dropped""")),

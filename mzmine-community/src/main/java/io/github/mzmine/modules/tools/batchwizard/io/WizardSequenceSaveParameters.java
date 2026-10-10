@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
@@ -49,8 +50,12 @@ public class WizardSequenceSaveParameters extends SimpleParameterSet {
       the rest of the workflow is kept at the current definitions in the UI.""",
       WizardPart.values(), WizardPart.values());
 
+  public static final BooleanParameter includeFileSelections = new BooleanParameter(
+      "Include file selections and paths", "Include local file selections and paths in the preset.",
+      false);
+
   public WizardSequenceSaveParameters() {
-    super(directory, fileName, exportParts);
+    super(directory, fileName, exportParts, includeFileSelections);
   }
 
 }

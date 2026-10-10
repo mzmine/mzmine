@@ -27,10 +27,10 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -85,13 +85,23 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
 
   public static @NotNull IntensityNormalizationSummary getNormalizationFunctionsOfLatestCall(
       final @NotNull FeatureList featureList) {
-    final IntensityNormalizationSummary normalizationFunctions = ParameterUtils.getParameterValueOfLatestMethodCall(
-        featureList.getAppliedMethods(), IntensityNormalizerModule.class,
-        IntensityNormalizerParameters.hiddenNormalizationSummary);
-    if (normalizationFunctions == null) {
-      return IntensityNormalizationSummary.EMPTY;
+    // decision: both normalizer modules write a complete replacement set of normalized values.
+    // The last such applied method therefore owns re-normalization for newly created features.
+    final var methods = featureList.getAppliedMethods();
+    for (int index = methods.size() - 1; index >= 0; index--) {
+      final FeatureListAppliedMethod method = methods.get(index);
+      if (method == null) continue;
+      final IntensityNormalizationSummary summary;
+      if (method.getModule() instanceof IntensityNormalizerModule) {
+        summary = method.getParameters().getValue(IntensityNormalizerParameters.hiddenNormalizationSummary);
+      } else if (method.getModule() instanceof ScopedNormalizationModule) {
+        summary = method.getParameters().getValue(ScopedNormalizationParameters.hiddenNormalizationSummary);
+      } else {
+        summary = null;
+      }
+      if (summary != null) return summary;
     }
-    return normalizationFunctions;
+    return IntensityNormalizationSummary.EMPTY;
   }
 
   /**

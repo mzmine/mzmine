@@ -28,6 +28,14 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverridesParameter;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -78,7 +86,9 @@ public class WizardSequenceIOUtils {
       final Element configRoot = configuration.createElement(ELEMENT_TAG);
       configuration.appendChild(configRoot);
 
-      for (var step : workflow) {
+      final List<WizardStepParameters> steps = skipSensitive ? withoutFileSelections(workflow)
+          : workflow;
+      for (var step : steps) {
         Element moduleElement = configuration.createElement(PART_TAG);
         moduleElement.setAttribute(PART_ATTRIBUTE, step.getPart().name());
         moduleElement.setAttribute(PRESET_ATTRIBUTE, step.getUniquePresetId());
@@ -117,6 +127,63 @@ public class WizardSequenceIOUtils {
     } catch (Exception e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Creates detached wizard steps without local file selections for portable presets.
+   */
+  public static @NotNull List<WizardStepParameters> withoutFileSelections(
+      final @NotNull List<WizardStepParameters> workflow) {
+    return workflow.stream().map(step -> {
+      final WizardStepParameters copy = step.getFactory().create();
+      ParameterUtils.copyParameters(step, copy);
+      ParameterUtils.streamParametersDeep(copy).forEach(
+          WizardSequenceIOUtils::clearFileParameter);
+      ParameterUtils.streamParametersDeep(copy, ParameterOverridesParameter.class).forEach(
+          WizardSequenceIOUtils::removeFileParameterOverrides);
+      return copy;
+    }).toList();
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private static void clearFileParameter(final @NotNull Parameter<?> parameter) {
+    if (parameter instanceof OptionalParameter<?> optional
+        && ParameterUtils.streamThisAndEmbeddedDeep(optional.getEmbeddedParameter())
+            .anyMatch(WizardSequenceIOUtils::isFileSelection)) {
+      optional.setValue(false);
+      return;
+    }
+    switch (parameter) {
+      case FileNameParameter fileName -> {
+        fileName.setValue(null);
+        fileName.setLastFiles(List.of());
+      }
+      case FileNamesParameter fileNames -> fileNames.setValue(new File[0]);
+      case FileNameListSilentParameter fileNames -> fileNames.setValue(List.of());
+      default -> {
+        if (isFileSelection(parameter)) ((Parameter) parameter).setValue(null);
+      }
+    }
+  }
+
+  private static void removeFileParameterOverrides(
+      final @NotNull ParameterOverridesParameter overrides) {
+    overrides.setValue(overrides.getValue().stream().filter(
+        override -> !containsFileSelection(override)).toList());
+  }
+
+  private static boolean containsFileSelection(final @NotNull ParameterOverride override) {
+    return ParameterUtils.streamThisAndEmbeddedDeep(override.parameterWithValue()).anyMatch(
+        WizardSequenceIOUtils::isFileSelection);
+  }
+
+  private static boolean isFileSelection(final @NotNull Parameter<?> parameter) {
+    return parameter instanceof FileNameParameter || parameter instanceof FileNamesParameter
+           || parameter instanceof FileNameListSilentParameter
+           || parameter instanceof io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter
+           || parameter.getValue() instanceof File || parameter.getValue() instanceof File[]
+           || parameter.getValue() instanceof List<?> values && !values.isEmpty()
+               && values.stream().allMatch(File.class::isInstance);
   }
 
   /**

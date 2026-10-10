@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.dash_lipidqc;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
@@ -51,6 +52,12 @@ public class LipidAnnotationQCDashboardTab extends SimpleTab {
     return controller;
   }
 
+  /** Selects a row in the embedded feature table and updates every linked dashboard pane. */
+  public void selectRow(final @NotNull FeatureListRow row) {
+    controller.getFeatureTableController().selectedRowsProperty().set(java.util.List.of(row));
+  }
+
+
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
     super.onFeatureListSelectionChanged(featureLists);
@@ -58,4 +65,3 @@ public class LipidAnnotationQCDashboardTab extends SimpleTab {
         : (ModularFeatureList) featureLists.stream().toList().getFirst());
   }
 }
-

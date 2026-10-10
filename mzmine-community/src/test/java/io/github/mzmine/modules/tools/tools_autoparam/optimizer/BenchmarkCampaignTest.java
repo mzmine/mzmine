@@ -40,7 +40,7 @@ class BenchmarkCampaignTest {
         "SOBOL", 80, List.of(42L, 7L), "thermo-20y-qc, zenotof-feces-pos", null);
 
     Assertions.assertEquals(
-        "moead-yasin-isotope-score-sobol-b80-s42-7-dthermo-20y-qc-zenotof-feces-pos",
+        "moead-isotope-ratio-consistency-score-sobol-b80-s42-7-dthermo-20y-qc-zenotof-feces-pos",
         campaign.id());
     Assertions.assertTrue(campaign.outputFile("trajectory").getName().startsWith("trajectory-"));
   }

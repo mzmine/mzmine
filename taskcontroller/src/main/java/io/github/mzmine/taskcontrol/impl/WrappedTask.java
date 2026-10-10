@@ -30,6 +30,8 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
@@ -44,8 +46,15 @@ public class WrappedTask implements Task {
   private static final Logger logger = Logger.getLogger(WrappedTask.class.getName());
   private Task task;
   private final Property<TaskPriority> priority;
-  private boolean running = false;
-  private @Nullable Future<?> future;
+  private volatile boolean running = false;
+  private volatile @Nullable Future<?> future;
+  private final AtomicBoolean cancellationDelivered = new AtomicBoolean();
+  private final AtomicReference<ExecutionState> executionState = new AtomicReference<>(
+      ExecutionState.QUEUED);
+
+  private enum ExecutionState {
+    QUEUED, RUNNING, EXITED
+  }
 
   public WrappedTask(Task task, TaskPriority priority) {
     this.task = task;
@@ -55,6 +64,7 @@ public class WrappedTask implements Task {
       if (newStatus == TaskStatus.CANCELED) {
         wrapped.cancel();
       } else if (newStatus == TaskStatus.ERROR) {
+        executionState.compareAndSet(ExecutionState.QUEUED, ExecutionState.EXITED);
         if (future != null) {
           future.cancel(true);
         }
@@ -70,6 +80,7 @@ public class WrappedTask implements Task {
   public void setFuture(final @Nullable Future<?> future) {
     this.future = future;
     if (future != null && isCanceled()) {
+      executionState.compareAndSet(ExecutionState.QUEUED, ExecutionState.EXITED);
       future.cancel(true);
     }
   }
@@ -109,7 +120,10 @@ public class WrappedTask implements Task {
 
   @Override
   public void cancel() {
-    task.cancel();
+    executionState.compareAndSet(ExecutionState.QUEUED, ExecutionState.EXITED);
+    if (cancellationDelivered.compareAndSet(false, true)) {
+      task.cancel();
+    }
     if (future != null) {
       future.cancel(true);
     }
@@ -157,6 +171,9 @@ public class WrappedTask implements Task {
   }
 
   public void run() {
+    if (!executionState.compareAndSet(ExecutionState.QUEUED, ExecutionState.RUNNING)) {
+      return;
+    }
     try {
       running = true;
       Task actualTask = getActualTask();
@@ -218,7 +235,17 @@ public class WrappedTask implements Task {
        */
     } finally {
       running = false;
+      executionState.set(ExecutionState.EXITED);
     }
+  }
+
+  /**
+   * Returns true only after canceled queued work has been prevented from starting or after
+   * {@link #run()} has fully unwound. A canceled {@link Future} is insufficient because it can be
+   * marked done while its worker is still executing.
+   */
+  public boolean isExecutionComplete() {
+    return executionState.get() == ExecutionState.EXITED;
   }
 
   /**

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.time.Instant;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
 
@@ -44,9 +46,16 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
   private final Boolean skipColOnError;
   private final Boolean removeAttributesPrefix;
   private int doneFiles = 0;
+  private final @Nullable MZmineProject fixedProject;
 
   public ProjectMetadataImportTask(@NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
+    this(parameters, moduleCallDate, null);
+  }
+
+  /** Pins metadata matching and merge to a reviewed project. */
+  public ProjectMetadataImportTask(@NotNull final ParameterSet parameters,
+      @NotNull final Instant moduleCallDate, @Nullable final MZmineProject fixedProject) {
     super(moduleCallDate, parameters);
     File file = parameters.getValue(ProjectMetadataImportParameters.fileName);
     this.files = new File[]{file};
@@ -54,6 +63,7 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
     skipColOnError = parameters.getValue(ProjectMetadataImportParameters.skipErrorColumns);
     removeAttributesPrefix = parameters.getValue(
         ProjectMetadataImportParameters.removeAttributePrefix);
+    this.fixedProject = fixedProject;
   }
 
   @Override
@@ -63,8 +73,11 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
 
   @Override
   protected void process() {
+    if (cancelIfFixedProjectChanged()) {
+      return;
+    }
     ProjectMetadataReader reader = new ProjectMetadataReader(skipColOnError,
-        removeAttributesPrefix);
+        removeAttributesPrefix, false, fixedProject);
 
     MetadataTable mergedMetadata = null;
     for (File file : files) {
@@ -105,7 +118,22 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
       return;
     }
     
-    MetadataTable projectMetadata = ProjectService.getMetadata();
+    if (cancelIfFixedProjectChanged()) {
+      return;
+    }
+    MetadataTable projectMetadata = getProject().getProjectMetadata();
     projectMetadata.merge(mergedMetadata);
+  }
+
+  private @NotNull MZmineProject getProject() {
+    return fixedProject == null ? ProjectService.getProject() : fixedProject;
+  }
+
+  private boolean cancelIfFixedProjectChanged() {
+    if (fixedProject != null && ProjectService.getProject() != fixedProject) {
+      cancel();
+      return true;
+    }
+    return false;
   }
 }

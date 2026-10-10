@@ -214,6 +214,11 @@ public final class SampleTypeFilter {
   public boolean matches(RawDataFile file) {
     final MetadataTable metadata = ProjectService.getProjectManager().getCurrentProject()
         .getProjectMetadata();
+    return matches(metadata, file);
+  }
+
+  /** Matches against explicitly supplied project metadata. */
+  public boolean matches(final MetadataTable metadata, final RawDataFile file) {
     final MetadataColumn<String> metadataColumn = (MetadataColumn<String>) metadata.getColumnByName(
         MetadataColumn.SAMPLE_TYPE_HEADER);
     if (metadataColumn != null) {
@@ -235,6 +240,11 @@ public final class SampleTypeFilter {
    */
   public List<RawDataFile> filterFiles(final List<RawDataFile> raws) {
     return raws.stream().filter(this::matches).toList();
+  }
+
+  /** Filters files against explicitly supplied project metadata. */
+  public List<RawDataFile> filterFiles(final MetadataTable metadata, final List<RawDataFile> raws) {
+    return raws.stream().filter(raw -> matches(metadata, raw)).toList();
   }
 
   public boolean matches(final Feature feature) {

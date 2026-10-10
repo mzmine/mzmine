@@ -262,6 +262,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     }
 
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+    newMZmineFile.setAcquisitionMetadata(
+        metaDataTable.acquisitionMetadata(frameTable.getScanModeColumn()));
     metaDataTable.applyToFileMetadata(newMZmineFile.getFileMetadata());
     calibrationInfoTable.applyToFileMetadata(newMZmineFile.getFileMetadata(),
         frameTable.getPolarityColumn(), true);

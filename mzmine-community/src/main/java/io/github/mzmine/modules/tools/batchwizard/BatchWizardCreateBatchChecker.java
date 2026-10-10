@@ -66,6 +66,7 @@ public class BatchWizardCreateBatchChecker {
   private final WizardSequence sequenceSteps;
 
   private final List<String> errors = new ArrayList<>();
+  private @Nullable List<String> warnings;
   private final @Nullable File metadata;
   private final File[] dataFiles;
   private final boolean rsdQcFilter;
@@ -128,19 +129,31 @@ public class BatchWizardCreateBatchChecker {
    * @return true if all checks run
    */
   public boolean checks() {
-
-    checkMetadataTableValid();
-    checkSampleFilterValid();
-    checkMinSamplesAnyGroup();
-    checkRsdQcFilter();
-
-    if (!errors.isEmpty()) {
+    final List<String> warnings = warnings();
+    if (!warnings.isEmpty()) {
       // continue? y/n
       return DialogLoggerUtil.showDialogYesNo("Warning", """
           %s
-          Continue anyway?""".formatted(String.join("\n", errors)));
+          Continue anyway?""".formatted(String.join("\n", warnings)));
     }
     return true;
+  }
+
+  /**
+   * Returns the warnings that native batch creation shows before it builds a queue.
+   *
+   * <p>The result is cached because reading metadata can be expensive and callers may first show
+   * the warnings and then run {@link #checks()}.</p>
+   */
+  public @NotNull List<String> warnings() {
+    if (warnings == null) {
+      checkMetadataTableValid();
+      checkSampleFilterValid();
+      checkMinSamplesAnyGroup();
+      checkRsdQcFilter();
+      warnings = List.copyOf(errors);
+    }
+    return warnings;
   }
 
   private void checkMetadataTableValid() {

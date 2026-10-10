@@ -56,6 +56,7 @@ import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.AnnotationDetailRequestedEvent;
@@ -310,6 +311,12 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   public void setSelectedCompoundRow(@Nullable final CompoundRow row) {
     onGuiThread(() -> model.setSelectedCompoundRow(row));
   }
+
+  /** Selects a source feature-list row and updates its compound dashboard context. */
+  public void selectRow(@NotNull final FeatureListRow row) {
+    onGuiThread(() -> FeatureTableFXUtil.selectAndScrollTo(row, tableCtrl.getFeatureTable()));
+  }
+
 
   public void setFeatureList(@Nullable final ModularFeatureList flist) {
     onGuiThread(() -> model.setFeatureList(flist));

@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataPreparation;
 import io.github.mzmine.parameters.ParameterSet;
@@ -54,10 +55,13 @@ public final class WizardParameterEstimationTask extends AbstractTask {
   private final File @NotNull [] files;
   private final @Nullable File metadataFile;
   private final @NotNull WizardSequence sequence;
-  private final @NotNull ParameterSet preclassification;
+  private final @Nullable ParameterSet preclassification;
   private final @NotNull Predicate<@NotNull PresetSelection> presetConfirmation;
   private final @NotNull Consumer<WizardParameterEstimationResult> onFinished;
   private volatile double progress;
+  private volatile @Nullable WizardParameterEstimationResult result;
+
+  public @Nullable WizardParameterEstimationResult getResult() { return result; }
 
   /**
    * @param files              the files that were pre-classified, see
@@ -70,7 +74,7 @@ public final class WizardParameterEstimationTask extends AbstractTask {
    */
   public WizardParameterEstimationTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File @NotNull [] files, @Nullable File metadataFile,
-      @NotNull WizardSequence sequence, @NotNull ParameterSet preclassification,
+      @NotNull WizardSequence sequence, @Nullable ParameterSet preclassification,
       @NotNull Predicate<@NotNull PresetSelection> presetConfirmation,
       @NotNull Consumer<WizardParameterEstimationResult> onFinished) {
     super(storage, moduleCallDate, "Estimate wizard parameters");
@@ -80,6 +84,14 @@ public final class WizardParameterEstimationTask extends AbstractTask {
     this.preclassification = preclassification;
     this.presetConfirmation = presetConfirmation;
     this.onFinished = onFinished;
+  }
+
+  /** Computes a detached proposal; applying fitting presets remains a separate reviewed action. */
+  public WizardParameterEstimationTask(final @Nullable MemoryMapStorage storage,
+      final @NotNull Instant moduleCallDate, final File @NotNull [] files,
+      final @Nullable File metadataFile, final @NotNull WizardSequence sequence,
+      final @NotNull Consumer<WizardParameterEstimationResult> onFinished) {
+    this(storage, moduleCallDate, files, metadataFile, sequence, null, _ -> true, onFinished);
   }
 
   @Override
@@ -107,14 +119,31 @@ public final class WizardParameterEstimationTask extends AbstractTask {
         return;
       }
 
+      final ParameterSet resolved;
+      if (preclassification == null) {
+        final var classification = Preclassification.resolve(importedFiles, sequence);
+        if (classification.hasConflicts() || classification.needsUserChoice()) {
+          error("Resolve acquisition settings in mzmine before estimation: "
+              + classification.describeConflicts() + String.join("\n", classification.choiceMessages()));
+          return;
+        }
+        resolved = classification.parameters();
+      } else {
+        resolved = preclassification;
+      }
       final WizardParameterEstimationResult result = WizardParameterEstimationResult.estimate(
-          importedFiles, null, sequence, preclassification, this::confirmPresetsOnFxThread,
+          importedFiles, null, sequence, resolved, this::confirmPresetsOnFxThread,
           getMemoryMapStorage(), this::isCanceled);
       if (result == null) {
+        if (!isCanceled()) cancel();
         return;
       }
+      if (isCanceled()) return;
+      this.result = result;
       progress = 1d;
-      FxThread.runLater(() -> onFinished.accept(result));
+      FxThread.runLater(() -> {
+        if (!isCanceled()) onFinished.accept(result);
+      });
       setStatus(TaskStatus.FINISHED);
     } catch (Exception e) {
       error("Could not estimate wizard parameters: " + e.getMessage(), e);

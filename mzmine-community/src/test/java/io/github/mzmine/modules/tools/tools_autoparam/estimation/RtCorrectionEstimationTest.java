@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.util.List;
@@ -67,6 +68,64 @@ class RtCorrectionEstimationTest {
     Assertions.assertFalse(estimate(new double[]{0.01, 0.01, 0.05}, 0.1).initialValue());
     Assertions.assertFalse(estimate(new double[]{0.02, 0.02, 0.06}, 0.1).initialValue());
     Assertions.assertFalse(estimate(new double[]{0, 0, 0}, 0.1).initialValue());
+  }
+
+  @Test
+  void evidenceUsesTheSameThresholdAndReportsInsufficientMeasurements() {
+    final RawDataAnalysis sufficient = new RawDataAnalysis(List.of(), new double[]{0.1},
+        new double[0], new double[0], new double[0], new double[0],
+        new double[]{0.01, 0.01, 0.06}, Map.of());
+    final ParameterEstimationEvidence evidence = ParameterEstimationEvidence.rtCorrection(sufficient);
+    Assertions.assertEquals("measured_derived_heuristic", evidence.basis());
+    Assertions.assertEquals(3, evidence.observationCount());
+    Assertions.assertEquals(0.05, evidence.measurements().get("decision_threshold_minutes"),
+        1e-12);
+    Assertions.assertThrows(UnsupportedOperationException.class,
+        () -> evidence.measurements().clear());
+    Assertions.assertEquals(ParameterEstimators.rtCorrection(context(new double[]{0.01, 0.01, 0.06},
+        0.1)).initialValue(), sufficient.fileMedianRtDeviations()[2]
+        > evidence.measurements().get("decision_threshold_minutes"));
+
+    final ParameterEstimationEvidence insufficient = ParameterEstimationEvidence.rtCorrection(
+        new RawDataAnalysis(List.of(), new double[]{0.1}, new double[0], new double[0],
+            new double[0], new double[0], new double[]{0.1, 0.2}, Map.of()));
+    Assertions.assertEquals("preset_default", insufficient.basis());
+    Assertions.assertFalse(insufficient.measurements().containsKey("decision_threshold_minutes"));
+  }
+
+  @Test
+  void noiseEvidenceDisclosesDerivedMs2AndFiltersNonFiniteMeasurements() {
+    final ParameterEstimationContext context = new ParameterEstimationContext(
+        new RawDataAnalysis(List.of(), new double[0], new double[0], new double[]{100, 200, 300},
+            new double[0], new double[0], new double[0], Map.of()),
+        ParameterEstimationTestData.sequence());
+    final ParameterEstimationEvidence evidence = ParameterEstimationEvidence.describe(context,
+        OptimizationParameterRegistry.MS1_NOISE.prepare(context));
+    Assertions.assertEquals("measured_derived_heuristic", evidence.basis());
+    Assertions.assertEquals(3, evidence.observationCount());
+    Assertions.assertEquals(2.5, evidence.measurements().get("ms2_to_ms1_divisor"));
+    Assertions.assertTrue(evidence.measurements().values().stream().allMatch(Double::isFinite));
+  }
+
+  @Test
+  void mzToleranceEvidenceCountsWithinFileObservationsAndDisclosesNativeFallback() {
+    final RawDataFile file = new RawDataFileImpl("empty", null, null, Color.BLACK);
+    try {
+      final ParameterEstimationContext context = new ParameterEstimationContext(
+          new RawDataAnalysis(List.of(new DataFileStatistics(file, List.of(), null, null)), new double[0],
+              new double[0], new double[0], new double[0], new double[0], new double[0], Map.of()),
+          ParameterEstimationTestData.sequence());
+      final PreparedParameter<?> parameter = OptimizationParameterRegistry.MZ_TOLERANCE.prepare(
+          context);
+      Assertions.assertEquals(ValueOrigin.RAW_DATA, parameter.origin());
+      final ParameterEstimationEvidence evidence = ParameterEstimationEvidence.describe(context,
+          parameter);
+      Assertions.assertEquals("native_fallback", evidence.basis());
+      Assertions.assertEquals(0, evidence.observationCount());
+      Assertions.assertEquals("within-file isotope-tolerance observations", evidence.observationUnit());
+    } finally {
+      file.close();
+    }
   }
 
   @Test

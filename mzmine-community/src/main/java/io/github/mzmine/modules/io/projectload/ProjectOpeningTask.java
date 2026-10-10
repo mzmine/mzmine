@@ -32,6 +32,7 @@ import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.modules.io.projectsave.RawFileMetadataProjectIO;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataProjectIO;
+import io.github.mzmine.modules.visualization.acquisitionmetadata.AcquisitionMetadataProjectIO;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -199,6 +200,8 @@ public class ProjectOpeningTask extends AbstractTask {
 
       currentLoadedObjectName = "Project metadata";
       ProjectMetadataProjectIO.loadFromZip(zipFile);
+      AcquisitionMetadataProjectIO.loadFromZip(zipFile,
+          rawDataFileOpenHandler.getResolvedRawDataFilePaths());
 
       currentLoadedObjectName = "Raw file metadata";
       try {

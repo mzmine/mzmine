@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
@@ -123,6 +124,15 @@ public class SampleMetadataExtractionParameters extends SimpleParameterSet {
       @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws) {
     return new SampleMetadataExtractionTask(moduleCallDate, parameters, moduleClass, raws,
         parameters.getValue(mappings), parameters.getValue(overwrite));
+  }
+
+  /** Creates an extraction task pinned to the supplied project. */
+  public static SampleMetadataExtractionTask createTaskWithDataFiles(
+      @NotNull final ParameterSet parameters, @NotNull final Instant moduleCallDate,
+      @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws,
+      @NotNull final MZmineProject fixedProject) {
+    return new SampleMetadataExtractionTask(moduleCallDate, parameters, moduleClass, raws,
+        parameters.getValue(mappings), parameters.getValue(overwrite), fixedProject);
   }
 
   public void resetDefaults() {
