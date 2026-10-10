@@ -403,7 +403,7 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     }
     applySelectedSolutionToWizard(mode.get());
 
-    final WizardSequence sequenceSteps = wizardTab.getSequence();
+    final WizardSequence sequenceSteps = wizardTab.snapshotSequence();
 
     final Optional<WizardStepParameters> workflow = sequenceSteps.get(WizardPart.WORKFLOW);
     if (workflow.isEmpty()) {

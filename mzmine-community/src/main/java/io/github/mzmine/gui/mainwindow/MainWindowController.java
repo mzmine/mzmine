@@ -371,7 +371,9 @@ public class MainWindowController {
     logger.fine("Setting active workspace to " + workspace.getName());
     activeWorkspace = workspace;
     // rebuild the menu here, needed for updates after user changes
-    mainPane.setTop(workspace.buildMainMenu(tags));
+    final var menu = workspace.buildMainMenu(tags);
+    ApplicationMenus.contribute(menu);
+    mainPane.setTop(menu);
   }
 
   public Workspace getActiveWorkspace() {

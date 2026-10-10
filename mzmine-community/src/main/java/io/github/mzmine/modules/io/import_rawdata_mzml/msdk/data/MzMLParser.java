@@ -58,6 +58,7 @@ public class MzMLParser {
   private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
   private final Vars vars;
+  private final MzMLAcquisitionMetadata acquisitionMetadata = new MzMLAcquisitionMetadata();
   private final TagTracker tracker;
   private final MemoryMapStorage storage;
   private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
@@ -250,6 +251,7 @@ public class MzMLParser {
   public void processOpeningTag(XMLStreamReader xmlStreamReader, String openingTagName)
       throws IOException, DataFormatException, XMLStreamException {
     tracker.enter(openingTagName);
+    acquisitionMetadata.open(xmlStreamReader, openingTagName);
 
     // file level metadata is defined in the header before the run
     if (!tracker.inside(MzMLTags.TAG_RUN)) {
@@ -532,7 +534,12 @@ public class MzMLParser {
    * @param closingTagName  a {@link String} object.
    */
   public void processClosingTag(XMLStreamReader xmlStreamReader, String closingTagName) {
+    acquisitionMetadata.close(closingTagName);
     tracker.exit(closingTagName);
+
+    if (closingTagName.equals("mzML")) {
+      newRawFile.setAcquisitionMetadata(acquisitionMetadata.result());
+    }
 
     if (!tracker.inside(MzMLTags.TAG_RUN)) {
       newRawFile.getHeaderMetadata().processClosingTag(closingTagName);

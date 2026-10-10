@@ -23,6 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import org.gradle.api.tasks.JavaExec
+import org.openjfx.gradle.metadatarule.JavaFXComponentMetadataRule
+
 plugins {
     id("io.github.mzmine.java-common-conv")
     id("org.openjfx.javafxplugin")
@@ -30,6 +33,7 @@ plugins {
 
 // https://github.com/gradle/gradle/issues/15383
 val libs = versionCatalogs.named("libs")
+val javaFxVersion = libs.findVersion("javafx").get().strictVersion
 
 configurations.all {
     resolutionStrategy.eachDependency {
@@ -44,7 +48,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = libs.findVersion("javafx").get().strictVersion
+    version = javaFxVersion
 //    version = "23.0.2"
     modules(
         "javafx.base",
@@ -58,5 +62,22 @@ javafx {
 
 
 dependencies {
+    components {
+        // decision: JavaFX 24+ supplies the jdk.jsobject module removed from JDK 26.
+        withModule<JavaFXComponentMetadataRule>("org.openjfx:jdk-jsobject")
+    }
+    implementation("org.openjfx:jdk-jsobject:$javaFxVersion")
     implementation(libs.findBundle("javafx-convention").get())
+}
+
+tasks.withType<JavaExec>().configureEach {
+    doFirst {
+        val jsObjectModulePath = classpath.filter {
+            it.name.startsWith("jdk-jsobject-")
+        }
+        if (!jsObjectModulePath.isEmpty) {
+            setClasspath(classpath.filter { !it.name.startsWith("jdk-jsobject-") })
+            jvmArgs("--upgrade-module-path", jsObjectModulePath.asPath)
+        }
+    }
 }

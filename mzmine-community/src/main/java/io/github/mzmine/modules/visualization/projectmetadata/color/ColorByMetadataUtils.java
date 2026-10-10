@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -69,7 +70,14 @@ public class ColorByMetadataUtils {
   public static @NotNull ColorByMetadataResults colorByColumn(
       final @Nullable MetadataColumn<?> column, final @NotNull List<RawDataFile> raws,
       final @NotNull ColorByMetadataConfig config) {
-    var groups = ProjectService.getMetadata().groupFilesByColumnIncludeNull(raws, column);
+    return colorByColumn(ProjectService.getMetadata(), column, raws, config);
+  }
+
+  /** Groups files using explicitly supplied project metadata. */
+  public static @NotNull ColorByMetadataResults colorByColumn(final @NotNull MetadataTable metadata,
+      final @Nullable MetadataColumn<?> column, final @NotNull List<RawDataFile> raws,
+      final @NotNull ColorByMetadataConfig config) {
+    var groups = metadata.groupFilesByColumnIncludeNull(raws, column);
 
     if (config.isUseGradient(groups.size()) && column != null && column.hasNaturalOrder()) {
       // create paint scale gradient

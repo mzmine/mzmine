@@ -54,13 +54,15 @@ public class WizardSequenceSaveModule implements MZmineModule {
       String fileName = params.getValue(WizardSequenceSaveParameters.fileName);
       final var exportParts = Arrays.stream(
           params.getValue(WizardSequenceSaveParameters.exportParts)).collect(Collectors.toSet());
+      final boolean includeFileSelections = params.getValue(
+          WizardSequenceSaveParameters.includeFileSelections);
       File file = FileAndPathUtil.getRealFilePath(directory, fileName,
           WizardSequenceIOUtils.FILE_FILTER.getExtensions().get(0).split("\\.")[1]);
       try {
         // only keep parts to export
         var filteredWorkflow = workflow.stream()
             .filter(preset -> exportParts.contains(preset.getPart())).toList();
-        WizardSequenceIOUtils.saveToFile(filteredWorkflow, file, true);
+        WizardSequenceIOUtils.saveToFile(filteredWorkflow, file, !includeFileSelections);
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
             e);

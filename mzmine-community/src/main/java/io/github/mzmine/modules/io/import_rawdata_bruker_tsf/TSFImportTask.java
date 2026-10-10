@@ -187,6 +187,8 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     }
 
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+    newMZmineFile.setAcquisitionMetadata(
+        metaDataTable.acquisitionMetadata(frameTable.getScanModeColumn()));
     metaDataTable.applyToFileMetadata(newMZmineFile.getFileMetadata());
     // tsf files have no ion mobility dimension
     calibrationInfoTable.applyToFileMetadata(newMZmineFile.getFileMetadata(),

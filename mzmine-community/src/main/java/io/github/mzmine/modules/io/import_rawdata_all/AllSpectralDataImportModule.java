@@ -97,6 +97,22 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private static final String MODULE_DESCRIPTION = "This module combines the import of different MS data formats and provides advanced options";
 
   /**
+   * Creates the standard import task(s) without adding them to the task controller. This keeps
+   * native parameter validation and task construction reusable for callers with a separate review
+   * step.
+   */
+  public static @NotNull NativeImportSelection.ImportTaskPreparation prepareTasks(
+      final @NotNull MZmineProject project, final @NotNull ParameterSet parameters,
+      final @NotNull Instant moduleCallDate) {
+    final List<Task> tasks = new ArrayList<>();
+    final AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
+        AllSpectralDataImportModule.class);
+    final ExitCode exitCode = (module == null ? new AllSpectralDataImportModule() : module)
+        .runModule(project, parameters.cloneParameterSet(), tasks, moduleCallDate, project, true);
+    return new NativeImportSelection.ImportTaskPreparation(exitCode, tasks);
+  }
+
+  /**
    * Define filters and processors for scans
    */
   public static @NotNull ScanImportProcessorConfig createSpectralProcessors(
@@ -254,6 +270,25 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasksToAdd, @NotNull Instant moduleCallDate) {
+    return runModule(project, parameters, tasksToAdd, moduleCallDate, null, false);
+  }
+
+  /** Builds import tasks for a batch bound to a non-current private project. */
+  public @NotNull ExitCode runBoundProjectModule(final @NotNull MZmineProject project,
+      final @NotNull ParameterSet parameters, final @NotNull Collection<Task> tasksToAdd,
+      final @NotNull Instant moduleCallDate, final boolean cancelOnCurrentProjectChange) {
+    return runModule(project, parameters, tasksToAdd, moduleCallDate, project,
+        cancelOnCurrentProjectChange);
+  }
+
+  /**
+   * Creates the standard task graph, optionally pinning its main task to a reviewed project.
+   * Ordinary module calls pass {@code null} and retain their existing current-project behavior.
+   */
+  private @NotNull ExitCode runModule(final @NotNull MZmineProject project,
+      final @NotNull ParameterSet parameters, final @NotNull Collection<Task> tasksToAdd,
+      final @NotNull Instant moduleCallDate, @Nullable final MZmineProject fixedProject,
+      final boolean cancelOnCurrentProjectChange) {
 
     // collect all tasks and run them on ThreadPoolTask
     List<Task> tasks = new ArrayList<>();
@@ -375,7 +410,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 //    var threadPoolTask = new ThreadPoolTask(description , nThreads, tasks);
 //    tasksToAdd.add(threadPoolTask);
 
-    AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(tasks, parameters);
+    final AllSpectralDataImportMainTask mainTask = fixedProject == null
+        ? new AllSpectralDataImportMainTask(tasks, parameters)
+        : cancelOnCurrentProjectChange
+            ? AllSpectralDataImportMainTask.forFixedProject(tasks, dataImportTasks, parameters,
+                fixedProject)
+            : AllSpectralDataImportMainTask.forIsolatedProject(tasks, dataImportTasks, parameters,
+                fixedProject);
     tasksToAdd.add(mainTask);
 
     return ExitCode.OK;

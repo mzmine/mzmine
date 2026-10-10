@@ -57,6 +57,12 @@ public class UsersTab extends SimpleTab {
     });
   }
 
+  /** Observes tab lifetime without initializing user management or exposing identity. */
+  public static boolean isOpen() {
+    final UsersTab tab = instance;
+    return tab != null && tab.getTabPane() != null && tab.getTabPane().getTabs().contains(tab);
+  }
+
   public static UsersTab showTab() {
     return showTab(UsersViewState.LOCAL_USERS);
   }

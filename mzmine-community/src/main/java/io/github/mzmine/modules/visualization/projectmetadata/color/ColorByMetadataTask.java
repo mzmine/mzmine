@@ -26,6 +26,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.color;
 
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.preferences.Themes;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -53,6 +54,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ColorByMetadataTask extends AbstractRawDataFileTask {
 
@@ -67,20 +69,32 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
   // mark colors as used when they colored a group
   private final Set<Color> usedColors = new HashSet<>();
   private final ColorByMetadataConfig config;
+  private final @Nullable MZmineProject fixedProject;
+  private final MetadataTable metadata;
 
   public ColorByMetadataTask(final @NotNull Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
       @NotNull final Class<? extends MZmineModule> moduleClass) {
-    var raws = parameters.getValue(ColorByMetadataParameters.rawFiles).getMatchingRawDataFiles();
-    this(moduleCallDate, parameters, moduleClass, raws);
+    this(moduleCallDate, parameters, moduleClass,
+        parameters.getValue(ColorByMetadataParameters.rawFiles).getMatchingRawDataFiles(), null);
   }
 
   public ColorByMetadataTask(final @NotNull Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
       @NotNull final Class<? extends MZmineModule> moduleClass, RawDataFile[] raws) {
+    this(moduleCallDate, parameters, moduleClass, raws, null);
+  }
+
+  /** Pins metadata reads and deferred sorting to a reviewed project. */
+  public ColorByMetadataTask(final @NotNull Instant moduleCallDate,
+      @NotNull final ParameterSet parameters,
+      @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws,
+      @Nullable final MZmineProject fixedProject) {
     super(null, moduleCallDate, parameters, moduleClass);
+    this.fixedProject = fixedProject;
+    metadata = fixedProject == null ? ProjectService.getMetadata() : fixedProject.getProjectMetadata();
     // sort by date
-    this.raws = Arrays.stream(raws).sorted(RawDataByMetadataSorter.byDateAndName()).toList();
+    this.raws = Arrays.stream(raws).sorted(RawDataByMetadataSorter.byDateAndName(metadata)).toList();
 
     // metadata options like column and how to scale colors
     final ColorByMetadataColumnParameters columnSelection = parameters.getEmbeddedParametersIfSelectedOrElse(
@@ -107,9 +121,12 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
 
   @Override
   protected void process() {
+    if (cancelIfFixedProjectChanged()) {
+      return;
+    }
     // color blanks and QCs - they may be recolored right after if they also belong to groups
     // make blanks gray monochrome
-    List<RawDataFile> blanks = SampleTypeFilter.blank().filterFiles(raws);
+    List<RawDataFile> blanks = SampleTypeFilter.blank().filterFiles(metadata, raws);
     colorFadeLighter(blanks, colors.getNeutralColor(), brightnessPercentRange);
 
     // #882255
@@ -119,7 +136,7 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     Color qcColor = Lists.reverse(colors).stream()
         .filter(clr -> !ColorUtils.isDark(clr) && !ColorUtils.isLight(clr)).findFirst()
         .orElse(Color.web("#bf2c84")); // positive, negative, or last color?
-    List<RawDataFile> qcs = SampleTypeFilter.qc().filterFiles(raws);
+    List<RawDataFile> qcs = SampleTypeFilter.qc().filterFiles(metadata, raws);
     colorFadeLighter(qcs, qcColor, brightnessPercentRange);
 
     final Themes theme = ConfigService.getPreferences().getThemeConfig();
@@ -145,9 +162,11 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
       map.forEach(RawDataFile::setColor);
 
       if (applySorting) {
-        MZmineGUI.sortRawDataFiles(raws.stream()
-            .sorted(Comparator.comparing(RawDataFile::getName, String.CASE_INSENSITIVE_ORDER))
-            .toList());
+        if (fixedProject == null || ProjectService.getProject() == fixedProject) {
+          MZmineGUI.sortRawDataFiles(raws.stream()
+              .sorted(Comparator.comparing(RawDataFile::getName, String.CASE_INSENSITIVE_ORDER))
+              .toList());
+        }
       }
     });
   }
@@ -160,12 +179,11 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
   private void colorByColumn(final String colorColumn) {
     List<RawDataFile> filteredRaws = raws;
     if (separateBlankQcs) {
-      filteredRaws = SampleTypeFilter.sample().filterFiles(raws);
+      filteredRaws = SampleTypeFilter.sample().filterFiles(metadata, raws);
       // need to skip the black/white color - already used for blanks
       colors.removeFirst();
     }
 
-    MetadataTable metadata = ProjectService.getMetadata();
     MetadataColumn<?> column = metadata.getColumnByName(colorColumn);
     if (column == null) {
       // Do not handle this as an exception / error - this would crash batches
@@ -176,7 +194,7 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
       return;
     }
 
-    final var grouping = ColorByMetadataUtils.colorByColumn(column, filteredRaws, config);
+    final var grouping = ColorByMetadataUtils.colorByColumn(metadata, column, filteredRaws, config);
 
     for (ColorByMetadataGroup group : grouping.groups()) {
       colorFadeLighter(group.group().files(), group.color(), brightnessPercentRange);
@@ -240,5 +258,13 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
     return raws;
+  }
+
+  private boolean cancelIfFixedProjectChanged() {
+    if (fixedProject != null && ProjectService.getProject() != fixedProject) {
+      cancel();
+      return true;
+    }
+    return false;
   }
 }

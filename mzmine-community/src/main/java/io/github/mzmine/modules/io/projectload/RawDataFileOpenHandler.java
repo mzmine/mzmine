@@ -31,6 +31,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandle
 import io.github.mzmine.taskcontrol.Task;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.Map;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,4 +46,7 @@ public interface RawDataFileOpenHandler extends Task {
   void setProject(MZmineProject project);
 
   void setZipFile(ZipFile zipFile);
+
+  /** Maps source paths recorded in the project import descriptor to resolved local paths. */
+  Map<String, String> getResolvedRawDataFilePaths();
 }

@@ -58,7 +58,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AcquisitionMetadataTab extends SimpleTab {
 
-  public static final String TITLE = "Acquisition metadata";
+  public static final String TITLE = "Raw file metadata";
 
   private final @NotNull MZmineProject project;
   private final @NotNull ObservableList<RawDataFile> files = FXCollections.observableArrayList();

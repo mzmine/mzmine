@@ -57,6 +57,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetChange;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
 import io.github.mzmine.util.ExitCode;
@@ -134,12 +135,15 @@ public class BatchWizardTab extends SimpleTab {
    * Parameter panes of the selected presets
    */
   private final Map<WizardStepParameters, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
+  private final Map<WizardStepParameters, ParameterSet> initialPaneValues = new HashMap<>();
+  private final Map<WizardStepParameters, ParameterSet> initialPaneRendering = new HashMap<>();
   private final List<Subscription> paramPaneSubscriptions = new ArrayList<>();
   /**
    * Remove the highlights of {@link #parameterChanges} from the current panes
    */
   private final List<Subscription> changeHighlightSubscriptions = new ArrayList<>();
   private final Map<WizardPart, ComboBox<WizardStepParameters>> combos = new HashMap<>();
+  private final List<WizardExtension> extensions;
   /**
    * Load and save presets and apply local presets
    */
@@ -157,12 +161,16 @@ public class BatchWizardTab extends SimpleTab {
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
+  private BorderPane mainPane;
+  private Node wizardToolbar;
 
   public BatchWizardTab() {
     super("mzwizard");
 //    setGraphic(LightAndDarkModeIcon.mzwizardImageTab(200, 18));
     ALL_PRESETS = WizardStepParameters.createAllPresets();
+    extensions = WizardExtensions.create(this);
     createContentPane();
+    setOnClosed(_ -> extensions.forEach(WizardExtension::close));
     findAllLocalPresetFiles();
     // reset to mzmine default presets (loading the local presets have changed the parameters already once)
     ALL_PRESETS.values().stream().flatMap(Collection::stream)
@@ -218,8 +226,16 @@ public class BatchWizardTab extends SimpleTab {
     centerScroll.setFitToWidth(true);
     centerScroll.setFitToHeight(true);
     createParameterPanes();
-    var mainPane = new BorderPane(centerScroll);
-    mainPane.setTop(topPane);
+    mainPane = new BorderPane(centerScroll);
+    if (extensions.isEmpty()) {
+      wizardToolbar = topPane;
+    } else {
+      final VBox toolbar = new VBox(topPane);
+      extensions.stream().map(WizardExtension::createControls).filter(java.util.Objects::nonNull)
+          .forEach(toolbar.getChildren()::add);
+      wizardToolbar = toolbar;
+    }
+    mainPane.setTop(wizardToolbar);
     setContent(mainPane);
   }
 
@@ -233,6 +249,8 @@ public class BatchWizardTab extends SimpleTab {
     // old panes are discarded, highlights are recreated from parameterChanges
     changeHighlightSubscriptions.clear();
     paramPaneMap.clear();
+    initialPaneValues.clear();
+    initialPaneRendering.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
     // evaluate workflow and limit choices
     evaluateWizardSequenceLimitChoices();
@@ -353,6 +371,13 @@ public class BatchWizardTab extends SimpleTab {
   private Tab createParameterTab(final WizardStepParameters step) {
     ParameterSetupPane paramPane = new ParameterSetupPane(true, false, step);
     paramPaneMap.put(step, paramPane);
+    final var exact = step.getFactory().create();
+    ParameterUtils.copyParameters(step, exact);
+    initialPaneValues.put(step, exact);
+    final var rendered = step.getFactory().create();
+    ParameterUtils.copyParameters(step, rendered);
+    paramPane.updateParameterSetFromComponents(rendered);
+    initialPaneRendering.put(step, rendered);
     if (step instanceof DataImportWizardParameters dataImportParameters) {
       subscribeMetadataExtractionToImportFiles(dataImportParameters, paramPane);
     }
@@ -360,7 +385,16 @@ public class BatchWizardTab extends SimpleTab {
     addToSchema(step);
     // NOT add tabs without user parameters (components to set)
     if (step.hasUserParameters() && step.getFactory() != IonMobilityWizardParameterFactory.NO_IMS) {
-      Tab tab = new Tab(step.getPresetName(), paramPane);
+      final List<Node> content = new ArrayList<>();
+      content.add(paramPane);
+      for (final WizardExtension extension : extensions) {
+        final Node context = extension.createPartContent(step);
+        if (context != null) {
+          content.add(context);
+        }
+      }
+      final Tab tab = new Tab(step.getPresetName(),
+          content.size() == 1 ? paramPane : new VBox(content.toArray(Node[]::new)));
 
       // Special handling for customization tab - add checkbox to header
       if (step instanceof CustomizationWizardParameters customizationParams) {
@@ -435,6 +469,11 @@ public class BatchWizardTab extends SimpleTab {
    * @param preset one preset per part
    */
   private void addToSchema(final WizardStepParameters preset) {
+    addToSchema(schemaPane, preset);
+  }
+
+  /** Adds one preset icon to a schema strip. */
+  private void addToSchema(@NotNull final HBox target, final WizardStepParameters preset) {
     String parent = preset.getUniquePresetId().toLowerCase();
     try {
       LocalDate now = LocalDate.now();
@@ -455,7 +494,7 @@ public class BatchWizardTab extends SimpleTab {
         view.setCacheHint(CacheHint.SPEED);
       }
 
-      schemaPane.getChildren().add(view);
+      target.getChildren().add(view);
     } catch (Exception ex) {
       logger.log(Level.WARNING, ex.getMessage());
     }
@@ -655,7 +694,7 @@ public class BatchWizardTab extends SimpleTab {
     }
     final String warnings = presets.hasWarnings() ? """
         Please check the raw data, the selected presets are kept:
-        
+
         %s""".formatted(presets.describeWarnings()) : "";
     if (!presets.hasSwitches()) {
       DialogLoggerUtil.showWarningDialog("Check wizard presets", warnings);
@@ -665,9 +704,9 @@ public class BatchWizardTab extends SimpleTab {
         presets.hasWarnings() ? AlertType.WARNING : AlertType.CONFIRMATION, "Switch wizard presets",
         """
             Other presets fit the raw data better than the ones selected in the wizard:
-            
+
             %s
-            
+
             Switch the wizard to these presets? The new presets start from their default \
             parameters, the estimated values are applied on top.%s""".formatted(
             presets.describeSwitches(), warnings.isEmpty() ? "" : "\n\n" + warnings));
@@ -698,9 +737,9 @@ public class BatchWizardTab extends SimpleTab {
     final boolean confirmed = DialogLoggerUtil.showDialogYesNo(AlertType.WARNING,
         "Switch wizard presets", """
             The %s was computed with other presets than the ones selected in the wizard:
-            
+
             %s
-            
+
             Switch the wizard back to these presets? The switched presets start from their \
             default parameters. The %s results are only applied to the presets they were \
             computed with.""".formatted(resultName, presets.describeSwitches(), resultName));
@@ -742,7 +781,6 @@ public class BatchWizardTab extends SimpleTab {
    * Find local preset files and add to the drop-down
    */
   private void findAllLocalPresetFiles() {
-
     final List<MenuItem> items = new ArrayList<>();
     items.add(FxMenuUtil.newMenuItem("Load presets...", this::chooseAndLoadLocalSequence));
     items.add(FxMenuUtil.newMenuItem("Save presets...", this::saveLocalWizardSequence));
@@ -773,45 +811,55 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   /**
-   * Applies the sequence without highlighting changes. Clears previous highlights.
+   * Applies a partial sequence on the JavaFX thread; unavailable presets are rejected up front.
    *
    * @param partialSequence might contain some or all steps of the workflow
    */
-  public void applyPartialSequence(@NotNull final WizardSequence partialSequence) {
-    setListenersActive(false);
-
-    // keep old parameters before applying sequence
-    updateAllParametersFromUi();
-
-    // partialSequence might contain other instances of the presets (after loading)
-    // need to apply all parameter changes to ALL_PRESETS
-    WizardSequence correctPartialSequence = new WizardSequence();
-    for (final WizardStepParameters otherPreset : partialSequence) {
-      ALL_PRESETS.get(otherPreset.getPart()).stream()
-          .filter(allPreset -> allPreset.getFactory().equals(otherPreset.getFactory()))
-          .forEach(allPreset -> {
-            ParameterUtils.copyParameters(otherPreset, allPreset);
-            correctPartialSequence.add(allPreset);
-          });
+  public void applyPartialSequence(final @NotNull WizardSequence partialSequence) {
+    for (final WizardStepParameters preset : partialSequence) {
+      if (ALL_PRESETS.get(preset.getPart()).stream()
+          .noneMatch(available -> available.getFactory().equals(preset.getFactory()))) {
+        throw new IllegalArgumentException("Unavailable wizard preset: " + preset.getUniquePresetId());
+      }
     }
+    final boolean previousListenersActive = listenersActive;
+    setListenersActive(false);
+    try {
+      updateAllParametersFromUi();
+      final WizardSequence correctPartialSequence = new WizardSequence();
+      for (final WizardStepParameters otherPreset : partialSequence) {
+        ALL_PRESETS.get(otherPreset.getPart()).stream()
+            .filter(allPreset -> allPreset.getFactory().equals(otherPreset.getFactory()))
+            .forEach(allPreset -> {
+              ParameterUtils.copyParameters(otherPreset, allPreset);
+              correctPartialSequence.add(allPreset);
+            });
+      }
+      sequenceSteps.apply(correctPartialSequence);
+      parameterChanges = WizardParameterChanges.empty();
+      final boolean customizationEnabled = partialSequence.get(WizardPart.CUSTOMIZATION)
+          .filter(p -> p instanceof CustomizationWizardParameters).map(
+              p -> ((CustomizationWizardParameters) p).getValue(
+                  CustomizationWizardParameters.enabled)).orElse(advancedMode.get());
+      advancedMode.set(customizationEnabled);
+      createParameterPanes();
+    } finally {
+      setListenersActive(previousListenersActive);
+    }
+  }
 
-    // keep current as default parameters
-    sequenceSteps.apply(correctPartialSequence);
-    // decision: loading presets overrides values, so previous highlights are cleared
-    parameterChanges = WizardParameterChanges.empty();
-
-    // auto-enable/disable advanced mode based on loaded customization state
-    // listenersActive is false here, so the advancedMode listener does not trigger createParameterPanes again
-    boolean customizationEnabled = partialSequence.get(WizardPart.CUSTOMIZATION)
-        .filter(p -> p instanceof CustomizationWizardParameters)
-        .map(p -> p.getValue(CustomizationWizardParameters.enabled)).orElse(false);
-    advancedMode.set(customizationEnabled);
-
-    // apply preset filters so that combos show the correct options
-    createParameterPanes();
-
-    // now activate listeners again. Should be after changing the sequence and createParameterPanes
-    setListenersActive(true);
+  /** A detached snapshot including edits still in the controls. Must be called on the FX thread. */
+  public @NotNull WizardSequence snapshotSequence() {
+    final WizardSequence snapshot = new WizardSequence();
+    for (final WizardStepParameters step : sequenceSteps) {
+      final WizardStepParameters copy = step.getFactory().create();
+      ParameterUtils.copyParameters(step, copy);
+      // Read controls into the detached copy without committing edits to the live model.
+      final ParameterSetupPane pane = paramPaneMap.get(step);
+      if (pane != null) ParameterUtils.copyParameters(readPaneValues(step, pane), copy);
+      snapshot.add(copy);
+    }
+    return snapshot;
   }
 
   /**
@@ -840,23 +888,14 @@ public class BatchWizardTab extends SimpleTab {
    * The final product of the wizard is the batch
    */
   public void createBatch() {
-    var sequenceSteps = updateAllParametersFromUiAndCheckErrors();
-    if (sequenceSteps == null) {
+    final BatchQueue queue = prepareBatchQueue();
+    if (queue == null) {
       return;
     }
-    final Optional<WizardStepParameters> workflow = sequenceSteps.get(WORKFLOW);
-    if (workflow.isEmpty()) {
-      DialogLoggerUtil.showErrorDialog("Cannot create batch",
-          "A workflow must be selected to create a batch.");
-      return;
-    }
-
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     try {
-      final BatchQueue q = ((WorkflowWizardParameterFactory) workflow.get()
-          .getFactory()).getBatchBuilder(sequenceSteps).createQueue();
-      batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
+      batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
       // highlights are only relevant until the batch is built
       clearParameterChanges();
@@ -866,6 +905,37 @@ public class BatchWizardTab extends SimpleTab {
     } catch (Exception e) {
       logger.log(Level.WARNING, "Cannot create batch" + e.getMessage(), e);
       DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
+    }
+  }
+
+  /**
+   * Validates the current wizard controls and creates a detached batch queue without opening the
+   * batch dialog or submitting work. This method must be called on the JavaFX application thread.
+   *
+   * @return a detached queue, or {@code null} after displaying the normal wizard validation error
+   */
+  public @Nullable BatchQueue prepareBatchQueue() {
+    if (!Platform.isFxApplicationThread()) {
+      throw new IllegalStateException(
+          "Wizard batch preparation must run on the JavaFX application thread.");
+    }
+    final WizardSequence currentSequence = updateAllParametersFromUiAndCheckErrors();
+    if (currentSequence == null) {
+      return null;
+    }
+    final Optional<WizardStepParameters> workflow = currentSequence.get(WORKFLOW);
+    if (workflow.isEmpty()) {
+      DialogLoggerUtil.showErrorDialog("Cannot create batch",
+          "A workflow must be selected to create a batch.");
+      return null;
+    }
+    try {
+      return ((WorkflowWizardParameterFactory) workflow.get().getFactory()).getBatchBuilder(
+          currentSequence).createQueue().clone();
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Cannot create batch" + e.getMessage(), e);
+      DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
+      return null;
     }
   }
 
@@ -896,8 +966,28 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * Updates the parameters in all steps from the UI components. Does not check for completeness.
    */
+  /** Preserve exact stored values while a native control still shows its original rendering. */
+  private @NotNull ParameterSet readPaneValues(final @NotNull WizardStepParameters step,
+      final @NotNull ParameterSetupPane pane) {
+    final var current = step.getFactory().create();
+    ParameterUtils.copyParameters(step, current);
+    pane.updateParameterSetFromComponents(current);
+    final var exact = initialPaneValues.get(step);
+    final var rendered = initialPaneRendering.get(step);
+    if (exact == null || rendered == null) return current;
+    for (final var parameter : current.getParameters()) {
+      if (!(parameter instanceof io.github.mzmine.parameters.UserParameter<?, ?>)) continue;
+      final var originalRendering = rendered.getNameParameterMap().get(parameter.getName());
+      if (originalRendering != null && parameter.valueEquals(originalRendering)) {
+        // decision: a formatter's rounding is not a scientific parameter edit.
+        ParameterUtils.copyParameterValue(exact.getNameParameterMap().get(parameter.getName()), parameter);
+      }
+    }
+    return current;
+  }
+
   void updateAllParametersFromUi() {
-    paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
+    paramPaneMap.forEach((step, pane) -> ParameterUtils.copyParameters(readPaneValues(step, pane), step));
   }
 
   public void setListenersActive(final boolean listenersActive) {

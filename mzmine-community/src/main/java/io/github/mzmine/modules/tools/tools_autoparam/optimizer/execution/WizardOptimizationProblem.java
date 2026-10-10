@@ -30,12 +30,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.BatchParameterDefinition;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationEvidence;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.BatchParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
@@ -54,6 +57,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,7 +82,7 @@ import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.core.variable.Variable;
 import org.moeaframework.problem.AbstractProblem;
 
-public class WizardOptimizationProblem extends AbstractProblem implements SearchScaleProvider {
+public class WizardOptimizationProblem extends AbstractProblem implements SearchScaleProvider, AutoCloseable {
 
   /**
    * Position of a solution in the evaluation order, so the results table can show convergence.
@@ -132,6 +136,12 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * space. Selected optimizer variables are applied afterwards and therefore take precedence.
    */
   private final @NotNull PreparedParameterSet preparedParameters;
+  /**
+   * Aggregate diagnostics for the fixed estimate baseline. Candidate evaluations intentionally do
+   * not replace this evidence because they do not re-measure the raw data.
+   */
+  private final @NotNull Map<String, ParameterEstimationEvidence> estimationEvidence;
+  private final int estimationFileCount;
   private final @NotNull List<FeatureRecord> fileOnlyBenchmarkFeatures;
   private final @NotNull BatchExecutionBudget batchExecutionBudget;
   private final @NotNull ElapsedTimeTracker elapsedTimeTracker = new ElapsedTimeTracker();
@@ -199,10 +209,14 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     initialSequence = estimationContext.sequence();
     final File[] files = stats.stream().map(DataFileStatistics::file)
         .map(RawDataFile::getAbsoluteFilePath).toArray(File[]::new);
-    batchEvaluator = new OptimizationBatchEvaluator(files, enabledMetrics,
-        new MetricContext(target), fileOnlyBenchmarkFeatures, externalStatus);
+    batchEvaluator = new OptimizationBatchEvaluator(ProjectService.getProject(), files,
+        enabledMetrics, new MetricContext(target), fileOnlyBenchmarkFeatures, externalStatus);
 
     preparedParameters = prepared;
+    estimationEvidence = prepared.parameters().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
+        parameter -> parameter.definition().id(),
+        parameter -> ParameterEstimationEvidence.describe(estimationContext, parameter)));
+    estimationFileCount = stats.size();
     indexedParameters = IndexedParameter.bind(preparedParameters, paramToOptimize);
   }
 
@@ -286,6 +300,60 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     notifyEvaluationCompleted(solution);
   }
 
+  /**
+   * Scores detached current wizard settings without translating them through the optimizer search
+   * domain. In particular, this avoids clamping user values that lie outside that domain.
+   * <p>
+   * The Current baseline is intentionally absent from {@link #evaluatedSolutions} and the cache:
+   * it is a comparison column, not an optimizer observation or a rankable candidate.
+   *
+   * @param currentSequence current wizard settings captured before the task began
+   * @return the scored Current baseline with {@link SolutionOrigin#CURRENT} provenance
+   */
+  public @NotNull Solution evaluateCurrentSequence(@NotNull WizardSequence currentSequence) {
+    if (stopSearchRequestedSupplier.getAsBoolean()) {
+      throw new OptimizationSearchStoppedException();
+    }
+    final Solution current = newSolution();
+    SolutionOrigin.CURRENT.applyTo(current);
+    final int batchExecutionIndex = batchEvaluator.evaluate(copyForEvaluation(currentSequence), current,
+        getNumberOfConstraints() > 0, batchExecutionBudget::reserve);
+    completedBatchExecutions.incrementAndGet();
+    current.setAttribute(ATTR_CACHE_HIT, false);
+    current.setAttribute(ATTR_BATCH_EXECUTION_INDEX, batchExecutionIndex);
+    current.setAttribute(ATTR_ELAPSED_OPTIMIZATION_SECONDS, elapsedTimeTracker.elapsedSeconds());
+    return current;
+  }
+
+  /**
+   * Compares effective wizard settings while ignoring file selections, which the evaluator replaces
+   * with its fixed input files immediately before creating the batch queue.
+   */
+  public boolean currentMatchesEstimate(@NotNull WizardSequence currentSequence,
+      @NotNull Solution estimateSolution) {
+    final WizardSequence estimateSequence = createWizardSequenceFromSolution(estimateSolution);
+    return sequencesMatchForEvaluation(currentSequence, estimateSequence);
+  }
+
+  static boolean sequencesMatchForEvaluation(@NotNull WizardSequence currentSequence,
+      @NotNull WizardSequence estimateSequence) {
+    final WizardSequence effectiveCurrent = copyForEvaluation(currentSequence);
+    normalizeEvaluationInputFiles(effectiveCurrent);
+    normalizeEvaluationInputFiles(estimateSequence);
+    if (effectiveCurrent.size() != estimateSequence.size()) {
+      return false;
+    }
+    for (int i = 0; i < effectiveCurrent.size(); i++) {
+      final WizardStepParameters current = effectiveCurrent.get(i);
+      final WizardStepParameters estimate = estimateSequence.get(i);
+      if (!current.getFactory().equals(estimate.getFactory()) || !ParameterUtils.equalValues(current,
+          estimate)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Override
   public @NotNull SearchScale searchScale(int parameterIndex) {
     return indexedParameters.get(parameterIndex).parameter().searchDomain().searchScale();
@@ -301,6 +369,20 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
   public @NotNull List<IndexedParameter<?>> getIndexedParameters() {
     return indexedParameters;
+  }
+
+  /**
+   * Aggregate evidence for the fixed raw-data estimate baseline, keyed by parameter definition ID.
+   */
+  public @NotNull Map<String, ParameterEstimationEvidence> getEstimationEvidence() {
+    return estimationEvidence;
+  }
+
+  /**
+   * Number of files from which the fixed estimate baseline was prepared.
+   */
+  public int getEstimationFileCount() {
+    return estimationFileCount;
   }
 
   private void notifyEvaluationCompleted(@NotNull Solution solution) {
@@ -397,12 +479,38 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
       parameter.applyToWizard(solution, wizardSequence);
     }
 
-    if (workflowParam.getNameParameterMap()
-        .get(WorkflowDdaWizardParameters.exportPath.getName()) instanceof OptionalParameter<?>) {
-      workflowParam.setParameter(WorkflowDdaWizardParameters.exportPath, false);
-    }
+    disableExportPath(workflowParam);
 
     return wizardSequence;
+  }
+
+  static @NotNull WizardSequence copyForEvaluation(@NotNull WizardSequence source) {
+    final WizardSequence copy = new WizardSequence();
+    for (final WizardStepParameters step : source) {
+      final WizardStepParameters stepCopy = step.getFactory().create();
+      ParameterUtils.copyParameters(step, stepCopy);
+      copy.add(stepCopy);
+    }
+    final WizardStepParameters workflow = copy.get(WizardPart.WORKFLOW).orElseThrow();
+    disableExportPath(workflow);
+    return copy;
+  }
+
+  /**
+   * The evaluator replaces this selection with its fixed analysis files before it creates either
+   * batch queue. It must therefore not make otherwise identical Current and estimate settings
+   * appear different; metadata and all other import settings intentionally remain comparable.
+   */
+  private static void normalizeEvaluationInputFiles(@NotNull WizardSequence sequence) {
+    sequence.get(WizardPart.DATA_IMPORT).ifPresent(
+        dataImport -> dataImport.setParameter(DataImportWizardParameters.fileNames, new File[0]));
+  }
+
+  private static void disableExportPath(@NotNull WizardStepParameters workflow) {
+    if (workflow.getNameParameterMap()
+        .get(WorkflowDdaWizardParameters.exportPath.getName()) instanceof OptionalParameter<?>) {
+      workflow.setParameter(WorkflowDdaWizardParameters.exportPath, false);
+    }
   }
 
   /**
@@ -551,6 +659,16 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
   public @NotNull List<SweepMetric> getEnabledMetrics() {
     return enabledMetrics;
+  }
+
+  @Override
+  public void close() {
+    batchEvaluator.close();
+  }
+
+  /** Requests cancellation without blocking a caller such as the JavaFX status listener. */
+  public void cancel() {
+    batchEvaluator.cancel();
   }
 
 }

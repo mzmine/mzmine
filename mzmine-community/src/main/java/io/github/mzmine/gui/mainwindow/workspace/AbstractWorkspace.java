@@ -134,11 +134,11 @@ import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
 import io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
+import io.github.mzmine.modules.visualization.acquisitionmetadata.AcquisitionMetadataTab;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
-import io.github.mzmine.modules.visualization.rawfilemetadata.AcquisitionMetadataTab;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
@@ -235,8 +235,11 @@ public abstract class AbstractWorkspace implements Workspace {
     addMenuItem(menu, "Sample metadata",
         () -> MZmineCore.getDesktop().addTab(new ProjectMetadataTab()), KeyCode.M,
         KeyCombination.SHORTCUT_DOWN);
-    addMenuItem(menu, AcquisitionMetadataTab.TITLE,
-        () -> MZmineCore.getDesktop().addTab(new AcquisitionMetadataTab()), null);
+    addMenuItem(menu, "Acquisition metadata",
+        () -> MZmineCore.getDesktop().addTab(new AcquisitionMetadataTab()));
+    addMenuItem(menu, "Raw file metadata",
+        () -> MZmineCore.getDesktop().addTab(
+            new io.github.mzmine.modules.visualization.rawfilemetadata.AcquisitionMetadataTab()));
     addModuleMenuItems(menu, SampleMetadataExtractionModule.class);
     addSeparator(menu);
     addMenuItem(menu, "Set preferences",

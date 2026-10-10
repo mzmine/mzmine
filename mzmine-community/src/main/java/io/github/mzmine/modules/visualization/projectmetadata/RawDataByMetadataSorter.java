@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.projectmetadata;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.project.ProjectService;
 import java.util.Comparator;
 
@@ -53,13 +54,18 @@ public class RawDataByMetadataSorter {
    * Sort by run date and then by name - or just by name if run date is empty
    */
   public static Comparator<RawDataFile> byDateAndName() {
-    DateMetadataColumn dateCol = ProjectService.getMetadata().getRunDateColumn();
+    return byDateAndName(ProjectService.getMetadata());
+  }
+
+  /** Sorts using explicitly supplied project metadata. */
+  public static Comparator<RawDataFile> byDateAndName(final MetadataTable metadata) {
+    DateMetadataColumn dateCol = metadata.getRunDateColumn();
     if (dateCol == null) {
       return Comparator.comparing(RawDataFile::getName);
     }
 
     return Comparator.comparing(
-        (RawDataFile raw) -> ProjectService.getMetadata().getValue(dateCol, raw),
+        (RawDataFile raw) -> metadata.getValue(dateCol, raw),
         Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(RawDataFile::getName);
   }
 

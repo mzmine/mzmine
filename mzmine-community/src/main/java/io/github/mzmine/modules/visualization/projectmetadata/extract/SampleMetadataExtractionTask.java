@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Extracts sample metadata columns from the file names or paths of the selected raw data files
@@ -52,13 +54,14 @@ public class SampleMetadataExtractionTask extends AbstractRawDataFileTask {
   private final List<RawDataFile> raws;
   private final List<MetadataRegexMapping> mappings;
   private final boolean overwrite;
+  private final @Nullable MZmineProject fixedProject;
 
   public SampleMetadataExtractionTask(@NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
       @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws) {
     this(moduleCallDate, parameters, moduleClass, raws,
         parameters.getValue(SampleMetadataExtractionParameters.mappings),
-        parameters.getValue(SampleMetadataExtractionParameters.overwrite));
+        parameters.getValue(SampleMetadataExtractionParameters.overwrite), null);
   }
 
   /**
@@ -69,19 +72,35 @@ public class SampleMetadataExtractionTask extends AbstractRawDataFileTask {
       @NotNull final ParameterSet parameters,
       @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws,
       @NotNull final List<MetadataRegexMapping> mappings, final boolean overwrite) {
+    this(moduleCallDate, parameters, moduleClass, raws, mappings, overwrite, null);
+  }
+
+  /** Pins metadata writes to a reviewed project rather than the mutable global project. */
+  public SampleMetadataExtractionTask(@NotNull final Instant moduleCallDate,
+      @NotNull final ParameterSet parameters,
+      @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws,
+      @NotNull final List<MetadataRegexMapping> mappings, final boolean overwrite,
+      @Nullable final MZmineProject fixedProject) {
     super(null, moduleCallDate, parameters, moduleClass);
     this.raws = List.of(raws);
     this.mappings = mappings;
     this.overwrite = overwrite;
+    this.fixedProject = fixedProject;
   }
 
   @Override
   protected void process() {
-    final MetadataTable metadata = ProjectService.getMetadata();
+    if (cancelIfFixedProjectChanged()) {
+      return;
+    }
+    final MetadataTable metadata = getProject().getProjectMetadata();
     totalItems = mappings.size();
 
     for (final MetadataRegexMapping mapping : mappings) {
       if (isCanceled()) {
+        return;
+      }
+      if (cancelIfFixedProjectChanged()) {
         return;
       }
       applyMapping(metadata, mapping);
@@ -165,5 +184,17 @@ public class SampleMetadataExtractionTask extends AbstractRawDataFileTask {
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
     return raws;
+  }
+
+  private @NotNull MZmineProject getProject() {
+    return fixedProject == null ? ProjectService.getProject() : fixedProject;
+  }
+
+  private boolean cancelIfFixedProjectChanged() {
+    if (fixedProject != null && ProjectService.getProject() != fixedProject) {
+      cancel();
+      return true;
+    }
+    return false;
   }
 }

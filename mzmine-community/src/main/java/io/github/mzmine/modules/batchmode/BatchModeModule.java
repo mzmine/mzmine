@@ -31,11 +31,14 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
+import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
+import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -60,6 +63,63 @@ public class BatchModeModule implements MZmineProcessingModule {
   private static final Logger logger = Logger.getLogger(BatchModeModule.class.getName());
   private static final String MODULE_NAME = "Batch mode";
   private static final String MODULE_DESCRIPTION = "This module allows execution of multiple processing tasks in a batch.";
+
+  /**
+   * Creates a batch task for an already reviewed queue without submitting it. The caller can use
+   * the returned task for task-controller submission, monitoring, and cancellation.
+   *
+   * <p>The normal single-batch and project-opening guards are retained. The queue is cloned so
+   * later UI edits cannot change the prepared task.</p>
+   *
+   * @return a detached task, or {@code null} when normal batch preconditions are not met
+   */
+  public static @Nullable BatchTask prepareBatchTask(final @NotNull MZmineProject project,
+      final @NotNull BatchQueue queue, final @NotNull Instant moduleCallDate) {
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Cannot run a second batch while the current batch is not finished.");
+      return null;
+    }
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(ProjectOpeningTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Currently loading a project, cannot run a batch until project load is finished.");
+      return null;
+    }
+    final ParameterSet parameters = new BatchModeParameters();
+    parameters.getParameter(BatchModeParameters.batchQueue).setValue(queue.clone());
+    return BatchTask.forFixedProject(project, parameters, moduleCallDate);
+  }
+
+  /**
+   * Prepares a batch for a private project. It retains normal batch preconditions but rejects
+   * modules that can replace the globally open project or write a project outside that private
+   * computation.
+   */
+  public static @Nullable BatchTask prepareIsolatedBatchTask(final @NotNull MZmineProject project,
+      final @NotNull BatchQueue queue, final @NotNull Instant moduleCallDate) {
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Cannot run a second batch while the current batch is not finished.");
+      return null;
+    }
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(ProjectOpeningTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Currently loading a project, cannot run a batch until project load is finished.");
+      return null;
+    }
+    if (queue.stream().map(step -> step.getModule().getClass()).anyMatch(
+        BatchModeModule::isUnsafeForIsolatedProject)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "An isolated batch cannot load, save, or autosave a project.");
+      return null;
+    }
+    return BatchTask.forIsolatedProject(project, queue.clone(), moduleCallDate);
+  }
+
+  private static boolean isUnsafeForIsolatedProject(final @NotNull Class<?> moduleClass) {
+    return moduleClass == ProjectLoadModule.class || moduleClass == ProjectSaveModule.class
+        || moduleClass == ProjectSaveAsModule.class || moduleClass == AutoSaveBatchModule.class;
+  }
 
   /**
    * Run from batch file (usually in headless mode)
