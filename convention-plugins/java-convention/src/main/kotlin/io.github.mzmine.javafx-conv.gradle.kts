@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,15 @@ plugins {
 
 // https://github.com/gradle/gradle/issues/15383
 val libs = versionCatalogs.named("libs")
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jfree" && requested.name == "jfreechart") {
+            useVersion(libs.findVersion("jfreechart").get().requiredVersion)
+            because("patch transitive jfreechart upgrades to the version declared in libs.versions.toml")
+        }
+    }
+}
 
 /*
  * Include JavaFX modules

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,6 +42,11 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    * in PASEF
    */
   TIMS, IMS, DTIMS, TWIMS, SLIM;
+
+  public static IonMobilityWizardParameterFactory[] valuesExceptNoIms() {
+    return Arrays.stream(values()).filter(v -> v != NO_IMS)
+        .toArray(IonMobilityWizardParameterFactory[]::new);
+  }
 
   @Override
   public String toString() {
@@ -74,7 +80,6 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
   public @NotNull String getUniqueID() {
     return name();
   }
-
 
   /**
    * Not all combinations work.

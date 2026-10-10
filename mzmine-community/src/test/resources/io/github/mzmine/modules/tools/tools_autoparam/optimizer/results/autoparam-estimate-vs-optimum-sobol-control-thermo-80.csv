@@ -1,0 +1,13 @@
+dataset,seed,kind,name,estimate,bestPerturbed,front
+thermo-20y-qc,42,metric,Yasin isotope score,3014.3277211944846,3599.735930895056,3599.735930895056
+thermo-20y-qc,42,diagnostic,Total features,28866.0,27205.0,27205.0
+thermo-20y-qc,42,diagnostic,Shape filter would remove / %,,,
+thermo-20y-qc,42,parameter,FWHM,0.030181679874658585,0.03265148888126433,0.03265148888126433
+thermo-20y-qc,42,parameter,Inter sample RT tolerance,0.04613828659057617,0.042648315392474115,0.042648315392474115
+thermo-20y-qc,42,parameter,MS1 noise level,5.0,3.0,3.0
+thermo-20y-qc,42,parameter,MZ tolerance / m/z,0.003,0.005,0.005
+thermo-20y-qc,42,parameter,MZ tolerance / ppm,7.0,15.0,15.0
+thermo-20y-qc,42,parameter,Min consecutive,5.0,3.0,3.0
+thermo-20y-qc,42,parameter,Min height,434925.40625,555330.1168508301,555330.1168508301
+thermo-20y-qc,42,parameter,Chrom. Threshold,0.85,0.804055017355221,0.804055017355221
+thermo-20y-qc,42,parameter,Top-to-edge ratio,1.7,1.966143967705663,1.966143967705663
