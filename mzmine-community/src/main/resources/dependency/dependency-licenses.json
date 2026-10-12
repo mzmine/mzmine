@@ -1929,7 +1929,7 @@
         },
         {
             "moduleName": "net.java.dev.jna:jna-platform",
-            "moduleVersion": "5.5.0",
+            "moduleVersion": "5.16.0",
             "moduleUrls": [
                 "https://github.com/java-native-access/jna"
             ],

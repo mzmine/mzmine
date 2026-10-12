@@ -182,7 +182,7 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     model.preferredFrontSolutionProperty().set(preferred);
     model.selectedSolutionProperty().set(preferred);
     model.optimizationRunningProperty().set(false);
-    if (stage != null) {
+    if (stage != null && stage.isShowing()) {
       final String selectionMessage = preferred == null ? "" : preferred.getNumberOfObjectives() > 1
           ? " The solution with the best average rank across all scores was selected."
           : " The highest ranked solution was selected.";

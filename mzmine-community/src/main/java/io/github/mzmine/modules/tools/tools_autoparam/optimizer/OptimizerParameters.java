@@ -153,11 +153,14 @@ public class OptimizerParameters extends SimpleParameterSet {
     optimizerParameters.setParameter(PatternSearchOptimizerParameters.optimizationTarget,
         OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE);
     param.setParameter(benchmarkFeatures, false);
-    param.setParameter(iterations, 50);
     param.setParameter(maxShapeRejectionFactor, true, DEFAULT_SHAPE_REJECTION_FACTOR);
-    param.setParameter(paramToOptimize,
-        new ArrayList<>(simpleParameters.getValue(SimpleOptimizerParameters.paramToOptimize)));
     param.setParameter(showExtendedStatistics, false);
+
+    final List<ParameterDefinition<?>> paramToOptimize = simpleParameters.getValue(
+        SimpleOptimizerParameters.paramToOptimize);
+    param.setParameter(OptimizerParameters.paramToOptimize, new ArrayList<>(paramToOptimize));
+    param.setParameter(iterations,
+        Math.min(DEFAULT_SOLUTIONS.size() * 7, paramToOptimize.size() * 7));
     return param;
   }
 
