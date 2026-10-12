@@ -256,9 +256,9 @@ public class IntegrationTests {
     Assertions.assertEquals(0,
         IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
                 "workshop_dataset_integration_test_project_keep_processing.mzbatch").tempDir(tempDir)
-            /*.rawFiles("171103_PMA_TK_QC_05-4to5min.mzML")*/
-            /*.specLibsFullPath("spectral_libraries/integration_tests/massbank_nist_for_tests.msp")*/
-            .build().runBatchGetCheckResults(
+            .rawFiles("171103_PMA_TK_QC_05-4to5min.mzML")
+            .specLibsFullPath("spectral_libraries/integration_tests/massbank_nist_for_tests.msp")
+            .checkImportedFilesAndLibraries(false).build().runBatchGetCheckResults(
                 "rawdatafiles/integration_tests/workshop_dataset/expected_results_project_merging.csv")
             .size());
   }
