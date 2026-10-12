@@ -220,6 +220,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
         case ONLINE_REACTION -> "online_reaction";
         case MS2Deepscore -> "ms2_deepscore";
         case DREAMS -> "dreams";
+        case ISOTOPE_LABELING_SIM -> "isotope_labeling_sim";
         case ANALOG_COSINE -> "analog_cosine";
         case ANALOG_DREAMS -> "analog_dreams";
         case ANALOG_MS2DEEPSCORE -> "analog_ms2_deepscore";
