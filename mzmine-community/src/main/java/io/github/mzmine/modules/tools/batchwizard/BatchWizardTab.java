@@ -607,32 +607,33 @@ public class BatchWizardTab extends SimpleTab {
    * The final product of the wizard is the batch
    */
   public void createBatch() {
-    var sequenceSteps = updateAllParametersFromUiAndCheckErrors();
-    if (sequenceSteps == null) {
-      return;
-    }
-    final Optional<WizardStepParameters> workflow = sequenceSteps.get(WORKFLOW);
-    if (workflow.isEmpty()) {
-      DialogLoggerUtil.showErrorDialog("Cannot create batch",
-          "A workflow must be selected to create a batch.");
-      return;
-    }
-
-    // Apply parameter overrides from customization tab
-
-    BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
-        .getModuleParameters(BatchModeModule.class);
     try {
+      // Control readback and validation can fail before the batch builder is reached.
+      final WizardSequence currentSequence = updateAllParametersFromUiAndCheckErrors();
+      if (currentSequence == null) {
+        return;
+      }
+      final Optional<WizardStepParameters> workflow = currentSequence.get(WORKFLOW);
+      if (workflow.isEmpty()) {
+        DialogLoggerUtil.showErrorDialog("Cannot create batch",
+            "A workflow must be selected to create a batch.");
+        return;
+      }
+
+      // Apply parameter overrides from customization tab
+      final BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
+          .getModuleParameters(BatchModeModule.class);
       final BatchQueue q = ((WorkflowWizardParameterFactory) workflow.get()
-          .getFactory()).getBatchBuilder(sequenceSteps).createQueue();
+          .getFactory()).getBatchBuilder(currentSequence).createQueue();
       batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
       if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
         MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
       }
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Cannot create batch" + e.getMessage(), e);
-      DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
+      logger.log(Level.WARNING, "Cannot create batch: " + e.getMessage(), e);
+      DialogLoggerUtil.showErrorDialog("Cannot create batch",
+          Objects.requireNonNullElse(e.getMessage(), e.getClass().getSimpleName()));
     }
   }
 
