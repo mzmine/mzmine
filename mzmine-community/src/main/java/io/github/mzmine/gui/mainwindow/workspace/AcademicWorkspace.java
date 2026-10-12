@@ -79,7 +79,6 @@ import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeak
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_untargetedLabeling.UntargetedLabelingModule;
 import io.github.mzmine.modules.dataprocessing.isolab_natabundance.IsotopeNaturalAbundanceModule;
-import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;

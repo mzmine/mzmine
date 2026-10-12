@@ -31,6 +31,9 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
@@ -575,9 +578,10 @@ public class IsotopeLabelingTargetedTask extends AbstractTask {
           ID++);
       final OverlappingCompoundAnnotation mergedAnnotation = mergedAnnotations.get(row);
 
-      final Range<Double> mzRange = mzTolerance.getToleranceRange(
+      final SimpleDoubleRange mzRange = mzTolerance.getSimpleToleranceRange(
           mergedAnnotation.evaluateMergedToleranceRange(mzTolerance));
-      final Range<Float> rtRange = mergedAnnotation.evaluateMergedRtToleranceRange(rtTolerance);
+      final SimpleFloatRange rtRange = SimpleRange.ofFloat(
+          mergedAnnotation.evaluateMergedRtToleranceRange(rtTolerance));
       final Range<Float> mobRange = mergedAnnotation.evaluateMergedMobilityToleranceRange(mobTol);
 
       newRow.setCompoundAnnotations(mergedAnnotation.getAnnotations());
