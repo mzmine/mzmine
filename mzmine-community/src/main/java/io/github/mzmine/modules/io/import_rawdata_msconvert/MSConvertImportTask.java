@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
@@ -49,6 +50,7 @@ import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -140,7 +142,6 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     return switch (fileType) {
       case MZML -> true;
       case IMZML -> true;
-      case MZML_IMS -> true;
       case MZXML -> true;
       case MZDATA -> true;
       case NETCDF -> true;
@@ -321,8 +322,9 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
     if (convertToFile) {
       ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(FileAndPathUtil.getTempDir());
+      Process process = null;
       try {
-        final Process process = builder.start();
+        process = builder.start();
         while (process.isAlive()) { // wait for conversion to finish
           if (isCanceled()) {
             process.destroy();
@@ -330,6 +332,13 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
           TimeUnit.MILLISECONDS.sleep(100);
         }
       } catch (IOException | InterruptedException e) {
+        // an interrupt would otherwise leave msconvert running after mzmine exits
+        if (process != null) {
+          process.destroy();
+        }
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+        }
         logger.log(Level.WARNING, "Error while converting %s to mzML file.".formatted(rawFilePath),
             e);
         setStatus(TaskStatus.ERROR);
@@ -441,7 +450,6 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
             "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
                 + parsedScans + " out of " + totalScans + ")"));
       }
-
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
 
     } catch (Throwable e) {

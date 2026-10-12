@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,7 +59,9 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
 
 
   public ProjectLoaderParameters() {
-    super(projectFile, mergeOntoExisting, keepLibraries);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/project_io/project_io.html#open-project",
+        projectFile, mergeOntoExisting, keepLibraries);
   }
 
   @Override

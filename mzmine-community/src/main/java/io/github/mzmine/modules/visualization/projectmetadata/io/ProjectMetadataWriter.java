@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,8 +38,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,28 +61,28 @@ public class ProjectMetadataWriter {
    * @return true if success. also if empty
    */
   public boolean exportTo(File file) {
-    if (metadataTable.getData().isEmpty()) {
+    // copy to pin the column order used for the header and all rows
+    final List<MetadataColumn<?>> columns = List.copyOf(metadataTable.getColumns());
+    if (columns.isEmpty()) {
       logger.info("Project metadata is empty, nothing to export");
       return true;
     }
 
     try (final ICSVWriter csvWriter = CSVParsingUtils.createDefaultWriterAutoDetect(file, "tsv",
         WriterOptions.REPLACE)) {
-      var data = metadataTable.getData();
-
       // create the file header
       StringMetadataColumn dataFileCol = metadataTable.createDataFileColumn();
 
       // write the header down
       if (format == MetadataFileFormat.MZMINE_INTERNAL) {
-        writeTypeDescriptions(csvWriter, dataFileCol, data);
+        writeTypeDescriptions(csvWriter, dataFileCol, columns);
       }
 
       String GNPS_PREFIX = "ATTRIBUTE_";
 
       final List<String> parametersTitles = new ArrayList<>();
       parametersTitles.add(dataFileCol.getTitle());
-      for (var column : data.keySet()) {
+      for (var column : columns) {
         var title = column.getTitle();
         if (format == MetadataFileFormat.GNPS && !title.toLowerCase()
             .endsWith(GNPS_PREFIX.toLowerCase())) {
@@ -98,10 +98,10 @@ public class ProjectMetadataWriter {
       RawDataFile[] files = ProjectService.getProject().getDataFiles();
       for (var rawDataFile : files) {
         List<String> lineFieldsValues = new ArrayList<>(List.of(rawDataFile.getName()));
-        for (var column : data.entrySet()) {
+        for (var column : columns) {
           // get the parameter value
           // [IMPORTANT] "" will be returned in case if it's unset
-          Object value = metadataTable.getValue(column.getKey(), rawDataFile);
+          Object value = metadataTable.getValue(column, rawDataFile);
           lineFieldsValues.add(value == null ? "" : value.toString());
         }
 
@@ -122,15 +122,14 @@ public class ProjectMetadataWriter {
   }
 
   private void writeTypeDescriptions(final ICSVWriter writer,
-      final StringMetadataColumn dataFileCol,
-      final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data) {
+      final StringMetadataColumn dataFileCol, final Collection<MetadataColumn<?>> columns) {
 
     final List<String> parametersDescriptions = new ArrayList<>();
     final List<String> parametersTypes = new ArrayList<>();
     parametersDescriptions.add(dataFileCol.getDescription());
     parametersTypes.add(dataFileCol.getType().toString());
 
-    for (var column : data.keySet()) {
+    for (var column : columns) {
       parametersDescriptions.add(column.getDescription());
       parametersTypes.add(column.getType().toString());
     }

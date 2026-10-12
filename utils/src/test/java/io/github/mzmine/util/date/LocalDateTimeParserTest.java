@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,87 +58,134 @@ class LocalDateTimeParserTest {
     assertNotNull(matcher.group(0));
 
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
-        LocalDateTimeParser.parseAnyFirstDate("2020-05-20_08-50-15"));
+        DateTimeUtils.parseAnyFirstDate("2020-05-20_08-50-15"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
-        LocalDateTimeParser.parseAnyFirstDate("2020-05-20_08-50-15adjwkfajal"));
+        DateTimeUtils.parseAnyFirstDate("2020-05-20_08-50-15adjwkfajal"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
-        LocalDateTimeParser.parseAnyFirstDate("dawfahwsldk2020-05-20_08-50-15adjwkfajal"));
+        DateTimeUtils.parseAnyFirstDate("dawfahwsldk2020-05-20_08-50-15adjwkfajal"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
-        LocalDateTimeParser.parseAnyFirstDate("dawfahwsldk2020-05-20_08-50-15_5adjwkfajal"));
+        DateTimeUtils.parseAnyFirstDate("dawfahwsldk2020-05-20_08-50-15_5adjwkfajal"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
-        LocalDateTimeParser.parseAnyFirstDate("2020-05-20T08-50-15"));
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08-50-15"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
-        LocalDateTimeParser.parseAnyFirstDate("2020-05-20T08-50-15"));
-    final LocalDateTime CET = LocalDateTimeParser.parseAnyFirstDate("2020-05-20T08-50-15_CET");
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08-50-15"));
+    final LocalDateTime CET = DateTimeUtils.parseAnyFirstDate("2020-05-20T08-50-15_CET");
     assertEquals(LocalDateTime.of(2020, 5, 20, 6, 50, 15), CET);
     assertEquals(LocalDateTime.of(2020, 5, 20, 6, 50, 15),
-        LocalDateTimeParser.parseAnyFirstDate("2020-05-20T08-50-15_+0200"));
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08-50-15_+0200"));
 
+  }
+
+  @Test
+  void parseIsoDateTime() {
+    final LocalDateTime expected = LocalDateTime.of(2020, 5, 20, 8, 50, 15);
+    // the standard local date time format, with all supported date time separators
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20 08:50:15"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20_08:50:15"));
+    // surrounded by other text
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("run_2020-05-20T08:50:15_blank.mzML"));
+    assertEquals(expected, DateTimeUtils.parseAnyStartingDate("2020-05-20T08:50:15 trailing"));
+    assertEquals(expected, DateTimeUtils.parseAnyEndingDate("leading 2020-05-20T08:50:15"));
+    // optional seconds and fraction of seconds
+    assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50),
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50"));
+    assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15, 123_000_000),
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15.123"));
+
+    // the whole string is a date so the direct parse also has to work
+    assertEquals(expected, DateTimeUtils.parse("2020-05-20T08:50:15"));
+    assertEquals(expected, DateTimeUtils.parse("2020-05-20 08:50:15"));
+  }
+
+  @Test
+  void parseZonedIsoDateTime() {
+    // 08:50:15 +02:00 is 06:50:15 UTC
+    final LocalDateTime expected = LocalDateTime.of(2020, 5, 20, 6, 50, 15);
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15+02:00"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15+0200"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15_+02:00"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20 08:50:15 +02:00"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15_CET"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20 08:50:15 CET"));
+    assertEquals(expected, DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15 Europe/Berlin"));
+    assertEquals(expected,
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15+02:00[Europe/Berlin]"));
+    assertEquals(expected,
+        DateTimeUtils.parseAnyFirstDate("file_2020-05-20T08:50:15+02:00_blank.mzML"));
+    // UTC input stays as it is
+    assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15Z"));
+    assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15, 123_000_000),
+        DateTimeUtils.parseAnyFirstDate("2020-05-20T08:50:15.123Z"));
+
+    assertEquals(expected, DateTimeUtils.parse("2020-05-20T08:50:15+02:00"));
+    assertEquals(expected, DateTimeUtils.parse("2020-05-20 08:50:15 CET"));
   }
 
   @Test
   void parseAnyDate() {
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("2020-05-20").toLocalDate());
+        DateTimeUtils.parseAnyFirstDate("2020-05-20").toLocalDate());
     // always at start of day if just date. This is for checks that check if something ran after that date
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyFirstDate("20200520"));
+        DateTimeUtils.parseAnyFirstDate("20200520"));
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("2020.05.20").toLocalDate());
+        DateTimeUtils.parseAnyFirstDate("2020.05.20").toLocalDate());
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("2020-05-20_somthing foll3owing").toLocalDate());
+        DateTimeUtils.parseAnyFirstDate("2020-05-20_somthing foll3owing").toLocalDate());
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("Lead3ing2020-05-20").toLocalDate());
+        DateTimeUtils.parseAnyFirstDate("Lead3ing2020-05-20").toLocalDate());
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("Lead3ing2020-05-20_and trai3ling").toLocalDate());
+        DateTimeUtils.parseAnyFirstDate("Lead3ing2020-05-20_and trai3ling").toLocalDate());
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("Lead3ing20200520_and trai3ling").toLocalDate());
+        DateTimeUtils.parseAnyFirstDate("Lead3ing20200520_and trai3ling").toLocalDate());
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("Lead3ing20200520").toLocalDate());
+        DateTimeUtils.parseAnyFirstDate("Lead3ing20200520").toLocalDate());
     assertEquals(LocalDate.of(2020, 5, 20),
-        LocalDateTimeParser.parseAnyFirstDate("20200520_trail3ing").toLocalDate());
-    assertNull(LocalDateTimeParser.parseAnyFirstDate("2020052034234235_some num4bers"));
-    assertNull(LocalDateTimeParser.parseAnyFirstDate("2020-05-2034234235_some num4bers"));
+        DateTimeUtils.parseAnyFirstDate("20200520_trail3ing").toLocalDate());
+    assertNull(DateTimeUtils.parseAnyFirstDate("2020052034234235_some num4bers"));
+    assertNull(DateTimeUtils.parseAnyFirstDate("2020-05-2034234235_some num4bers"));
   }
 
   @Test
   void parseEndingDate() {
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyEndingDate("2020-05-20"));
+        DateTimeUtils.parseAnyEndingDate("2020-05-20"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyEndingDate("20200520"));
+        DateTimeUtils.parseAnyEndingDate("20200520"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyEndingDate("2020.05.20"));
+        DateTimeUtils.parseAnyEndingDate("2020.05.20"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyEndingDate("Leading2020-05-20"));
+        DateTimeUtils.parseAnyEndingDate("Leading2020-05-20"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyEndingDate("Leading20200520"));
+        DateTimeUtils.parseAnyEndingDate("Leading20200520"));
 
-    assertNull(LocalDateTimeParser.parseAnyEndingDate("2020-05-20_somthing1 following"));
-    assertNull(LocalDateTimeParser.parseAnyEndingDate("Lead4ing2020-05-20_and t2railing"));
-    assertNull(LocalDateTimeParser.parseAnyEndingDate("Lead3ing20200520_and tra3iling"));
-    assertNull(LocalDateTimeParser.parseAnyEndingDate("20200520_trailing"));
-    assertNull(LocalDateTimeParser.parseAnyEndingDate("2020052034234235_some nu23mbers"));
-    assertNull(LocalDateTimeParser.parseAnyEndingDate("2020-05-2034234235_some nu1mbers"));
+    assertNull(DateTimeUtils.parseAnyEndingDate("2020-05-20_somthing1 following"));
+    assertNull(DateTimeUtils.parseAnyEndingDate("Lead4ing2020-05-20_and t2railing"));
+    assertNull(DateTimeUtils.parseAnyEndingDate("Lead3ing20200520_and tra3iling"));
+    assertNull(DateTimeUtils.parseAnyEndingDate("20200520_trailing"));
+    assertNull(DateTimeUtils.parseAnyEndingDate("2020052034234235_some nu23mbers"));
+    assertNull(DateTimeUtils.parseAnyEndingDate("2020-05-2034234235_some nu1mbers"));
   }
 
   @Test
   void parseStartingDate() {
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyStartingDate("2020-05-20"));
+        DateTimeUtils.parseAnyStartingDate("2020-05-20"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyStartingDate("20200520"));
+        DateTimeUtils.parseAnyStartingDate("20200520"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyStartingDate("2020.05.20"));
+        DateTimeUtils.parseAnyStartingDate("2020.05.20"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyStartingDate("2020-05-20_somthi4ng following"));
+        DateTimeUtils.parseAnyStartingDate("2020-05-20_somthi4ng following"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 0, 0, 0),
-        LocalDateTimeParser.parseAnyStartingDate("20200520_trai2ling"));
-    assertNull(LocalDateTimeParser.parseAnyStartingDate("Le3ading2020-05-20"));
-    assertNull(LocalDateTimeParser.parseAnyStartingDate("Le4ading2020-05-20_and tra4iling"));
-    assertNull(LocalDateTimeParser.parseAnyStartingDate("Lea4ding20200520_and tra4iling"));
-    assertNull(LocalDateTimeParser.parseAnyStartingDate("Le4ading20200520"));
-    assertNull(LocalDateTimeParser.parseAnyStartingDate("2020052034234235_some num4bers"));
-    assertNull(LocalDateTimeParser.parseAnyStartingDate("2020-05-2034234235_some nu4mbers"));
+        DateTimeUtils.parseAnyStartingDate("20200520_trai2ling"));
+    assertNull(DateTimeUtils.parseAnyStartingDate("Le3ading2020-05-20"));
+    assertNull(DateTimeUtils.parseAnyStartingDate("Le4ading2020-05-20_and tra4iling"));
+    assertNull(DateTimeUtils.parseAnyStartingDate("Lea4ding20200520_and tra4iling"));
+    assertNull(DateTimeUtils.parseAnyStartingDate("Le4ading20200520"));
+    assertNull(DateTimeUtils.parseAnyStartingDate("2020052034234235_some num4bers"));
+    assertNull(DateTimeUtils.parseAnyStartingDate("2020-05-2034234235_some nu4mbers"));
   }
 }

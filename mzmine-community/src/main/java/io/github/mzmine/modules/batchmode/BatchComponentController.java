@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesModule;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesParameters;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
+import io.github.mzmine.modules.batchmode.order.BatchModuleOrderValidator;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -51,16 +52,17 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.javafx.DraggableListCell;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -75,6 +77,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -112,11 +115,15 @@ public class BatchComponentController implements LastFilesComponent {
   public Button btnCloneStep;
 
   private BatchQueue batchQueue;
+  private Map<Integer, String> moduleOrderValidationMessages = Map.of();
+  private final ListChangeListener<MZmineProcessingStep<MZmineProcessingModule>> batchQueueListener = _ -> refreshModuleOrderValidation();
 
   public void initialize() {
 
     batchQueue = new BatchQueue();
-    setValue(batchQueue);
+    batchQueue.addListener(batchQueueListener);
+    currentStepsList.setItems(batchQueue);
+    refreshModuleOrderValidation();
 
     btnLoadLast.setChangeListener(file -> {
       try {
@@ -126,20 +133,8 @@ public class BatchComponentController implements LastFilesComponent {
       }
     });
 
-    currentStepsList.setCellFactory(param -> new DraggableListCell<>() {
-      @Override
-      protected void updateItem(MZmineProcessingStep<MZmineProcessingModule> item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        }
-        if (item != null && !empty) {
-          setText(item.getModule().getName());
-          setGraphic(null);
-        }
-      }
-    });
+    currentStepsList.setCellFactory(
+        _ -> new BatchStepListCell(this::getModuleOrderValidationMessage));
     currentStepsList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
     currentStepsList.setOnMouseClicked(e -> {
@@ -188,7 +183,6 @@ public class BatchComponentController implements LastFilesComponent {
 
     MZmineProcessingStep<MZmineProcessingModule> step = batchQueue.remove(selected);
     batchQueue.add(selected + stepShift, step);
-    currentStepsList.setItems(batchQueue);
     currentStepsList.getSelectionModel().select(selected + stepShift);
   }
 
@@ -242,7 +236,6 @@ public class BatchComponentController implements LastFilesComponent {
 
     // Add step to queue.
     batchQueue.add(step);
-    currentStepsList.setItems(batchQueue);
     currentStepsList.getSelectionModel().select(batchQueue.size() - 1);
   }
 
@@ -262,6 +255,7 @@ public class BatchComponentController implements LastFilesComponent {
     final ParameterSet parameters = selected == null ? null : selected.getParameterSet();
     if (parameters != null) {
       parameters.showSetupDialog(false);
+      refreshModuleOrderValidation();
     }
   }
 
@@ -345,11 +339,21 @@ public class BatchComponentController implements LastFilesComponent {
    *
    * @param newValue the new queue.
    */
-  public void setValue(final BatchQueue newValue) {
-
-    batchQueue = newValue;
-    currentStepsList.setItems(batchQueue);
+  public void setValue(@Nullable final BatchQueue newValue) {
+    if (newValue != batchQueue) {
+      batchQueue.setAll(newValue == null ? List.of() : newValue);
+    }
+    refreshModuleOrderValidation();
     selectStep(0);
+  }
+
+  private void refreshModuleOrderValidation() {
+    moduleOrderValidationMessages = BatchModuleOrderValidator.validateAndFormatByStep(batchQueue);
+    currentStepsList.refresh();
+  }
+
+  private @Nullable String getModuleOrderValidationMessage(final int stepIndex) {
+    return moduleOrderValidationMessages.get(stepIndex);
   }
 
   @Override
@@ -477,6 +481,7 @@ public class BatchComponentController implements LastFilesComponent {
     }
     File baseFile = parameters.getValue(ChangeOutputFilesParameters.outBaseFile);
     ChangeOutputFilesUtils.applyTo(currentStepsList.getItems(), baseFile);
+    refreshModuleOrderValidation();
   }
 
   public void cloneParametersPressed(ActionEvent e) {
@@ -524,5 +529,6 @@ public class BatchComponentController implements LastFilesComponent {
         }
       }
     }
+    refreshModuleOrderValidation();
   }
 }

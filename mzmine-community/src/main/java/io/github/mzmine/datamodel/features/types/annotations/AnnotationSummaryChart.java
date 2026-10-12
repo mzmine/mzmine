@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
-import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
@@ -52,7 +52,9 @@ import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -239,9 +241,12 @@ public final class AnnotationSummaryChart extends Pane {
     final MsiAnnotationLevel msiLevel = annotationSummary.deriveMsiLevel();
     final ExposomicsAnnotationLevel schymanskiLevel = annotationSummary.deriveExposomicsLevel();
 
+    // decision: use non-wrapping labels. Wrap-text labels have a content bias that breaks the
+    // graphic-only tooltip sizing under JavaFX 26 (the popup grows to the screen bounds).
     final VBox left = FxLayout.newVBox(Pos.CENTER_RIGHT, Insets.EMPTY,
-        newBoldLabel("Annotation levels:"), newLabel(msiLevel.getLabel() + " = "),
-        newLabel(schymanskiLevel.getLabel() + " = "), newBoldLabel(""), newBoldLabel("Scores:"));
+        newBoldLabel("Annotation levels:"), newLabelNoWrap(msiLevel.getLabel() + " = "),
+        newLabelNoWrap(schymanskiLevel.getLabel() + " = "), newBoldLabel(""),
+        newBoldLabel("Scores:"));
     final VBox right = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, newBoldLabel(""),
         newBoldLabel(msiLevel.numberLevel() + ""), newBoldLabel(schymanskiLevel.fullLevel()),
         newBoldLabel(""), newBoldLabel(""));
@@ -249,9 +254,13 @@ public final class AnnotationSummaryChart extends Pane {
     right.setSpacing(0);
 
     for (final Scores type : scoreTypes) {
-      left.getChildren().add(newLabel(type.fullName() + " = "));
+      left.getChildren().add(newLabelNoWrap(type.fullName() + " = "));
       right.getChildren().add(newBoldLabel(annotationSummary.scoreLabel(type)));
     }
-    tooltip.setGraphic(FxLayout.newHBox(left, right));
+
+    final HBox content = FxLayout.newHBox(left, right);
+    // constrain to the preferred size so the graphic-only tooltip hugs the text
+    content.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+    tooltip.setGraphic(content);
   }
 }

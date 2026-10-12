@@ -73,6 +73,8 @@ public class ChromatogramPlotModel {
 
   private final BooleanProperty rangeStickyZero =  new SimpleBooleanProperty(false);
   private final BooleanProperty showSeriesLabel = new SimpleBooleanProperty(false);
+  private final BooleanProperty showDomainAxisLabel = new SimpleBooleanProperty(true);
+  private final BooleanProperty showRangeAxisLabel = new SimpleBooleanProperty(true);
   private final StringProperty title = new SimpleStringProperty();
   private final StringProperty domainLabel = new SimpleStringProperty();
   private final StringProperty rangeLabel = new SimpleStringProperty();
@@ -256,6 +258,30 @@ public class ChromatogramPlotModel {
 
   public void setShowSeriesLabel(boolean showSeriesLabel) {
     this.showSeriesLabel.set(showSeriesLabel);
+  }
+
+  public boolean isShowDomainAxisLabel() {
+    return showDomainAxisLabel.get();
+  }
+
+  public BooleanProperty showDomainAxisLabelProperty() {
+    return showDomainAxisLabel;
+  }
+
+  public void setShowDomainAxisLabel(boolean showDomainAxisLabel) {
+    this.showDomainAxisLabel.set(showDomainAxisLabel);
+  }
+
+  public boolean isShowRangeAxisLabel() {
+    return showRangeAxisLabel.get();
+  }
+
+  public BooleanProperty showRangeAxisLabelProperty() {
+    return showRangeAxisLabel;
+  }
+
+  public void setShowRangeAxisLabel(boolean showRangeAxisLabel) {
+    this.showRangeAxisLabel.set(showRangeAxisLabel);
   }
 
   public @Nullable XYDataset getSelectedDataset() {

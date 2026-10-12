@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -30,12 +31,17 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.xml.XMLConstants;
@@ -55,8 +61,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -70,6 +78,8 @@ import org.xml.sax.SAXNotSupportedException;
  * XML processing utilities
  */
 public class XMLUtils {
+
+  private static final Logger logger = Logger.getLogger(XMLUtils.class.getName());
 
   /**
    * jackson mapper to auto map objects into DOM or stax
@@ -435,5 +445,83 @@ public class XMLUtils {
     } catch (XMLStreamException | IOException e) {
       throw new RuntimeException("Failed to load object from XML DOM", e);
     }
+  }
+
+  /**
+   * IMPORTANT: This method is for debugging purposes only and should not be used in production
+   * code. It advances the reader.
+   */
+  @Deprecated
+  public static String streamToStringDebugging(XMLStreamReader reader) {
+    try {
+      StringWriter sw = new StringWriter();
+      TransformerFactory.newInstance().newTransformer()
+          .transform(new StAXSource(reader), new StreamResult(sw));
+      String xml = sw.toString();
+      return xml;
+    } catch (TransformerException e) {
+      throw new RuntimeException("Failed to reader to string", e);
+    }
+  }
+
+  public static void appendSimpleDoubleRange(@NotNull Element parent, @NotNull String tag,
+      @NotNull SimpleRange.SimpleDoubleRange range) {
+    final Element element = parent.getOwnerDocument().createElement(tag);
+    element.setAttribute(CONST.RANGE_LOWER_ATTR, String.valueOf(range.lower()));
+    element.setAttribute(CONST.RANGE_UPPER_ATTR, String.valueOf(range.upper()));
+    parent.appendChild(element);
+  }
+
+  public static void appendSimpleFloatRange(@NotNull Element parent, @NotNull String tag,
+      @NotNull SimpleRange.SimpleFloatRange range) {
+    final Element element = parent.getOwnerDocument().createElement(tag);
+    element.setAttribute(CONST.RANGE_LOWER_ATTR, String.valueOf(range.lower()));
+    element.setAttribute(CONST.RANGE_UPPER_ATTR, String.valueOf(range.upper()));
+    parent.appendChild(element);
+  }
+
+  public static @Nullable SimpleRange.SimpleDoubleRange loadSimpleDoubleRange(
+      @Nullable Element rangeElement) {
+    if (rangeElement == null) {
+      return null;
+    }
+    try {
+      return new SimpleDoubleRange(
+          Double.parseDouble(rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR)),
+          Double.parseDouble(rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+    } catch (NumberFormatException e) {
+      logger.warning("Could not parse range from values %s - %s.".formatted(
+          rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR),
+          rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+      return null;
+    }
+  }
+
+  public static @Nullable SimpleRange.SimpleFloatRange loadSimpleFloatRange(
+      @Nullable Element rangeElement) {
+    if (rangeElement == null) {
+      return null;
+    }
+    try {
+      return new SimpleFloatRange(
+          Float.parseFloat(rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR)),
+          Float.parseFloat(rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+    } catch (NumberFormatException e) {
+      logger.warning("Could not parse range from values %s - %s.".formatted(
+          rangeElement.getAttribute(CONST.RANGE_LOWER_ATTR),
+          rangeElement.getAttribute(CONST.RANGE_UPPER_ATTR)));
+      return null;
+    }
+  }
+
+  // decision: only consider direct children so the entry's own range elements are read, not another entry's
+  public static @Nullable Element childElement(@NotNull Element parent, @NotNull String tag) {
+    final NodeList children = parent.getElementsByTagName(tag);
+    for (int i = 0; i < children.getLength(); i++) {
+      if (children.item(i) instanceof Element element && element.getParentNode() == parent) {
+        return element;
+      }
+    }
+    return null;
   }
 }

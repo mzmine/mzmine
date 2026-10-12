@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,10 +28,15 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
+import io.github.mzmine.modules.batchmode.order.Ms2ScanPairingCondition;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.structure_tanimoto.StructureTanimotoNetworkingTask;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -81,6 +86,9 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
       case COSINE_NO_PRECURSOR -> Arrays.stream(featureLists).map(
           flist -> new NoPrecursorCosineSpectralNetworkingTask(parameters, flist, moduleCallDate,
               this.getClass())).toList();
+      case STRUCTURE_TANIMOTO -> Arrays.stream(featureLists).map(
+          flist -> new StructureTanimotoNetworkingTask(parameters, flist, moduleCallDate,
+              this.getClass())).toList();
       // one task for all
       case MS2_DEEPSCORE -> List.of(
           new MS2DeepscoreNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
@@ -89,5 +97,15 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
           new DreaMSNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
               this.getClass()));
     };
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(ModuleOrderRecommendation.of(
+            "Spectral networking requires that MS2 spectra are assigned to features.",
+            ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
+        ModuleOrderRecommendation.of("Spectral networks are not preserved during alignment",
+            ModuleOrderRule.ifPresentMustRunAfter(
+                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }

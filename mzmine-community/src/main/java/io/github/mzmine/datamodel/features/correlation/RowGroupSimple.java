@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,9 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This rowgroup only contains necessary data. It should be used when memory is an issue (so usually
- * prefererred). {@link RowGroupFull} keeps all correlation data for further visualization modules
- * and analysis options.
+ * A lightweight {@link RowGroup} that is backed by the MS1 correlation map ({@link R2RMap}). Two
+ * rows are correlated when a direct edge between them exists in the map. Groups are generated on
+ * demand via {@link io.github.mzmine.util.CorrelationGroupingUtils#createCorrGroups} and are not
+ * stored on the feature list.
  */
 public class RowGroupSimple implements RowGroup {
 

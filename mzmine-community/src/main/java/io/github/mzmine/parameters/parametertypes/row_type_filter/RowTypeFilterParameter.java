@@ -25,12 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.parameters.CompositeParametersParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -89,10 +91,16 @@ public class RowTypeFilterParameter extends
     return createEditingComponent(true);
   }
 
-  public RowTypeFilterComponent createEditingComponent(boolean addPresetButton) {
+  public @NotNull RowTypeFilterComponent createEditingComponent(final boolean addPresetButton) {
+    return createEditingComponent(addPresetButton,
+        FeatureListPreferences.DEFAULT_TAG_LABELS.size());
+  }
+
+  public @NotNull RowTypeFilterComponent createEditingComponent(final boolean addPresetButton,
+      final int tagCount) {
     return new RowTypeFilterComponent(selectedType.createEditingComponent(),
         matchingMode.createEditingComponent(), searchValue.createEditingComponent(),
-        addPresetButton);
+        addPresetButton, tagCount);
   }
 
   @Override

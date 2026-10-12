@@ -1,10 +1,5 @@
 package io.github.mzmine.datamodel.features.types.compoundlist;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundContradiction;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundContradiction.ContradictionType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
@@ -85,9 +80,7 @@ public class CompoundContradictionListType extends ListDataType<CompoundContradi
   }
 
   @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
       throws XMLStreamException {
     if (!(value instanceof List<?> contradictions)) {
       return;
@@ -107,10 +100,7 @@ public class CompoundContradictionListType extends ListDataType<CompoundContradi
   }
 
   @Override
-  public Object loadFromXML(@NotNull final XMLStreamReader reader,
-      @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist,
-      @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
-      @Nullable final RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader) throws XMLStreamException {
     final List<CompoundContradiction> contradictions = new ArrayList<>();
     final String openingElement = reader.getLocalName();
     while (reader.hasNext()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,8 +32,11 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -81,6 +84,21 @@ public class MzmineToSirius {
    */
   @Nullable
   public static FeatureImport feature(@NotNull FeatureListRow row) {
+    return feature(row, null);
+  }
+
+  /**
+   * @param row
+   * @param correlationIndex MS1 correlation edges by row, see {@link R2RMap#createRowIndex()}.
+   *                         Create it once per feature list when converting many rows. May be null,
+   *                         then the edges of this row are searched in the correlation map of its
+   *                         feature list.
+   * @return Converted feature or null, e.g. if not enough information is present or the row is a
+   * GC-EI row.
+   */
+  @Nullable
+  public static FeatureImport feature(@NotNull FeatureListRow row,
+      @Nullable Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
     if (!isSiriusCompatible(row)) {
       return null;
     }
@@ -106,7 +124,7 @@ public class MzmineToSirius {
     f.setMs2Spectra(
         row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).filter(Objects::nonNull)
             .toList());
-    f.setMs1Spectra(List.of(generateCorrelationSpectrum(row)));
+    f.setMs1Spectra(List.of(generateCorrelationSpectrum(row, correlationIndex)));
 
     final Range<Float> rtRange = row.get(RTRangeType.class);
     if (rtRange != null) {
@@ -156,11 +174,12 @@ public class MzmineToSirius {
     return spectrum;
   }
 
-  private static BasicSpectrum generateCorrelationSpectrum(FeatureListRow row) {
+  private static BasicSpectrum generateCorrelationSpectrum(FeatureListRow row,
+      @Nullable Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
     SpectralLibraryEntryFactory factory = new SpectralLibraryEntryFactory(true, false, false,
         false);
     final MassSpectrum correlated = SiriusExportTask.generateCorrelationSpectrum(factory,
-        SpectraMerging.defaultMs1MergeTol, row, null, null);
+        SpectraMerging.defaultMs1MergeTol, row, null, null, correlationIndex);
 
     if (correlated == null) {
       return spectrum(row.getBestFeature().getRepresentativeScan());
@@ -261,7 +280,11 @@ public class MzmineToSirius {
     // only send the features that are not already imported
     final List<? extends FeatureListRow> notImportedRows = rows.stream()
         .filter(r -> alreadyImportedIds.get(r.getID()) == null).toList();
-    final List<FeatureImport> featureImports = notImportedRows.stream().map(MzmineToSirius::feature)
+    // index the MS1 correlation edges once per feature list instead of probing all row pairs of
+    // each row. Rows may originate from different feature lists, so cache one index per list.
+    final Map<FeatureList, Map<FeatureListRow, List<RowsRelationship>>> correlationIndexes = new HashMap<>();
+    final List<FeatureImport> featureImports = notImportedRows.stream()
+        .map(row -> feature(row, correlationIndex(correlationIndexes, row)))
         .filter(Objects::nonNull).toList();
     final List<AlignedFeature> siriusFeatures = sirius.api().features()
         .addAlignedFeatures(sirius.getProject().getProjectId(), featureImports,
@@ -283,6 +306,23 @@ public class MzmineToSirius {
     logger.info(() -> "Added features " + idMap.entrySet().stream()
         .map(e -> "%d->%s".formatted(e.getKey(), e.getValue())).collect(Collectors.joining("; ")));
     return idMap;
+  }
+
+  /**
+   * The MS1 correlation index of the feature list of this row, created on first access.
+   *
+   * @param cache index per feature list, filled by this method
+   * @return the index or null if the row is not part of a feature list
+   */
+  private static @Nullable Map<FeatureListRow, List<RowsRelationship>> correlationIndex(
+      @NotNull final Map<FeatureList, Map<FeatureListRow, List<RowsRelationship>>> cache,
+      @NotNull final FeatureListRow row) {
+    final FeatureList flist = row.getFeatureList();
+    if (flist == null) {
+      return null;
+    }
+    return cache.computeIfAbsent(flist,
+        fl -> fl.getMs1CorrelationMap().map(R2RMap::createRowIndex).orElseGet(Map::of));
   }
 
 }

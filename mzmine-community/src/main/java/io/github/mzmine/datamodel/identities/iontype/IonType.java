@@ -30,14 +30,14 @@ import static java.util.function.Predicate.not;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.parametertypes.ionidentity.LegacyIonTypeXMLReader;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -206,41 +206,8 @@ public final class IonType implements Comparable<IonType> {
   }
 
   public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
-      throw new IllegalStateException("Current element is not an iontype");
-    }
-
-    final Integer molecules = ParsingUtils.stringToInteger(
-        reader.getAttributeValue(null, "molecules"));
-    Objects.requireNonNull(molecules);
-    // charge and mass is calculated from rest
-//    final Integer charge = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "charge"));
-//    Objects.requireNonNull(charge);
-//    final Integer mass = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "mass"));
-//    Objects.requireNonNull(mass);
-
-    final List<@NotNull IonPart> parts = new ArrayList<>();
-
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(XML_ELEMENT))) {
-      reader.next();
-      if (!reader.isStartElement()) {
-        continue;
-      }
-
-      if (reader.getLocalName().equals(IonParts.XML_ELEMENT)) {
-//        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
-//            CONST.XML_DATA_TYPE_ELEMENT)) {
-        var part = IonParts.loadFromXML(reader);
-        Objects.requireNonNull(part);
-        parts.add(part);
-      }
-    }
-    if (parts.isEmpty()) {
-      throw new IllegalStateException("No ion parts found in xml");
-    }
-
-    return IonType.create(parts, molecules);
+    // need to try read legacy and new format
+    return LegacyIonTypeXMLReader.loadNewAndLegacyIonFromXML(reader);
   }
 
   /**
@@ -359,35 +326,44 @@ public final class IonType implements Comparable<IonType> {
   /**
    * Is adding or removing all sub adducts / modifications from the molecular formula.
    *
-   * @param formula the formula.
+   * @param formula the formula. Not modified, the result is a new formula.
    * @param ionize  if the formula shall be ionised.
    * @return The resulting molecule may be neutral if the charge of the molecule and the charge of
-   * this adduct are opposite.
+   * this adduct are opposite. An empty optional if this ion type cannot be applied to formula,
+   * e.g., because a loss like -H2O requires more atoms than formula provides.
    */
   @NotNull
-  public IMolecularFormula addToFormula(@NotNull IMolecularFormula formula, boolean ionize) {
-    try {
-      final IMolecularFormula result = (IMolecularFormula) formula.clone();
-
-      // add for n molecules the M formula
-      for (int i = 2; i <= molecules; i++) {
-        FormulaUtils.addFormula(result, formula);
-      }
-
-      // add first then remove — exclude silent charges (they carry no formula contribution)
-      streamWithoutSilentCharge().filter(IonPart::isAddition)
-          .forEach(ion -> ion.addToFormula(result, false));
-      streamWithoutSilentCharge().filter(IonPart::isLoss)
-          .forEach(ion -> ion.addToFormula(result, false));
-      if (ionize) {
-        result.setCharge(totalCharge);
-      }
-      return result;
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, "Unexpected exception cloning molecular formula " + e.getMessage(),
-          e);
-      return formula;
+  public Optional<IMolecularFormula> addToFormula(@NotNull IMolecularFormula formula,
+      boolean ionize) {
+    final IMolecularFormula result = FormulaUtils.cloneFormula(formula);
+    if (result == null) {
+      return Optional.empty();
     }
+
+    // add for n molecules the M formula
+    for (int i = 2; i <= molecules; i++) {
+      FormulaUtils.addFormula(result, formula);
+    }
+
+    // add first then remove — exclude silent charges (they carry no formula contribution)
+    streamWithoutSilentCharge().filter(IonPart::isAddition)
+        .forEach(ion -> ion.addToFormula(result, false));
+
+    final List<IonPart> losses = streamWithoutSilentCharge().filter(IonPart::isLoss).toList();
+    for (final IonPart ion : losses) {
+      if (!ion.addToFormula(result, false)) {
+        // silent to not flood the logs with expected outcomes
+        // decision: abort on the first part that cannot be removed, result is partially changed
+//        logger.fine(
+//            "Cannot apply ion type %s to formula %s because part %s cannot be subtracted".formatted(
+//                this, FormulaUtils.getFormulaString(formula), ion));
+        return Optional.empty();
+      }
+    }
+    if (ionize) {
+      result.setCharge(totalCharge);
+    }
+    return Optional.of(result);
   }
 
   @Override

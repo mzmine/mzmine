@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -45,6 +46,6 @@ public class ImportIonLibrariesParameters extends SimpleParameterSet {
       MergePolicy.values(), MergePolicy.SKIP_OLDER);
 
   public ImportIonLibrariesParameters() {
-    super(filename, mergePolicy);
+    super(IonsDocumentation.DEFINE_LIBRARIES, filename, mergePolicy);
   }
 }

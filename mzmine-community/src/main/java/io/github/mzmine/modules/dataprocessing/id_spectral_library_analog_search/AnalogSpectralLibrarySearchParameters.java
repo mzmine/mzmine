@@ -47,6 +47,7 @@ public class AnalogSpectralLibrarySearchParameters extends SimpleParameterSet {
   public static final ModuleOptionsEnumComboParameter<SpectralNetworkingOptions> algorithm = new ModuleOptionsEnumComboParameter<>(
       "Algorithm",
       "Similarity algorithm. PyTorch models (MS2Deepscore, DREAMS) score embedding similarity; the cosine fallback is also computed for visualization when an ML score passes the threshold.",
+      SpectralNetworkingOptions.getSpectralSimAlgorithms(),
       SpectralNetworkingOptions.MODIFIED_COSINE);
 
   public AnalogSpectralLibrarySearchParameters() {

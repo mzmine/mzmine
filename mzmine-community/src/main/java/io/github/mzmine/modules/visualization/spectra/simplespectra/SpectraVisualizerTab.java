@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -424,15 +425,13 @@ public class SpectraVisualizerTab extends MZmineTab {
 
       if (newPattern instanceof MultiChargeStateIsotopePattern multi) {
 
+        // the status is the same for every charge state, so the color is resolved once
+        final Color newColor =
+            newPattern.getStatus() == IsotopePatternStatus.DETECTED ? detectedIsotopesColor
+                : predictedIsotopesColor;
+
         List<IsotopePattern> patterns = multi.getPatterns();
         for (int i = 0; i < patterns.size(); i++) {
-          Color newColor;
-          if (newPattern.getStatus() == IsotopePatternStatus.DETECTED) {
-            newColor = detectedIsotopesColor;
-          } else {
-            newColor = predictedIsotopesColor;
-          }
-
           IsotopePattern pattern = patterns.get(i);
           final IsotopePattern normalizedPattern = normalizeIsotopePattern(pattern);
           if (normalizedPattern == null) {
@@ -440,8 +439,8 @@ public class SpectraVisualizerTab extends MZmineTab {
           }
 
           final IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern,
-              (i == 0 ? "Isotopes (%d, preferred)" : "Isotopes (%d)").formatted(
-                  pattern.getNumberOfDataPoints()));
+              (i == 0 ? "Isotopes (n=%d, c=%d, preferred)" : "Isotopes (n=%d, c=%d)").formatted(
+                  pattern.getNumberOfDataPoints(), pattern.getCharge()));
           spectrumPlot.addDataSet(newDataSet, newColor, true, false);
         }
       } else {

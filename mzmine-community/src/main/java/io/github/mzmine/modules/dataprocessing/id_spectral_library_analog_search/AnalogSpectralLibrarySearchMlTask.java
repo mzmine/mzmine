@@ -485,7 +485,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
     return switch (algorithm) {
       case MS2_DEEPSCORE -> new MS2DeepscoreModel(modelFile, modelSettingsFile);
       case DREAMS -> new DreaMSModel(modelFile, modelSettingsFile);
-      case MODIFIED_COSINE, COSINE_NO_PRECURSOR ->
+      case MODIFIED_COSINE, COSINE_NO_PRECURSOR, STRUCTURE_TANIMOTO ->
           throw new AssertionError("openMlModel called for non-ML algorithm: " + algorithm);
     };
   }

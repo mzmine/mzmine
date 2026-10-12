@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
@@ -131,8 +133,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
         if (sourcePeak == null || sourcePeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
           // Create a new gap
-          Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
-          Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
+          SimpleDoubleRange mzRange = mzTolerance.getSimpleToleranceRange(newRow.getAverageMZ());
+          SimpleFloatRange rtRange = rtTolerance.getSimpleToleranceRange(newRow.getAverageRT());
 
           if (peakList.hasFeatureType(MobilityType.class) && dataFile instanceof IMSRawDataFile) {
             Range<Float> mobilityRange = sourceRow.getMobilityRange();

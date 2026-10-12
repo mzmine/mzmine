@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -50,7 +49,9 @@ public class ImsMs2RefinementParameters extends SimpleParameterSet {
       false);
 
   public ImsMs2RefinementParameters() {
-    super(new Parameter[]{flists, noiseLevel, minNumPoints});
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_ims_msms_refinement/ims_ms2_refinement.html",
+        flists, noiseLevel, minNumPoints);
   }
 
   @Override

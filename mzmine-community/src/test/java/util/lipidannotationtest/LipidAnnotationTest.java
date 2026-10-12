@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -167,6 +168,26 @@ class LipidAnnotationTest {
   void msMsRuleTestTG_NH4() {
     LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getTG_16_O_18_2_22_6MPlusNH4();
     checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestTG_18_1_18_2_22_0_NH4() {
+    final LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getTG_18_1_18_2_22_0MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+
+    final MolecularSpeciesLevelAnnotation expected = (MolecularSpeciesLevelAnnotation) testSpectrum.getTestLipid();
+    final SpeciesLevelAnnotation speciesLevel = convertMolecularSpeciesLevelToSpeciesLevel(
+        expected);
+    final Set<LipidFragment> fragments = findAnnotatedFragments(testSpectrum, speciesLevel);
+    final MassList massList = convertTestSpectrumToDataPoints(testSpectrum);
+    final MZTolerance mzTolerance = new MZTolerance(0.01, 5);
+    final Set<MatchedLipid> matches = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory().predictMolecularSpeciesLevelMatches(
+        fragments, speciesLevel, 958.8790173626105, massList.getDataPoints(), 0d, mzTolerance,
+        testSpectrum.getIonizationType());
+
+    Assertions.assertTrue(matches.stream().anyMatch(
+            match -> match.getLipidAnnotation().getAnnotation().equals(expected.getAnnotation())),
+        "The valid TG 18:1_18:2_22:0 neutral-loss fragments must retain the target annotation.");
   }
 
   @Test

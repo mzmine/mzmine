@@ -44,7 +44,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -202,7 +201,7 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
         throw new IllegalArgumentException("Invalid tracer format: " + tracerIsotope);
       }
       String tracerElement = matcher.group(1);
-      String formula = CompoundAnnotationUtils.streamFeatureAnnotations(unlabeledRow)
+      String formula = unlabeledRow.streamAllFeatureAnnotations()
           .map(FeatureAnnotation::getFormula).collect(Collectors.joining());
       int elementNumber = IsotopeLabelingTargetedTask.getAtomCount(formula, tracerElement);
 
@@ -319,7 +318,7 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
     rowsFeatureList.sort(FeatureListRowSorter.DEFAULT_RT);
 
     // replace rows in list
-    correctedFeatureList.setRows(rowsFeatureList);
+    correctedFeatureList.setRowsApplySort(rowsFeatureList);
 
     // Remove the original peakList if requested, or add, or work in place
     handleOriginal.reflectNewFeatureListToProject(suffix, project, correctedFeatureList,

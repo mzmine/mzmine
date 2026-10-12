@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
@@ -44,6 +45,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFCalibrationInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
@@ -55,6 +57,8 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
@@ -75,6 +79,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
   private static Logger logger = Logger.getLogger(TSFImportTask.class.getName());
 
   private final TDFMetaDataTable metaDataTable;
+  private final TDFCalibrationInfoTable calibrationInfoTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private final TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
@@ -106,6 +111,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     this.config = config;
 
     metaDataTable = new TDFMetaDataTable();
+    calibrationInfoTable = new TDFCalibrationInfoTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     frameTable = new TSFFrameTable();
     maldiFrameLaserInfoTable = new TDFMaldiFrameLaserInfoTable();
@@ -181,6 +187,10 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     }
 
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+    metaDataTable.applyToFileMetadata(newMZmineFile.getFileMetadata());
+    // tsf files have no ion mobility dimension
+    calibrationInfoTable.applyToFileMetadata(newMZmineFile.getFileMetadata(),
+        frameTable.getPolarityColumn(), false);
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
@@ -196,6 +206,9 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     }
     addMsMsInfo(newMZmineFile);
     assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
+
+    newMZmineFile.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.BRUKER_TSF);
+    RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
 
     newMZmineFile.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
@@ -213,8 +226,8 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
       final Scan scan;
       try {
-        scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable,
-            frameTable, frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
+        scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
+            frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
       } catch (Exception e) {
         error("Error while loading scan %d in of file %s".formatted(frameId, rawDataFileName), e);
         return false;
@@ -265,6 +278,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
         setDescription("Reading metadata for " + tsf.getName());
         metaDataTable.executeQuery(connection);
+        calibrationInfoTable.executeQuery(connection);
         // metaDataTable.print();
 
         setDescription("Reading frame data for " + tsf.getName());

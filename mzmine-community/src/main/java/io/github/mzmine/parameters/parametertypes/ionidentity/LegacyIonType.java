@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -55,6 +56,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 class LegacyIonType extends LegacyNeutralMolecule implements Comparable<LegacyIonType> {
 
   public static final String XML_ELEMENT = "iontype";
+  private static final Logger logger = Logger.getLogger(LegacyIonType.class.getName());
   @NotNull
   protected final LegacyIonModification adduct;
   @Nullable
@@ -555,11 +557,11 @@ class LegacyIonType extends LegacyNeutralMolecule implements Comparable<LegacyIo
     // subtract
     Arrays.stream(adduct.getModifications())
         .filter(m -> m.getMass() < 0 && m.getCDKFormula() != null)
-        .forEach(m -> FormulaUtils.subtractFormula(result, m.getCDKFormula()));
+        .forEach(m -> subtractModification(result, m));
     if (mod != null) {
       Arrays.stream(mod.getModifications())
           .filter(m -> m.getMass() < 0 && m.getCDKFormula() != null)
-          .forEach(m -> FormulaUtils.subtractFormula(result, m.getCDKFormula()));
+          .forEach(m -> subtractModification(result, m));
     }
 
     if (ionize) {
@@ -568,6 +570,17 @@ class LegacyIonType extends LegacyNeutralMolecule implements Comparable<LegacyIo
     }
 
     return result;
+  }
+
+  /**
+   * Subtracts the modification formula from result in place.
+   *
+   * @param result changed in place
+   */
+  private static void subtractModification(final @NotNull IMolecularFormula result,
+      final @NotNull LegacyIonModification modification) {
+    final IMolecularFormula sub = modification.getCDKFormula();
+    FormulaUtils.subtractFormula(result, sub);
   }
 
   @Override

@@ -32,6 +32,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -212,6 +213,19 @@ public class ParameterUtils {
    */
   public static boolean equalValues(final ParameterSet a, final ParameterSet b) {
     return equalValues(a, b, true, true);
+  }
+
+  /**
+   * Compares two processing steps by their module and parameter values.
+   *
+   * @param skipFileParameters        whether values of file-name parameters are ignored
+   * @param skipRawDataFileParameters whether raw-data-file and file-name parameters are ignored
+   */
+  public static boolean equalValues(@NotNull final MZmineProcessingStep<?> a,
+      @NotNull final MZmineProcessingStep<?> b, final boolean skipFileParameters,
+      final boolean skipRawDataFileParameters) {
+    return a == b || (a.getModule().equals(b.getModule()) && equalValues(a.getParameterSet(),
+        b.getParameterSet(), skipFileParameters, skipRawDataFileParameters));
   }
 
 
@@ -619,8 +633,11 @@ public class ParameterUtils {
       final Document document = XMLUtils.newDocument();
       final Element element = document.createElement("parameterset");
       document.appendChild(element);
+      // without the version, loading assumes version 1 and reports all version changes since
+      // this was the case in the ModulePresets
+      element.setAttribute(BatchQueue.MODULE_VERSION_ATTR,
+          String.valueOf(parameterSet.getVersion()));
 
-      // Serialize batch queue.
       parameterSet.saveValuesToXML(element);
       return XMLUtils.saveToString(document);
     } catch (Exception exception) {
@@ -723,5 +740,9 @@ public class ParameterUtils {
       actualParameters.add(parameter);
     }
     return actualParameters;
+  }
+
+  public static boolean skipForBatchModeValidation(Parameter<?> param) {
+    return param instanceof RawDataFilesParameter || param instanceof FeatureListsParameter;
   }
 }

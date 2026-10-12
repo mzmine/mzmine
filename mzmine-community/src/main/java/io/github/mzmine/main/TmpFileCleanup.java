@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.DirectoryNotEmptyException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -43,6 +44,14 @@ import org.apache.commons.io.FileUtils;
 public class TmpFileCleanup implements Runnable {
 
   private static final Logger logger = Logger.getLogger(TmpFileCleanup.class.getName());
+
+  /**
+   * Temp files and directories younger than this are never touched. Cleanup runs on a background
+   * thread during startup and may otherwise race with the current instance, which creates temp
+   * directories (e.g. for unpacked raw data files of a loading project) that match the same name
+   * patterns.
+   */
+  private static final long MIN_AGE_MILLIS = Duration.ofMinutes(30).toMillis();
 
   private final File[] tempDirs;
 
@@ -81,67 +90,93 @@ public class TmpFileCleanup implements Runnable {
 
     logger.fine(
         "Checking for old temporary files in directories: %s".formatted(Arrays.toString(tempDirs)));
-    try {
-      // Find all temporary files with the mask mzmine*.scans
-      File[] remainingTmpFiles = Arrays.stream(tempDirs).map(f -> f.listFiles((dir, name) -> {
-        if (name.matches("mzmine.*\\.tmp") || name.matches(
-            "(.)*%s(.)*".formatted(RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER))
-            || name.matches("(.)*%s(.)*".formatted(FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER))
-            // old thermo raw file parser was extracted to a folder in old mzmine versions
-            || name.matches("(.)*%s(.)*".formatted("mzmine_thermo_raw_parser"))) {
-          return true;
-        }
-        return false;
-      })).filter(Objects::nonNull).flatMap(Arrays::stream).toArray(File[]::new);
 
-      if (remainingTmpFiles != null) {
-        for (File remainingTmpFile : remainingTmpFiles) {
-
-          // Skip files created by someone else
-          if (!remainingTmpFile.canWrite()) {
-            continue;
-          }
-
-          if (remainingTmpFile.isDirectory()) {
-            // delete directory we used to store raw files on project import.
-            try {
-              FileUtils.deleteDirectory(remainingTmpFile);
-            } catch (DirectoryNotEmptyException e) {
-              logger.info(
-                  () -> "Unable to delete directory %s, it might be used by another mzmine instance.".formatted(
-                      remainingTmpFile));
-            }
-            continue;
-          }
-
-          // Try to obtain a lock on the file
-          RandomAccessFile rac = new RandomAccessFile(remainingTmpFile, "rw");
-
-          FileLock lock = null;
-          try {
-            lock = rac.getChannel().tryLock();
-          } catch (OverlappingFileLockException e) {
-            logger.finest("The lock for a temporary file " + remainingTmpFile.getAbsolutePath()
-                + " can not be acquired");
-          }
-          rac.close();
-
-          if (lock != null) {
-            // We locked the file, which means nobody is using it
-            // anymore and it can be removed
-            logger.finest(() -> "Removing unused temporary file " + remainingTmpFile);
-            if (!remainingTmpFile.delete()) {
-              logger.fine(() -> "Cannot delete temp file " + remainingTmpFile.getAbsolutePath());
-            }
-          } else {
-            logger.fine(
-                () -> "Cannot obtain lock on temp file " + remainingTmpFile.getAbsolutePath());
-          }
-
-        }
+    // Find all temporary files with the mask mzmine*.scans
+    final File[] remainingTmpFiles = Arrays.stream(tempDirs).map(f -> f.listFiles((dir, name) -> {
+      if (name.matches("mzmine.*\\.tmp") || name.matches(
+          "(.)*%s(.)*".formatted(RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER)) || name.matches(
+          "(.)*%s(.)*".formatted(FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER))
+          // old thermo raw file parser was extracted to a folder in old mzmine versions
+          || name.matches("(.)*%s(.)*".formatted("mzmine_thermo_raw_parser"))) {
+        return true;
       }
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Error while checking for old temporary files", e);
+      return false;
+    })).filter(Objects::nonNull).flatMap(Arrays::stream).toArray(File[]::new);
+
+    final long currentMillis = System.currentTimeMillis();
+
+    for (File remainingTmpFile : remainingTmpFiles) {
+      // one failing file must not abort the cleanup of all remaining files
+      try {
+        cleanup(remainingTmpFile, currentMillis);
+      } catch (IOException e) {
+        logger.log(Level.WARNING,
+            "Error while removing old temporary file " + remainingTmpFile.getAbsolutePath(), e);
+      }
     }
+  }
+
+  private void cleanup(final File remainingTmpFile, long currentMillis) throws IOException {
+    // Skip files created by someone else
+    if (!remainingTmpFile.canWrite()) {
+      return;
+    }
+
+    // decision: skip recent files, they are likely still in use by this or another running
+    // instance. Deleting them mid-use corrupts the running session, e.g. by removing raw data
+    // files that a project currently being loaded has just unpacked.
+    if (isTooYoung(remainingTmpFile, currentMillis)) {
+      logger.finest(
+          () -> "Skipping recently modified temp file " + remainingTmpFile.getAbsolutePath());
+      return;
+    }
+
+    if (remainingTmpFile.isDirectory()) {
+      // delete directory we used to store raw files on project import.
+      try {
+        FileUtils.deleteDirectory(remainingTmpFile);
+      } catch (DirectoryNotEmptyException e) {
+        logger.info(
+            () -> "Unable to delete directory %s, it might be used by another mzmine instance.".formatted(
+                remainingTmpFile));
+      }
+      return;
+    }
+
+    // Try to obtain a lock on the file
+    RandomAccessFile rac = new RandomAccessFile(remainingTmpFile, "rw");
+
+    FileLock lock = null;
+    try {
+      lock = rac.getChannel().tryLock();
+    } catch (OverlappingFileLockException e) {
+      logger.finest("The lock for a temporary file " + remainingTmpFile.getAbsolutePath()
+          + " can not be acquired");
+    }
+    rac.close();
+
+    if (lock != null) {
+      // We locked the file, which means nobody is using it
+      // anymore and it can be removed
+      logger.finest(() -> "Removing unused temporary file " + remainingTmpFile);
+      if (!remainingTmpFile.delete()) {
+        logger.fine(() -> "Cannot delete temp file " + remainingTmpFile.getAbsolutePath());
+      }
+    } else {
+      logger.fine(() -> "Cannot obtain lock on temp file " + remainingTmpFile.getAbsolutePath());
+    }
+  }
+
+  /**
+   * @return true if the file was modified less than {@link #MIN_AGE_MILLIS} ago. Also true if the
+   * modification time cannot be determined, so that unknown files are kept rather than deleted.
+   */
+  private boolean isTooYoung(final File file, long currentMillis) {
+    final long lastModified = file.lastModified();
+    if (lastModified == 0L) {
+      // unknown modification time or IO error
+      return true;
+    }
+    return currentMillis - lastModified < MIN_AGE_MILLIS;
   }
 }

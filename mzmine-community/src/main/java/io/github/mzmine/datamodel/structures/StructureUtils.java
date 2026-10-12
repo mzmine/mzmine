@@ -37,11 +37,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.openscience.cdk.aromaticity.Aromaticity;
 import org.openscience.cdk.aromaticity.Aromaticity.Model;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.inchi.InChIGenerator;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Stereo;
@@ -116,8 +118,11 @@ public class StructureUtils {
   @Nullable
   public static String getSmilesOrThrow(SmilesFlavor flavor, IAtomContainer structure)
       throws CDKException {
-    // otherwise structure CC(OH) will contain H in smiles
-    structure = AtomContainerManipulator.copyAndSuppressedHydrogens(structure);
+    // otherwise structure CC(OH) will contain H in smiles. decision: the copy is only needed when
+    // explicit hydrogens are actually present. Structures from StructureParser are already suppressed
+    if (hasExplicitHydrogens(structure)) {
+      structure = AtomContainerManipulator.copyAndSuppressedHydrogens(structure);
+    }
     return getSmilesGen(flavor).create(structure);
   }
 
@@ -130,6 +135,19 @@ public class StructureUtils {
     }
   }
 
+  /**
+   * @return true if the structure contains at least one hydrogen as its own atom
+   */
+  public static boolean hasExplicitHydrogens(@NotNull IAtomContainer structure) {
+    for (IAtom atom : structure.atoms()) {
+      final Integer atomicNumber = atom.getAtomicNumber();
+      if (atomicNumber != null && atomicNumber == 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Nullable
   public static InChIGenerator getInchiGenerator(IAtomContainer structure) {
     try {
@@ -139,8 +157,7 @@ public class StructureUtils {
     }
   }
 
-  @Nullable
-  public static InChIGenerator getInchiGeneratorOrThrow(IAtomContainer structure)
+  public static @NonNull InChIGenerator getInchiGeneratorOrThrow(IAtomContainer structure)
       throws CDKException {
     return getDefaultParser().getInchiFactory().getInChIGenerator(structure);
   }
@@ -247,7 +264,10 @@ public class StructureUtils {
   }
 
   /**
-   * @return true if there are stereo elements
+   * Whether the structure carries any defined stereo chemistry, either as stereo elements or as a
+   * wedge/hash bond from a 2D depiction.
+   *
+   * @return true if there is defined stereo chemistry
    */
   public static boolean hasStereoChemistry(@NotNull IAtomContainer structure) {
     final Iterator<IStereoElement> iterator = structure.stereoElements().iterator();
@@ -256,7 +276,14 @@ public class StructureUtils {
     }
 
     for (IBond bond : structure.bonds()) {
-      if (Stereo.NONE != bond.getStereo()) {
+      final Stereo stereo = bond.getStereo();
+      // decision: CDK marks every double bond E_Z_BY_COORDINATES by default. That only says the
+      // configuration would have to be read off 2D coordinates, not that any is defined - both
+      // C/C=C/C and CC=CC carry it. Defined E/Z is reported by the stereo elements checked above.
+      // Counting it would make even benzene report stereo chemistry, which in turn made
+      // SubstructureMatcher keep stereo for every query containing a double bond and so matched
+      // stereo sensitively where it should not.
+      if (stereo != null && stereo != Stereo.NONE && stereo != Stereo.E_Z_BY_COORDINATES) {
         return true;
       }
     }

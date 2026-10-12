@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,6 +32,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -51,6 +54,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.time.Instant;
@@ -149,6 +154,10 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       readTotalItems(ml);
 
       dataFile = ml.createDataFile();
+      dataFile.setStartTimeStamp(ml.getAcqDate());
+      // decision: MassLynx files are always acquired on Waters instruments
+      dataFile.setFileMetadataValue(InstrumentVendorType.class, "Waters");
+      ml.applyToFileMetadata(dataFile.getFileMetadata());
       OtherDataFileImpl mrmFileDataFile = null;
 
       final List<SimpleScan> scans = new ArrayList<>();
@@ -198,6 +207,11 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       final var appliedMethod = new SimpleFeatureListAppliedMethod(module, parameters,
           getModuleCallDate());
       dataFile.getAppliedMethods().add(appliedMethod);
+      dataFile.setStartTimeStamp(ml.getAcqDate());
+      dataFile.setFileMetadataValue(RawDataFileFormatType.class,
+          dataFile instanceof IMSRawDataFile ? RawDataFileType.WATERS_RAW_IMS
+              : RawDataFileType.WATERS_RAW);
+      RawDataFileUtils.addAdditionalFileMetadata(dataFile);
 
       if (isCanceled()) {
         return;

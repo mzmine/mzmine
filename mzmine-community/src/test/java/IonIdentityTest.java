@@ -31,13 +31,11 @@ import static org.mockito.Mockito.when;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import io.github.mzmine.datamodel.features.correlation.RowGroupFull;
-import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.BuildingIonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -45,7 +43,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.project.ProjectManager;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -86,7 +83,6 @@ public class IonIdentityTest {
     flist.addRowType(new RTType());
     flist.addRowType(new MZType());
     flist.addRowType(new IonIdentityListType());
-    flist.addRowType(new FeatureGroupType());
 
     ModularFeatureListRow rowProtonated = new ModularFeatureListRow(flist, 1);
     ModularFeatureListRow rowSodiated = new ModularFeatureListRow(flist, 2);
@@ -102,21 +98,15 @@ public class IonIdentityTest {
     flist.addRow(rowProtonated);
     flist.addRow(rowSodiated);
 
-    List<RowGroup> groups = new ArrayList<>();
-    RowGroup group = new RowGroupFull(List.of(raw), 0);
-    groups.add(group);
-    group.add(rowProtonated);
-    group.add(rowSodiated);
-    flist.setGroups(groups);
-
     // add ions to rows - not really done much as the tasks handle this
-    final IonNetwork network = new IonNetwork(1);
+    final BuildingIonNetwork building = new BuildingIonNetwork(1);
     final IonIdentity ionH = new IonIdentity(hAdduct);
     rowProtonated.addIonIdentity(ionH);
     final IonIdentity ionNa = new IonIdentity(naAdduct);
     rowSodiated.addIonIdentity(ionNa);
-    network.put(rowProtonated, ionH);
-    network.put(rowSodiated, ionNa);
+    building.put(rowProtonated, ionH);
+    building.put(rowSodiated, ionNa);
+    building.setNetworkToAllRows();
 
     assertNotNull(rowProtonated.get(new IonIdentityListType()));
     assertNotNull(rowProtonated.get(IonIdentityListType.class));
@@ -143,7 +133,7 @@ public class IonIdentityTest {
     assertEquals(2, nets.get(0).size());
 
     // show all annotations with the highest count of links
-    IonNetworkLogic.sortIonIdentities(flist, true);
+    IonNetworkLogic.sortIonIdentities(flist);
     nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
     assertEquals(1, nets.size());
     assertEquals(2, nets.get(0).size());

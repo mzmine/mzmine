@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +48,14 @@ public class SearchableIonLibrary {
    * This way each list can use an early exit from comparison
    */
   private final List<ChargedIonTypeList> ionsSplitByChargeAndMol;
+
+  /**
+   * Simple ions first: lowest absolute charge, then lowest multimer count. Charge and molecules
+   * together are unique per group, so this defines a total order.
+   */
+  private static final Comparator<ChargedIonTypeList> GROUP_SORTER = Comparator.comparingInt(
+          (ChargedIonTypeList group) -> Math.abs(group.charge()))
+      .thenComparingInt(ChargedIonTypeList::molecules).thenComparingInt(ChargedIonTypeList::charge);
 
   private final boolean filterByRowCharge;
 
@@ -74,7 +83,10 @@ public class SearchableIonLibrary {
             final int molecules = first.molecules();
             consumer.accept(new ChargedIonTypeList(charge, molecules, sortedGroup));
           }
-        }).toList();
+        })
+        // decision: fix the group order instead of relying on the hash order of the grouping map.
+        // The order of the returned pairs defines how ion networks are merged downstream
+        .sorted(GROUP_SORTER).toList();
   }
 
   /**

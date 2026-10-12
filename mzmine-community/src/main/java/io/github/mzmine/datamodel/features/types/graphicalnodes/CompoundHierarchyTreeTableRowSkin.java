@@ -46,6 +46,18 @@ class CompoundHierarchyTreeTableRowSkin extends TreeTableRowSkin<ModularFeatureL
     // TableRowSkinBase rebuilds its children via getChildren().setAll(cells) whenever the
     // visible columns change (add/remove/reorder), which silently drops the stripe. Re-insert
     // after super so the stripe survives those resets.
+    //
+    // Restoring here (rather than at the reset itself) is sufficient, even though since JavaFX 25
+    // TableRowSkinBase.updateCells() calls setAll(cells) unconditionally and is also reachable from
+    // computePrefHeight/computeMinHeight, not just from layoutChildren: updateCells() only runs via
+    // checkState() when isDirty is set, and isDirty is set in exactly one place - updateLeafColumns()
+    // - which always calls requestLayout() on this row as well. So a layout of this row is queued in
+    // the same pulse as any reset, and the stripe is back before the frame renders. The row-recycling
+    // path (requestCellUpdate on item/index change) never touches the children list at all.
+    //
+    // If a future JavaFX version sets isDirty without requesting layout, or replaces the children
+    // from some other path, this restore has to move - and there is no hook for that, because
+    // updateCells() is package-private in javafx.scene.control.skin.
     if (!getChildren().contains(stripe)) {
       getChildren().add(0, stripe);
     }

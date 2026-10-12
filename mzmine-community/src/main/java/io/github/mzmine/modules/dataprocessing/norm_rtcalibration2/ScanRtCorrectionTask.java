@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
@@ -84,6 +86,7 @@ class ScanRtCorrectionTask extends AbstractTask {
   private final ParameterSet calibrationModuleParameters;
   private final RawFileRtCorrectionModule calibrationModule;
   private final RTMeasure rtMeasure;
+  private final boolean clearPreviousCorrection;
   private int processedRows, totalRows;
 
   public ScanRtCorrectionTask(MZmineProject project, ParameterSet parameters,
@@ -101,14 +104,15 @@ class ScanRtCorrectionTask extends AbstractTask {
     rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
     rtMeasure = parameters.getParameter(RTCorrectionParameters.rtMeasure).getValue();
+    clearPreviousCorrection = parameters.getParameter(
+        RTCorrectionParameters.clearPreviousCorrection).getValue();
 
     final ValueWithParameters<RtCorrectionFunctions> calibrationMethod = parameters.getParameter(
         RTCorrectionParameters.calibrationFunctionModule).getValueWithParameters();
     calibrationModuleParameters = calibrationMethod.parameters();
     calibrationModule = calibrationMethod.value().getModuleInstance();
 
-    sampleTypeFilter = new SampleTypeFilter(
-        parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue());
+    sampleTypeFilter = parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue();
   }
 
   static @NotNull String createUnsatisfiedSampleFilterMessage(SampleTypeFilter sampleTypeFilter,
@@ -363,9 +367,6 @@ class ScanRtCorrectionTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    if (flists.size() < 2) {
-      setStatus(TaskStatus.FINISHED);
-    }
 
     final List<FeatureList> flistsWithMoreThanOneFile = flists.stream()
         .filter(fl -> fl.getNumberOfRawDataFiles() > 1).toList();
@@ -374,6 +375,24 @@ class ScanRtCorrectionTask extends AbstractTask {
           createMoreThanOneFileMessage(flistsWithMoreThanOneFile));
       error(ex.getMessage(), ex);
       return;
+    }
+
+    if (clearPreviousCorrection) {
+      RawDataFile[] files = flists.stream().flatMap(fl -> fl.getRawDataFiles().stream())
+          .toArray(RawDataFile[]::new);
+      RemoveScanRtCorrectionModule.clearRtCorrection(files, moduleCallDate,
+          "Resetting RT correction before calculating new correction.");
+      // map to a value so parallel stream blocks (no forEach)
+      int ignored = flists.parallelStream().mapToInt(flist -> {
+        flist.streamFeatures().forEach(f -> {
+          f.set(RTType.class, f.getRepresentativeScan().getRetentionTime());
+        });
+        return 1;
+      }).sum();
+    }
+
+    if (flists.size() < 2) {
+      setStatus(TaskStatus.FINISHED);
     }
 
     final List<FeatureList> referenceFlistsByNumRows = flists.stream()

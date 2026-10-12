@@ -256,8 +256,8 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
 
     return switch (getPreferredSpectrumType()) {
       case CENTROIDED ->
-          lineMzIdCol.get(index) != null ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
-      case PROFILE -> profileMzIdCol.get(index) != null ? MassSpectrumType.PROFILE
+          lineMzIdCol.get(index) != null && lineMzIdCol.get(index) != 0? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+      case PROFILE -> profileMzIdCol.get(index) != null && profileMzIdCol.get(index) != 0 ? MassSpectrumType.PROFILE
           : MassSpectrumType.CENTROIDED;
       default -> throw new RuntimeException("Invalid spectrum type: " + getPreferredSpectrumType());
     };

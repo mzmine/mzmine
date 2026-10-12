@@ -49,9 +49,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_targeted.OverlappingCompo
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.ImsGap;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -97,7 +96,7 @@ public class IsotopeLabelingTargetedTask extends AbstractTask {
   private final BinningMobilogramDataAccess mobilogramBinning;
   private final ScanSelection scanSelection;
   private final List<Scan> matchingScans;
-  private final IonNetworkLibrary ionLibrary;
+  private final IonLibrary ionLibrary;
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -167,10 +166,8 @@ public class IsotopeLabelingTargetedTask extends AbstractTask {
         IsotopeLabelingTargetedParameters.mobilityTolerance, () -> null);
     tracedElements = parameters.getParameter(IsotopeLabelingTargetedParameters.elements).getValue();
 
-    final boolean useIonLibrary = parameters.getValue(IsotopeLabelingTargetedParameters.ionLibrary);
-    ionLibrary = useIonLibrary ? new IonNetworkLibrary(
-        (IonLibraryParameterSet) parameters.getEmbeddedParameterValue(
-            IsotopeLabelingTargetedParameters.ionLibrary)) : null;
+    ionLibrary = parameters.getOptionalValue(IsotopeLabelingTargetedParameters.ionLibrary)
+        .orElse(null);
 
     if (dataFile instanceof IMSRawDataFile imsRawDataFile) {
       mobilogramBinning = new BinningMobilogramDataAccess(imsRawDataFile,
@@ -620,7 +617,7 @@ public class IsotopeLabelingTargetedTask extends AbstractTask {
         if (a.getRT() != null) {
           a.put(RtRelativeErrorType.class, (row.getAverageRT() - a.getRT()) / a.getRT());
         }
-        a.setScore(a.calculateScore(row, mzTolerance, rtTolerance, mobTol, null));
+        a.setScore(a.calculateScore(row, mzTolerance, rtTolerance, mobTol, null, null));
       });
       row.getCompoundAnnotations()
           .sort(Comparator.comparingDouble(a -> a.getScore() != null ? a.getScore() : 0f));

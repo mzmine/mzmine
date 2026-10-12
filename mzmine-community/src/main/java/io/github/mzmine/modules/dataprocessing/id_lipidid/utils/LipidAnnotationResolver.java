@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -62,6 +63,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class LipidAnnotationResolver {
 
+  private static final double NO_MINIMUM_QUALITY_FILTER = 0d;
+
   private final boolean keepIsobars;
   private final boolean keepIsomers;
   private final boolean includeMs2Score;
@@ -79,7 +82,14 @@ public class LipidAnnotationResolver {
 
   public LipidAnnotationResolver(final boolean keepIsobars, final boolean keepIsomers,
       final boolean includeMs2Score, final boolean includeElutionOrderScore) {
-    this(keepIsobars, keepIsomers, includeMs2Score, includeElutionOrderScore, 0d, null);
+    this(keepIsobars, keepIsomers, includeMs2Score, includeElutionOrderScore,
+        NO_MINIMUM_QUALITY_FILTER, null);
+  }
+
+  public static @NotNull LipidAnnotationResolver forCandidateCollection(
+      final boolean includeMs2Score, final @Nullable MZTolerance mzToleranceMS1) {
+    return new LipidAnnotationResolver(true, true, includeMs2Score, false,
+        NO_MINIMUM_QUALITY_FILTER, null, null, mzToleranceMS1);
   }
 
   public LipidAnnotationResolver(final boolean keepIsobars, final boolean keepIsomers,
@@ -129,7 +139,8 @@ public class LipidAnnotationResolver {
   public LipidAnnotationResolver(final boolean keepIsobars, final boolean keepIsomers,
       final int maximumIdNumber, final boolean includeMs2Score,
       final boolean includeElutionOrderScore) {
-    this(keepIsobars, keepIsomers, includeMs2Score, includeElutionOrderScore, 0d, null);
+    this(keepIsobars, keepIsomers, includeMs2Score, includeElutionOrderScore,
+        NO_MINIMUM_QUALITY_FILTER, null);
     this.maximumIdNumber = maximumIdNumber;
   }
 

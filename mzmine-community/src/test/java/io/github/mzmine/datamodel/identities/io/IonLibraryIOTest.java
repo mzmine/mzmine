@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.identities.iontype.LibraryOrigin;
 import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.util.XMLUtils;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -68,6 +69,48 @@ class IonLibraryIOTest {
     Assertions.assertEquals(LIBRARY.getNumIons(), library.getNumIons());
     Assertions.assertEquals(LIBRARY.ions(), library.ions());
   }
+
+  /**
+   * The index formats that embed a library reference an ion type by. It has to be the position the
+   * ion type was written at, which is the order of {@link IonLibrary#ions()} of the saved library -
+   * not of the instance that is handed back.
+   */
+  @Test
+  void saveLoadKeepsTheIndicesOfTheFile() {
+    final LoadedIonLibrary loaded = IonLibraryIO.loadFromJson(IonLibraryIO.toJson(LIBRARY));
+
+    Assertions.assertEquals(LIBRARY.ions(), List.copyOf(loaded.ionTypesByIndex().values()),
+        "the ion types must come back under the index they were written at");
+    for (int i = 0; i < LIBRARY.ions().size(); i++) {
+      Assertions.assertEquals(LIBRARY.ions().get(i), loaded.ionType(i));
+    }
+    Assertions.assertNull(loaded.ionType(LIBRARY.ions().size()));
+  }
+
+  /**
+   * The index is read from the file itself, so an ion type stays with its index even when the file
+   * lists the ion types and their parts in a different order. No change to any sorting can repoint
+   * an old file at the wrong ion type.
+   */
+  @Test
+  void indicesFollowTheFileNotAnOrder() {
+    final LoadedIonLibrary loaded = IonLibraryIO.loadFromJson(expected);
+    final LoadedIonLibrary reordered = IonLibraryIO.loadFromJson(expectedReordered);
+
+    Assertions.assertEquals(loaded.ionType(0), reordered.ionType(5));
+    Assertions.assertEquals(loaded.ionType(5), reordered.ionType(0));
+    Assertions.assertEquals(loaded.ionType(1), reordered.ionType(1));
+    // the part ids of H (2) and Br (4) are traded as well, the ion types must not notice
+    Assertions.assertEquals(loaded.ionType(2), reordered.ionType(2));
+    Assertions.assertEquals(loaded.library().ions().size(), reordered.library().ions().size());
+  }
+
+  /**
+   * The same library as {@link #expected} with the ion types 0 and 5 swapped and the part ids of H
+   * (2) and Br (4) traded, references renumbered accordingly.
+   */
+  static final String expectedReordered = """
+      {"id":"ed133c0d-4287-3f0b-a1af-c5b903bd9e02","origin":{"kind":"builtin"},"name":"Test lib reordered","savedDate":[2026,4,25,10,37,7,795861600],"lastUpdatedDate":[2026,4,25,10,37,7,751332600],"parts":[{"id":0,"name":"H2O","formula":"H2O","mass":18.010564684,"charge":0},{"id":1,"name":"Ca","formula":"Ca","mass":39.96149382018146,"charge":2},{"id":4,"name":"H","formula":"H","mass":1.00727645209073,"charge":1},{"id":3,"name":"Na","formula":"Na","mass":22.98922070009073,"charge":1},{"id":2,"name":"[79]Br","formula":"[79]Br","mass":78.91888567990927,"charge":-1}],"ionTypes":[{"parts":[{"id":0,"count":-1},{"id":4,"count":1}],"molecules":2},{"parts":[{"id":0,"count":-1},{"id":4,"count":1}],"molecules":1},{"parts":[{"id":4,"count":1}],"molecules":1},{"parts":[{"id":3,"count":1}],"molecules":1},{"parts":[{"id":1,"count":1}],"molecules":1},{"parts":[{"id":2,"count":1}],"molecules":1}]}""";
 
   @Test
   void saveLoadXML() throws ParserConfigurationException, TransformerException {

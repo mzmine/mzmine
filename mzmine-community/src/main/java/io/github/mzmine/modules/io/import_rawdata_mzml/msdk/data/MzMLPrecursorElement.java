@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -169,5 +169,12 @@ public class MzMLPrecursorElement implements Comparable<MzMLPrecursorElement> {
         return null;
       }
     }).orElse(null);
+  }
+
+  @Override
+  public String toString() {
+    return "MzMLPrecursorElement{" + "spectrumRef=" + spectrumRef + ", isolationWindow="
+        + isolationWindow + ", selectedIonList=" + selectedIonList + ", activation=" + activation
+        + '}';
   }
 }

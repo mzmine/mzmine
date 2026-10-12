@@ -37,14 +37,15 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.compoundlist.MissingCompoundListException;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataTypeUtils;
@@ -470,19 +471,6 @@ public interface FeatureList {
   }
 
   /**
-   * List of RowGroups group features based on different methods
-   *
-   * @return
-   */
-  @NotNull List<RowGroup> getGroups();
-
-  /**
-   * List of RowGroups group features based on different methods
-   */
-  void setGroups(List<RowGroup> groups);
-
-
-  /**
    * Short cut to get the MS1 correlation map of grouped features
    *
    * @return the map for {@link Type#MS1_FEATURE_CORR}
@@ -637,6 +625,20 @@ public interface FeatureList {
    * has changed.
    */
   void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig);
+
+  /**
+   * The preferences are initialized with {@link FeatureListPreferences#createDefault()} in the
+   * constructor and may be redefined by the {@link FeatureListPreferencesModule}. They are saved
+   * and loaded with the project.
+   *
+   * @return the user defined preferences of this feature list
+   */
+  @NotNull FeatureListPreferences getPreferences();
+
+  /**
+   * Replaces the preferences of this feature list, see {@link #getPreferences()}.
+   */
+  void setPreferences(@NotNull FeatureListPreferences preferences);
 
   // --- Structural versioning for compound list invalidation ---
 

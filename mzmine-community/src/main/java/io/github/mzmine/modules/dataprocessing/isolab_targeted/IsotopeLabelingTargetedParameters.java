@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -49,11 +50,10 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
@@ -102,24 +102,24 @@ public class IsotopeLabelingTargetedParameters extends SimpleParameterSet {
       "Generate all possible combinations of isotopologues when multiple elements are traced (may generate many features)",
       false);
 
-  public static final OptionalModuleParameter<IonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
-      "Calculate adduct masses",
-      "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
-      new IonLibraryParameterSet());
+  public static final OptionalParameter<IonLibraryParameter> ionLibrary = new OptionalParameter<>(
+      new IonLibraryParameter("Calculate adduct masses",
+          "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN));
 
-  private static final List<ImportType> importTypes = List.of(
-      new ImportType(true, "neutral mass", new NeutralMassType()),
-      new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), //
-      new ImportType(true, "formula", new FormulaType()),
-      new ImportType(true, "smiles", new SmilesStructureType()),
-      new ImportType(false, "adduct", new IonAdductType()),
-      new ImportType(false, "inchi", new InChIStructureType()),
-      new ImportType(false, "inchi key", new InChIKeyStructureType()),
-      new ImportType(false, "name", new CompoundNameType()),
-      new ImportType(false, "CCS", new CCSType()),
-      new ImportType(false, "mobility", new MobilityType()),
-      new ImportType(true, "comment", new CommentType()));
+  private static final List<ImportType<?>> importTypes = List.of(
+      new ImportType<>(true, "neutral mass", new NeutralMassType()),
+      new ImportType<>(true, "mz", new PrecursorMZType()), //
+      new ImportType<>(true, "rt", new RTType()), //
+      new ImportType<>(true, "formula", new FormulaType()),
+      new ImportType<>(true, "smiles", new SmilesStructureType()),
+      new ImportType<>(false, "adduct", new IonAdductType()),
+      new ImportType<>(false, "inchi", new InChIStructureType()),
+      new ImportType<>(false, "inchi key", new InChIKeyStructureType()),
+      new ImportType<>(false, "name", new CompoundNameType()),
+      new ImportType<>(false, "CCS", new CCSType()),
+      new ImportType<>(false, "mobility", new MobilityType()),
+      new ImportType<>(true, "comment", new CommentType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,13 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Collects what could not be parsed in a library file.
+ * <p>
+ * Parsers may hand entries to worker threads, for example the MoNA parser which parses its lines in
+ * parallel batches, so the counting maps are guarded. Errors are the exceptional path, so the lock
+ * is never contended in a healthy file.
+ */
 public class LibraryParsingErrors {
 
   private final String library;
@@ -57,7 +64,7 @@ public class LibraryParsingErrors {
     this.maxErrors = maxErrors;
   }
 
-  public int addUnknownKey(String key) {
+  public synchronized int addUnknownKey(String key) {
     // if max errors reached only count already known errors
     // otherwise the log and error list may overflow
     if (unknownKeys.size() >= maxErrors && !unknownKeys.containsKey(key)) {
@@ -67,7 +74,7 @@ public class LibraryParsingErrors {
     return unknownKeys.compute(key, (_, counter) -> counter == null ? 1 : counter + 1);
   }
 
-  public int addUnknownException(String message) {
+  public synchronized int addUnknownException(String message) {
     // if max errors reached only count already known errors
     // otherwise the log and error list may overflow
     if (unknownExceptions.size() >= maxErrors && !unknownExceptions.containsKey(message)) {
@@ -84,8 +91,8 @@ public class LibraryParsingErrors {
    * @param valueError the value that created the parsing error
    * @return number of errors for this key including the current error
    */
-  public int addValueParsingError(@NotNull DBEntryField field, @NotNull String fieldKey,
-      @NotNull String valueError) {
+  public synchronized int addValueParsingError(@NotNull DBEntryField field,
+      @NotNull String fieldKey, @NotNull String valueError) {
     final LibraryValueError errorCollector = valueErrors.computeIfAbsent(field,
         _ -> new LibraryValueError(field, fieldKey));
 
@@ -95,7 +102,7 @@ public class LibraryParsingErrors {
   }
 
   @Override
-  public String toString() {
+  public synchronized String toString() {
     final String valueParsingErrors = valueErrors.entrySet().stream().sorted(Entry.comparingByKey())
         .map(Entry::getValue).map(LibraryValueError::toString).collect(Collectors.joining("\n"));
 
@@ -136,7 +143,7 @@ public class LibraryParsingErrors {
     }
   }
 
-  public String toStringShort() {
+  public synchronized String toStringShort() {
     // sorted alphabetically to spot typos
     final String unknownKeysString = unknownKeys.entrySet().stream().sorted(Entry.comparingByKey())
         .map(e -> "'%s' (%d)".formatted(e.getKey(), e.getValue()))

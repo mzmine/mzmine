@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -116,9 +116,9 @@ public class AnnotateIsomersTask extends AbstractTask {
         .sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList();
     flist.addRowType(new PossibleIsomerType());
 
-    rowsByMz.parallelStream().forEach(row -> {
+    final int ignored = rowsByMz.parallelStream().mapToInt(row -> {
       if (isCanceled()) {
-        return;
+        return 0;
       }
 
       processed.getAndIncrement();
@@ -126,7 +126,7 @@ public class AnnotateIsomersTask extends AbstractTask {
       Integer maxRowDp = IonMobilityUtils.getMaxNumTraceDatapoints(row);
       if (row.getMaxDataPointIntensity() < minIntensity || maxRowDp == null
           || maxRowDp < minTraceDatapoints) {
-        return;
+        return 0;
       }
 
       var possibleRows = FeatureListUtils.getCandidatesWithinRanges(
@@ -142,7 +142,7 @@ public class AnnotateIsomersTask extends AbstractTask {
 
       possibleRows.remove(row);
       if (possibleRows.isEmpty()) {
-        return;
+        return 0;
       }
 
       final float refMobility = row.getAverageMobility();
@@ -164,12 +164,12 @@ public class AnnotateIsomersTask extends AbstractTask {
       }
 
       if (possibleRows.isEmpty()) {
-        return;
+        return 0;
       }
 
       refineByQuality(possibleRows);
       if (possibleRows.isEmpty()) {
-        return;
+        return 0;
       }
 
       // TODO method needs rework
@@ -179,7 +179,7 @@ public class AnnotateIsomersTask extends AbstractTask {
 //      }
 
       if (possibleRows.isEmpty()) {
-        return;
+        return 0;
       }
 
       // sort by ID
@@ -193,7 +193,8 @@ public class AnnotateIsomersTask extends AbstractTask {
 //      if (!possibleRows.containsAll(isomerRows)) {
 //        logger.info("Candidates do not include all rows");
 //      }
-    });
+      return 1;
+    }).sum();
 
     flist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(AnnotateIsomersModule.class, parameters,

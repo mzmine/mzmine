@@ -31,6 +31,9 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static javafx.scene.input.KeyCode.ENTER;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryListView;
 import io.github.mzmine.datamodel.identities.fx.IonTypeListView;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
@@ -39,6 +42,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -145,9 +149,17 @@ public class IonLibraryComponentPopoverViewBuilder extends
     final ButtonBase closeButton = FxIconUtil.newIconButton(FxIcons.X_CIRCLE, "Close pane",
         onCloseRequested);
 
+    final ButtonBase createNewButton = FxIconUtil.newIconButton(FxIcons.EDIT, """
+        Create a new ion library. This opens the '%s' tab in the main window with an empty library \
+        to edit.""".formatted(GlobalIonLibrariesTab.HEADER), this::createNewLibraryInGlobalTab);
+
+    final ButtonBase helpButton = FxIconUtil.newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, """
+        Select the ion library to use for this parameter.
+        Click to open the documentation.""", IonsDocumentation.LIBRARY_PARAMETER);
+
     final var info = FxLayout.newHBox(new Insets(0, 0, FxLayout.DEFAULT_SPACE, 0), //
-        newLabel(Styles.BOLD_SEMI_TITLE, "Other available libraries:"), FxLayout.newHVFillSpacer(),
-        closeButton);
+        newLabel(Styles.BOLD_SEMI_TITLE, "Other available libraries:"), createNewButton,
+        FxLayout.newHVFillSpacer(), helpButton, closeButton);
 
     final BorderPane mainLib = FxLayout.newBorderPane(new Insets(0, 0, 0, FxLayout.DEFAULT_SPACE),
         libraryList);
@@ -173,6 +185,20 @@ public class IonLibraryComponentPopoverViewBuilder extends
     });
 
     return mainLib;
+  }
+
+  /**
+   * Opens the global ion libraries tab with an empty library in the edit pane. The popover is
+   * closed because the editing happens in the main window behind this dialog.
+   */
+  private void createNewLibraryInGlobalTab() {
+    DialogLoggerUtil.showInfoNotification("Define ion libraries in the main window",
+        "The '%s' tab (in the main window) enables ion library creation and modification.".formatted(
+            GlobalIonLibrariesTab.HEADER));
+    GlobalIonLibrariesController.getInstance().showTabAndCreateNewLibrary();
+    if (onCloseRequested != null) {
+      onCloseRequested.run();
+    }
   }
 
   private void refreshPreviewIons(@Nullable IonLibrary lib) {

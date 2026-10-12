@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -76,7 +76,12 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   protected int currentFeatureIndex = -1;
   protected int currentRowIndex = -1;
-  protected int currentRawFileIndex = -1;
+  /**
+   * Starts at the first file, not at -1 like the other cursors. In an aligned feature list
+   * {@link #nextFeature()} advances this only when the row cursor wraps, so it has to already point
+   * at a valid file for the very first feature.
+   */
+  protected int currentRawFileIndex = 0;
   protected int currentNumberOfDataPoints = -1;
 
   /**
@@ -193,7 +198,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
       currentFeatureIndex++;
       // set next feature
       if (dataFile == null && flist.getNumberOfRawDataFiles() > 1) {
-        // aligned feature list: find next feature
+        // aligned feature list: walk all rows of one data file, then continue with the next file
         do {
           currentRowIndex++;
           if (currentRowIndex >= rows.size()) {
@@ -201,7 +206,11 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
             currentRowIndex = 0;
             currentRawFileIndex++;
           }
-          feature = getRow().getFeature(getRow().getRawDataFiles().get(currentRawFileIndex));
+          // the file index counts the feature list's files, so it must be resolved against the
+          // feature list and not against the row, whose own file list only contains the files it was
+          // actually detected in. assumption: hasNextFeature() guarantees a remaining feature, so
+          // the file index cannot run past the last file
+          feature = getRow().getFeature(flist.getRawDataFile(currentRawFileIndex));
         } while (feature == null);
       } else {
         currentRowIndex++;
