@@ -57,11 +57,17 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
       "Keep current spectral libraries",
       "If selected the currently loaded spectral libraries will be removed.", false);
 
+  public static final BooleanParameter loadProjectConfiguration = new BooleanParameter(
+      "Load configuration from project", """
+      If selected, the module parameters stored in the project replace the current parameters,
+      e.g., the batch queue and all module settings at the time the project was saved.
+      Otherwise, the current configuration is kept.""", false);
+
 
   public ProjectLoaderParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/project_io/project_io.html#open-project",
-        projectFile, mergeOntoExisting, keepLibraries);
+        projectFile, mergeOntoExisting, keepLibraries, loadProjectConfiguration);
   }
 
   @Override
@@ -73,6 +79,10 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
     }
     if (!loadedParams.containsKey(mergeOntoExisting.getName())) {
       setParameter(mergeOntoExisting, false);
+    }
+    // older batches always loaded the configuration from the project
+    if (!loadedParams.containsKey(loadProjectConfiguration.getName())) {
+      setParameter(loadProjectConfiguration, true);
     }
   }
 
