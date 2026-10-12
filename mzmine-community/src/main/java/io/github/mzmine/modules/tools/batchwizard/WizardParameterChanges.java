@@ -91,7 +91,7 @@ public record WizardParameterChanges(@NotNull WizardParameterChanges.Source sour
   }
 
   public enum Source {
-    NONE, ESTIMATION, OPTIMIZATION;
+    NONE, ESTIMATION, OPTIMIZATION, EDITED_ESTIMATION, EDITED_OPTIMIZATION;
 
     @Override
     public String toString() {
@@ -99,6 +99,8 @@ public record WizardParameterChanges(@NotNull WizardParameterChanges.Source sour
         case NONE -> "None";
         case ESTIMATION -> "Estimation";
         case OPTIMIZATION -> "Optimization";
+        case EDITED_ESTIMATION -> "Estimation review (edited)";
+        case EDITED_OPTIMIZATION -> "Optimization review (edited)";
       };
     }
 
@@ -106,8 +108,8 @@ public record WizardParameterChanges(@NotNull WizardParameterChanges.Source sour
     public FxIcons icon() {
       return switch (this) {
         case NONE -> null;
-        case ESTIMATION -> FxIcons.LIGHTBULB_FILL;
-        case OPTIMIZATION -> FxIcons.GRAPH_UP;
+        case ESTIMATION, EDITED_ESTIMATION -> FxIcons.LIGHTBULB_FILL;
+        case OPTIMIZATION, EDITED_OPTIMIZATION -> FxIcons.GRAPH_UP;
       };
     }
   }

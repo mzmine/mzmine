@@ -812,10 +812,25 @@ public class BatchWizardTab extends SimpleTab {
 
   /**
    * Applies a partial sequence on the JavaFX thread; unavailable presets are rejected up front.
+   * This generic variant deliberately does not retain automatic-change highlights.
    *
    * @param partialSequence might contain some or all steps of the workflow
    */
   public void applyPartialSequence(final @NotNull WizardSequence partialSequence) {
+    applyPartialSequence(partialSequence, Source.NONE);
+  }
+
+  /**
+   * Applies a partial sequence on the JavaFX thread; unavailable presets are rejected up front.
+   * Values applied from estimation or optimization are highlighted in the wizard. Unlike
+   * {@link #applyParameterValues(Consumer, Source)}, this preserves the partial sequence's preset
+   * and customization semantics.
+   *
+   * @param partialSequence might contain some or all steps of the workflow
+   * @param source          source of automatic values to highlight, or {@link Source#NONE}
+   */
+  public void applyPartialSequence(final @NotNull WizardSequence partialSequence,
+      final @NotNull Source source) {
     for (final WizardStepParameters preset : partialSequence) {
       if (ALL_PRESETS.get(preset.getPart()).stream()
           .noneMatch(available -> available.getFactory().equals(preset.getFactory()))) {
@@ -826,6 +841,7 @@ public class BatchWizardTab extends SimpleTab {
     setListenersActive(false);
     try {
       updateAllParametersFromUi();
+      final WizardSequence before = sequenceSteps.copy();
       final WizardSequence correctPartialSequence = new WizardSequence();
       for (final WizardStepParameters otherPreset : partialSequence) {
         ALL_PRESETS.get(otherPreset.getPart()).stream()
@@ -836,7 +852,8 @@ public class BatchWizardTab extends SimpleTab {
             });
       }
       sequenceSteps.apply(correctPartialSequence);
-      parameterChanges = WizardParameterChanges.empty();
+      parameterChanges = source == Source.NONE ? WizardParameterChanges.empty()
+          : WizardParameterChanges.diff(before, sequenceSteps, source);
       final boolean customizationEnabled = partialSequence.get(WizardPart.CUSTOMIZATION)
           .filter(p -> p instanceof CustomizationWizardParameters).map(
               p -> ((CustomizationWizardParameters) p).getValue(
@@ -846,6 +863,13 @@ public class BatchWizardTab extends SimpleTab {
     } finally {
       setListenersActive(previousListenersActive);
     }
+  }
+
+  /**
+   * Returns the automatic parameter changes currently highlighted in the wizard.
+   */
+  public @NotNull WizardParameterChanges getParameterChanges() {
+    return parameterChanges;
   }
 
   /** A detached snapshot including edits still in the controls. Must be called on the FX thread. */

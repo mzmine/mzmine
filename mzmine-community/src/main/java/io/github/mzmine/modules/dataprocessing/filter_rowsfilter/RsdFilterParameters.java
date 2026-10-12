@@ -37,9 +37,12 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.parameters.parametertypes.statistics.MissingValueImputationParameter;
 import java.util.List;
@@ -69,9 +72,18 @@ public class RsdFilterParameters extends SimpleParameterSet {
   public static final BooleanParameter keepUndetected = new BooleanParameter("Keep undetected",
       "Keep features that were not detected in the specified group in the feature list.", false);
 
+  /**
+   * The raw data files selected by {@link #grouping} when this filter actually ran. This is
+   * execution provenance rather than user input, so it is hidden from the setup dialog and remains
+   * unset until a successful run records it in the applied method.
+   */
+  public static final HiddenParameter<RawDataFilesSelection> resolvedGroupDataFiles =
+      new HiddenParameter<>(new RawDataFilesParameter("Resolved RSD group files", 0,
+          Integer.MAX_VALUE, null));
+
   public RsdFilterParameters() {
     super(abundanceMeasure, missingValueImputation, grouping, maxMissingValues, maxCv,
-        keepUndetected);
+        keepUndetected, resolvedGroupDataFiles);
   }
 
   public void setAll(AbundanceMeasure measure, ImputationFunctions imputation,
@@ -94,13 +106,28 @@ public class RsdFilterParameters extends SimpleParameterSet {
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
       case 2 -> "Added missing value imputation";
+      case 3 -> "Record the raw data files resolved for RSD filtering";
       default -> null;
     };
   }
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
+  }
+
+  /**
+   * Records the exact files that contributed to the RSD calculation. The specific-file selection
+   * intentionally does not depend on future metadata edits.
+   */
+  public void recordResolvedGroupDataFiles(@NotNull final List<RawDataFile> rawDataFiles) {
+    setParameter(resolvedGroupDataFiles,
+        new RawDataFilesSelection(rawDataFiles.toArray(RawDataFile[]::new)));
+  }
+
+  /** Clears execution provenance when the optional RSD filter was not used. */
+  public void clearResolvedGroupDataFiles() {
+    setParameter(resolvedGroupDataFiles, null);
   }
 
   /**

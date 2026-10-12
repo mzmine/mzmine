@@ -250,6 +250,13 @@ public class OptimizationResultsController extends FxController<OptimizationResu
         stopSearchAction == null ? null : this::requestStopSearch, stage);
   }
 
+  /** Reuses the result table and charts when application is reviewed in another surface. */
+  public @NotNull javafx.scene.layout.Region buildInspectionView(
+      final @Nullable Stage inspectionStage) {
+    return new OptimizationResultsViewBuilder(model, null, null, this::exportSolutions, null,
+        null, inspectionStage).build();
+  }
+
   private void requestStopSearch() {
     if (!model.isOptimizationRunning() || model.isStopSearchRequested()
         || stopSearchAction == null) {

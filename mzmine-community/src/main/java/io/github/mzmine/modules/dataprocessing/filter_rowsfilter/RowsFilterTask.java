@@ -457,10 +457,27 @@ public class RowsFilterTask extends AbstractTask {
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
-            getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class,
+            createAppliedMethodParameters(), getModuleCallDate()));
 
     return newFeatureList;
+  }
+
+  /**
+   * Creates a provenance snapshot without changing the parameter set shared by other queued row
+   * filter tasks. The configured metadata group remains available as user input, while the hidden
+   * value records exactly which files it resolved to for this result.
+   */
+  private @NotNull ParameterSet createAppliedMethodParameters() {
+    final ParameterSet appliedParameters = parameters.cloneParameterSet(true);
+    final RsdFilterParameters appliedRsdParameters = appliedParameters.getParameter(
+        RowsFilterParameters.cvFilter).getEmbeddedParameters();
+    if (cvFilter == null) {
+      appliedRsdParameters.clearResolvedGroupDataFiles();
+    } else {
+      appliedRsdParameters.recordResolvedGroupDataFiles(cvFilter.getGroupDataFiles());
+    }
+    return appliedParameters;
   }
 
   /**
