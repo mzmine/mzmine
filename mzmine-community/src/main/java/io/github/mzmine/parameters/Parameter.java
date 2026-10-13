@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -89,15 +90,15 @@ public interface Parameter<ValueType> {
    */
   Parameter<ValueType> cloneParameter();
 
-  default boolean valueEquals(Parameter<?> that) {
+  default boolean valueEquals(final @Nullable Parameter<?> that) {
     if (that == null) {
       return false;
     }
     if (!(this.getClass() == that.getClass())) {
       return false;
     }
-    if (getValue() == null && that.getValue() == null) {
-      return true;
+    if (getValue() == null || that.getValue() == null) {
+      return getValue() == null && that.getValue() == null;
     }
     if (getValue() instanceof Double) {
       return Double.compare((Double) this.getValue(), (Double) that.getValue()) == 0;
