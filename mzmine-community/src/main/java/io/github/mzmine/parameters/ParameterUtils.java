@@ -139,7 +139,6 @@ public class ParameterUtils {
     return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles(project);
   }
 
-
   /**
    * @param parameters    input parameters
    * @param keepSelection keep the selection of raw data files and features lists

@@ -49,22 +49,6 @@ class RemoveScanRtCorrectionTaskTest {
 
   private static final MZmineProject PROJECT = mock(MZmineProject.class);
 
-  private static FeatureListAppliedMethod correction(String date, RawDataFile... files) {
-    final FeatureListAppliedMethod method = mock(FeatureListAppliedMethod.class);
-    final ParameterSet parameters = mock(ParameterSet.class);
-    final List<AbstractRtCorrectionFunction> corrections = Arrays.stream(files).map(file -> {
-      final AbstractRtCorrectionFunction correction = mock(AbstractRtCorrectionFunction.class);
-      when(correction.getRawDataFile(PROJECT)).thenReturn(file);
-      return correction;
-    }).toList();
-
-    when(method.getModule()).thenReturn(new ApplyRtCorrectionToRawFileModule());
-    when(method.getModuleCallDate()).thenReturn(Instant.parse(date));
-    when(method.getParameters()).thenReturn(parameters);
-    when(parameters.getValue(ApplyRtCorrectionToRawFileParameters.calis)).thenReturn(corrections);
-    return method;
-  }
-
   @Test
   void removesCompleteStackForAllCorrectionFiles() {
     final RawDataFile rawA = rawFile();
@@ -124,12 +108,6 @@ class RemoveScanRtCorrectionTaskTest {
     assertEquals(List.of(first, clear), raw.getAppliedMethods());
   }
 
-  private static RawDataFile rawFile() {
-    final RawDataFile raw = mock(RawDataFile.class);
-    when(raw.getAppliedMethods()).thenReturn(FXCollections.observableArrayList());
-    return raw;
-  }
-
   @Test
   void manualClearCompactsExistingIndividualClearOperations() {
     final RawDataFile rawA = rawFile();
@@ -144,6 +122,28 @@ class RemoveScanRtCorrectionTaskTest {
         List.of(rawA, rawB)));
     assertTrue(rawA.getAppliedMethods().isEmpty());
     assertTrue(rawB.getAppliedMethods().isEmpty());
+  }
+
+  private static RawDataFile rawFile() {
+    final RawDataFile raw = mock(RawDataFile.class);
+    when(raw.getAppliedMethods()).thenReturn(FXCollections.observableArrayList());
+    return raw;
+  }
+
+  private static FeatureListAppliedMethod correction(String date, RawDataFile... files) {
+    final FeatureListAppliedMethod method = mock(FeatureListAppliedMethod.class);
+    final ParameterSet parameters = mock(ParameterSet.class);
+    final List<AbstractRtCorrectionFunction> corrections = Arrays.stream(files).map(file -> {
+      final AbstractRtCorrectionFunction correction = mock(AbstractRtCorrectionFunction.class);
+      when(correction.getRawDataFile(PROJECT)).thenReturn(file);
+      return correction;
+    }).toList();
+
+    when(method.getModule()).thenReturn(new ApplyRtCorrectionToRawFileModule());
+    when(method.getModuleCallDate()).thenReturn(Instant.parse(date));
+    when(method.getParameters()).thenReturn(parameters);
+    when(parameters.getValue(ApplyRtCorrectionToRawFileParameters.calis)).thenReturn(corrections);
+    return method;
   }
 
   private static FeatureListAppliedMethod clearMethod(String date) {

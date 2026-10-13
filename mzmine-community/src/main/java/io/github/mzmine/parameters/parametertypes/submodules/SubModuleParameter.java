@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026 The mzmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -137,7 +137,6 @@ public class SubModuleParameter<SUB extends ParameterSet> implements
   public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     embeddedParameters.saveValuesToXML(project, xmlElement);
   }
-
 
   @Override
   public boolean checkValue(@NotNull MZmineProject project,

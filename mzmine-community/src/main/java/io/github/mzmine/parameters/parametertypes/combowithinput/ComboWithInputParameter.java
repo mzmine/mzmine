@@ -165,7 +165,6 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
     embeddedParameter.saveValueToXML(project, xmlElement);
   }
 
-
   @Override
   public boolean checkValue(@NotNull MZmineProject project,
       @NotNull Collection<String> errorMessages) {

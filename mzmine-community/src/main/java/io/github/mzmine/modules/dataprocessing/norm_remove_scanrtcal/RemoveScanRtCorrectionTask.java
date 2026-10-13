@@ -85,6 +85,41 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
     return List.of(files);
   }
 
+  @Override
+  protected void addAppliedMethod() {
+    if (!clearedFiles.isEmpty()) {
+      // Retain the complete correction history unless it can be removed atomically. Project
+      // loading then reproduces the final state by applying all corrections before this clear.
+      final ParameterSet clearParameters = RemoveScanRtCorrectionParameters.create(
+          clearedFiles.toArray(RawDataFile[]::new));
+      clearedFiles.forEach(file -> file.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(Objects.requireNonNullElse(callerDescription, ""),
+              getModuleClass(), clearParameters, getModuleCallDate())));
+    }
+
+    // Also compact an existing Apply -> Clear suffix. This matters when individual chromatogram
+    // builder tasks already cleared all scans and a later manual clear is therefore a physical
+    // no-op.
+    removeRevertedRtCorrectionsIfAllFilesCleared(project, getProcessedDataFiles());
+  }
+
+  @Override
+  protected void process() {
+    for (RawDataFile file : files) {
+      boolean fileWasCorrected = false;
+      for (Scan scan : file.getScans()) {
+        if (scan instanceof SimpleScan ss) {
+          fileWasCorrected |= ss.getCorrectedRetentionTime() != null;
+          ss.setCorrectedRetentionTime(null);
+        }
+      }
+      if (fileWasCorrected) {
+        clearedFiles.add(file);
+        ((RawDataFileImpl) file).clearCaches();
+      }
+    }
+  }
+
   /**
    * Removes a trailing sequence of RT correction applications and the clear operation that reverted
    * them. Every raw file affected by every correction must be selected, and removing the complete
@@ -161,21 +196,13 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
     return true;
   }
 
-  @Override
-  protected void process() {
-    for (RawDataFile file : files) {
-      boolean fileWasCorrected = false;
-      for (Scan scan : file.getScans()) {
-        if (scan instanceof SimpleScan ss) {
-          fileWasCorrected |= ss.getCorrectedRetentionTime() != null;
-          ss.setCorrectedRetentionTime(null);
-        }
-      }
-      if (fileWasCorrected) {
-        clearedFiles.add(file);
-        ((RawDataFileImpl) file).clearCaches();
-      }
-    }
+  private static boolean isRtCorrection(@Nullable FeatureListAppliedMethod method) {
+    return method != null
+        && method.getModule() instanceof ApplyRtCorrectionToRawFileModule;
+  }
+
+  private static boolean isRtCorrectionClear(@Nullable FeatureListAppliedMethod method) {
+    return method != null && method.getModule() instanceof RemoveScanRtCorrectionModule;
   }
 
   private static @Nullable CorrectionCall getCorrectionCall(@NotNull MZmineProject project,
@@ -202,33 +229,6 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
     }
     return correctionFiles.isEmpty() ? null
         : new CorrectionCall(appliedMethod.getModuleCallDate(), Set.copyOf(correctionFiles));
-  }
-
-  private static boolean isRtCorrection(@Nullable FeatureListAppliedMethod method) {
-    return method != null
-        && method.getModule() instanceof ApplyRtCorrectionToRawFileModule;
-  }
-
-  private static boolean isRtCorrectionClear(@Nullable FeatureListAppliedMethod method) {
-    return method != null && method.getModule() instanceof RemoveScanRtCorrectionModule;
-  }
-
-  @Override
-  protected void addAppliedMethod() {
-    if (!clearedFiles.isEmpty()) {
-      // Retain the complete correction history unless it can be removed atomically. Project
-      // loading then reproduces the final state by applying all corrections before this clear.
-      final ParameterSet clearParameters = RemoveScanRtCorrectionParameters.create(
-          clearedFiles.toArray(RawDataFile[]::new));
-      clearedFiles.forEach(file -> file.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(Objects.requireNonNullElse(callerDescription, ""),
-              getModuleClass(), clearParameters, getModuleCallDate())));
-    }
-
-    // Also compact an existing Apply -> Clear suffix. This matters when individual chromatogram
-    // builder tasks already cleared all scans and a later manual clear is therefore a physical
-    // no-op.
-    removeRevertedRtCorrectionsIfAllFilesCleared(project, getProcessedDataFiles());
   }
 
   private static boolean replayIsCorrected(RawDataFile file, int simulatedLastIndex) {

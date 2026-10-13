@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026 The mzmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,6 +70,16 @@ public class SiriusExportModule implements MZmineProcessingModule {
     return MODULE_DESCRIPTION;
   }
 
+  @Override
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+    SiriusExportTask task = new SiriusExportTask(project, parameters, moduleCallDate);
+    tasks.add(task);
+    return ExitCode.OK;
+
+  }
+
   public static void exportSingleFeatureList(FeatureListRow row, @NotNull Instant moduleCallDate) {
     final MZmineProject project = ProjectService.getProject();
 
@@ -122,16 +132,6 @@ public class SiriusExportModule implements MZmineProcessingModule {
       MZmineCore.getDesktop().displayErrorMessage(
           "Error while exporting feature to SIRIUS: " + ExceptionUtils.exceptionToString(e));
     }
-  }
-
-  @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    SiriusExportTask task = new SiriusExportTask(project, parameters, moduleCallDate);
-    tasks.add(task);
-    return ExitCode.OK;
-
   }
 
   @Override

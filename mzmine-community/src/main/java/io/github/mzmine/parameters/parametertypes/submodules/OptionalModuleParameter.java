@@ -170,7 +170,6 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     embeddedParameters.saveValuesToXML(project, xmlElement);
   }
 
-
   @Override
   public boolean checkValue(@NotNull MZmineProject project,
       @NotNull Collection<String> errorMessages) {

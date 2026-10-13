@@ -133,6 +133,23 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   /**
+   * @param project the raw data file is searched in this project
+   * @return The first matching raw data file of the project.
+   */
+  @Nullable
+  public RawDataFile getMatchingFile(@NotNull final MZmineProject project) {
+    // must filter for null as findFirst throws npe otherwise
+    return streamMatchingFiles(project, new RawDataFilePlaceholder[]{this}).filter(Objects::nonNull)
+        .findFirst().orElse(null);
+  }
+
+  public boolean matches(@Nullable final RawDataFile file) {
+    return file != null && file.getName().equals(name) && (absPath == null || Objects.equals(
+        absPath, file.getAbsolutePath())) && (fileHashCode == null || Objects.equals(fileHashCode,
+        file.hashCode()));
+  }
+
+  /**
    * Matching raw data files. May contain null if a file was not found. This points to files being
    * removed from the project.
    *
@@ -169,12 +186,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
         });
   }
 
-  public boolean matches(@Nullable final RawDataFile file) {
-    return file != null && file.getName().equals(name) && (absPath == null || Objects.equals(
-        absPath, file.getAbsolutePath())) && (fileHashCode == null || Objects.equals(fileHashCode,
-        file.hashCode()));
-  }
-
   /**
    * Matching raw data files. May contain null if a file was not found. This points to files being
    * removed from the project.
@@ -197,17 +208,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
       @NotNull RawDataFilePlaceholder @Nullable [] placeholders) {
     return streamMatchingFiles(project, placeholders).filter(Objects::nonNull)
         .toArray(RawDataFile[]::new);
-  }
-
-  /**
-   * @param project the raw data file is searched in this project
-   * @return The first matching raw data file of the project.
-   */
-  @Nullable
-  public RawDataFile getMatchingFile(@NotNull final MZmineProject project) {
-    // must filter for null as findFirst throws npe otherwise
-    return streamMatchingFiles(project, new RawDataFilePlaceholder[]{this}).filter(Objects::nonNull)
-        .findFirst().orElse(null);
   }
 
   @Override

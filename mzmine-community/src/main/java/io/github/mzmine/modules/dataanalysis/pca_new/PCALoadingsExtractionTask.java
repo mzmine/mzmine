@@ -73,30 +73,6 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     return List.of(resultFlist);
   }
 
-  private static void prepareData(@NotNull MetadataTable metadata, @NotNull PCAModel pcaModel) {
-    // always apply mean centering for PCA
-    final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
-        pcaModel.getImputationFunction(), pcaModel.getScalingFunction(),
-        ScalingFunctions.MeanCentering);
-
-    // only on samples
-    final FeatureList featureList = pcaModel.getFlists().getFirst();
-
-    final SampleTypeFilter sampleFilter = pcaModel.getSampleTypeFilter();
-    final List<RawDataFile> selectedSamples = sampleFilter.filterFiles(metadata,
-        featureList.getRawDataFiles());
-    if (selectedSamples.isEmpty()) {
-      pcaModel.setFeatureDataTable(null);
-      return;
-    }
-
-    // only prepare data for list of files
-    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
-        featureList.getRows(), selectedSamples, config);
-
-    pcaModel.setFeatureDataTable(dataTable);
-  }
-
   @Override
   protected void process() {
     final var param = (PCALoadingsExtractionParameters) parameters;
@@ -136,6 +112,30 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     // the relationship maps and the ion identity networks reference rows directly
     FeatureListUtils.transferRowRelationsAndIIN(sourceFlist, resultFlist, rowMapping::get);
     project.addFeatureList(resultFlist);
+  }
+
+  private static void prepareData(@NotNull MetadataTable metadata, @NotNull PCAModel pcaModel) {
+    // always apply mean centering for PCA
+    final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
+        pcaModel.getImputationFunction(), pcaModel.getScalingFunction(),
+        ScalingFunctions.MeanCentering);
+
+    // only on samples
+    final FeatureList featureList = pcaModel.getFlists().getFirst();
+
+    final SampleTypeFilter sampleFilter = pcaModel.getSampleTypeFilter();
+    final List<RawDataFile> selectedSamples = sampleFilter.filterFiles(metadata,
+        featureList.getRawDataFiles());
+    if (selectedSamples.isEmpty()) {
+      pcaModel.setFeatureDataTable(null);
+      return;
+    }
+
+    // only prepare data for list of files
+    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
+        featureList.getRows(), selectedSamples, config);
+
+    pcaModel.setFeatureDataTable(dataTable);
   }
 
   @Override

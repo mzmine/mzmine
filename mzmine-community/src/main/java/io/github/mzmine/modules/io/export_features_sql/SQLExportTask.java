@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026 The mzmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,12 @@
 
 package io.github.mzmine.modules.io.export_features_sql;
 
+import java.io.ByteArrayInputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -40,12 +46,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.io.ByteArrayInputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 
