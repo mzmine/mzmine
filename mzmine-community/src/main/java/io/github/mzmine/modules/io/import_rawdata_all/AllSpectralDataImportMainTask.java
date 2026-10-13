@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataTask;
@@ -32,7 +33,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMeta
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AllSpectralDataImportMainTask extends AbstractTask {
 
+  private final @NotNull MZmineProject project;
   private final ThreadPoolTask mainImportTask;
   private final File metadataFile;
   private final ParameterSet parameters;
@@ -52,9 +53,13 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   private final ParameterSet extractMetadataParameters;
   private final boolean sortAndRecolor;
 
-  public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
-      final @NotNull ParameterSet parameters) {
+  /**
+   * @param project the project the data is imported into
+   */
+  public AllSpectralDataImportMainTask(final @NotNull MZmineProject project,
+      final @NotNull List<? extends Task> tasks, final @NotNull ParameterSet parameters) {
     super(Instant.now(), "Main data import task");
+    this.project = project;
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
     metadataFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         AllSpectralDataImportParameters.metadataFile, null);
@@ -122,8 +127,8 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   }
 
   private ColorByMetadataTask recolorBlanksAndQcs() {
-    List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-        ProjectService.getProject(), parameters);
+    List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(project,
+        parameters);
 
     ColorByMetadataTask task = new ColorByMetadataTask(moduleCallDate,
         ColorByMetadataParameters.createDefault(loaded), AllSpectralDataImportModule.class);
@@ -133,14 +138,14 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
 
   private Task loadMetadata() {
     var metaParams = ProjectMetadataImportParameters.create(metadataFile, false, false);
-    var metadataTask = new ProjectMetadataImportTask(metaParams, moduleCallDate);
+    var metadataTask = new ProjectMetadataImportTask(project, metaParams, moduleCallDate);
     metadataTask.run();
     return metadataTask;
   }
 
   private Task extractMetadata() {
     final List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-        ProjectService.getProject(), parameters);
+        project, parameters);
     final Task extractTask = SampleMetadataExtractionParameters.createTaskWithDataFiles(
         extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class,
         loaded.toArray(RawDataFile[]::new));

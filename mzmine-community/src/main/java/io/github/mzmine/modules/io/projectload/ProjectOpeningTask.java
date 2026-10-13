@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.projectload;
 
 import com.vdurmont.semver4j.Semver;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.ProjectResultTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.GUIUtils;
@@ -45,6 +47,7 @@ import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CountingInputStream;
 import io.github.mzmine.util.io.SemverVersionReader;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,14 +63,19 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class ProjectOpeningTask extends AbstractTask {
+public class ProjectOpeningTask extends AbstractTask implements ProjectResultTask {
 
   private static final Logger logger = Logger.getLogger(ProjectOpeningTask.class.getName());
   private final boolean mergeOntoExisting;
   private final boolean keepCurrentLibraries;
   private final boolean loadProjectConfiguration;
 
+  /**
+   * The project this task was started on. Is either merged into or replaced by the loaded project.
+   */
+  private final @NotNull MZmineProject project;
   private File openFile;
   private final ParameterSet parameters;
   private MZmineProjectImpl newProject;
@@ -85,8 +93,14 @@ public class ProjectOpeningTask extends AbstractTask {
 //  private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
 //  private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
-  public ProjectOpeningTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  /**
+   * @param project the loaded project is merged into this project or replaces this project,
+   *                depending on {@link ProjectLoaderParameters#mergeOntoExisting}
+   */
+  public ProjectOpeningTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
     this.parameters = parameters;
     mergeOntoExisting = parameters.getValue(ProjectLoaderParameters.mergeOntoExisting);
@@ -139,19 +153,29 @@ public class ProjectOpeningTask extends AbstractTask {
       logger.info("Started opening project " + openFile);
       setStatus(TaskStatus.PROCESSING);
 
+      // checked before the project may be replaced below
+      final boolean isCurrentProject = project == ProjectService.getProject();
+
       if (!mergeOntoExisting) {
-        ProjectService.getProjectManager().clearProject();
-        newProject = (MZmineProjectImpl) ProjectService.getProject();
+        newProject = new MZmineProjectImpl();
         newProject.setProjectFile(openFile);
         newProject.setStandalone(
             false); // set to false by default, we check for existing files later
-        GUIUtils.closeAllWindows();
-        ProjectService.getProjectManager().setCurrentProject(newProject);
+        if (keepCurrentLibraries) {
+          newProject.addSpectralLibrary(
+              project.getCurrentSpectralLibraries().toArray(new SpectralLibrary[0]));
+        }
+        if (isCurrentProject) {
+          GUIUtils.closeAllWindows();
+        }
+        // replace already before loading to free the memory of the old project
+        // the GUI follows if the replaced project is the current project
+        ProjectService.getProjectManager().replaceProject(project, newProject);
       } else {
-        newProject = (MZmineProjectImpl) ProjectService.getProject();
-      }
-      if (!keepCurrentLibraries) {
-        newProject.clearSpectralLibrary();
+        newProject = (MZmineProjectImpl) project;
+        if (!keepCurrentLibraries) {
+          newProject.clearSpectralLibrary();
+        }
       }
 
       ZipFile zipFile = new ZipFile(openFile);
@@ -183,7 +207,14 @@ public class ProjectOpeningTask extends AbstractTask {
           versionInformationLoaded = true;
         } else if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME)
             && loadProjectConfiguration) {
-          loadConfiguration(cis);
+          // decision: the configuration is global, only load it into the current (GUI) project
+          if (isCurrentProject) {
+            loadConfiguration(cis);
+          } else {
+            logger.warning("""
+                Skipped loading the configuration from project %s because it is not loaded into \
+                the current project.""".formatted(openFile));
+          }
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
         } else if (entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
@@ -202,7 +233,7 @@ public class ProjectOpeningTask extends AbstractTask {
       }
 
       currentLoadedObjectName = "Project metadata";
-      ProjectMetadataProjectIO.loadFromZip(zipFile);
+      ProjectMetadataProjectIO.loadFromZip(zipFile, newProject);
 
       currentLoadedObjectName = "Raw file metadata";
       try {
@@ -412,5 +443,14 @@ public class ProjectOpeningTask extends AbstractTask {
   @Override
   public TaskPriority getTaskPriority() {
     return TaskPriority.HIGH;
+  }
+
+  /**
+   * @return the project the file was loaded into. The project this task was started on if merged,
+   * otherwise the new project that replaced it.
+   */
+  @Override
+  public @Nullable MZmineProject getResultProject() {
+    return newProject;
   }
 }

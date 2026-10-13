@@ -25,16 +25,26 @@
 
 package io.github.mzmine.modules.tools.clear_project;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.ProjectResultTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class ClearProjectTask extends AbstractTask {
+/**
+ * Replaces the project by a new empty project that keeps the spectral libraries.
+ */
+public class ClearProjectTask extends AbstractTask implements ProjectResultTask {
 
-  protected ClearProjectTask(@NotNull Instant moduleCallDate) {
+  private final @NotNull MZmineProject project;
+  private @Nullable MZmineProject resultProject;
+
+  protected ClearProjectTask(@NotNull MZmineProject project, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
   }
 
   @Override
@@ -50,7 +60,12 @@ public class ClearProjectTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    ProjectService.getProjectManager().clearProject();
+    resultProject = ProjectService.getProjectManager().clearProject(project);
     setStatus(TaskStatus.FINISHED);
+  }
+
+  @Override
+  public @Nullable MZmineProject getResultProject() {
+    return resultProject;
   }
 }

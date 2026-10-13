@@ -55,4 +55,19 @@ public interface ProjectManager {
    * Removes all files and feature lists and creates a new project. Spectral libraries are kept.
    */
   void clearProject();
+
+  /**
+   * Creates a new empty project that keeps the spectral libraries of the given project and replaces
+   * the given project by it via {@link #replaceProject(MZmineProject, MZmineProject)}.
+   *
+   * @return the new empty project
+   */
+  @NotNull MZmineProject clearProject(@NotNull MZmineProject project);
+
+  /**
+   * Replaces a project by a new project. The data files of the old project are closed. If the old
+   * project is the current project, the new project becomes the current project. Otherwise, the
+   * current project is not changed.
+   */
+  void replaceProject(@NotNull MZmineProject oldProject, @NotNull MZmineProject newProject);
 }

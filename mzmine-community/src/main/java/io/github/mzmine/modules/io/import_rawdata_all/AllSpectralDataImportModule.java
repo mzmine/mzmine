@@ -375,7 +375,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 //    var threadPoolTask = new ThreadPoolTask(description , nThreads, tasks);
 //    tasksToAdd.add(threadPoolTask);
 
-    AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(tasks, parameters);
+    AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(project, tasks,
+        parameters);
     tasksToAdd.add(mainTask);
 
     return ExitCode.OK;

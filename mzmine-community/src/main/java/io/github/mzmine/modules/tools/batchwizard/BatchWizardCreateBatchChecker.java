@@ -47,6 +47,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,7 +106,8 @@ public class BatchWizardCreateBatchChecker {
     }
     try {
       // use placeholders so that RawDataFiles do not need to be present.
-      ProjectMetadataReader reader = new ProjectMetadataReader(false, false, true);
+      ProjectMetadataReader reader = new ProjectMetadataReader(ProjectService.getProject(), false,
+          false, true);
       MetadataTable table = reader.readFile(metadata);
 
       if (!reader.getErrors().isEmpty()) {

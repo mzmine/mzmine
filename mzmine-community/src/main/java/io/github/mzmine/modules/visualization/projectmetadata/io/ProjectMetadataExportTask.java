@@ -25,10 +25,9 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
 import java.io.File;
 import java.time.Instant;
@@ -36,23 +35,25 @@ import org.jetbrains.annotations.NotNull;
 
 public class ProjectMetadataExportTask extends AbstractSimpleToolTask {
 
+  private final @NotNull MZmineProject project;
   private final File file;
   private final MetadataFileFormat format;
 
   /**
+   * @param project        the metadata of this project is exported
    * @param moduleCallDate the call date of module to order execution order
    */
-  public ProjectMetadataExportTask(final @NotNull Instant moduleCallDate,
-      @NotNull final ParameterSet parameters) {
+  public ProjectMetadataExportTask(@NotNull final MZmineProject project,
+      final @NotNull Instant moduleCallDate, @NotNull final ParameterSet parameters) {
     super(moduleCallDate, parameters);
+    this.project = project;
     file = parameters.getValue(ProjectMetadataExportParameters.fileName);
     format = parameters.getValue(ProjectMetadataExportParameters.format);
   }
 
   @Override
   protected void process() {
-    MetadataTable metadata = ProjectService.getProject().getProjectMetadata();
-    ProjectMetadataWriter writer = new ProjectMetadataWriter(metadata, format);
+    ProjectMetadataWriter writer = new ProjectMetadataWriter(project, format);
     if (!writer.exportTo(file)) {
       error("Error during metadata file export");
       return;

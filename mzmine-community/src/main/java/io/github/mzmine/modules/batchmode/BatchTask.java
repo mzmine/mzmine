@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.ProjectResultTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -72,7 +73,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -123,15 +126,26 @@ public class BatchTask extends AbstractTask {
   private Boolean createResultsDir;
   private File parentDir;
   private int currentDataset;
+  /**
+   * The project this batch runs on. Replaced if a step results in a different project, e.g., by
+   * loading a project without merging, see {@link ProjectResultTask}.
+   */
+  private volatile @NotNull MZmineProject project;
 
-  BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  BatchTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
         null); // we don't create any new data here, date is irrelevant, too.
   }
 
-  public BatchTask(final MZmineProject project, final ParameterSet parameters,
-      final Instant moduleCallDate, final @Nullable List<File> subDirectories) {
+  /**
+   * @param project the project this batch runs on. Steps may replace this project, see
+   *                {@link ProjectResultTask}.
+   */
+  public BatchTask(final @NotNull MZmineProject project, final @NotNull ParameterSet parameters,
+      final @NotNull Instant moduleCallDate, final @Nullable List<File> subDirectories) {
     super(null, moduleCallDate);
+    this.project = project;
     this.runGCafterBatchStep = requireNonNullElse(
         getPreference(MZminePreferences.runGCafterBatchStep), false);
 
@@ -273,8 +287,8 @@ public class BatchTask extends AbstractTask {
     for (int i = 0; i < totalSteps; i++) {
       // at the end of one dataset, clear the project and start over again
       if (useAdvanced && currentStep() == 0 && subDirectories != null) {
-        // clear the old project
-        ProjectService.getProjectManager().clearProject();
+        // replace the old project by an empty one
+        project = ProjectService.getProjectManager().clearProject(project);
         currentDataset++;
 
         // print and reset per-dataset step measurements (timing + temp file usage)
@@ -575,6 +589,10 @@ public class BatchTask extends AbstractTask {
       return;
     }
 
+    // keep the tasks that may replace the project as the task list is cleared on scheduling
+    final List<ProjectResultTask> projectResultTasks = currentStepTasks.stream()
+        .filter(ProjectResultTask.class::isInstance).map(ProjectResultTask.class::cast).toList();
+
     // submit as ThreadPoolTask
     final TaskStatus status;
     // create ThreadPool
@@ -586,6 +604,10 @@ public class BatchTask extends AbstractTask {
     }
 
     if (status != TaskStatus.FINISHED) {
+      return;
+    }
+
+    if (!applyResultProject(method, projectResultTasks)) {
       return;
     }
 
@@ -610,6 +632,43 @@ public class BatchTask extends AbstractTask {
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
     }
+  }
+
+  /**
+   * Continues the batch on the result project of the step if it differs from the current batch
+   * project. The tasks themselves replace the project in the
+   * {@link io.github.mzmine.project.ProjectManager}.
+   *
+   * @param projectResultTasks the finished tasks of the step that declare a result project
+   * @return false on error if the step resulted in more than one project
+   */
+  private boolean applyResultProject(@NotNull final MZmineProcessingModule method,
+      @NotNull final List<ProjectResultTask> projectResultTasks) {
+    // identity set, projects are never equal to another instance
+    final Set<MZmineProject> resultProjects = Collections.newSetFromMap(new IdentityHashMap<>());
+    for (final ProjectResultTask task : projectResultTasks) {
+      final MZmineProject resultProject = task.getResultProject();
+      if (resultProject != null) {
+        resultProjects.add(resultProject);
+      }
+    }
+
+    if (resultProjects.size() > 1) {
+      error("Batch step %s resulted in %d different projects but only one is supported.".formatted(
+          method.getName(), resultProjects.size()));
+      return false;
+    }
+    if (resultProjects.isEmpty()) {
+      return true;
+    }
+
+    final MZmineProject resultProject = resultProjects.iterator().next();
+    if (resultProject != project) {
+      logger.info("Batch step %s replaced the project. Continuing on the new project.".formatted(
+          method.getName()));
+      project = resultProject;
+    }
+    return true;
   }
 
   /**
@@ -645,8 +704,8 @@ public class BatchTask extends AbstractTask {
 
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
-      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-          ProjectService.getProject(), batchStepParameters);
+      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(getProject(),
+          batchStepParameters);
 
       // because of concurrency - the project may not have all the new raw data files - but all newly created files are in createdDataFiles
       Set<RawDataFile> files = new HashSet<>(loadedRawDataFiles);
@@ -731,9 +790,11 @@ public class BatchTask extends AbstractTask {
     return queue.clone();
   }
 
-  private MZmineProject getProject() {
-    // uses the current project as the project may change, e.g., by loading a project in the batch
-    // potentially make a supplier in the future. will need to update the project opening task in that case.
-    return ProjectService.getProject();
+  /**
+   * @return the project this batch runs on. This may be a different project than the batch was
+   * started on if a step replaced the project, e.g., by loading a project without merging.
+   */
+  public @NotNull MZmineProject getProject() {
+    return project;
   }
 }

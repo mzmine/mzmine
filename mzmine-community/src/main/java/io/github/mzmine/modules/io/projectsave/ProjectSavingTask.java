@@ -212,7 +212,7 @@ public class ProjectSavingTask extends AbstractTask {
       // Stage 3 - save project metadata
       currentStage++;
       currentSavedObjectName = "project metadata";
-      ProjectMetadataProjectIO.saveToZip(zipStream);
+      ProjectMetadataProjectIO.saveToZip(zipStream, savedProject);
       currentSavedObjectName = "raw file metadata";
       RawFileMetadataProjectIO.saveToZip(zipStream, savedProject);
 
