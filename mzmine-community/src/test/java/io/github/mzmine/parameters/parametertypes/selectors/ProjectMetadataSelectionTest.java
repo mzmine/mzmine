@@ -33,6 +33,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
+import io.github.mzmine.project.ProjectMismatchException;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -114,5 +115,16 @@ class ProjectMetadataSelectionTest {
 
     Assertions.assertNotNull(fileNames);
     Assertions.assertEquals(Map.of(fileA, "a.mzML", fileB, "b.mzML"), fileNames);
+  }
+
+  @Test
+  void guiSelectionsRequireCurrentProject() {
+    Assertions.assertThrows(ProjectMismatchException.class, () -> new RawDataFilesSelection(
+        RawDataFilesSelectionType.GUI_SELECTED_FILES).getMatchingRawDataFiles(otherProject));
+    Assertions.assertThrows(ProjectMismatchException.class, () -> new FeatureListsSelection(
+        FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS).getMatchingFeatureLists(otherProject));
+    Assertions.assertThrows(ProjectMismatchException.class,
+        () -> new SpectralLibrarySelection(SpectralLibrarySelectionType.AS_SELECTED_IN_MAIN_WINDOW,
+            List.of()).getMatchingLibraries(otherProject));
   }
 }

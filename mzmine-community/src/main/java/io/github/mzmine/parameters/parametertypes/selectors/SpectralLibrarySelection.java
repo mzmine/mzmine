@@ -33,6 +33,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
+import io.github.mzmine.project.ProjectMismatchException;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.threadpools.FixedThreadPoolTask;
@@ -46,6 +47,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySelection {
@@ -78,9 +80,13 @@ public class SpectralLibrarySelection {
       case ALL_IMPORTED -> project.getCurrentSpectralLibraries().stream().toList();
       case SPECIFIC -> getMatchingSpecificFiles(project);
       case AS_SELECTED_IN_MAIN_WINDOW -> {
+        ProjectMismatchException.requireCurrentProject(project, "spectral libraries");
         final Desktop desktop = DesktopService.getDesktop();
         if (desktop instanceof MZmineDesktop desk) {
-          yield List.of(desk.getSelectedSpectralLibraries());
+          // resolve against the project so that the selection works once other projects are shown
+          final List<SpectralLibrary> projectLibraries = project.getCurrentSpectralLibraries();
+          yield Stream.of(desk.getSelectedSpectralLibraries()).filter(projectLibraries::contains)
+              .toList();
         }
         yield List.of();
       }

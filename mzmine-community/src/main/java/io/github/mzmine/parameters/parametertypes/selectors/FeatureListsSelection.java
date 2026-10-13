@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectMismatchException;
 import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.io.JsonUtils;
 import java.util.ArrayList;
@@ -106,8 +107,14 @@ public class FeatureListsSelection implements Cloneable {
 
     final ModularFeatureList[] matchingFlists = switch (selectionType) {
 
-      case GUI_SELECTED_FEATURELISTS -> Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
-          .map(ModularFeatureList.class::cast).toArray(ModularFeatureList[]::new);
+      case GUI_SELECTED_FEATURELISTS -> {
+        ProjectMismatchException.requireCurrentProject(project, "feature lists");
+        // resolve against the project so that the selection works once other projects are shown
+        final List<FeatureList> projectLists = project.getCurrentFeatureLists();
+        yield Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
+            .filter(projectLists::contains).map(ModularFeatureList.class::cast)
+            .toArray(ModularFeatureList[]::new);
+      }
       case ALL_FEATURELISTS -> project.getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
       case SPECIFIC_FEATURELISTS -> {
         if (specificFeatureLists == null) {

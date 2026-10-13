@@ -33,6 +33,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
+import io.github.mzmine.project.ProjectMismatchException;
 import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.io.JsonUtils;
 import java.util.ArrayList;
@@ -116,7 +117,13 @@ public class RawDataFilesSelection implements Cloneable {
 
     final RawDataFile[] matchingFiles;
     switch (selectionType) {
-      case GUI_SELECTED_FILES -> matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
+      case GUI_SELECTED_FILES -> {
+        ProjectMismatchException.requireCurrentProject(project, "raw data files");
+        // resolve against the project so that the selection works once other projects are shown
+        final List<RawDataFile> projectFiles = project.getCurrentRawDataFiles();
+        matchingFiles = Arrays.stream(MZmineCore.getDesktop().getSelectedDataFiles())
+            .filter(projectFiles::contains).toArray(RawDataFile[]::new);
+      }
       case ALL_FILES -> matchingFiles = project.getDataFiles();
       case SPECIFIC_FILES -> matchingFiles = getSpecificFiles(project);
       case NAME_PATTERN -> {
