@@ -74,6 +74,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -102,6 +103,10 @@ public class TDFUtils implements AutoCloseable {
   public static final int SCAN_PACKAGE_SIZE = 5_000;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+  /**
+   * Only show the outdated MSVC runtime dialog once, even if multiple files are imported.
+   */
+  private static final AtomicBoolean msvcErrorShown = new AtomicBoolean(false);
 
   private static final OfInt INT_LITTLE_ENDIAN = TDFLib.C_INT.withOrder(ByteOrder.LITTLE_ENDIAN);
   private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -223,14 +228,14 @@ public class TDFUtils implements AutoCloseable {
         path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath() + '\0';
 
     // UTF8 required to load files from paths with special chars like ü
-    // todo: check this is 0 terminated
     final byte[] fileBytes = Native.toByteArray(dirToOpen, StandardCharsets.UTF_8);
     handle = TDFLib.tims_open_v2(offHeap.allocateFrom(OfByte.JAVA_BYTE, fileBytes),
         useRecalibratedState, applyPressureComp.mode());
 
     if (handle == 0) {
       Result result = printLastError(0);
-      if (result.message().contains("The minimum version (14.44.xx")) {
+      if (result.message().contains("The minimum version (14.44.xx")
+          && msvcErrorShown.compareAndSet(false, true)) {
         DialogLoggerUtil.showDialog(AlertType.ERROR, "Outdated MSVC Runtime",
             "The MSVC runtime does not match the minimum required version 14.44.xx for the tdf import.\n%s".formatted(
                 result.message()));

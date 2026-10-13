@@ -62,6 +62,7 @@ public enum WizardPart {
     return switch (this) {
       case ION_INTERFACE -> "Sample introduction";
       case IMS -> "Ion mobility";
+      case MS -> "Mass spectrometer";
       default -> this.toString();
     };
   }

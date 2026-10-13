@@ -88,6 +88,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -114,10 +115,18 @@ public class DataTypes {
    */
   private static final HashMap<String, DataType<?>> map = new HashMap<>();
 
+  /**
+   * Packages that are scanned for {@link DataType} implementations. Raw data file metadata types
+   * live next to the feature types.
+   */
+  private static final List<String> TYPE_PACKAGES = List.of(
+      "io.github.mzmine.datamodel.features.types",
+      "io.github.mzmine.datamodel.features.rawfiletypes");
+
   static {
     try {
       ClassPath classPath = ClassPath.from(DataType.class.getClassLoader());
-      classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
+      TYPE_PACKAGES.stream().map(classPath::getTopLevelClassesRecursive).flatMap(Set::stream)
           .forEach(classInfo -> {
             try {
               final Class<?> clazz = classInfo.load();
@@ -225,8 +234,8 @@ public class DataTypes {
   @NotNull
   public static Map<DataType, Integer> getDataTypeOrderFeatureTable() {
     List<Class> priority = List.of(CompoundIdType.class, CompoundMembersJsonType.class,
-        CompoundMembersType.class, IDType.class, DetectionType.class, MZType.class,
-        MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
+        CompoundMembersType.class, IDType.class, TagDataType.class, DetectionType.class,
+        MZType.class, MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
         MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,
