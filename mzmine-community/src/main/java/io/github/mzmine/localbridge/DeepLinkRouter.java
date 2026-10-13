@@ -15,7 +15,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -61,6 +60,11 @@ public final class DeepLinkRouter {
   }
 
   /** Finds mzmine URLs in launcher arguments without interpreting any other command-line option. */
+  /**
+   * Captures OS protocol launches before ordinary CLI parsing. External clients use
+   * {@code mzmine://app/connection} to open the native connection screen, and navigation links to
+   * focus a result. Delivery waits for the GUI and handler registration to finish.
+   */
   public static void queueLaunchArguments(final @NotNull String[] arguments) {
     for (final String argument : arguments) {
       if (argument != null && argument.toLowerCase(Locale.ROOT).startsWith("mzmine:")) {
@@ -92,7 +96,7 @@ public final class DeepLinkRouter {
       malformedLinkPending = false;
     }
     if (showMalformedMessage) {
-      Platform.runLater(() -> MZmineCore.getDesktop().displayMessage("Cannot open mzmine link",
+      FxThread.runLater(() -> MZmineCore.getDesktop().displayMessage("Cannot open mzmine link",
           "The link is malformed or no longer supported."));
     }
     links.forEach(DeepLinkRouter::navigate);
@@ -137,11 +141,7 @@ public final class DeepLinkRouter {
         logger.log(Level.WARNING, "Could not navigate mzmine deep link", ex);
       }
     };
-    if (Platform.isFxApplicationThread()) {
-      navigation.run();
-    } else {
-      Platform.runLater(navigation);
-    }
+    FxThread.runLater(navigation);
     return true;
   }
 

@@ -232,7 +232,6 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
       newMZmineFile.addOtherDataFiles(otherTraceFiles);
 
       newMZmineFile.setStartTimeStamp(startTimeStamp);
-      newMZmineFile.setAcquisitionMetadata(msdkTaskRes.getAcquisitionMetadata());
       try {
         MzMLFileMetadataMapper.apply(msdkTaskRes.getHeaderMetadata(),
             newMZmineFile.getFileMetadata());

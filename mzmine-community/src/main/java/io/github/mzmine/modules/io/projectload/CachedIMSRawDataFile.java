@@ -27,7 +27,6 @@ package io.github.mzmine.modules.io.projectload;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.AcquisitionMetadata;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -77,16 +76,6 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
     originalFile = file;
     cachedFrames = FXCollections.observableArrayList();
     file.getFrames().forEach(f -> cachedFrames.add(new CachedIMSFrame(f)));
-  }
-
-  @Override
-  public @NotNull AcquisitionMetadata getAcquisitionMetadata() {
-    return originalFile.getAcquisitionMetadata();
-  }
-
-  @Override
-  public void setAcquisitionMetadata(final @NotNull AcquisitionMetadata metadata) {
-    originalFile.setAcquisitionMetadata(metadata);
   }
 
   @Override

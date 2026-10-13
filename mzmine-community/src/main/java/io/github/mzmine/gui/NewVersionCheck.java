@@ -25,8 +25,6 @@
 
 package io.github.mzmine.gui;
 
-import com.vdurmont.semver4j.Semver;
-import com.vdurmont.semver4j.Semver.SemverType;
 import io.github.mzmine.gui.mainwindow.VersionCheckResult;
 import io.github.mzmine.gui.update.UpdateCheckService;
 import io.github.mzmine.gui.update.UpdateStatus;
@@ -60,7 +58,7 @@ public class NewVersionCheck implements Runnable {
     }
 
     final UpdateStatus status = UpdateCheckService.getInstance().check();
-    final VersionCheckResult mapped = toLegacyResult(status);
+    final VersionCheckResult mapped = status.versionCheck();
     result.set(mapped);
 
     final MZmineDesktop desktop = MZmineCore.getDesktop();
@@ -89,18 +87,4 @@ public class NewVersionCheck implements Runnable {
     return result;
   }
 
-  @NotNull
-  private static VersionCheckResult toLegacyResult(@NotNull final UpdateStatus status) {
-    final Semver latest = status.latestVersion() == null ? null : new Semver(status.latestVersion(),
-        SemverType.LOOSE);
-    return switch (status.status()) {
-      case UpdateStatus.CURRENT -> new VersionCheckResult(VersionCheckResultType.CURRENT, latest);
-      case UpdateStatus.UPDATE_AVAILABLE -> new VersionCheckResult(VersionCheckResultType.NEW_AVAILALABLE,
-          latest);
-      case UpdateStatus.DEVELOPMENT_NEWER -> new VersionCheckResult(VersionCheckResultType.THIS_IS_NEWER,
-          latest);
-      case UpdateStatus.UNAVAILABLE -> new VersionCheckResult(VersionCheckResultType.NO_INTERNET, null);
-      default -> new VersionCheckResult(VersionCheckResultType.CANNOT_PARSE, null);
-    };
-  }
 }

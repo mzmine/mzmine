@@ -18,18 +18,27 @@ import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** A per-tab contribution supplied by the application at startup. All methods run on the FX thread. */
+/**
+ * A per-tab contribution supplied by the application at startup. The wizard creates one extension
+ * per tab and invokes every method on the JavaFX application thread.
+ */
 public interface WizardExtension {
 
-  /** Optional controls below the wizard toolbar; null supports context-only integrations. */
+  /**
+   * Creates optional controls below the wizard toolbar once while the tab is built. Return null
+   * for a contribution that only needs part-specific content.
+   */
   @Nullable Node createControls();
 
-  /** Optional context below a part's parameters. Called again whenever the panes are rebuilt. */
+  /**
+   * Creates optional context below one part's parameters. This is called again whenever wizard
+   * panes are rebuilt, so implementations must not reuse a Node already attached to a parent.
+   */
   default @Nullable Node createPartContent(final @NotNull WizardStepParameters step) {
     return null;
   }
 
-  /** Release subscriptions and cancel outstanding work when the tab closes. */
+  /** Releases subscriptions and cancels outstanding work when the owning wizard tab closes. */
   default void close() {
   }
 }

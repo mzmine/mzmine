@@ -26,9 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_all;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataTask;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
@@ -52,41 +49,22 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
 
   private final ThreadPoolTask mainImportTask;
   private final List<? extends Task> importTasks;
-  private volatile List<WrappedTask> fixedImportHandles = List.of();
   private final File metadataFile;
   private final ParameterSet parameters;
   // embedded extraction parameters if the option is selected, otherwise null
   private final ParameterSet extractMetadataParameters;
   private final boolean sortAndRecolor;
-  private final @Nullable MZmineProject fixedProject;
-  private final boolean cancelOnCurrentProjectChange;
   private final Set<RawDataFile> baselineRawDataFiles;
   private final List<? extends Task> rawDataImportTasks;
   private volatile @Nullable Task currentFollowupTask;
 
   public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
       final @NotNull ParameterSet parameters) {
-    this(tasks, List.of(), parameters, null, false);
+    this(tasks, List.of(), parameters);
   }
 
-  /** Creates an import main task that never follows a changed current project. */
-  static @NotNull AllSpectralDataImportMainTask forFixedProject(
-      final @NotNull List<? extends Task> tasks, final @NotNull List<? extends Task> rawDataImportTasks,
-      final @NotNull ParameterSet parameters, final @NotNull MZmineProject fixedProject) {
-    return new AllSpectralDataImportMainTask(tasks, rawDataImportTasks, parameters, fixedProject,
-        true);
-  }
-
-  /** Creates an import task bound to a private project without consulting the global project. */
-  static @NotNull AllSpectralDataImportMainTask forIsolatedProject(
-      final @NotNull List<? extends Task> tasks, final @NotNull List<? extends Task> rawDataImportTasks,
-      final @NotNull ParameterSet parameters, final @NotNull MZmineProject project) {
-    return new AllSpectralDataImportMainTask(tasks, rawDataImportTasks, parameters, project, false);
-  }
-
-  private AllSpectralDataImportMainTask(final @NotNull List<? extends Task> tasks,
-      final @NotNull List<? extends Task> rawDataImportTasks, final @NotNull ParameterSet parameters,
-      @Nullable final MZmineProject fixedProject, final boolean cancelOnCurrentProjectChange) {
+  public AllSpectralDataImportMainTask(final @NotNull List<? extends Task> tasks,
+      final @NotNull List<? extends Task> rawDataImportTasks, final @NotNull ParameterSet parameters) {
     super(Instant.now(), "Main data import task");
     importTasks = List.copyOf(tasks);
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
@@ -96,10 +74,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
         AllSpectralDataImportParameters.extractMetadata, null);
     sortAndRecolor = parameters.getValue(AllSpectralDataImportParameters.sortAndRecolor);
     this.parameters = parameters;
-    this.fixedProject = fixedProject;
-    this.cancelOnCurrentProjectChange = cancelOnCurrentProjectChange;
-    baselineRawDataFiles = fixedProject == null ? Set.of()
-        : Set.copyOf(fixedProject.getCurrentRawDataFiles());
+    baselineRawDataFiles = Set.copyOf(ProjectService.getProject().getCurrentRawDataFiles());
     this.rawDataImportTasks = List.copyOf(rawDataImportTasks);
   }
 
@@ -111,32 +86,19 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return fixedProject == null ? mainImportTask.getFinishedPercentage()
-        : importTasks.stream().mapToDouble(Task::getFinishedPercentage).average().orElse(0);
+    return mainImportTask.getFinishedPercentage();
   }
 
   @Override
   public void run() {
-    if (cancelIfFixedProjectChanged()) {
-      return;
-    }
     setStatus(TaskStatus.PROCESSING);
 
     // do data import and library import directly and import metadata after all is completed.
     // this ensures that data files are already loaded
-    if (fixedProject != null) {
-      if (!runFixedProjectImports()) {
-        return;
-      }
-    } else {
-      mainImportTask.run();
-    }
-    if (fixedProject == null && mainImportTask.isCanceled()) {
+    mainImportTask.run();
+    if (mainImportTask.isCanceled()) {
       setStatus(mainImportTask.getStatus());
       setErrorMessage(mainImportTask.getErrorMessage());
-      return;
-    }
-    if (cancelIfFixedProjectChanged()) {
       return;
     }
 
@@ -146,9 +108,6 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
       if (metaTask.isCanceled()) {
         setStatus(metaTask.getStatus());
         setErrorMessage(metaTask.getErrorMessage());
-        return;
-      }
-      if (cancelIfFixedProjectChanged()) {
         return;
       }
     }
@@ -161,9 +120,6 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
         setErrorMessage(extractTask.getErrorMessage());
         return;
       }
-      if (cancelIfFixedProjectChanged()) {
-        return;
-      }
     }
 
     // recolor by default without any metadata
@@ -174,88 +130,34 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
         setErrorMessage(colorTask.getErrorMessage());
         return;
       }
-      if (cancelIfFixedProjectChanged()) {
-        return;
-      }
     }
 
     setStatus(TaskStatus.FINISHED);
   }
 
-  /** Wait for actual worker exit, even when cancellation has already completed its Future. */
-  private boolean runFixedProjectImports() {
-    if (isCanceled() || cancelIfFixedProjectChanged()) {
-      return false;
-    }
-    final WrappedTask[] submitted = MZmineCore.getTaskController().addTasks(
-        importTasks.toArray(Task[]::new));
-    if (submitted == null) {
-      setErrorMessage("The local import tasks could not be submitted.");
-      setStatus(TaskStatus.ERROR);
-      return false;
-    }
-    fixedImportHandles = List.of(submitted);
-    boolean interrupted = false;
-    try {
-      for (final WrappedTask task : fixedImportHandles) {
-        if (task.getFuture() == null) {
-          task.cancel();
-          setErrorMessage("A local import task could not be submitted.");
-          setStatus(TaskStatus.ERROR);
-        }
-      }
-      while (fixedImportHandles.stream().anyMatch(task -> !task.isExecutionComplete())) {
-        interrupted |= Thread.interrupted();
-        if (interrupted || isCanceled() || cancelIfFixedProjectChanged()) {
-          fixedImportHandles.forEach(WrappedTask::cancel);
-        }
-        java.util.concurrent.locks.LockSupport.parkNanos(10_000_000L);
-      }
-      if (importTasks.stream().anyMatch(task -> task.getStatus() == TaskStatus.ERROR)) {
-        setErrorMessage("One or more local import tasks failed. See local task details.");
-        setStatus(TaskStatus.ERROR);
-        return false;
-      }
-      if (isCanceled() || importTasks.stream().anyMatch(Task::isCanceled)) {
-        cancel();
-        return false;
-      }
-      return true;
-    } finally {
-      if (interrupted) {
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
   private ColorByMetadataTask recolorBlanksAndQcs() {
     List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-        getProject(), parameters);
+        ProjectService.getProject(), parameters);
 
-    ColorByMetadataTask task = fixedProject == null ? new ColorByMetadataTask(moduleCallDate,
-        ColorByMetadataParameters.createDefault(loaded), AllSpectralDataImportModule.class)
-        : new ColorByMetadataTask(moduleCallDate, ColorByMetadataParameters.createDefault(loaded),
-            AllSpectralDataImportModule.class, loaded.toArray(RawDataFile[]::new), fixedProject);
+    ColorByMetadataTask task = new ColorByMetadataTask(moduleCallDate,
+        ColorByMetadataParameters.createDefault(loaded), AllSpectralDataImportModule.class);
     runFollowupTask(task);
     return task;
   }
 
   private Task loadMetadata() {
     var metaParams = ProjectMetadataImportParameters.create(metadataFile, false, false);
-    var metadataTask = new ProjectMetadataImportTask(metaParams, moduleCallDate, fixedProject);
+    var metadataTask = new ProjectMetadataImportTask(metaParams, moduleCallDate);
     runFollowupTask(metadataTask);
     return metadataTask;
   }
 
   private Task extractMetadata() {
     final List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-        getProject(), parameters);
+        ProjectService.getProject(), parameters);
     final RawDataFile[] files = loaded.toArray(RawDataFile[]::new);
-    final Task extractTask = fixedProject == null
-        ? SampleMetadataExtractionParameters.createTaskWithDataFiles(extractMetadataParameters,
-            moduleCallDate, AllSpectralDataImportModule.class, files)
-        : SampleMetadataExtractionParameters.createTaskWithDataFiles(extractMetadataParameters,
-            moduleCallDate, AllSpectralDataImportModule.class, files, fixedProject);
+    final Task extractTask = SampleMetadataExtractionParameters.createTaskWithDataFiles(
+        extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class, files);
     runFollowupTask(extractTask);
     return extractTask;
   }
@@ -265,26 +167,20 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   public void cancel() {
     super.cancel();
     mainImportTask.cancel();
-    if (fixedProject != null) {
-      importTasks.forEach(Task::cancel);
-      fixedImportHandles.forEach(WrappedTask::cancel);
-    }
+    importTasks.forEach(Task::cancel);
     final Task followup = currentFollowupTask;
     if (followup != null) {
       followup.cancel();
     }
   }
 
-  /** Actual raw files added by this fixed-project import; ordinary imports intentionally expose none. */
+  /** Actual raw files added while this native import task was running. */
   public @NotNull List<RawDataFile> getImportedRawDataFiles() {
-    if (fixedProject == null) {
-      return List.of();
-    }
-    return AllSpectralDataImportParameters.getLoadedRawDataFiles(fixedProject, parameters).stream()
+    return AllSpectralDataImportParameters.getLoadedRawDataFiles(ProjectService.getProject(), parameters).stream()
         .filter(raw -> !baselineRawDataFiles.contains(raw)).toList();
   }
 
-  /** Bounded measured import counts for the fixed project. */
+  /** Bounded measured import counts for the prepared native import. */
   public @NotNull ImportOutcome getImportOutcome() {
     final int selected = rawDataImportTasks.size();
     final int imported = getImportedRawDataFiles().size();
@@ -294,29 +190,12 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   }
 
   private void runFollowupTask(final @NotNull Task task) {
-    if (cancelIfFixedProjectChanged()) {
-      task.cancel();
-      return;
-    }
     currentFollowupTask = task;
     try {
       task.run();
     } finally {
       currentFollowupTask = null;
     }
-  }
-
-  private @NotNull MZmineProject getProject() {
-    return fixedProject == null ? ProjectService.getProject() : fixedProject;
-  }
-
-  private boolean cancelIfFixedProjectChanged() {
-    if (cancelOnCurrentProjectChange && ProjectService.getProject() != fixedProject) {
-      setErrorMessage("The reviewed project changed before import could continue.");
-      cancel();
-      return true;
-    }
-    return false;
   }
 
   public record ImportOutcome(int selectedRawFileCount, int importedRawFileCount,

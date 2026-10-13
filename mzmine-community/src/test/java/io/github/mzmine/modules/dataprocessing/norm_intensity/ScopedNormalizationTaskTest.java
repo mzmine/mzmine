@@ -4,6 +4,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -28,8 +29,8 @@ class ScopedNormalizationTaskTest {
   @Test
   void createsCopyWithExactFactorsAndPreservesRawSource() {
     final Fixture fixture = fixture();
-    final var task = new ScopedNormalizationTask(fixture.project, fixture.source, parameters(fixture.source),
-        MemoryMapStorage.forFeatureList(), Instant.now(), () -> true);
+    final var task = ScopedNormalizationModule.createReviewedTask(fixture.project, fixture.source,
+        parameters(fixture.source), MemoryMapStorage.forFeatureList(), Instant.now(), () -> true);
 
     task.run();
 
@@ -44,6 +45,7 @@ class ScopedNormalizationTaskTest {
         fixture.first).orElseThrow().getNormalizationFactor(100d, 5f));
     assertEquals(1, copy.getAppliedMethods().size());
     assertEquals(ScopedNormalizationModule.class, copy.getAppliedMethods().getFirst().getModule().getClass());
+    assertTrue(copy.getAppliedMethods().getFirst().getDescription().contains("source revision revision"));
   }
 
   @Test
@@ -98,12 +100,25 @@ class ScopedNormalizationTaskTest {
   @Test
   void staleGuardPreventsCopyPublication() {
     final Fixture fixture = fixture();
-    final var task = new ScopedNormalizationTask(fixture.project, fixture.source, parameters(fixture.source),
-        MemoryMapStorage.forFeatureList(), Instant.now(), () -> false);
+    final var task = ScopedNormalizationModule.createReviewedTask(fixture.project, fixture.source,
+        parameters(fixture.source), MemoryMapStorage.forFeatureList(), Instant.now(), () -> false);
 
     task.run();
 
     assertEquals(TaskStatus.ERROR, task.getStatus());
+    assertEquals(1, fixture.project.getCurrentFeatureLists().size());
+  }
+
+  @Test
+  void canceledTaskDoesNotCreateACopy() {
+    final Fixture fixture = fixture();
+    final var task = ScopedNormalizationModule.createReviewedTask(fixture.project, fixture.source,
+        parameters(fixture.source), MemoryMapStorage.forFeatureList(), Instant.now(), () -> true);
+
+    task.cancel();
+    task.run();
+
+    assertEquals(TaskStatus.CANCELED, task.getStatus());
     assertEquals(1, fixture.project.getCurrentFeatureLists().size());
   }
 

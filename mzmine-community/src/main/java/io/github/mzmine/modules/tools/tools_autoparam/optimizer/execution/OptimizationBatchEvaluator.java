@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -45,8 +44,6 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpe
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
@@ -55,18 +52,13 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.MetricCo
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.PrecisionDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.ShapeScoreDiagnostic;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMetric;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.time.Instant;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
 import java.util.logging.Logger;
@@ -81,17 +73,11 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(OptimizationBatchEvaluator.class.getName());
 
-  enum ProjectMode {
-    ACTIVE_PROJECT, ISOLATED_PROJECT
-  }
-
   private final File @NotNull [] files;
   private final @NotNull List<SweepMetric> metrics;
   private final @NotNull MetricContext metricContext;
   private final @NotNull List<FeatureRecord> benchmarkFeatures;
   private final @NotNull AtomicReference<TaskStatus> externalStatus;
-  private final @NotNull ProjectMode projectMode;
-  private final @NotNull MZmineProject evaluationProject;
   private final @NotNull Object lifecycleLock = new Object();
   /** Guarded by {@link #lifecycleLock}. */
   private @Nullable BatchTask activeBatchTask;
@@ -101,48 +87,16 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
   private boolean cancelRequested;
   /** Guarded by {@link #lifecycleLock}. */
   private boolean closed;
-  private final @NotNull Map<File, Map<MetadataColumn<?>, Object>> sourceMetadata;
-  private final @NotNull AtomicBoolean imported = new AtomicBoolean();
 
-  OptimizationBatchEvaluator(@NotNull MZmineProject sourceProject, File @NotNull [] files,
-      @NotNull List<SweepMetric> metrics, @NotNull MetricContext metricContext,
+  OptimizationBatchEvaluator(File @NotNull [] files, @NotNull List<SweepMetric> metrics,
+      @NotNull MetricContext metricContext,
       @NotNull List<FeatureRecord> benchmarkFeatures,
       @NotNull AtomicReference<TaskStatus> externalStatus) {
-    // decision: retain isolation for later review; all normal optimizer runs use the active project.
-    this(sourceProject, files, metrics, metricContext, benchmarkFeatures, externalStatus,
-        ProjectMode.ACTIVE_PROJECT);
-  }
-
-  OptimizationBatchEvaluator(@NotNull MZmineProject sourceProject, File @NotNull [] files,
-      @NotNull List<SweepMetric> metrics, @NotNull MetricContext metricContext,
-      @NotNull List<FeatureRecord> benchmarkFeatures,
-      @NotNull AtomicReference<TaskStatus> externalStatus, @NotNull ProjectMode projectMode) {
     this.files = files.clone();
     this.metrics = List.copyOf(metrics);
     this.metricContext = metricContext;
     this.benchmarkFeatures = List.copyOf(benchmarkFeatures);
     this.externalStatus = externalStatus;
-    this.projectMode = projectMode;
-    evaluationProject = switch (projectMode) {
-      case ACTIVE_PROJECT -> sourceProject;
-      case ISOLATED_PROJECT -> new MZmineProjectImpl();
-    };
-    sourceMetadata = projectMode == ProjectMode.ISOLATED_PROJECT
-        ? snapshotMetadata(sourceProject.getProjectMetadata()) : Map.of();
-  }
-
-  private static @NotNull Map<File, Map<MetadataColumn<?>, Object>> snapshotMetadata(
-      @NotNull MetadataTable metadata) {
-    final Map<File, Map<MetadataColumn<?>, Object>> snapshot = new HashMap<>();
-    for (final MetadataColumn<?> column : metadata.getColumns()) {
-      final Map<RawDataFile, Object> values = metadata.getColumnData(column);
-      if (values == null) {
-        continue;
-      }
-      values.forEach((file, value) -> snapshot.computeIfAbsent(file.getAbsoluteFilePath(),
-          _ -> new HashMap<>()).put(column, value));
-    }
-    return Map.copyOf(snapshot);
   }
 
   private @NotNull BatchQueue createEvaluationQueue(final @NotNull WizardSequence sequence) {
@@ -220,15 +174,11 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       boolean shapeDiagnosticEnabled, @NotNull IntSupplier reserveBatchExecution) {
     ensureNotCanceledOrClosed();
     final BatchQueue queue = createEvaluationQueue(sequence);
-    if (projectMode == ProjectMode.ISOLATED_PROJECT) {
-      // Private imports inherit the source metadata below; UI-bound followups must never run here.
-      disableTrialImportFollowups(queue);
-      initializeImports(queue);
-    }
     // decision: reserve immediately before launch so a generational algorithm cannot overshoot
     // the full-batch budget between termination checks.
     final int batchExecutionIndex = reserveBatchExecution.getAsInt();
-    final BatchTask batchTask = launch(queue, "optimization batch");
+    final MZmineProject project = ProjectService.getProject();
+    final BatchTask batchTask = launch(project, queue, "optimization batch");
     try {
       // BatchTask drains submitted children before returning, including after cancellation.
       runBatch(batchTask);
@@ -251,70 +201,13 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       return batchExecutionIndex;
     } finally {
       try {
-        switch (projectMode) {
-          case ACTIVE_PROJECT -> evaluationProject.removeFeatureLists(batchTask.getResultFeatureLists());
-          case ISOLATED_PROJECT -> cleanupFeatureLists();
+        final List<FeatureList> created = batchTask.getLatestCreatedFeatureLists();
+        if (created != null) {
+          project.removeFeatureLists(created);
         }
       } finally {
         finishBatch(batchTask);
       }
-    }
-  }
-
-  private void initializeImports(@NotNull BatchQueue queue) {
-    if (!imported.compareAndSet(false, true)) {
-      return;
-    }
-    final BatchQueue importQueue = new BatchQueue();
-    queue.stream().filter(step -> step.getModule() instanceof AllSpectralDataImportModule)
-        .findFirst().ifPresent(importQueue::add);
-    if (importQueue.isEmpty()) {
-      throw new IllegalStateException("Optimization batch has no raw-data import step");
-    }
-    final BatchTask importTask = launch(importQueue, "raw-data import");
-    try {
-      runBatch(importTask);
-      if (importTask.isCanceled() || importTask.getStatus() == TaskStatus.ERROR) {
-        throw new RuntimeException("Isolated raw-data import failed: " + importTask.getErrorMessage());
-      }
-      copySourceMetadata();
-    } finally {
-      finishBatch(importTask);
-    }
-  }
-
-  /** Keep BATCH_LAST selection on repeated imports but do not overwrite copied source metadata. */
-  static void disableTrialImportFollowups(@NotNull BatchQueue queue) {
-    queue.stream().filter(step -> step.getModule() instanceof AllSpectralDataImportModule)
-        .forEach(step -> {
-          final var parameters = step.getParameterSet();
-          parameters.setParameter(AllSpectralDataImportParameters.metadataFile, false);
-          parameters.setParameter(AllSpectralDataImportParameters.extractMetadata, false);
-          parameters.setParameter(AllSpectralDataImportParameters.sortAndRecolor, false);
-        });
-  }
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private void copySourceMetadata() {
-    copyMetadataByPath(sourceMetadata, evaluationProject);
-  }
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  static void copyMetadataByPath(@NotNull Map<File, Map<MetadataColumn<?>, Object>> source,
-      @NotNull MZmineProject targetProject) {
-    final MetadataTable metadata = targetProject.getProjectMetadata();
-    metadata.batchUpdate(() -> targetProject.getCurrentRawDataFiles().forEach(file -> {
-      final Map<MetadataColumn<?>, Object> values = source.get(file.getAbsoluteFilePath());
-      if (values != null) {
-        values.forEach((column, value) -> metadata.setValue((MetadataColumn) column, file, value));
-      }
-    }));
-  }
-
-  private void cleanupFeatureLists() {
-    final List<FeatureList> featureLists = evaluationProject.getCurrentFeatureLists();
-    if (!featureLists.isEmpty()) {
-      evaluationProject.removeFeatureLists(featureLists);
     }
   }
 
@@ -329,14 +222,11 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
     }
   }
 
-  private @NotNull BatchTask launch(@NotNull BatchQueue queue, @NotNull String description) {
+  private @NotNull BatchTask launch(@NotNull MZmineProject project, @NotNull BatchQueue queue,
+      @NotNull String description) {
     synchronized (lifecycleLock) {
       ensureNotCanceledOrClosed();
-      final BatchTask batchTask = switch (projectMode) {
-        case ACTIVE_PROJECT -> BatchModeModule.prepareBatchTask(evaluationProject, queue, Instant.now());
-        case ISOLATED_PROJECT -> BatchModeModule.prepareIsolatedBatchTask(evaluationProject, queue,
-            Instant.now());
-      };
+      final BatchTask batchTask = BatchModeModule.prepareBatchTask(project, queue, Instant.now());
       if (batchTask == null) {
         throw new IllegalStateException("Could not prepare " + description);
       }
@@ -384,14 +274,6 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
       }
       waitForBatchToExitLocked();
       closed = true;
-    }
-    if (projectMode == ProjectMode.ISOLATED_PROJECT) {
-      cleanupFeatureLists();
-      final RawDataFile[] rawDataFiles = evaluationProject.getDataFiles();
-      if (rawDataFiles.length > 0) {
-        evaluationProject.removeFile(rawDataFiles);
-      }
-      evaluationProject.clearSpectralLibrary();
     }
   }
 

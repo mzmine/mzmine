@@ -49,6 +49,8 @@ public class WrappedTask implements Task {
   private volatile boolean running = false;
   private volatile @Nullable Future<?> future;
   private final AtomicBoolean cancellationDelivered = new AtomicBoolean();
+  // decision: CANCELED is visible immediately, but run() may still be unwinding or ignoring an
+  // interrupt. Batch cleanup must wait for actual worker exit before removing files or storage.
   private final AtomicReference<ExecutionState> executionState = new AtomicReference<>(
       ExecutionState.QUEUED);
 

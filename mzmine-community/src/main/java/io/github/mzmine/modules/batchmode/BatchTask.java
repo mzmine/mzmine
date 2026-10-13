@@ -43,7 +43,6 @@ import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -58,7 +57,6 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
@@ -97,17 +95,9 @@ public class BatchTask extends AbstractTask {
    */
   public static final String WHOLE_BATCH_NAME = "WHOLE BATCH";
   private final BatchQueue queue;
-  /**
-   * Project used by an explicitly bound batch. This is separate from the current project so
-   * short-lived internal batches can run without changing the user's open project.
-   */
-  private final @Nullable MZmineProject projectOverride;
-  /** Whether this bound batch must stop when the reviewed current project changes. */
-  private final boolean cancelOnCurrentProjectChange;
   private final AtomicReference<@Nullable ThreadPoolTask> activeThreadPoolTask =
       new AtomicReference<>();
   private final AtomicReference<@Nullable WrappedTask[]> activeWrappedTasks = new AtomicReference<>();
-  private final List<FeatureList> resultFeatureLists = new ArrayList<>();
   // advanced parameters
   private final int stepsPerDataset;
   private final int totalSteps;
@@ -145,36 +135,7 @@ public class BatchTask extends AbstractTask {
 
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
       final Instant moduleCallDate, final @Nullable List<File> subDirectories) {
-    this(project, parameters, moduleCallDate, subDirectories, null, false);
-  }
-
-  /**
-   * Creates a task which stops when the active project is no longer the reviewed project. Ordinary
-   * batch tasks intentionally keep their existing project-switch behavior.
-   */
-  static @NotNull BatchTask forFixedProject(final @NotNull MZmineProject project,
-      final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate) {
-    return new BatchTask(project, parameters, moduleCallDate, null, project, true);
-  }
-
-  /**
-   * Creates an internal batch that always uses {@code project}, without replacing or inspecting
-   * the globally selected project. This is intended for temporary, isolated computations.
-   */
-  static @NotNull BatchTask forIsolatedProject(final @NotNull MZmineProject project,
-      final @NotNull BatchQueue queue, final @NotNull Instant moduleCallDate) {
-    final BatchModeParameters parameters = new BatchModeParameters();
-    parameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
-    return new BatchTask(project, parameters, moduleCallDate, null, project, false);
-  }
-
-  private BatchTask(final @NotNull MZmineProject project, final @NotNull ParameterSet parameters,
-      final @NotNull Instant moduleCallDate, final @Nullable List<File> subDirectories,
-      final @Nullable MZmineProject projectOverride,
-      final boolean cancelOnCurrentProjectChange) {
     super(null, moduleCallDate);
-    this.projectOverride = projectOverride;
-    this.cancelOnCurrentProjectChange = cancelOnCurrentProjectChange;
     this.runGCafterBatchStep = requireNonNullElse(
         getPreference(MZminePreferences.runGCafterBatchStep), false);
 
@@ -253,9 +214,6 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public void run() {
-    if (cancelIfFixedProjectChanged()) {
-      return;
-    }
     Instant batchStart = Instant.now();
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
@@ -324,11 +282,8 @@ public class BatchTask extends AbstractTask {
     String datasetName = "";
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
-      if (cancelIfFixedProjectChanged()) {
-        return;
-      }
       // at the end of one dataset, clear the project and start over again
-      if (projectOverride == null && useAdvanced && currentStep() == 0 && subDirectories != null) {
+      if (useAdvanced && currentStep() == 0 && subDirectories != null) {
         // clear the old project
         ProjectService.getProjectManager().clearProject();
         currentDataset++;
@@ -554,9 +509,6 @@ public class BatchTask extends AbstractTask {
   }
 
   private void processQueueStep(int stepNumber) {
-    if (cancelIfFixedProjectChanged()) {
-      return;
-    }
     logger.info("Starting step # " + (stepNumber + 1));
 
     // Run next step of the batch
@@ -611,14 +563,8 @@ public class BatchTask extends AbstractTask {
     final Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
         + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
-    final ExitCode exitCode;
-    if (projectOverride != null && method instanceof AllSpectralDataImportModule importModule) {
-      exitCode = importModule.runBoundProjectModule(getProject(), batchStepParameters,
-          currentStepTasks, moduleCallDate, cancelOnCurrentProjectChange);
-    } else {
-      exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
-          moduleCallDate);
-    }
+    final ExitCode exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
+        moduleCallDate);
     logger.finest(
         () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
 
@@ -643,26 +589,14 @@ public class BatchTask extends AbstractTask {
     // submit as ThreadPoolTask
     final TaskStatus status;
     // create ThreadPool
-    if (projectOverride == null && currentStepTasks.size() > 1) {
+    if (currentStepTasks.size() > 1) {
       status = runInTaskPool(method, currentStepTasks);
     } else {
-      // Fixed-project bridge batches need wrapper-level completion, not Future cancellation.
       // Submit the tasks to the task controller for processing
       status = runTasksIndividually(currentStepTasks);
     }
 
-    if (projectOverride != null) {
-      // Record owned partial results after children drain, even when the step fails or is canceled.
-      final List<FeatureList> stepFeatureLists = new ArrayList<>(getProject().getCurrentFeatureLists());
-      stepFeatureLists.removeAll(beforeFeatureLists);
-      recordFixedProjectResults(stepFeatureLists, method, moduleCallDate);
-    }
-
     if (status != TaskStatus.FINISHED) {
-      return;
-    }
-
-    if (cancelIfFixedProjectChanged()) {
       return;
     }
 
@@ -705,8 +639,7 @@ public class BatchTask extends AbstractTask {
     setActiveWrappedTasks(wrappedTasks);
     final TaskStatus result;
     try {
-      result = projectOverride == null ? TaskUtils.waitForTasksToFinish(this, wrappedTasks)
-          : waitForFixedProjectTasksToFinish(wrappedTasks);
+      result = TaskUtils.waitForTasksToFinish(this, wrappedTasks);
       waitForSubmittedTasksToExit(wrappedTasks);
     } finally {
       activeWrappedTasks.compareAndSet(wrappedTasks, null);
@@ -728,80 +661,7 @@ public class BatchTask extends AbstractTask {
     return result;
   }
 
-  /**
-   * Polls fixed-project work while child tasks are active so that changing projects cancels the
-   * submitted work immediately, without depending on a bridge status request.
-   */
-  private @NotNull TaskStatus waitForFixedProjectTasksToFinish(
-      final @NotNull WrappedTask[] wrappedTasks) {
-    boolean interrupted = false;
-    final TaskStatusListener masterListener = (_, newStatus, _) -> {
-      if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.ERROR) {
-        cancelWrappedTasks(wrappedTasks);
-      }
-    };
-    addTaskStatusListener(masterListener);
-    final TaskStatusListener subTaskListener = (_, newStatus, _) ->
-        propagateFixedProjectChildStatus(newStatus);
-    for (final WrappedTask task : wrappedTasks) {
-      task.addTaskStatusListener(subTaskListener);
-    }
-    reconcileFixedProjectChildStatuses(wrappedTasks);
-    try {
-      while (Arrays.stream(wrappedTasks).anyMatch(task -> !task.getStatus().isUnmodifiable())) {
-        interrupted |= Thread.interrupted();
-        if (interrupted || isCanceled() || cancelIfFixedProjectChanged()) {
-          cancelWrappedTasks(wrappedTasks);
-        }
-        java.util.concurrent.locks.LockSupport.parkNanos(10_000_000L);
-      }
-      return TaskStatus.findWorstStatus(
-          Arrays.stream(wrappedTasks).map(task -> (Task) task).toList());
-    } finally {
-      removeTaskStatusListener(masterListener);
-      for (final WrappedTask task : wrappedTasks) {
-        task.removeTaskStatusListener(subTaskListener);
-      }
-      if (interrupted) {
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
-  /**
-   * Replays terminal child states that occurred between submission and listener registration.
-   * Errors take precedence because they carry the failure outcome of the reviewed batch.
-   */
-  private void reconcileFixedProjectChildStatuses(final @NotNull WrappedTask[] wrappedTasks) {
-    if (Arrays.stream(wrappedTasks).anyMatch(task -> task.getStatus() == TaskStatus.ERROR)) {
-      propagateFixedProjectChildStatus(TaskStatus.ERROR);
-    } else if (Arrays.stream(wrappedTasks)
-        .anyMatch(task -> task.getStatus() == TaskStatus.CANCELED)) {
-      propagateFixedProjectChildStatus(TaskStatus.CANCELED);
-    }
-  }
-
-  /** Propagates a child terminal state to the batch, which cancels all sibling work. */
-  private void propagateFixedProjectChildStatus(final @NotNull TaskStatus newStatus) {
-    switch (newStatus) {
-      case CANCELED -> cancel();
-      case ERROR -> error("A fixed-project batch child failed. Cancelling all sibling tasks.");
-      case FINISHED, PROCESSING, WAITING -> {
-        // The child has not invalidated the reviewed batch.
-      }
-    }
-  }
-
-  private static void cancelWrappedTasks(final @NotNull WrappedTask[] wrappedTasks) {
-    for (final WrappedTask task : wrappedTasks) {
-      task.cancel();
-    }
-  }
-
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
-    if (cancelIfFixedProjectChanged()) {
-      return;
-    }
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
       var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
           getProject(), batchStepParameters);
@@ -889,16 +749,6 @@ public class BatchTask extends AbstractTask {
     return queue.clone();
   }
 
-  /**
-   * Returns an immutable snapshot of feature lists created by a fixed-project batch step.
-   * Ordinary batch tasks do not expose result lists because their project may change mid-batch.
-   */
-  public @NotNull List<FeatureList> getResultFeatureLists() {
-    synchronized (resultFeatureLists) {
-      return projectOverride == null ? List.of() : List.copyOf(resultFeatureLists);
-    }
-  }
-
   @Override
   public void cancel() {
     super.cancel();
@@ -939,7 +789,7 @@ public class BatchTask extends AbstractTask {
     try {
       while (Arrays.stream(wrappedTasks).anyMatch(task -> !task.isExecutionComplete())) {
         interrupted |= Thread.interrupted();
-        if (interrupted || isCanceled() || cancelIfFixedProjectChanged()) {
+        if (interrupted || isCanceled()) {
           for (final WrappedTask task : wrappedTasks) {
             task.cancel();
           }
@@ -953,34 +803,8 @@ public class BatchTask extends AbstractTask {
     }
   }
 
-  private void recordFixedProjectResults(final @NotNull List<FeatureList> createdLists,
-      final @NotNull MZmineProcessingModule method, final @NotNull Instant moduleCallDate) {
-    if (projectOverride == null) {
-      return;
-    }
-    final List<FeatureList> matchingLists = createdLists.stream().filter(featureList ->
-        featureList.getAppliedMethods().stream().anyMatch(appliedMethod ->
-            appliedMethod.getModule().equals(method) && appliedMethod.getModuleCallDate().equals(
-                moduleCallDate))).toList();
-    synchronized (resultFeatureLists) {
-      resultFeatureLists.addAll(matchingLists);
-    }
-  }
-
   private MZmineProject getProject() {
-    // Ordinary batches may deliberately load a project during a queue. Bridge batches never use a
-    // replacement project after the reviewed project identity changed.
-    return projectOverride == null ? ProjectService.getProject() : projectOverride;
-  }
-
-  /** Cancels bridge-bound work before a future step can target a replacement project. */
-  private boolean cancelIfFixedProjectChanged() {
-    if (cancelOnCurrentProjectChange && ProjectService.getProject() != projectOverride) {
-      setErrorMessage("The reviewed project changed before the batch could continue.");
-      cancel();
-      return true;
-    }
-    return false;
+    return ProjectService.getProject();
   }
 
   @Nullable

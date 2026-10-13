@@ -59,8 +59,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -88,7 +86,6 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
   private MZmineProject project;
   private AbstractTask currentTask;
   private ZipFile zipFile;
-  private final Map<String, String> resolvedRawDataFilePaths = new LinkedHashMap<>();
 
   public RawDataFileOpenHandler_3_0(@NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -96,11 +93,6 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
 
   public InputStream getBatchFileStream() {
     return batchFileStream;
-  }
-
-  @Override
-  public @NotNull Map<String, String> getResolvedRawDataFilePaths() {
-    return Map.copyOf(resolvedRawDataFilePaths);
   }
 
   public void setBatchFileStream(InputStream batchFileStream) {
@@ -272,7 +264,6 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
           File[] newFiles = new File[files.length];
           for (int i = 0; i < files.length; i++) {
             final File file = files[i];
-            final String savedPath = file.getPath();
             String path = file.getPath();
             Matcher matcher = RawDataFileSaveHandler.DATA_FILE_PATTERN.matcher(path);
             if (matcher.matches()) {
@@ -284,7 +275,6 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
             } else {
               newFiles[i] = files[i];
             }
-            resolvedRawDataFilePaths.put(savedPath, newFiles[i].getAbsolutePath());
           }
           fnp.setValue(newFiles);
         } else if (parameter instanceof RawDataFilesParameter rfp) {

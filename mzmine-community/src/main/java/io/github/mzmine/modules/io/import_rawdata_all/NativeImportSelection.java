@@ -7,11 +7,13 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +46,7 @@ public final class NativeImportSelection {
 
   /** Retains the native import editor for a caller-controlled review handoff, without submitting. */
   public static @NotNull Optional<PreparedImport> showDialog(final @NotNull ParameterSet initial,
-      final @NotNull java.util.function.Consumer<io.github.mzmine.parameters.dialogs.ParameterSetupDialog> reviewOpened) {
+      final @NotNull Consumer<ParameterSetupDialog> reviewOpened) {
     if (!Platform.isFxApplicationThread()) {
       throw new IllegalStateException(
           "Native import selection must run on the JavaFX application thread.");
@@ -94,7 +96,7 @@ public final class NativeImportSelection {
       return exitCode == ExitCode.OK && !tasks.isEmpty();
     }
 
-    /** The project-bound main task, present only for a successful prepared native import. */
+    /** The main task, present only for a successful prepared native import. */
     public @NotNull Optional<AllSpectralDataImportMainTask> mainTask() {
       return tasks.stream().filter(AllSpectralDataImportMainTask.class::isInstance)
           .map(AllSpectralDataImportMainTask.class::cast).findFirst();

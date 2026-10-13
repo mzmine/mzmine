@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -9,7 +10,10 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +57,29 @@ public final class ScopedNormalizationModule implements MZmineProcessingModule {
       final @NotNull FeatureList source, final @NotNull ParameterSet parameters,
       final @NotNull MemoryMapStorage storage, final @NotNull Instant moduleCallDate,
       final @NotNull BooleanSupplier current) {
-    return new ScopedNormalizationTask(project, source, parameters, storage, moduleCallDate, current);
+    final List<RawDataFile> files = source.getRawDataFiles();
+    final Map<String, Double> factors = ScopedNormalizationParameters.decodeFactors(
+        parameters.getValue(ScopedNormalizationParameters.factors));
+    if (factors.size() != files.size()) {
+      throw new IllegalArgumentException("Exactly one reviewed factor is required for every source file.");
+    }
+    final List<RawFileNormalizationFunction> functions = new ArrayList<>(files.size());
+    for (int index = 0; index < files.size(); index++) {
+      final String id = "s" + (index + 1);
+      final Double factor = factors.get(id);
+      if (factor == null || !Double.isFinite(factor) || factor <= 0d) {
+        throw new IllegalArgumentException("Missing valid reviewed factor for " + id);
+      }
+      functions.add(new RawFileNormalizationFunction(files.get(index),
+          new FactorNormalizationFunction(factor)));
+    }
+    final IntensityNormalizationSummary summary = new IntensityNormalizationSummary(List.copyOf(functions),
+        List.of("Frozen factors applied to raw area and height; source revision "
+            + parameters.getValue(ScopedNormalizationParameters.sourceRevision)));
+    parameters.setParameter(ScopedNormalizationParameters.hiddenNormalizationSummary, summary);
+    return IntensityNormalizerTask.createReviewedTask(project, source,
+        parameters.getValue(ScopedNormalizationParameters.suffix),
+        parameters.getValue(ScopedNormalizationParameters.sourceRevision), summary, parameters,
+        ScopedNormalizationModule.class, storage, moduleCallDate, current);
   }
 }

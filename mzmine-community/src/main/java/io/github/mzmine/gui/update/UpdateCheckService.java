@@ -24,6 +24,8 @@ package io.github.mzmine.gui.update;
 
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.Semver.SemverType;
+import io.github.mzmine.gui.VersionCheckResultType;
+import io.github.mzmine.gui.mainwindow.VersionCheckResult;
 import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,7 +119,8 @@ public final class UpdateCheckService {
       final Semver latestVersion = new Semver(versionText, SemverType.LOOSE);
       return compare(currentVersion, latestVersion, checkedAt);
     } catch (Exception e) {
-      return new UpdateStatus(UpdateStatus.UNAVAILABLE, currentVersion.toString(), null, checkedAt,
+      return new UpdateStatus(new VersionCheckResult(VersionCheckResultType.NO_INTERNET, null),
+          currentVersion.toString(), checkedAt,
           RELEASE_URL, "Could not retrieve the official mzmine version: " + e.getMessage());
     }
   }
@@ -125,16 +128,8 @@ public final class UpdateCheckService {
   @NotNull
   static UpdateStatus compare(@NotNull final Semver currentVersion, @NotNull final Semver latestVersion,
       @NotNull final String checkedAt) {
-    final String status;
-    if (currentVersion.isLowerThan(latestVersion)) {
-      status = UpdateStatus.UPDATE_AVAILABLE;
-    } else if (currentVersion.isEquivalentTo(latestVersion)) {
-      status = UpdateStatus.CURRENT;
-    } else {
-      status = UpdateStatus.DEVELOPMENT_NEWER;
-    }
-    return new UpdateStatus(status, currentVersion.toString(), latestVersion.toString(), checkedAt,
-        RELEASE_URL, null);
+    return new UpdateStatus(VersionCheckResult.of(currentVersion, latestVersion),
+        currentVersion.toString(), checkedAt, RELEASE_URL, null);
   }
 
   @NotNull

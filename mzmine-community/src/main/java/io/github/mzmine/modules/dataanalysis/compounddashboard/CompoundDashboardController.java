@@ -312,7 +312,11 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     onGuiThread(() -> model.setSelectedCompoundRow(row));
   }
 
-  /** Selects a source feature-list row and updates its compound dashboard context. */
+  /**
+   * Selects a source feature-list row and updates its compound dashboard context. A uniquely
+   * resolved member row is selected in the table, which updates both the compound and adduct
+   * listeners; an ambiguous parent is only revealed to avoid choosing an arbitrary compound.
+   */
   public void selectRow(@NotNull final FeatureListRow row) {
     onGuiThread(() -> FeatureTableFXUtil.selectAndScrollTo(row, tableCtrl.getFeatureTable()));
   }

@@ -57,7 +57,6 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetChange;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
 import io.github.mzmine.util.ExitCode;
@@ -135,8 +134,6 @@ public class BatchWizardTab extends SimpleTab {
    * Parameter panes of the selected presets
    */
   private final Map<WizardStepParameters, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
-  private final Map<WizardStepParameters, ParameterSet> initialPaneValues = new HashMap<>();
-  private final Map<WizardStepParameters, ParameterSet> initialPaneRendering = new HashMap<>();
   private final List<Subscription> paramPaneSubscriptions = new ArrayList<>();
   /**
    * Remove the highlights of {@link #parameterChanges} from the current panes
@@ -249,8 +246,6 @@ public class BatchWizardTab extends SimpleTab {
     // old panes are discarded, highlights are recreated from parameterChanges
     changeHighlightSubscriptions.clear();
     paramPaneMap.clear();
-    initialPaneValues.clear();
-    initialPaneRendering.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
     // evaluate workflow and limit choices
     evaluateWizardSequenceLimitChoices();
@@ -371,13 +366,6 @@ public class BatchWizardTab extends SimpleTab {
   private Tab createParameterTab(final WizardStepParameters step) {
     ParameterSetupPane paramPane = new ParameterSetupPane(true, false, step);
     paramPaneMap.put(step, paramPane);
-    final var exact = step.getFactory().create();
-    ParameterUtils.copyParameters(step, exact);
-    initialPaneValues.put(step, exact);
-    final var rendered = step.getFactory().create();
-    ParameterUtils.copyParameters(step, rendered);
-    paramPane.updateParameterSetFromComponents(rendered);
-    initialPaneRendering.put(step, rendered);
     if (step instanceof DataImportWizardParameters dataImportParameters) {
       subscribeMetadataExtractionToImportFiles(dataImportParameters, paramPane);
     }
@@ -811,8 +799,8 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   /**
-   * Applies a partial sequence on the JavaFX thread; unavailable presets are rejected up front.
-   * This generic variant deliberately does not retain automatic-change highlights.
+   * Applies a partial sequence on the JavaFX thread. This generic variant deliberately does not
+   * retain automatic-change highlights.
    *
    * @param partialSequence might contain some or all steps of the workflow
    */
@@ -821,22 +809,15 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   /**
-   * Applies a partial sequence on the JavaFX thread; unavailable presets are rejected up front.
-   * Values applied from estimation or optimization are highlighted in the wizard. Unlike
-   * {@link #applyParameterValues(Consumer, Source)}, this preserves the partial sequence's preset
-   * and customization semantics.
+   * Applies a partial sequence on the JavaFX thread. Values applied from estimation or
+   * optimization are highlighted in the wizard. Unlike {@link #applyParameterValues(Consumer,
+   * Source)}, this preserves the partial sequence's preset and customization semantics.
    *
    * @param partialSequence might contain some or all steps of the workflow
    * @param source          source of automatic values to highlight, or {@link Source#NONE}
    */
   public void applyPartialSequence(final @NotNull WizardSequence partialSequence,
       final @NotNull Source source) {
-    for (final WizardStepParameters preset : partialSequence) {
-      if (ALL_PRESETS.get(preset.getPart()).stream()
-          .noneMatch(available -> available.getFactory().equals(preset.getFactory()))) {
-        throw new IllegalArgumentException("Unavailable wizard preset: " + preset.getUniquePresetId());
-      }
-    }
     final boolean previousListenersActive = listenersActive;
     setListenersActive(false);
     try {
@@ -880,7 +861,7 @@ public class BatchWizardTab extends SimpleTab {
       ParameterUtils.copyParameters(step, copy);
       // Read controls into the detached copy without committing edits to the live model.
       final ParameterSetupPane pane = paramPaneMap.get(step);
-      if (pane != null) ParameterUtils.copyParameters(readPaneValues(step, pane), copy);
+      if (pane != null) pane.updateParameterSetFromComponents(copy);
       snapshot.add(copy);
     }
     return snapshot;
@@ -990,28 +971,8 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * Updates the parameters in all steps from the UI components. Does not check for completeness.
    */
-  /** Preserve exact stored values while a native control still shows its original rendering. */
-  private @NotNull ParameterSet readPaneValues(final @NotNull WizardStepParameters step,
-      final @NotNull ParameterSetupPane pane) {
-    final var current = step.getFactory().create();
-    ParameterUtils.copyParameters(step, current);
-    pane.updateParameterSetFromComponents(current);
-    final var exact = initialPaneValues.get(step);
-    final var rendered = initialPaneRendering.get(step);
-    if (exact == null || rendered == null) return current;
-    for (final var parameter : current.getParameters()) {
-      if (!(parameter instanceof io.github.mzmine.parameters.UserParameter<?, ?>)) continue;
-      final var originalRendering = rendered.getNameParameterMap().get(parameter.getName());
-      if (originalRendering != null && parameter.valueEquals(originalRendering)) {
-        // decision: a formatter's rounding is not a scientific parameter edit.
-        ParameterUtils.copyParameterValue(exact.getNameParameterMap().get(parameter.getName()), parameter);
-      }
-    }
-    return current;
-  }
-
   void updateAllParametersFromUi() {
-    paramPaneMap.forEach((step, pane) -> ParameterUtils.copyParameters(readPaneValues(step, pane), step));
+    paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
   }
 
   public void setListenersActive(final boolean listenersActive) {

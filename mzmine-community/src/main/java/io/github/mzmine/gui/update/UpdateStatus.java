@@ -22,18 +22,18 @@
 
 package io.github.mzmine.gui.update;
 
+import io.github.mzmine.gui.mainwindow.VersionCheckResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A side-effect-free update check result that can be shared by the desktop UI and local services.
+ * Fetch context around the existing native version decision. Presentation and transport consumers
+ * share that decision rather than maintaining a second status vocabulary.
  */
-public record UpdateStatus(@NotNull String status, @NotNull String currentVersion,
-                           @Nullable String latestVersion, @NotNull String checkedAt,
+public record UpdateStatus(@NotNull VersionCheckResult versionCheck, @NotNull String currentVersion,
+                           @NotNull String checkedAt,
                            @NotNull String releaseUrl, @Nullable String message) {
-
-  public static final String CURRENT = "current";
-  public static final String UPDATE_AVAILABLE = "update_available";
-  public static final String DEVELOPMENT_NEWER = "development_newer";
-  public static final String UNAVAILABLE = "unavailable";
+  public @Nullable String latestVersion() {
+    return versionCheck.newVersion() == null ? null : versionCheck.newVersion().toString();
+  }
 }

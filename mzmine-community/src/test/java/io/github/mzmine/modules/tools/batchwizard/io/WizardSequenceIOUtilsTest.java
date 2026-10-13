@@ -1,7 +1,6 @@
 package io.github.mzmine.modules.tools.batchwizard.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,7 +31,7 @@ class WizardSequenceIOUtilsTest {
   }
 
   @Test
-  void portableSaveExcludesFileSelectionsAndCustomizationFileOverrides(@TempDir Path tempDir)
+  void skipSensitiveDoesNotStripFileSelectionsOrCustomizationFileOverrides(@TempDir Path tempDir)
       throws Exception {
     final File rawFile = tempDir.resolve("private-data.mzML").toFile();
     final File overrideFile = tempDir.resolve("private-library.csv").toFile();
@@ -48,14 +47,13 @@ class WizardSequenceIOUtilsTest {
         privateDirectory, ApplicationScope.ALL);
     customization.setParameter(CustomizationWizardParameters.overrides, List.of(fileOverride, directoryOverride));
 
-    final File portable = tempDir.resolve("portable.mzmwizard").toFile();
-    WizardSequenceIOUtils.saveToFile(List.of(data, customization), portable, true);
-    final String portableXml = Files.readString(portable.toPath());
+    final File sensitiveFiltered = tempDir.resolve("sensitive-filtered.mzmwizard").toFile();
+    WizardSequenceIOUtils.saveToFile(List.of(data, customization), sensitiveFiltered, true);
+    final String filteredXml = Files.readString(sensitiveFiltered.toPath());
 
-    assertFalse(portableXml.contains(rawFile.getPath()));
-    assertFalse(portableXml.contains(overrideFile.getPath()));
-    assertFalse(portableXml.contains(privateDirectory.getPath()));
-    assertFalse(portableXml.contains("name=\"Metadata file\" selected=\"true\""));
+    assertTrue(filteredXml.contains(rawFile.getPath()));
+    assertTrue(filteredXml.contains(overrideFile.getPath()));
+    assertTrue(filteredXml.contains(privateDirectory.getPath()));
     assertEquals(rawFile, data.getValue(DataImportWizardParameters.fileNames)[0]);
     assertEquals(2, customization.getValue(CustomizationWizardParameters.overrides).size());
 
@@ -80,9 +78,4 @@ class WizardSequenceIOUtilsTest {
     assertSame(first, second);
   }
 
-  @Test
-  void nativeSaveDefaultsToPortablePreset() {
-    assertFalse(new WizardSequenceSaveParameters().getValue(
-        WizardSequenceSaveParameters.includeFileSelections));
-  }
 }

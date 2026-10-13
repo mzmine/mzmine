@@ -57,7 +57,6 @@ import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -209,8 +208,8 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     initialSequence = estimationContext.sequence();
     final File[] files = stats.stream().map(DataFileStatistics::file)
         .map(RawDataFile::getAbsoluteFilePath).toArray(File[]::new);
-    batchEvaluator = new OptimizationBatchEvaluator(ProjectService.getProject(), files,
-        enabledMetrics, new MetricContext(target), fileOnlyBenchmarkFeatures, externalStatus);
+    batchEvaluator = new OptimizationBatchEvaluator(files, enabledMetrics, new MetricContext(target),
+        fileOnlyBenchmarkFeatures, externalStatus);
 
     preparedParameters = prepared;
     estimationEvidence = prepared.parameters().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(

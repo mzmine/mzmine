@@ -27,7 +27,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.ImmutableList;
 import io.github.msdk.datamodel.Chromatogram;
-import io.github.mzmine.datamodel.AcquisitionMetadata;
 import io.github.msdk.datamodel.FileType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.header.MzMLHeaderMetadata;
 import java.io.File;
@@ -43,16 +42,6 @@ public class MzMLRawDataFile {
   private static final @NotNull FileType fileType = FileType.MZML;
 
   private final File sourceFile;
-  private AcquisitionMetadata acquisitionMetadata = AcquisitionMetadata.EMPTY;
-
-  public @NotNull AcquisitionMetadata getAcquisitionMetadata() {
-    return acquisitionMetadata;
-  }
-
-  public void setAcquisitionMetadata(final @NotNull AcquisitionMetadata acquisitionMetadata) {
-    this.acquisitionMetadata = acquisitionMetadata;
-  }
-
   private final @NotNull List<String> msFunctions;
   /**
    * each element is one frame with all its mobility scans

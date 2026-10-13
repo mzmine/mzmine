@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.Semver.SemverType;
+import io.github.mzmine.gui.VersionCheckResultType;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
@@ -42,12 +43,12 @@ class UpdateCheckServiceTest {
   @Test
   void comparesCurrentReleaseAndDevelopmentVersions() {
     final Semver current = version("4.7.1");
-    assertEquals(UpdateStatus.CURRENT,
-        UpdateCheckService.compare(current, version("4.7.1"), CHECKED_AT).status());
-    assertEquals(UpdateStatus.UPDATE_AVAILABLE,
-        UpdateCheckService.compare(current, version("4.7.2"), CHECKED_AT).status());
-    assertEquals(UpdateStatus.DEVELOPMENT_NEWER,
-        UpdateCheckService.compare(current, version("4.7.0"), CHECKED_AT).status());
+    assertEquals(VersionCheckResultType.CURRENT,
+        UpdateCheckService.compare(current, version("4.7.1"), CHECKED_AT).versionCheck().type());
+    assertEquals(VersionCheckResultType.NEW_AVAILALABLE,
+        UpdateCheckService.compare(current, version("4.7.2"), CHECKED_AT).versionCheck().type());
+    assertEquals(VersionCheckResultType.THIS_IS_NEWER,
+        UpdateCheckService.compare(current, version("4.7.0"), CHECKED_AT).versionCheck().type());
   }
 
   @Test
@@ -58,7 +59,7 @@ class UpdateCheckServiceTest {
 
     final UpdateStatus result = service.checkNow();
 
-    assertEquals(UpdateStatus.UNAVAILABLE, result.status());
+    assertEquals(VersionCheckResultType.NO_INTERNET, result.versionCheck().type());
     assertEquals("4.7.1", result.currentVersion());
     assertNull(result.latestVersion());
     assertEquals(CHECKED_AT, result.checkedAt());
@@ -75,7 +76,7 @@ class UpdateCheckServiceTest {
     final UpdateStatus first = service.check();
     final UpdateStatus second = service.check();
 
-    assertEquals(UpdateStatus.UPDATE_AVAILABLE, first.status());
+    assertEquals(VersionCheckResultType.NEW_AVAILALABLE, first.versionCheck().type());
     assertEquals(first, second);
     assertEquals(1, fetches.get());
   }

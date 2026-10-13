@@ -1,5 +1,11 @@
 # Aligned feature report templates
 
+These are general native report fixes, also exercised by MCP-triggered exports. Previously, a
+summary subreport and its table could consume the same data-source cursor, skipping the first
+feature. Unconditional section/detail breaks could also produce pages with only headers and
+footers. The fixes preserve every requested feature and create breaks only between actual sections
+or records; they are independent of the transport used to request the report.
+
 The `.jasper` files are the templates loaded by mzmine at runtime. The matching `.jrxml` files
 are editable JasperReports 7 sources for the cover, feature summary and feature detail reports.
 Keep source and compiled files together when changing these templates. Compile with the version
