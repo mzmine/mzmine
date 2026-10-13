@@ -101,7 +101,7 @@ public class ParameterOverridesParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     List<ParameterOverride> overrides = new ArrayList<>();
     NodeList nodes = xmlElement.getElementsByTagName(OVERRIDE_ELEMENT);
 
@@ -129,7 +129,7 @@ public class ParameterOverridesParameter implements
       Parameter<?> parameter = Arrays.stream(moduleParameters.getParameters())
           .filter(p -> p.getName().equals(paramName)).findFirst().map(Parameter::cloneParameter)
           .orElse(null);
-      parameter.loadValueFromXML(overrideElement);
+      parameter.loadValueFromXML(project, overrideElement);
 
       overrides.add(new ParameterOverride(moduleClass, moduleUniqueId, parameter, scope));
     }
@@ -138,7 +138,7 @@ public class ParameterOverridesParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null || value.isEmpty()) {
       return;
     }
@@ -151,7 +151,7 @@ public class ParameterOverridesParameter implements
       overrideElement.setAttribute(MODULE_UNIQUE_ID_ATTR, override.moduleUniqueId());
       overrideElement.setAttribute(PARAM_NAME_ATTR, override.parameterWithValue().getName());
       overrideElement.setAttribute(SCOPE_ATTR, override.scope().name());
-      override.parameterWithValue().saveValueToXML(overrideElement);
+      override.parameterWithValue().saveValueToXML(project, overrideElement);
       xmlElement.appendChild(overrideElement);
     }
   }

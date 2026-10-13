@@ -80,7 +80,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList pathElements = xmlElement.getElementsByTagName(PATH_ELEMENT);
 
     value.clear();
@@ -99,7 +99,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     for (List<Point2D> path : value) {

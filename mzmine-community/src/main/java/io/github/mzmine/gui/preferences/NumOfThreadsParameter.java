@@ -113,7 +113,7 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String attrValue = xmlElement.getAttribute("isautomatic");
     if (attrValue.length() > 0) {
       this.automatic = Boolean.parseBoolean(attrValue);
@@ -126,7 +126,7 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute("isautomatic", String.valueOf(automatic));
     xmlElement.setTextContent(value.toString());
   }

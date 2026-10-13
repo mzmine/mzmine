@@ -107,7 +107,7 @@ public class WeightSliderParameter implements UserParameter<Integer, WeightSlide
   }
 
   @Override
-  public void loadValueFromXML(final @NotNull Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final @NotNull String numString = xmlElement.getTextContent();
     if (!numString.isEmpty()) {
       value = Integer.parseInt(numString);
@@ -115,7 +115,7 @@ public class WeightSliderParameter implements UserParameter<Integer, WeightSlide
   }
 
   @Override
-  public void saveValueToXML(final @NotNull Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value != null) {
       xmlElement.setTextContent(value.toString());
     }

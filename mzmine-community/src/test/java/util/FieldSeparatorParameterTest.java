@@ -58,7 +58,7 @@ public class FieldSeparatorParameterTest {
 
   private static FieldSeparator loadLegacy(FieldSeparatorParameter parameter, String storedValue)
       throws ParserConfigurationException {
-    parameter.loadValueFromXML(parameterElement(storedValue));
+    parameter.loadValueFromXML(new MZmineProjectImpl(), parameterElement(storedValue));
     return parameter.getValue();
   }
 
@@ -130,10 +130,10 @@ public class FieldSeparatorParameterTest {
       parameter.setValue(value);
 
       final Element element = parameterElement("");
-      parameter.saveValueToXML(element);
+      parameter.saveValueToXML(new MZmineProjectImpl(), element);
 
       final FieldSeparatorParameter loaded = FieldSeparatorParameter.forReading("description");
-      loaded.loadValueFromXML(element);
+      loaded.loadValueFromXML(new MZmineProjectImpl(), element);
       assertEquals(value.separator(), loaded.getValue().separator(), value.toString());
       assertEquals(value.option(), loaded.getValue().option(), value.toString());
     }

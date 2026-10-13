@@ -130,13 +130,13 @@ public class ScanSelectionParameter extends
 
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // need to clear first - null values are not loaded
     setValue(null);
     boolean isNewFormat =
         xmlElement.getElementsByTagName(SimpleParameterSet.parameterElement).getLength() > 0;
     if (isNewFormat) {
-      embeddedParameters.loadValuesFromXML(xmlElement);
+      embeddedParameters.loadValuesFromXML(project, xmlElement);
       String selectedAttr = xmlElement.getAttribute("selected");
       this.active = requireNonNullElse(Boolean.valueOf(selectedAttr), false);
       setValue(active, createFilter());
@@ -147,9 +147,9 @@ public class ScanSelectionParameter extends
 
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute("selected", String.valueOf(active));
-    embeddedParameters.saveValuesToXML(xmlElement);
+    embeddedParameters.saveValuesToXML(project, xmlElement);
   }
 
 

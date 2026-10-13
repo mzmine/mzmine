@@ -195,7 +195,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String selectedAttr = xmlElement.getAttribute(SELECTED_ATTRIBUTE);
 
     var childNodes = xmlElement.getChildNodes();
@@ -211,7 +211,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
         if (parameters == null) {
           return;
         }
-        parameters.loadValuesFromXML(nextElement);
+        parameters.loadValuesFromXML(project, nextElement);
       });
     }
 
@@ -224,7 +224,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute(SELECTED_ATTRIBUTE, selectedValue.getStableId());
 
     var document = xmlElement.getOwnerDocument();
@@ -235,7 +235,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
       paramElement.setAttribute(NAME_ATTRIBUTE, entry.getKey().getStableId());
       xmlElement.appendChild(paramElement);
       var parameterSet = entry.getValue();
-      parameterSet.saveValuesToXML(paramElement);
+      parameterSet.saveValuesToXML(project, paramElement);
     }
   }
 

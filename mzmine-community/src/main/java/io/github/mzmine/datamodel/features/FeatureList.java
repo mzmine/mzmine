@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -87,6 +88,21 @@ public interface FeatureList {
    * @return the actually set name after checking for resticted symbols and duplicate names
    */
   String setName(@NotNull String name);
+
+  /**
+   * The project is only weakly referenced, so that a feature list that is still open in the GUI
+   * does not keep a replaced project alive.
+   *
+   * @return the project this feature list was added to or null if it is not part of a project
+   */
+  @Nullable MZmineProject getProject();
+
+  /**
+   * Only called by the project when this feature list is added to or removed from the project.
+   *
+   * @param project the project this feature list was added to or null if it was removed
+   */
+  void setProject(@Nullable MZmineProject project);
 
   void addRowBinding(@NotNull List<RowBinding> bindings);
 
@@ -678,6 +694,9 @@ public interface FeatureList {
 
     public Instant getModuleCallDate();
 
-    public void saveValueToXML(Element element);
+    /**
+     * @param project file paths in the parameters are also saved relative to this project
+     */
+    public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element element);
   }
 }

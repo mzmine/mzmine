@@ -81,13 +81,13 @@ public class ComponentWrapperParameter<ValueType, EmbeddedParameterType extends 
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    embeddedParameter.loadValueFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameter.loadValueFromXML(project, xmlElement);
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
-    embeddedParameter.saveValueToXML(xmlElement);
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameter.saveValueToXML(project, xmlElement);
   }
 
 

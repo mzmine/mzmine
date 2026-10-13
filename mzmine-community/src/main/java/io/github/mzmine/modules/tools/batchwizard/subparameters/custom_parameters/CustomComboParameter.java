@@ -96,7 +96,7 @@ public abstract class CustomComboParameter<E extends Enum<?>, VALUETYPE extends 
 
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // always save the choices
     xmlElement.setAttribute(CHOICES_ATTRIBUTE,
         Arrays.stream(options).map(Enum::name).collect(Collectors.joining(",")));

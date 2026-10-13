@@ -108,7 +108,7 @@ public class PaintScalePaletteParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     int selected = Integer.valueOf(xmlElement.getAttribute(SELECTED_INDEX));
 
     NodeList childs = xmlElement.getElementsByTagName(PALETTE_ELEMENT);
@@ -134,7 +134,7 @@ public class PaintScalePaletteParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     xmlElement.setAttribute(SELECTED_INDEX, Integer.toString(palettes.indexOf(value)));

@@ -115,7 +115,7 @@ public class FontParameter implements UserParameter<FontSpecs, FontSpecsComponen
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList colorNodes = xmlElement.getElementsByTagName("color");
     if (colorNodes.getLength() != 1)
       return;
@@ -148,7 +148,7 @@ public class FontParameter implements UserParameter<FontSpecs, FontSpecsComponen
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     Font f = value.getFont();

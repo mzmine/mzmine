@@ -107,7 +107,8 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
   }
 
   @Override
-  public void loadValueFromXML(org.w3c.dom.Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project,
+      @NotNull org.w3c.dom.Element xmlElement) {
     if (xmlElement == null) {
       throw new NullPointerException("XML Element is null.");
     }
@@ -118,7 +119,8 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
   }
 
   @Override
-  public void saveValueToXML(org.w3c.dom.Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project,
+      @NotNull org.w3c.dom.Element xmlElement) {
     if (xmlElement == null) {
       throw new NullPointerException("XML Element is null.");
     }

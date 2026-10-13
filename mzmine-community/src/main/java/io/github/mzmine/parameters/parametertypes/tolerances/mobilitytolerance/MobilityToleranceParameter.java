@@ -104,7 +104,7 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.length() == 0)
       return;
@@ -113,7 +113,7 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

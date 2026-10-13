@@ -90,7 +90,7 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // add all still existing files
     value = new ArrayList<>();
     NodeList nodes = xmlElement.getChildNodes();
@@ -105,7 +105,7 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // add new element for each file
     Document parentDocument = xmlElement.getOwnerDocument();
     for (File f : value) {

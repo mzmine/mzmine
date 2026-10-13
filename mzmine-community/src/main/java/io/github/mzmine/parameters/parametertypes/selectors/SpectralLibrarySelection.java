@@ -33,7 +33,6 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.threadpools.FixedThreadPoolTask;
@@ -72,13 +71,12 @@ public class SpectralLibrarySelection {
 
   /// Sorted to have the same order in all use cases
   ///
+  /// @param project the libraries are selected from this project
   /// @return sorted (by name) list of matching libraries
-  public List<SpectralLibrary> getMatchingLibraries() {
+  public @NotNull List<SpectralLibrary> getMatchingLibraries(@NotNull final MZmineProject project) {
     final List<SpectralLibrary> libraries = switch (selectionType) {
-      case ALL_IMPORTED ->
-          ProjectService.getProjectManager().getCurrentProject().getCurrentSpectralLibraries()
-              .stream().toList();
-      case SPECIFIC -> getMatchingSpecificFiles();
+      case ALL_IMPORTED -> project.getCurrentSpectralLibraries().stream().toList();
+      case SPECIFIC -> getMatchingSpecificFiles(project);
       case AS_SELECTED_IN_MAIN_WINDOW -> {
         final Desktop desktop = DesktopService.getDesktop();
         if (desktop instanceof MZmineDesktop desk) {
@@ -98,32 +96,28 @@ public class SpectralLibrarySelection {
     return selectionType;
   }
 
-  private List<SpectralLibrary> getMatchingSpecificFiles() {
-    MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
-    if (currentProject == null || specificLibraryNames == null || specificLibraryNames.isEmpty()) {
+  private @NotNull List<SpectralLibrary> getMatchingSpecificFiles(
+      @NotNull final MZmineProject project) {
+    if (specificLibraryNames == null || specificLibraryNames.isEmpty()) {
       return List.of();
     }
 
-    return currentProject.getCurrentSpectralLibraries().stream()
+    return project.getCurrentSpectralLibraries().stream()
         .filter(lib -> specificLibraryNames.contains(lib.getPath())).toList();
   }
 
   /**
    * User should also check if the selection type is {@link SpectralLibrarySelectionType#SPECIFIC}
    *
+   * @param project the libraries are searched in this project
    * @return list of libraries that were defined but not yet loaded
    */
   @NotNull
-  public List<File> getMissingSpecificFiles() {
+  public List<File> getMissingSpecificFiles(@NotNull final MZmineProject project) {
     if (specificLibraryNames == null || specificLibraryNames.isEmpty()) {
       return List.of();
     }
-    MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
-    if (currentProject == null) {
-      return List.copyOf(specificLibraryNames);
-    }
-
-    Set<File> currentLibs = currentProject.getCurrentSpectralLibraries().stream()
+    Set<File> currentLibs = project.getCurrentSpectralLibraries().stream()
         .map(SpectralLibrary::getPath).collect(Collectors.toSet());
     return specificLibraryNames.stream().filter(file -> !currentLibs.contains(file)).toList();
   }
@@ -132,14 +126,16 @@ public class SpectralLibrarySelection {
    * Checks if all spectral libraries are available, otherwise ask for import, finally return
    * selected list of libraries.
    *
+   * @param project the libraries are selected from and missing libraries are imported into this
+   *                project
    * @return all selected spectral libraries, sorted by name for same order in all use cases
    * @throws SpectralLibrarySelectionException when specific libraries are provided but are not
    *                                           imported (GUI: ask to import, CLI: throw exception).
    */
-  public List<SpectralLibrary> getMatchingLibrariesAndCheckAvailability()
-      throws SpectralLibrarySelectionException {
+  public List<SpectralLibrary> getMatchingLibrariesAndCheckAvailability(
+      @NotNull final MZmineProject project) throws SpectralLibrarySelectionException {
     if (this.getSelectionType() == SpectralLibrarySelectionType.SPECIFIC) {
-      List<File> missing = this.getMissingSpecificFiles();
+      List<File> missing = this.getMissingSpecificFiles(project);
       if (!missing.isEmpty()) {
         if (DesktopService.isGUI() && DialogLoggerUtil.showDialogYesNo(
             "Import missing spectral libraries?", """
@@ -153,20 +149,20 @@ public class SpectralLibrarySelection {
           // user wants libraries to be imported
           Instant now = Instant.now();
           List<Task> tasks = missing.stream().map(
-              file -> (Task) new SpectralLibraryImportTask(ProjectService.getProject(), file, now,
+              file -> (Task) new SpectralLibraryImportTask(project, file, now,
                   true)).toList();
           FixedThreadPoolTask masterImportTask = new FixedThreadPoolTask(
               "Import missing spectral libraries", tasks.size(), tasks);
           // block until finished import
           TaskService.getController().runTaskOnThisThreadBlocking(masterImportTask);
           // call this method to redo checks
-          return getMatchingLibrariesAndCheckAvailability();
+          return getMatchingLibrariesAndCheckAvailability(project);
         } else {
           throw new SpectralLibrarySelectionException();
         }
       }
     }
-    return getMatchingLibraries();
+    return getMatchingLibraries(project);
   }
 
 
@@ -174,13 +170,15 @@ public class SpectralLibrarySelection {
    * Checks if all spectral libraries are available, otherwise ask for import, finally return
    * selected list of libraries. Combines all spectral libraries
    *
+   * @param project the libraries are selected from and missing libraries are imported into this
+   *                project
    * @return all selected spectral libraries
    * @throws SpectralLibrarySelectionException when specific libraries are provided but are not
    *                                           imported (GUI: ask to import, CLI: throw exception).
    */
-  public @NotNull List<SpectralLibraryEntry> getMatchingLibraryEntriesAndCheckAvailability()
-      throws SpectralLibrarySelectionException {
-    List<SpectralLibrary> libraries = getMatchingLibrariesAndCheckAvailability();
+  public @NotNull List<SpectralLibraryEntry> getMatchingLibraryEntriesAndCheckAvailability(
+      @NotNull final MZmineProject project) throws SpectralLibrarySelectionException {
+    List<SpectralLibrary> libraries = getMatchingLibrariesAndCheckAvailability(project);
     if (libraries.isEmpty()) {
       throw SpectralLibrarySelectionException.forNoLibraries();
     }

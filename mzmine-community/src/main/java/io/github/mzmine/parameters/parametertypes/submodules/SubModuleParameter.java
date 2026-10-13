@@ -129,13 +129,13 @@ public class SubModuleParameter<SUB extends ParameterSet> implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    embeddedParameters.loadValuesFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameters.loadValuesFromXML(project, xmlElement);
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
-    embeddedParameters.saveValuesToXML(xmlElement);
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameters.saveValuesToXML(project, xmlElement);
   }
 
 

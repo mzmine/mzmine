@@ -118,7 +118,7 @@ public class IndexRangesParameter implements UserParameter<IndexRangesList, Inde
   }
 
   @Override
-  public void loadValueFromXML(@NotNull final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final String text = xmlElement.getTextContent();
     try {
       value = IndexRangesList.parse(text);
@@ -128,7 +128,7 @@ public class IndexRangesParameter implements UserParameter<IndexRangesList, Inde
   }
 
   @Override
-  public void saveValueToXML(@NotNull final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null || value.isEmpty()) {
       return;
     }

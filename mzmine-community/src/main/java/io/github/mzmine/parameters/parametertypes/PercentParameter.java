@@ -117,7 +117,7 @@ public class PercentParameter implements UserParameter<Double, PercentComponent>
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String numString = xmlElement.getTextContent();
     if (numString.length() == 0)
       return;
@@ -125,7 +125,7 @@ public class PercentParameter implements UserParameter<Double, PercentComponent>
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     xmlElement.setTextContent(value.toString());

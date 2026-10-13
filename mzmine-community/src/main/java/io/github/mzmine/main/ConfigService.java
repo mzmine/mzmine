@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -91,7 +92,8 @@ public final class ConfigService {
    */
   public static boolean saveUserConfig() {
     try {
-      getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
+      getConfiguration().saveConfiguration(ProjectService.getProject(),
+          MZmineConfiguration.CONFIG_FILE);
       return true;
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Cannot save user config", e);

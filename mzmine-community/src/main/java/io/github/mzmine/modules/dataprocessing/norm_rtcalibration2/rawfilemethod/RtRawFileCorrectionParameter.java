@@ -113,7 +113,7 @@ public class RtRawFileCorrectionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     this.calibrationFunctions.clear();
 
@@ -146,7 +146,7 @@ public class RtRawFileCorrectionParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final Document doc = xmlElement.getOwnerDocument();
     for (AbstractRtCorrectionFunction func : calibrationFunctions) {

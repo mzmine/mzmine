@@ -100,7 +100,7 @@ public class ManualIntegrationEntriesParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
     for (final ManualIntegrationEntry entry : value) {
       final Element entryElement = doc.createElement(ENTRY_ELEMENT);
@@ -130,7 +130,7 @@ public class ManualIntegrationEntriesParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList entryElements = xmlElement.getElementsByTagName(ENTRY_ELEMENT);
     final List<ManualIntegrationEntry> loaded = new ArrayList<>();
     for (int i = 0; i < entryElements.getLength(); i++) {

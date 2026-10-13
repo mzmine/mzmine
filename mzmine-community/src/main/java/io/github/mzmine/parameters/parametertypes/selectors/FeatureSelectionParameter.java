@@ -97,7 +97,7 @@ public class FeatureSelectionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     List<FeatureSelection> newValue = Lists.newArrayList();
     NodeList selItems = xmlElement.getElementsByTagName("selection");
@@ -115,7 +115,7 @@ public class FeatureSelectionParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

@@ -89,7 +89,7 @@ public class ProxyConfigParameter extends AbstractParameter<FullProxyConfig, Pro
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final ProxyConfigOption option = ProxyConfigOption.valueOf(
         xmlElement.getAttribute("proxyOption"));
 
@@ -103,7 +103,7 @@ public class ProxyConfigParameter extends AbstractParameter<FullProxyConfig, Pro
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute("proxyOption", value.option().name());
 
     // child

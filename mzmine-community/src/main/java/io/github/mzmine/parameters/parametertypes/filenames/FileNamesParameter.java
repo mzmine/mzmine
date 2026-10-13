@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -160,10 +159,9 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList list = xmlElement.getElementsByTagName("file");
     File[] newFiles = new File[list.getLength()];
-    final MZmineProject project = ProjectService.getProject();
 
     for (int i = 0; i < list.getLength(); i++) {
       Element nextElement = (Element) list.item(i);
@@ -182,12 +180,11 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
     Document parentDocument = xmlElement.getOwnerDocument();
-    final MZmineProject project = ProjectService.getProject();
 
     for (File f : value) {
       Element newElement = parentDocument.createElement("file");

@@ -105,7 +105,7 @@ public class ColorParameter implements UserParameter<Color, ColorPicker> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String t = xmlElement.getTextContent();
     if (t != null) {
       try {
@@ -121,7 +121,7 @@ public class ColorParameter implements UserParameter<Color, ColorPicker> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     StringBuilder s = new StringBuilder();

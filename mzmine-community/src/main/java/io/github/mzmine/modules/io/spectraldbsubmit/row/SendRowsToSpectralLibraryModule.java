@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.row;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -32,6 +33,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationSubParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.time.Instant;
@@ -61,6 +63,8 @@ public class SendRowsToSpectralLibraryModule implements MZmineModule {
     if (rows.isEmpty()) {
       return;
     }
+    // decision: GUI entry point, rows are sent to libraries of the current project
+    final MZmineProject project = ProjectService.getProject();
 
     final LibraryBatchGenerationSubParameters parameters = (LibraryBatchGenerationSubParameters) MZmineCore.getConfiguration()
         .getModuleParameters(SendRowsToSpectralLibraryModule.class);
@@ -70,7 +74,7 @@ public class SendRowsToSpectralLibraryModule implements MZmineModule {
 
     final SpectralLibrarySelection lastSelectedLib = parameters.getValue(
         LibraryBatchGenerationSubParameters.lastLibrarySelection);
-    final List<SpectralLibrary> lastLibraries = lastSelectedLib.getMatchingLibraries();
+    final List<SpectralLibrary> lastLibraries = lastSelectedLib.getMatchingLibraries(project);
     // suggest the feature list name as library name
     final String suggestedName = rows.getFirst().getFeatureList().getName();
     final SpectralLibrarySelectionDialog libDialog = new SpectralLibrarySelectionDialog(rows.size(),
@@ -89,7 +93,7 @@ public class SendRowsToSpectralLibraryModule implements MZmineModule {
       return;
     }
 
-    final SendRowsToSpectralLibraryTask task = new SendRowsToSpectralLibraryTask(rows,
+    final SendRowsToSpectralLibraryTask task = new SendRowsToSpectralLibraryTask(project, rows,
         targetLibrary, parameters, moduleCallDate);
     MZmineCore.getTaskController().addTask(task);
   }

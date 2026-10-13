@@ -106,7 +106,7 @@ public class ListDoubleRangeParameter
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final String text = xmlElement.getTextContent();
     if(text == null || text.isBlank()) {
       value = null;
@@ -120,7 +120,7 @@ public class ListDoubleRangeParameter
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     xmlElement.setTextContent(ListDoubleRangeComponent.fromRanges(value));

@@ -28,7 +28,6 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -186,9 +185,9 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList current = xmlElement.getElementsByTagName(CURRENT_FILE_ELEMENT);
-    final File projectFile = ProjectService.getProject().getProjectFile();
+    final File projectFile = project.getProjectFile();
 
     if (current.getLength() == 1) {
       final File absFile = new File(current.item(0).getTextContent());
@@ -229,10 +228,9 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // add new element for each file
     Document parentDocument = xmlElement.getOwnerDocument();
-    final MZmineProject project = ProjectService.getProject();
 
     if (value != null) {
       Element paramElement = parentDocument.createElement(CURRENT_FILE_ELEMENT);

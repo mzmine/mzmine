@@ -60,7 +60,7 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     try {
       final String nuVal = xmlElement.getTextContent();
       if (nuVal == null || nuVal.isEmpty()) {
@@ -74,7 +74,7 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

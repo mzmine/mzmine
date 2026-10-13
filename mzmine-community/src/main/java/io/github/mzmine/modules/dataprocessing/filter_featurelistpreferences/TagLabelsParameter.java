@@ -104,7 +104,7 @@ public class TagLabelsParameter implements UserParameter<List<String>, TagLabels
   }
 
   @Override
-  public void loadValueFromXML(@NotNull final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList nodes = xmlElement.getElementsByTagName(XML_LABEL_TAG);
     if (nodes.getLength() == 0) {
       return;
@@ -121,7 +121,7 @@ public class TagLabelsParameter implements UserParameter<List<String>, TagLabels
   }
 
   @Override
-  public void saveValueToXML(@NotNull final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document document = xmlElement.getOwnerDocument();
     for (final String label : value) {
       final Element labelElement = document.createElement(XML_LABEL_TAG);

@@ -72,13 +72,13 @@ public class HiddenParameter<ValueType> implements Parameter<ValueType> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    getEmbeddedParameter().loadValueFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    getEmbeddedParameter().loadValueFromXML(project, xmlElement);
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
-    getEmbeddedParameter().saveValueToXML(xmlElement);
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    getEmbeddedParameter().saveValueToXML(project, xmlElement);
   }
 
   @Override

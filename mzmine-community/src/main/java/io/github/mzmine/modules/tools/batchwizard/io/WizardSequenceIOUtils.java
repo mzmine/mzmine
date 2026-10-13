@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -84,7 +85,7 @@ public class WizardSequenceIOUtils {
         moduleElement.setAttribute(PRESET_ATTRIBUTE, step.getUniquePresetId());
         // save parameters
         step.setSkipSensitiveParameters(skipSensitive);
-        step.saveValuesToXML(moduleElement);
+        step.saveValuesToXML(ProjectService.getProject(), moduleElement);
         configRoot.appendChild(moduleElement);
       }
 
@@ -154,7 +155,7 @@ public class WizardSequenceIOUtils {
           // load preset parameters and add to sequence
           part.getParameterFactory(uniqeId).ifPresent(factory -> {
             var preset = factory.create();
-            preset.loadValuesFromXML(xmlNode);
+            preset.loadValuesFromXML(ProjectService.getProject(), xmlNode);
             sequence.add(preset);
           });
         } catch (Exception e) {

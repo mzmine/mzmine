@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -41,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -86,9 +88,9 @@ class NormalizationFunctionsParameterTest {
         standardFunction, interpolatedFunction, compositeFunction);
     parameter.setValue(savedSummary);
 
-    final String xml = ParameterUtils.saveParameterToXMLString(parameter);
+    final String xml = ParameterUtils.saveParameterToXMLString(new MZmineProjectImpl(), parameter);
     final NormalizationFunctionsParameter loadedParameter = new NormalizationFunctionsParameter();
-    ParameterUtils.loadParameterFromString(loadedParameter, xml);
+    ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), loadedParameter, xml);
 
     final IntensityNormalizationSummary summary = loadedParameter.getValue();
     final List<RawFileNormalizationFunction> loadedFunctions = summary.functions();
@@ -146,7 +148,7 @@ class NormalizationFunctionsParameterTest {
     root.appendChild(invalidFunction);
 
     final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
-    parameter.loadValueFromXML(root);
+    parameter.loadValueFromXML(new MZmineProjectImpl(), root);
 
     final IntensityNormalizationSummary summary = parameter.getValue();
     assertEquals(0, summary.size());
@@ -164,10 +166,10 @@ class NormalizationFunctionsParameterTest {
     final IntensityNormalizerParameters parameters = createIntensityParameters("hidden_save",
         AbundanceMeasure.Height, OriginalFeatureListOption.KEEP, List.of(factorFunction));
 
-    final String xml = ParameterUtils.saveValuesToXMLString(parameters);
+    final String xml = ParameterUtils.saveValuesToXMLString(new MZmineProjectImpl(), parameters);
     final IntensityNormalizerParameters loaded = createIntensityParameters("placeholder",
         AbundanceMeasure.Area, OriginalFeatureListOption.REMOVE, List.of());
-    ParameterUtils.loadValuesFromXMLString(loaded, xml);
+    ParameterUtils.loadValuesFromXMLString(new MZmineProjectImpl(), loaded, xml);
 
     final IntensityNormalizationSummary summary = loaded.getValue(
         IntensityNormalizerParameters.hiddenNormalizationSummary);
@@ -243,9 +245,9 @@ class NormalizationFunctionsParameterTest {
     final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
     parameter.setValue(createSummary(function));
 
-    final String xml = ParameterUtils.saveParameterToXMLString(parameter);
+    final String xml = ParameterUtils.saveParameterToXMLString(new MZmineProjectImpl(), parameter);
     final NormalizationFunctionsParameter loaded = new NormalizationFunctionsParameter();
-    ParameterUtils.loadParameterFromString(loaded, xml);
+    ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), loaded, xml);
 
     final StandardCompoundNormalizationFunction loadedFunction = assertInstanceOf(
         StandardCompoundNormalizationFunction.class,
@@ -268,9 +270,9 @@ class NormalizationFunctionsParameterTest {
     final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
     parameter.setValue(IntensityNormalizationSummary.EMPTY);
 
-    final String xml = ParameterUtils.saveParameterToXMLString(parameter);
+    final String xml = ParameterUtils.saveParameterToXMLString(new MZmineProjectImpl(), parameter);
     final NormalizationFunctionsParameter loaded = new NormalizationFunctionsParameter();
-    ParameterUtils.loadParameterFromString(loaded, xml);
+    ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), loaded, xml);
 
     assertTrue(loaded.getValue().isEmpty());
   }
@@ -287,9 +289,9 @@ class NormalizationFunctionsParameterTest {
     final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
     parameter.setValue(createSummary(factorFunction, standardFunction));
 
-    final String xml = ParameterUtils.saveParameterToXMLString(parameter);
+    final String xml = ParameterUtils.saveParameterToXMLString(new MZmineProjectImpl(), parameter);
     final NormalizationFunctionsParameter loadedParameter = new NormalizationFunctionsParameter();
-    ParameterUtils.loadParameterFromString(loadedParameter, xml);
+    ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), loadedParameter, xml);
 
     final IntensityNormalizationSummary summary = loadedParameter.getValue();
     final List<RawFileNormalizationFunction> loadedFunctions = summary.functions();

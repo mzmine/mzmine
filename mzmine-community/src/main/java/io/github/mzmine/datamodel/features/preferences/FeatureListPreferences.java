@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.preferences;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractRsdType;
@@ -34,7 +35,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesDtoParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.List;
 import java.util.Objects;
@@ -127,13 +127,14 @@ public final class FeatureListPreferences {
    * recomputed if the source files or the project metadata changed, see
    * {@link MetadataTable#getVersion()}.
    *
+   * @param metadata    the sample types are taken from this metadata table, usually of the project
+   *                    of the feature list
    * @param sourceFiles all raw data files of the feature list, usually
    *                    {@link FeatureList#getRawDataFiles()}
    * @return the filtered files, may be empty
    */
-  public @NotNull List<RawDataFile> getRsdFiles(@NotNull final List<RawDataFile> sourceFiles) {
-    // TODO explicit project: use the project of the feature list once it keeps a weak reference
-    final MetadataTable metadata = ProjectService.getMetadata();
+  public @NotNull List<RawDataFile> getRsdFiles(@NotNull final MetadataTable metadata,
+      @NotNull final List<RawDataFile> sourceFiles) {
     final long metadataVersion = metadata.getVersion();
 
     try (var _ = cacheLock.lockRead()) {
@@ -165,7 +166,7 @@ public final class FeatureListPreferences {
    */
   private boolean isCacheValid(@NotNull final MetadataTable metadata, final long metadataVersion,
       @NotNull final List<RawDataFile> sourceFiles) {
-    // assumption: the metadata instance is exchanged on project load, therefore compare identity
+    // assumption: each project has its own metadata instance, therefore compare identity
     // as well because the version counter restarts with a new table
     return cachedRsdFiles != null && cachedMetadata == metadata
         && cachedMetadataVersion == metadataVersion && sourceFiles.equals(cachedSourceFiles);
@@ -191,10 +192,13 @@ public final class FeatureListPreferences {
     return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, tagLabels);
   }
 
-  public void saveToXML(@NotNull final Element element) {
+  /**
+   * @param project file paths are also saved relative to the file of this project
+   */
+  public void saveToXML(@NotNull final MZmineProject project, @NotNull final Element element) {
     final FeatureListPreferencesDtoParameters params = FeatureListPreferencesDtoParameters.fromPreferences(
         this);
-    params.saveValuesToXML(element);
+    params.saveValuesToXML(project, element);
   }
 
   /**
@@ -203,13 +207,14 @@ public final class FeatureListPreferences {
    * @return the loaded preferences or null if missing
    */
   @Nullable
-  public static FeatureListPreferences loadFromXML(@Nullable final Element element) {
+  public static FeatureListPreferences loadFromXML(@NotNull final MZmineProject project,
+      @Nullable final Element element) {
     if (element == null) {
       return null;
     }
 
     FeatureListPreferencesDtoParameters parameters = FeatureListPreferencesDtoParameters.loadFromXML(
-        element);
+        project, element);
     if (parameters == null) {
       return null;
     }

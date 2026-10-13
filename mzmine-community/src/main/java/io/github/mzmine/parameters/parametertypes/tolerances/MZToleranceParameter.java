@@ -162,7 +162,7 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // Set some default values
     double mzTolerance = 0.001;
     double ppmTolerance = 5;
@@ -180,7 +180,7 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

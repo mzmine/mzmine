@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
@@ -68,7 +69,8 @@ public class FeatureListPreferencesDtoParameters extends SimpleParameterSet {
   }
 
   @Nullable
-  public static FeatureListPreferencesDtoParameters loadFromXML(@Nullable Element element) {
+  public static FeatureListPreferencesDtoParameters loadFromXML(@NotNull MZmineProject project,
+      @Nullable Element element) {
     if (element == null || !element.getTagName().equals(CONST.XML_FLIST_PREFERENCES_ELEMENT)) {
       return null;
     }
@@ -77,7 +79,7 @@ public class FeatureListPreferencesDtoParameters extends SimpleParameterSet {
     // like new parameters added later
     final FeatureListPreferencesDtoParameters params = FeatureListPreferencesDtoParameters.fromPreferences(
         FeatureListPreferences.createDefault());
-    params.loadValuesFromXML(element);
+    params.loadValuesFromXML(project, element);
     return params;
   }
 

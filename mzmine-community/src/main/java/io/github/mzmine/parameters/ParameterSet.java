@@ -173,8 +173,11 @@ public interface ParameterSet extends ParameterContainer {
    * otherwise the retrieval is hard because the static instances of parameters are not the actually
    * loaded instances in this parameterset (usually {@link #cloneParameterSet()} is called at some
    * point).
+   *
+   * @param project relative file paths are resolved against the file of this project
    */
-  Map<String, Parameter<?>> loadValuesFromXML(Element element);
+  Map<String, Parameter<?>> loadValuesFromXML(@NotNull MZmineProject project,
+      @NotNull Element element);
 
   /**
    * This method is called after successfully loading parameters (e.g., from xml). This allows to
@@ -190,11 +193,15 @@ public interface ParameterSet extends ParameterContainer {
   }
 
 
-  void saveValuesToXML(Element element);
+  /**
+   * @param project file paths are also saved relative to the file of this project
+   */
+  void saveValuesToXML(@NotNull MZmineProject project, @NotNull Element element);
 
 
   /**
-   * Maps the names of parameters to the parameter for {@link #loadValuesFromXML(Element)}.
+   * Maps the names of parameters to the parameter for
+   * {@link #loadValuesFromXML(MZmineProject, Element)}.
    * <p>
    * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
    * Only works if the old and new parameter are of the same type (save and load the parameter

@@ -60,19 +60,20 @@ public interface Parameter<ValueType> {
   boolean checkValue(@NotNull MZmineProject project, @NotNull Collection<String> errorMessages);
 
   /**
-   *
+   * @param project    relative file paths are resolved against the file of this project
    * @param xmlElement A parameter element of the parameter.
    */
-  void loadValueFromXML(Element xmlElement);
+  void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement);
 
   /**
+   * @param project    file paths are also saved relative to the file of this project
    * @param xmlElement A parameter element
    *                   ({@link
    *                   io.github.mzmine.parameters.impl.SimpleParameterSet#parameterElement}) with
    *                   the name of this parameter as attribute
    *                   ({@link io.github.mzmine.parameters.impl.SimpleParameterSet#nameAttribute}
    */
-  void saveValueToXML(Element xmlElement);
+  void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement);
 
   /**
    * We use isSensitive() to decide whether a parameter has to be encrypted (e.g. passwords).

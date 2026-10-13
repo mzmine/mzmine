@@ -378,7 +378,7 @@ public class ProjectOpeningTask extends AbstractTask implements ProjectResultTas
     fileStream.close();
 
     try {
-      MZmineCore.getConfiguration().loadConfiguration(tempConfigFile, false);
+      MZmineCore.getConfiguration().loadConfiguration(newProject, tempConfigFile, false);
     } catch (Exception e) {
       logger.warning(
           "Could not load configuration from the project: " + ExceptionUtils.exceptionToString(e));

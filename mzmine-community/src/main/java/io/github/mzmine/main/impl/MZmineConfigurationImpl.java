@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,6 +25,7 @@
 
 package io.github.mzmine.main.impl;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
@@ -244,7 +246,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
-  public void loadConfiguration(File file, boolean loadPreferences) throws IOException {
+  public void loadConfiguration(@NotNull MZmineProject project, @NotNull File file,
+      boolean loadPreferences) throws IOException {
     List<String> exculdeWarningsFor = List.of("jmzml", "adap");
 
     try {
@@ -267,9 +270,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           // already contain encrypted data
           // that needs this key for encryption
           if (file.equals(MZmineConfiguration.CONFIG_FILE)) {
-            new SimpleParameterSet(globalEncrypter).loadValuesFromXML(preferencesElement);
+            new SimpleParameterSet(globalEncrypter).loadValuesFromXML(project, preferencesElement);
           }
-          preferences.loadValuesFromXML(preferencesElement);
+          preferences.loadValuesFromXML(project, preferencesElement);
         }
 
         logger.finest("Loading last projects");
@@ -277,7 +280,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
         if (nodes.getLength() == 1) {
           Element lastProjectsElement = (Element) nodes.item(0);
-          lastProjects.loadValueFromXML(lastProjectsElement);
+          lastProjects.loadValueFromXML(project, lastProjectsElement);
         }
         // apply preferences to all parts of mzmine
         preferences.applyConfig();
@@ -308,7 +311,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
             continue;
           }
           var parameterElement = (Element) moduleElement.getElementsByTagName("parameters").item(0);
-          moduleParameters.loadValuesFromXML(parameterElement);
+          moduleParameters.loadValuesFromXML(project, parameterElement);
         } catch (Exception | NoClassDefFoundError e) {
           boolean exclude = exculdeWarningsFor.stream()
               .anyMatch(ex -> moduleClassName.toLowerCase().contains(ex));
@@ -326,7 +329,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
-  public void saveConfiguration(File file) throws IOException {
+  public void saveConfiguration(@NotNull MZmineProject project, @NotNull File file)
+      throws IOException {
     try {
       // write sensitive parameters only to the local config file
       final boolean skipSensitive = !file.equals(MZmineConfiguration.CONFIG_FILE);
@@ -338,11 +342,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       Element prefElement = configuration.createElement("preferences");
       configRoot.appendChild(prefElement);
       preferences.setSkipSensitiveParameters(skipSensitive);
-      preferences.saveValuesToXML(prefElement);
+      preferences.saveValuesToXML(project, prefElement);
 
       Element lastFilesElement = configuration.createElement("lastprojects");
       configRoot.appendChild(lastFilesElement);
-      lastProjects.saveValueToXML(lastFilesElement);
+      lastProjects.saveValueToXML(project, lastFilesElement);
 
       Element modulesElement = configuration.createElement("modules");
       configRoot.appendChild(modulesElement);
@@ -359,7 +363,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           ParameterSet moduleParameters = getModuleParameters(module.getClass());
           if (moduleParameters != null) {
             moduleParameters.setSkipSensitiveParameters(skipSensitive);
-            moduleParameters.saveValuesToXML(paramElement);
+            moduleParameters.saveValuesToXML(project, paramElement);
           }
 
           // only add if there is no exception
@@ -376,7 +380,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       // ATTENTION: this should to be written after all other configs
       final SimpleParameterSet encSet = new SimpleParameterSet(globalEncrypter);
       encSet.setSkipSensitiveParameters(skipSensitive);
-      encSet.saveValuesToXML(prefElement);
+      encSet.saveValuesToXML(project, prefElement);
 
       // Create parent folder if it does not exist
       File confParent = file.getParentFile();

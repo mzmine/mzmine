@@ -69,7 +69,7 @@ public class FeatureThresholdParameter implements Parameter<Object> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList nodes = xmlElement.getElementsByTagName("mode");
     if (nodes.getLength() != 1)
       return;
@@ -91,7 +91,7 @@ public class FeatureThresholdParameter implements Parameter<Object> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     Document parentDocument = xmlElement.getOwnerDocument();
 

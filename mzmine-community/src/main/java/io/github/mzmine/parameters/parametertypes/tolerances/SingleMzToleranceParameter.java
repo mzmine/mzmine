@@ -121,7 +121,7 @@ public class SingleMzToleranceParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final String text = xmlElement.getTextContent();
     if (text == null || text.isBlank()) {
@@ -139,7 +139,7 @@ public class SingleMzToleranceParameter implements
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     if (value == null) {
       return;

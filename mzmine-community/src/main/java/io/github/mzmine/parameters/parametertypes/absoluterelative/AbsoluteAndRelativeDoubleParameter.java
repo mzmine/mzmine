@@ -110,7 +110,7 @@ public class AbsoluteAndRelativeDoubleParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // Set some default values
     double abs = 0;
     double rel = 0;
@@ -129,7 +129,7 @@ public class AbsoluteAndRelativeDoubleParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

@@ -141,7 +141,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String columnAttrType = xmlElement.getAttribute("columnType");
     if (columnAttrType == null || columnAttrType.isEmpty()) {
       return;
@@ -166,7 +166,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

@@ -95,7 +95,7 @@ public class Metadata2GroupsSelectionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final String column = xmlElement.getAttribute(XML_COLUMN_ATTR);
     final String groupA = xmlElement.getAttribute(XML_GROUPA_ATTR);
     final String groupB = xmlElement.getAttribute(XML_GROUPB_ATTR);
@@ -104,7 +104,7 @@ public class Metadata2GroupsSelectionParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute(XML_COLUMN_ATTR, value.columnName());
     xmlElement.setAttribute(XML_GROUPA_ATTR, value.groupA());
     xmlElement.setAttribute(XML_GROUPB_ATTR, value.groupB());

@@ -117,7 +117,7 @@ public class NormalizationFunctionsParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final @NotNull Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     ArrayList<RawFileNormalizationFunction> functions = new ArrayList<>();
     ArrayList<String> messages = new ArrayList<>();
 
@@ -164,7 +164,7 @@ public class NormalizationFunctionsParameter implements
   }
 
   @Override
-  public void saveValueToXML(final @NotNull Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
 
     final Element funcElement = doc.createElement("functions");

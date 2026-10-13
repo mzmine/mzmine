@@ -152,7 +152,7 @@ public class IntensityNormalizerComboParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String elementString = xmlElement.getTextContent();
     if (elementString.isEmpty()) {
       value = IntensityNormalizer.createDefault();
@@ -166,7 +166,7 @@ public class IntensityNormalizerComboParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setTextContent(value.option().getUniqueID());
     xmlElement.setAttribute("scientific", String.valueOf(value.scientificFormat()));
   }

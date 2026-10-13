@@ -125,17 +125,17 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (this.value == null) {
       return;
     }
 
-    value.saveValuesToXML(xmlElement);
+    value.saveValuesToXML(project, xmlElement);
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    value.loadValuesFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    value.loadValuesFromXML(project, xmlElement);
   }
 
 

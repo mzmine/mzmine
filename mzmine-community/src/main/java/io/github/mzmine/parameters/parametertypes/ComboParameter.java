@@ -136,7 +136,7 @@ public class ComboParameter<ValueType> implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String elementString = xmlElement.getTextContent();
     if (elementString.isEmpty()) {
       return;
@@ -151,7 +151,7 @@ public class ComboParameter<ValueType> implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

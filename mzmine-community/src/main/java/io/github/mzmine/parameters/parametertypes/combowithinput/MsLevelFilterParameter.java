@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 public class MsLevelFilterParameter extends
@@ -60,7 +62,7 @@ public class MsLevelFilterParameter extends
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // used to be an IntegerParameter - also support a simple integer
     try {
       final String selected = xmlElement.getAttribute("selected");
@@ -77,6 +79,6 @@ public class MsLevelFilterParameter extends
     }
 
     // otherwise load the new parameter
-    super.loadValueFromXML(xmlElement);
+    super.loadValueFromXML(project, xmlElement);
   }
 }

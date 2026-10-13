@@ -162,7 +162,8 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
     // combine libraries
     try {
       final List<SpectralLibraryEntry> entries = parameters.getValue(
-          PrecursorDBSearchParameters.libraries).getMatchingLibraryEntriesAndCheckAvailability();
+              PrecursorDBSearchParameters.libraries)
+          .getMatchingLibraryEntriesAndCheckAvailability(project);
 
       totalItems = entries.size();
       finishedItems.set(0);

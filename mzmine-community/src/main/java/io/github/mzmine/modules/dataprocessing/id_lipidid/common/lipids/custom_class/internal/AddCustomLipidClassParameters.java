@@ -168,13 +168,14 @@ public class AddCustomLipidClassParameters extends SimpleParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
+  public Map<String, Parameter<?>> loadValuesFromXML(@NotNull MZmineProject project,
+      @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter set is only intended for GUI usage and for loading and saving to an xml file.");
   }
 
   @Override
-  public void saveValuesToXML(Element xmlElement) {
+  public void saveValuesToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter set is only intended for GUI usage and for loading and saving to an xml file.");
   }

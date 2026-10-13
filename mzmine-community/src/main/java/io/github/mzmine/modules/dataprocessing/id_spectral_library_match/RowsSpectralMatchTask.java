@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -82,6 +83,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(RowsSpectralMatchTask.class.getName());
   protected final List<FeatureListRow> rows;
   protected final AtomicInteger finishedRows = new AtomicInteger(0);
+  protected final @NotNull MZmineProject project;
   protected final ParameterSet parameters;
   // remove +- 4 Da around the precursor - including the precursor signal
   // this signal does not matter for matching
@@ -120,9 +122,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
   /**
    * Constructor used for matchign a single spectrum via {@link SingleSpectrumLibrarySearchModule}
    */
-  public RowsSpectralMatchTask(SingleSpectrumLibrarySearchParameters singleSpectrumParam,
-      @NotNull Scan scan, @NotNull Instant moduleCallDate) {
+  public RowsSpectralMatchTask(@NotNull MZmineProject project,
+      SingleSpectrumLibrarySearchParameters singleSpectrumParam, @NotNull Scan scan,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
     this.parameters = singleSpectrumParam.toSearchParameters(scan);
     this.scan = scan;
     this.rows = null;
@@ -179,9 +183,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
     totalRows = 1;
   }
 
-  public RowsSpectralMatchTask(ParameterSet parameters, @NotNull List<FeatureListRow> rows,
-      @NotNull Instant moduleCallDate) {
+  public RowsSpectralMatchTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull List<FeatureListRow> rows, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
     this.parameters = parameters;
     this.rows = rows;
     this.scan = null;
@@ -357,7 +362,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
 
     final List<SpectralLibraryEntry> entries = parameters.getValue(
-        SpectralLibrarySearchParameters.libraries).getMatchingLibraryEntriesAndCheckAvailability();
+            SpectralLibrarySearchParameters.libraries)
+        .getMatchingLibraryEntriesAndCheckAvailability(project);
     var stream = entries.stream().filter(entry -> entry.getNumberOfDataPoints() >= minMatch);
 
     if (msLevelFilter.isFragmentationNoMS1()) {

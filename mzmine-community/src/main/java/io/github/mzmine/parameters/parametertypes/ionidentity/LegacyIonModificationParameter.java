@@ -93,7 +93,7 @@ class LegacyIonModificationParameter implements UserParameter<LegacyIonModificat
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // Start with current choices and empty selections.
     final ArrayList<LegacyIonModification> newChoices = new ArrayList<LegacyIonModification>();
     final ArrayList<LegacyIonModification> selections = new ArrayList<>();
@@ -226,7 +226,7 @@ class LegacyIonModificationParameter implements UserParameter<LegacyIonModificat
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // Get choices and selections.
     saveIonsToXML(xmlElement, adducts.getValue(), adducts.getChoices(), ADDUCTS_TAG);
     saveIonsToXML(xmlElement, modification.getValue(), modification.getChoices(), MODIFICTAION_TAG);

@@ -120,7 +120,7 @@ public class CustomLipidClassChoiceParameter
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
     ArrayList<CustomLipidClass> newValues = new ArrayList<>();
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -135,7 +135,7 @@ public class CustomLipidClassChoiceParameter
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (values == null)
       return;
     Document parentDocument = xmlElement.getOwnerDocument();

@@ -205,7 +205,8 @@ public class BatchSpeedTestMain {
       final boolean dataImportOnce, final String runId, final SpeedTestEnvironment env,
       final SpeedMeasurementWriter writer)
       throws ParserConfigurationException, IOException, SAXException {
-    final LoadedBatchQueue fullBatch = BatchQueue.loadFromFile(getFileOrResource(job.batchFile()));
+    final LoadedBatchQueue fullBatch = BatchQueue.loadFromFile(ProjectService.getProject(),
+        getFileOrResource(job.batchFile()));
 
     // versions might have changed
     if (!fullBatch.errorMessages().isEmpty()) {

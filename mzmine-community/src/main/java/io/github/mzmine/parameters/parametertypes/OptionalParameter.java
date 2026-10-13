@@ -124,9 +124,9 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // no need to load or save the defaultValue as this will always stay with the instance
-    embeddedParameter.loadValueFromXML(xmlElement);
+    embeddedParameter.loadValueFromXML(project, xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
     // might be blank if the attribute does not exist. For example if the parameter was not optional before
     if (selectedAttr.isBlank()) {
@@ -138,10 +138,10 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // no need to load or save the defaultValue as this will always stay with the instance
     xmlElement.setAttribute("selected", String.valueOf(value));
-    embeddedParameter.saveValueToXML(xmlElement);
+    embeddedParameter.saveValueToXML(project, xmlElement);
   }
 
 

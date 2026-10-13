@@ -132,7 +132,7 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList currentChoiceList = xmlElement.getElementsByTagName("currentchoice");
     if (currentChoiceList.getLength() == 0) {
       return;
@@ -145,7 +145,8 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
       Element choice = (Element) choicesList.item(i);
       String choiceName = choice.getAttribute("name");
       ParameterSet choiceParameterSet = choices.get(choiceName).cloneParameterSet();
-      choiceParameterSet.loadValuesFromXML((Element) choice.getElementsByTagName("value").item(0));
+      choiceParameterSet.loadValuesFromXML(project,
+          (Element) choice.getElementsByTagName("value").item(0));
       choices.put(choiceName, choiceParameterSet);
     }
 
@@ -153,7 +154,7 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -166,7 +167,7 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
       Element choiceElement = parentDocument.createElement("choice");
       choiceElement.setAttribute("name", choice.getKey());
       Element choiceInnerElement = parentDocument.createElement("value");
-      choice.getValue().saveValuesToXML(choiceInnerElement);
+      choice.getValue().saveValuesToXML(project, choiceInnerElement);
       choiceElement.appendChild(choiceInnerElement);
       xmlElement.appendChild(choiceElement);
     }

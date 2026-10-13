@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
@@ -46,7 +47,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -68,10 +68,13 @@ public class BatchUtils {
 
   /**
    * While all parameters may be valid, some choices might not make sense.
+   *
+   * @param project the batch runs on this project, its data files are already imported
    */
-  public static @Nullable String checkBatchParameters(@NotNull final BatchQueue batch) {
+  public static @Nullable String checkBatchParameters(@NotNull final MZmineProject project,
+      @NotNull final BatchQueue batch) {
     @NotNull final List<@Nullable String> errors = new ArrayList<>();
-    errors.add(checkMinSamplesFilter(batch));
+    errors.add(checkMinSamplesFilter(project, batch));
     errors.add(checkRawAndFlistParameterSettings(batch));
     errors.add(checkModuleOrder(batch));
 
@@ -109,11 +112,13 @@ public class BatchUtils {
   }
 
   /**
+   * @param project the batch runs on this project, its data files are already imported
    * @return error message if imported files >= min samples filter otherwise null on success
    */
   @Nullable
-  public static String checkMinSamplesFilter(@NotNull final BatchQueue batch) {
-    var numFilesImported = getTotalNumImportedFiles(batch, true);
+  public static String checkMinSamplesFilter(@NotNull final MZmineProject project,
+      @NotNull final BatchQueue batch) {
+    var numFilesImported = getTotalNumImportedFiles(batch, project);
 
     var minSamplesFilter = batch.findFirst(
             RowsFilterModule.class) // find rows filter and then extract optional sample filter
@@ -134,12 +139,12 @@ public class BatchUtils {
   }
 
   /**
-   * @param b                   batch
-   * @param includeProjectFiles include already imported files
+   * @param b       batch
+   * @param project if not null, the already imported files of this project are added
    * @return total number of files in import steps, optionally adding existing files
    */
   public static int getTotalNumImportedFiles(final @NotNull BatchQueue b,
-      final boolean includeProjectFiles) {
+      final @Nullable MZmineProject project) {
 
     // total files to be imported
     int total = streamRawDataImportSteps(b).map(MZmineProcessingStep::getParameterSet)
@@ -152,11 +157,8 @@ public class BatchUtils {
         }).filter(Objects::nonNull).mapToInt(FileNamesParameter::numFiles).sum();
 
     // maybe already imported?
-    if (includeProjectFiles) {
-      var project = ProjectService.getProject();
-      if (project != null) {
-        total += project.getNumberOfDataFiles();
-      }
+    if (project != null) {
+      total += project.getNumberOfDataFiles();
     }
     return total;
   }

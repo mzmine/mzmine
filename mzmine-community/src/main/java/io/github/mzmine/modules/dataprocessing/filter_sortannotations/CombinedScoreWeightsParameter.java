@@ -89,7 +89,7 @@ public class CombinedScoreWeightsParameter extends
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String mzStr = xmlElement.getAttribute("mz");
     if (StringUtils.isBlank(mzStr)) {
       setValue(null);
@@ -108,7 +108,7 @@ public class CombinedScoreWeightsParameter extends
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (weights == null) {
       return;
     }

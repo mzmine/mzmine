@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
@@ -107,9 +108,16 @@ public interface MZmineConfiguration {
 
   UnitFormat getUnitFormat();
 
-  void loadConfiguration(File file, boolean loadPreferences) throws IOException;
+  /**
+   * @param project relative file paths in parameters are resolved against the file of this project
+   */
+  void loadConfiguration(@NotNull MZmineProject project, @NotNull File file,
+      boolean loadPreferences) throws IOException;
 
-  void saveConfiguration(File file) throws IOException;
+  /**
+   * @param project file paths in parameters are also saved relative to the file of this project
+   */
+  void saveConfiguration(@NotNull MZmineProject project, @NotNull File file) throws IOException;
 
   default NumberFormats getFormats(boolean export) {
     return export ? getExportFormats() : getGuiFormats();

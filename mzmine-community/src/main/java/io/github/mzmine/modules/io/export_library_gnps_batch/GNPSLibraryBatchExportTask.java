@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_library_gnps_batch;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -73,14 +74,17 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
   private int totalEntries = 0;
   private int finishedEntries = 0;
 
-  public GNPSLibraryBatchExportTask(ParameterSet parameters,
+  /**
+   * @param project the libraries are selected from this project
+   */
+  public GNPSLibraryBatchExportTask(@NotNull MZmineProject project, ParameterSet parameters,
       final @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     var file = parameters.getValue(GNPSLibraryBatchExportParameters.filename);
     this.tsvFile = FileAndPathUtil.getRealFilePath(file, "tsv");
     this.mgfFile = FileAndPathUtil.getRealFilePath(file, "mgf");
     libraries = parameters.getValue(GNPSLibraryBatchExportParameters.libraries)
-        .getMatchingLibraries();
+        .getMatchingLibraries(project);
     normalizer = parameters.getValue(GNPSLibraryBatchExportParameters.normalizer);
   }
 

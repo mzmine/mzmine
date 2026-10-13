@@ -134,7 +134,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final String fileString = xmlElement.getTextContent();
     if (fileString.length() != 0) {
@@ -144,7 +144,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     if (value != null) {
 

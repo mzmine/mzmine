@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomOption;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomValue;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,8 +79,8 @@ class FeatureListPreferencesTest {
   private static FeatureListPreferences saveAndLoad(final FeatureListPreferences preferences)
       throws ParserConfigurationException {
     final Element element = newPreferencesElement();
-    preferences.saveToXML(element);
-    return FeatureListPreferences.loadFromXML(element);
+    preferences.saveToXML(new MZmineProjectImpl(), element);
+    return FeatureListPreferences.loadFromXML(new MZmineProjectImpl(), element);
   }
 
   private static List<Arguments> filters() {
@@ -121,7 +122,7 @@ class FeatureListPreferencesTest {
   void testSavedXmlIsParameterSetShape() throws ParserConfigurationException {
     final Element element = newPreferencesElement();
     new FeatureListPreferences(SampleTypeFilter.qc(), IonTypeRanking.createDefault()).saveToXML(
-        element);
+        new MZmineProjectImpl(), element);
 
     final NodeList parameters = element.getElementsByTagName(SimpleParameterSet.parameterElement);
     final List<String> names = new ArrayList<>(parameters.getLength());
@@ -165,7 +166,7 @@ class FeatureListPreferencesTest {
     // ranking was introduced
     final Element element = newPreferencesElement();
     new FeatureListPreferences(SampleTypeFilter.all(), IonTypeRanking.createDefault()).saveToXML(
-        element);
+        new MZmineProjectImpl(), element);
     final NodeList parameters = element.getElementsByTagName(SimpleParameterSet.parameterElement);
     for (int i = parameters.getLength() - 1; i >= 0; i--) {
       final Element parameter = (Element) parameters.item(i);
@@ -175,7 +176,8 @@ class FeatureListPreferencesTest {
       }
     }
 
-    final FeatureListPreferences loaded = FeatureListPreferences.loadFromXML(element);
+    final FeatureListPreferences loaded = FeatureListPreferences.loadFromXML(
+        new MZmineProjectImpl(), element);
     Assertions.assertNotNull(loaded);
     Assertions.assertEquals(IonTypeRanking.createDefault(), loaded.getIonTypeRanking());
   }
@@ -194,13 +196,14 @@ class FeatureListPreferencesTest {
   @Test
   void testMissingElementIsNull() {
     // null signals that the feature list keeps its default preferences
-    Assertions.assertNull(FeatureListPreferences.loadFromXML(null));
+    Assertions.assertNull(FeatureListPreferences.loadFromXML(new MZmineProjectImpl(), null));
   }
 
   @Test
   void testWrongElementIsNull() throws ParserConfigurationException {
     // guards against loading a different element of the feature list xml
-    Assertions.assertNull(FeatureListPreferences.loadFromXML(newElement("something_else")));
+    Assertions.assertNull(
+        FeatureListPreferences.loadFromXML(new MZmineProjectImpl(), newElement("something_else")));
   }
 
   /**
@@ -290,6 +293,6 @@ class FeatureListPreferencesTest {
     // parameters that are missing in the xml, e.g. added after the project was saved, keep the
     // default value instead of failing the load
     Assertions.assertEquals(FeatureListPreferences.createDefault(),
-        FeatureListPreferences.loadFromXML(newPreferencesElement()));
+        FeatureListPreferences.loadFromXML(new MZmineProjectImpl(), newPreferencesElement()));
   }
 }

@@ -109,7 +109,7 @@ public class IonizationPreferenceParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final @NotNull Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList nodes = xmlElement.getElementsByTagName(XML_PREFERENCE_TAG);
     final List<IonizationPreference> loaded = new ArrayList<>();
     for (int i = 0; i < nodes.getLength(); i++) {
@@ -139,7 +139,7 @@ public class IonizationPreferenceParameter implements
   }
 
   @Override
-  public void saveValueToXML(final @NotNull Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value.isEmpty()) {
       return;
     }

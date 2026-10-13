@@ -576,7 +576,7 @@ public class FeatureListLoadTask extends AbstractTask {
 
       List<FeatureListAppliedMethod> appliedMethods = new ArrayList<>();
       for (int i = 0; i < methodElements.getLength(); i++) {
-        FeatureListAppliedMethod method = SimpleFeatureListAppliedMethod.loadValueFromXML(
+        FeatureListAppliedMethod method = SimpleFeatureListAppliedMethod.loadValueFromXML(project,
             (Element) methodElements.item(i));
         appliedMethods.add(method);
       }
@@ -636,7 +636,7 @@ public class FeatureListLoadTask extends AbstractTask {
         PreferredAnnotationRankingParameters param = (PreferredAnnotationRankingParameters) preferredAnnoationSorting.getParameters();
         flist.setAnnotationSortConfig(param.toConfig());
       }
-      final FeatureListPreferences preferences = FeatureListPreferences.loadFromXML(
+      final FeatureListPreferences preferences = FeatureListPreferences.loadFromXML(project,
           preferencesElement);
       // old projects do not have preferences (introduced mzmine 4.11)
       if (preferences != null) {

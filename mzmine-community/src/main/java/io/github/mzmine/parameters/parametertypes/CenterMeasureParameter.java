@@ -143,7 +143,7 @@ public class CenterMeasureParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     try {
       CenterMeasure measure = CenterMeasure.valueOf(xmlElement.getAttribute("measure"));
       Weighting weighting = Weighting.valueOf(xmlElement.getAttribute("weighting"));
@@ -154,7 +154,7 @@ public class CenterMeasureParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

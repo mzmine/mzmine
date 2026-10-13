@@ -105,7 +105,7 @@ public class OrderParameter<ValueType>
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
     ValueType newValues[] = value.clone();
     for (int i = 0; i < items.getLength(); i++) {
@@ -122,7 +122,7 @@ public class OrderParameter<ValueType>
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     Document parentDocument = xmlElement.getOwnerDocument();

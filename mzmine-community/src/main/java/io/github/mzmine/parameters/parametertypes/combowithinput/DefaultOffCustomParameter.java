@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
@@ -179,13 +180,13 @@ public class DefaultOffCustomParameter<V> extends
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
     Document doc = xmlElement.getOwnerDocument();
     Element customValueElement = doc.createElement("custom_setting");
-    embeddedParameter.saveValueToXML(customValueElement);
+    embeddedParameter.saveValueToXML(project, customValueElement);
     xmlElement.appendChild(customValueElement);
 
     UniqueIdSupplier uniqueId = (UniqueIdSupplier) value.getSelectedOption();
@@ -201,13 +202,13 @@ public class DefaultOffCustomParameter<V> extends
     UserParameter<V, ?> embeddedClone = embeddedParameter.cloneParameter();
     embeddedClone.setValue(resolveValue());
     Element resolvedValue = doc.createElement("actual_value");
-    embeddedClone.saveValueToXML(resolvedValue);
+    embeddedClone.saveValueToXML(project, resolvedValue);
 
     xmlElement.appendChild(resolvedValue);
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String selectedAttr = xmlElement.getAttribute("selected");
 
     if (selectedAttr.isEmpty()) {
@@ -232,13 +233,13 @@ public class DefaultOffCustomParameter<V> extends
     NodeList actualValueList = xmlElement.getElementsByTagName("actual_value");
     V actualValue = null;
     if (actualValueList.getLength() > 0) {
-      embeddedParameter.loadValueFromXML((Element) actualValueList.item(0));
+      embeddedParameter.loadValueFromXML(project, (Element) actualValueList.item(0));
       actualValue = embeddedParameter.getValue();
     }
 
     NodeList customValueList = xmlElement.getElementsByTagName("custom_setting");
     if (customValueList.getLength() > 0) {
-      embeddedParameter.loadValueFromXML((Element) customValueList.item(0));
+      embeddedParameter.loadValueFromXML(project, (Element) customValueList.item(0));
     } else {
       embeddedParameter.setValue(defaultValue);
     }

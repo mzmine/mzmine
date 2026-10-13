@@ -106,7 +106,7 @@ public class AbsoluteAndRelativeIntParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // Set some default values
     int abs = 0;
     float rel = 0;
@@ -125,7 +125,7 @@ public class AbsoluteAndRelativeIntParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

@@ -92,7 +92,7 @@ public class ComboFieldParameter<E extends Enum<?>> implements UserParameter<Com
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value.getFieldText().length() == 0) {
       return;
     }
@@ -109,7 +109,7 @@ public class ComboFieldParameter<E extends Enum<?>> implements UserParameter<Com
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

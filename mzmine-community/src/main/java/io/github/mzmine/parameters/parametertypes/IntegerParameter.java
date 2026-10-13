@@ -145,7 +145,7 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final String numString = xmlElement.getTextContent();
     if (numString.length() > 0) {
@@ -155,7 +155,7 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     if (value != null) {
 

@@ -133,7 +133,7 @@ public class NeutralMassParameter implements UserParameter<Double, NeutralMassCo
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String typeAttr = xmlElement.getAttribute("type");
     if (typeAttr.length() == 0)
       return;
@@ -145,7 +145,7 @@ public class NeutralMassParameter implements UserParameter<Double, NeutralMassCo
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     xmlElement.setAttribute("type", ionType.name());

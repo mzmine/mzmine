@@ -147,18 +147,18 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    embeddedParameters.loadValuesFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameters.loadValuesFromXML(project, xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
     this.value = Objects.requireNonNullElse(Boolean.valueOf(selectedAttr), false);
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value != null) {
       xmlElement.setAttribute("selected", value.toString());
     }
-    embeddedParameters.saveValuesToXML(xmlElement);
+    embeddedParameters.saveValuesToXML(project, xmlElement);
   }
 
 

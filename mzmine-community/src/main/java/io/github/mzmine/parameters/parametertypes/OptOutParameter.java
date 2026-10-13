@@ -75,7 +75,7 @@ public class OptOutParameter implements UserParameter<Map<String, Boolean>, OptO
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList nodeList = xmlElement.getElementsByTagName(MODULE_TAG);
     for (int i = 0; i < nodeList.getLength(); i++) {
       Element element = (Element) nodeList.item(i);
@@ -86,7 +86,7 @@ public class OptOutParameter implements UserParameter<Map<String, Boolean>, OptO
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     value.forEach((key, value) -> {

@@ -72,7 +72,7 @@ public class ClearAnnotationsParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     value = DataTypes.getInstances().stream().filter(DataTypes::isMainAnnotation)
         .collect(Collectors.toMap(t -> t, t -> false));
@@ -98,7 +98,7 @@ public class ClearAnnotationsParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document ownerDocument = xmlElement.getOwnerDocument();
 
     for (Entry<DataType<?>, Boolean> entry : value.entrySet()) {

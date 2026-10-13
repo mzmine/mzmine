@@ -547,7 +547,7 @@ class StandardCompoundNormalizationTypeModuleTest {
   @Test
   void loadValuesFromXmlKeepsDefaultModeWithoutLegacyParameter() throws Exception {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
-    parameters.loadValuesFromXML(createParametersElement(null, null));
+    parameters.loadValuesFromXML(new MZmineProjectImpl(), createParametersElement(null, null));
 
     assertEquals(StandardCompoundNormalizationRequirement.DEFAULT,
         parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement));
@@ -560,7 +560,7 @@ class StandardCompoundNormalizationTypeModuleTest {
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.requirement,
         new StandardCompoundNormalizationRequirement(
             StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES, 1));
-    parameters.loadValuesFromXML(createParametersElement("true",
+    parameters.loadValuesFromXML(new MZmineProjectImpl(), createParametersElement("true",
         StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD.getUniqueID()));
 
     assertEquals(new StandardCompoundNormalizationRequirement(
@@ -571,7 +571,8 @@ class StandardCompoundNormalizationTypeModuleTest {
   private static @NotNull StandardCompoundNormalizationRequirement loadModeFromLegacyXml(
       final @NotNull String legacyValue) throws Exception {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
-    parameters.loadValuesFromXML(createParametersElement(legacyValue, null));
+    parameters.loadValuesFromXML(new MZmineProjectImpl(),
+        createParametersElement(legacyValue, null));
     return parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement);
   }
 

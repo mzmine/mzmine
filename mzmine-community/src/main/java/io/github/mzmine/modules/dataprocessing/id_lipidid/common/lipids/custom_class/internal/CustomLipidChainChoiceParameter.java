@@ -120,13 +120,13 @@ class CustomLipidChainChoiceParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }

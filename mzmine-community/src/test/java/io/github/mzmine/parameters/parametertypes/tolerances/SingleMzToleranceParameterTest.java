@@ -76,11 +76,11 @@ class SingleMzToleranceParameterTest {
 
       final SingleMzToleranceParameter saved = newParameter(unit);
       final Element element = newElement();
-      saved.saveValueToXML(element);
+      saved.saveValueToXML(new MZmineProjectImpl(), element);
 
       final SingleMzToleranceParameter loaded = newParameter(
           unit == MzToleranceUnit.DA ? MzToleranceUnit.PPM : MzToleranceUnit.DA);
-      loaded.loadValueFromXML(element);
+      loaded.loadValueFromXML(new MZmineProjectImpl(), element);
 
       assertEquals(saved.getValue(), loaded.getValue(), "round trip of " + unit);
       assertEquals(unit, MzToleranceUnit.of(loaded.getValue()));

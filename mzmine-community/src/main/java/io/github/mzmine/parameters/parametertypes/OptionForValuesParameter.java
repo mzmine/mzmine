@@ -108,7 +108,7 @@ public class OptionForValuesParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList optionNode = xmlElement.getElementsByTagName("option");
     NodeList valueNode = xmlElement.getElementsByTagName("value");
     NodeList operatorNode = xmlElement.getElementsByTagName("operator");
@@ -123,7 +123,7 @@ public class OptionForValuesParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

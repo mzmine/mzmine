@@ -225,7 +225,7 @@ public class DataTypeCheckListParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList childs = xmlElement.getElementsByTagName(DATA_TYPE_ELEMENT);
 
     for (int i = 0; i < childs.getLength(); i++) {
@@ -244,7 +244,7 @@ public class DataTypeCheckListParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     value.forEach((dt, b) -> {

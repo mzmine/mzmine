@@ -106,7 +106,7 @@ public class BooleanParameter implements UserParameter<Boolean, CheckBox> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String rangeString = xmlElement.getTextContent();
     if (rangeString.length() == 0)
       return;
@@ -114,7 +114,7 @@ public class BooleanParameter implements UserParameter<Boolean, CheckBox> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     xmlElement.setTextContent(value.toString());

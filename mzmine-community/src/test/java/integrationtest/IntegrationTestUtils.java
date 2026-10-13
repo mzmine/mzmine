@@ -327,7 +327,8 @@ public class IntegrationTestUtils {
     final List<String> batchLoadErrors = new ArrayList<>();
     final BatchQueue queue;
     try {
-      queue = BatchQueue.loadFromXml(XMLUtils.load(batchFile).getDocumentElement(), batchLoadErrors,
+      queue = BatchQueue.loadFromXml(ProjectService.getProject(),
+          XMLUtils.load(batchFile).getDocumentElement(), batchLoadErrors,
           true);
     } catch (ParserConfigurationException | IOException | SAXException e) {
       throw new RuntimeException("Error while loading batch file" + e);

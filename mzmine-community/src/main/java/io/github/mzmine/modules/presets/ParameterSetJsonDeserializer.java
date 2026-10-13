@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.project.ProjectService;
 import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
@@ -48,7 +49,8 @@ public class ParameterSetJsonDeserializer extends JsonDeserializer<ParameterSet>
 
     final ParameterSet clone = helper.cloneParameterSet();
     try {
-      ParameterUtils.loadValuesFromXMLString(clone, xml);
+      // decision: presets are not part of a project, resolve paths against the current project
+      ParameterUtils.loadValuesFromXMLString(ProjectService.getProject(), clone, xml);
     } catch (ParserConfigurationException | SAXException e) {
       return null;
     }

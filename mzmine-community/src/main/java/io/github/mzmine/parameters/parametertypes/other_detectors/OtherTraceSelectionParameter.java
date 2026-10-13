@@ -129,14 +129,14 @@ public class OtherTraceSelectionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList childNodes = xmlElement.getElementsByTagName("selection");
     final Node item = childNodes.item(0);
     this.value = OtherTraceSelection.loadFromXml((Element) item);
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Element valueElement = xmlElement.getOwnerDocument().createElement("selection");
     xmlElement.appendChild(valueElement);
     value.saveToXml(valueElement);

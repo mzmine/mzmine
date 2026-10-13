@@ -93,7 +93,7 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList minNodes = xmlElement.getElementsByTagName("min");
     if (minNodes.getLength() != 1) {
       return;
@@ -110,7 +110,7 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

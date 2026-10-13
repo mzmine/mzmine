@@ -102,7 +102,7 @@ public class ListDoubleParameter implements UserParameter<List<Double>, ListDoub
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     String values = xmlElement.getTextContent().replaceAll("\\s", "");
     String[] strValues = values.split(",");
@@ -120,7 +120,7 @@ public class ListDoubleParameter implements UserParameter<List<Double>, ListDoub
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
 

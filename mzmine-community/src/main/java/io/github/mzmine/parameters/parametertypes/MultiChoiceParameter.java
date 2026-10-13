@@ -183,7 +183,7 @@ public class MultiChoiceParameter<ValueType> implements
 
   @SuppressWarnings("unchecked")
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
     ArrayList<ValueType> newValues = new ArrayList<ValueType>();
     for (int i = 0; i < items.getLength(); i++) {
@@ -200,7 +200,7 @@ public class MultiChoiceParameter<ValueType> implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (values == null) {
       return;
     }

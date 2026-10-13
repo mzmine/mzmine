@@ -93,7 +93,7 @@ public class MzToChargeParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList ranges = xmlElement.getElementsByTagName(RANGE_ELEMENT);
 
     RangeMap<Double, Integer> newValue = TreeRangeMap.create();
@@ -110,7 +110,7 @@ public class MzToChargeParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     for (Entry<Range<Double>, Integer> rangeCharge : value.asMapOfRanges().entrySet()) {

@@ -137,7 +137,8 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
+  public Map<String, Parameter<?>> loadValuesFromXML(@NotNull MZmineProject project,
+      @NotNull Element xmlElement) {
     var nameParameterMap = getNameParameterMap();
 
     final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
@@ -145,7 +146,7 @@ public class SimpleParameterSet implements ParameterSet {
       case false -> 1;
     };
 
-    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(
+    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(project, 
         this.getClass(), xmlElement, nameParameterMap);
 
     handleLoadedParameters(loadedParameters, loadedVersion);
@@ -163,8 +164,8 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public void saveValuesToXML(Element xmlElement) {
-    ParameterUtils.saveValuesToXML(xmlElement, skipSensitiveParameters, parameters);
+  public void saveValuesToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    ParameterUtils.saveValuesToXML(project, xmlElement, skipSensitiveParameters, parameters);
   }
 
   /**

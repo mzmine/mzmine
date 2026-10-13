@@ -202,7 +202,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
       // do meta checks through all parameters
       // check min samples filter
-      String warning = BatchUtils.checkBatchParameters(value);
+      String warning = BatchUtils.checkBatchParameters(project, value);
       if (warning != null) {
         if (DesktopService.isGUI()) {
           final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
@@ -223,17 +223,17 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     lastParsingErrorMessages.clear();
     // if modules are missing (false) fail it and do not set the parameters
-    value = BatchQueue.loadFromXml(xmlElement, lastParsingErrorMessages, false);
+    value = BatchQueue.loadFromXml(project, xmlElement, lastParsingErrorMessages, false);
     // do not log warnings here it's called on startup of mzmine
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value != null) {
-      value.saveToXml(xmlElement);
+      value.saveToXml(project, xmlElement);
     }
   }
 

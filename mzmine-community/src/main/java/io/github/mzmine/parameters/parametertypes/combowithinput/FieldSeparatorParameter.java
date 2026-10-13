@@ -40,7 +40,7 @@ import org.w3c.dom.Element;
  * separator, see {@link CSVParsingUtils#autoDetermineSeparator(File)}.
  * <p>
  * Replaces the plain string parameters that were used before. Their values are still loaded, see
- * {@link #loadValueFromXML(Element)}.
+ * {@link #loadValueFromXML(MZmineProject, Element)}.
  */
 public class FieldSeparatorParameter extends
     ComboWithInputParameter<FieldSeparatorOption, FieldSeparator, StringParameter> {
@@ -100,9 +100,9 @@ public class FieldSeparatorParameter extends
    * export, fall back to the default value.
    */
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (!xmlElement.getAttribute("selected").isEmpty()) {
-      super.loadValueFromXML(xmlElement);
+      super.loadValueFromXML(project, xmlElement);
       return;
     }
 

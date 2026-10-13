@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.XMLUtils;
@@ -132,14 +133,14 @@ class OtherTraceSelectionTest {
     final Document document = XMLUtils.newDocument();
     final Element root = document.createElement("parameter");
     document.appendChild(root);
-    saved.saveValueToXML(root);
+    saved.saveValueToXML(new MZmineProjectImpl(), root);
 
     final String xml = XMLUtils.saveToString(document);
     final Document loadedDocument = XMLUtils.load(xml);
 
     final OtherTraceSelectionParameter loaded = new OtherTraceSelectionParameter(
         OtherTraceSelection.featureUv());
-    loaded.loadValueFromXML(loadedDocument.getDocumentElement());
+    loaded.loadValueFromXML(new MZmineProjectImpl(), loadedDocument.getDocumentElement());
     return loaded.getValue();
   }
 
@@ -163,7 +164,7 @@ class OtherTraceSelectionTest {
     final Document loadedDocument = XMLUtils.load(XMLUtils.saveToString(document));
     final OtherTraceSelectionParameter loaded = new OtherTraceSelectionParameter(
         OtherTraceSelection.featureUv());
-    loaded.loadValueFromXML(loadedDocument.getDocumentElement());
+    loaded.loadValueFromXML(new MZmineProjectImpl(), loadedDocument.getDocumentElement());
     return loaded.getValue();
   }
 

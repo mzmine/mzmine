@@ -126,7 +126,7 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final String numString = xmlElement.getTextContent();
     if (numString.length() > 0) {
@@ -136,7 +136,7 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     if (value != null) {
 

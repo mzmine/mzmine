@@ -130,8 +130,8 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    embeddedParameter.loadValueFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameter.loadValueFromXML(project, xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
 
     if (selectedAttr.isEmpty()) {
@@ -153,7 +153,7 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -162,7 +162,7 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
     } else {
       xmlElement.setAttribute("selected", value.getSelectedOption().toString());
     }
-    embeddedParameter.saveValueToXML(xmlElement);
+    embeddedParameter.saveValueToXML(project, xmlElement);
   }
 
 

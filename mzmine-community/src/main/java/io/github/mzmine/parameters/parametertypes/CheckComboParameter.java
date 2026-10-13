@@ -143,7 +143,7 @@ public class CheckComboParameter<ValueType> implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList itemElements = xmlElement.getElementsByTagName(XML_ITEM_TAG);
     Set<ValueType> selectedValues = new HashSet<>();
 
@@ -181,7 +181,7 @@ public class CheckComboParameter<ValueType> implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value.isEmpty()) {
       return;
     }

@@ -131,7 +131,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String unitAttr = xmlElement.getAttribute("unit");
     if (unitAttr == null || unitAttr.isEmpty()) {
       return;
@@ -146,7 +146,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

@@ -170,7 +170,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
       for (final BatchQueue mergedBatchQueue : cleanedBatchQueues) {
         final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
-        mergedBatchQueue.saveToXml(batchQueueEntry);
+        mergedBatchQueue.saveToXml(project, batchQueueEntry);
         batchRoot.appendChild(batchQueueEntry);
       }
 

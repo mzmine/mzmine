@@ -149,7 +149,7 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final List<MetadataRegexMapping> loaded = new ArrayList<>();
     final NodeList mappingNodes = xmlElement.getElementsByTagName(MAPPING_ELEMENT);
     for (int i = 0; i < mappingNodes.getLength(); i++) {
@@ -187,7 +187,7 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
     for (final MetadataRegexMapping m : value) {
       final Element mappingEl = doc.createElement(MAPPING_ELEMENT);

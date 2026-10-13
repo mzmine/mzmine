@@ -126,7 +126,7 @@ public class IonTypeRankingParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final @NotNull Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList rankingNodes = xmlElement.getElementsByTagName(XML_RANKING_TAG);
     if (rankingNodes.getLength() == 0) {
       // nothing saved for this parameter, keep the default
@@ -157,7 +157,7 @@ public class IonTypeRankingParameter implements
   }
 
   @Override
-  public void saveValueToXML(final @NotNull Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
     final Element rankingElement = doc.createElement(XML_RANKING_TAG);
     for (final IonPartFrequency entry : value.getFrequencies()) {

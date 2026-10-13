@@ -102,7 +102,7 @@ public class SQLColumnSettingsParameter
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("column");
     SQLColumnSettings newValue = new SQLColumnSettings();
     for (int i = 0; i < items.getLength(); i++) {
@@ -121,7 +121,7 @@ public class SQLColumnSettingsParameter
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final SQLColumnSettings value2 = value;
     if (value2 == null)
       return;
