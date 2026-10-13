@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,12 @@ import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.JFreeChart;
 
 public class RowsBoxplotController extends FxController<RowsBoxplotModel> implements
     SelectedRowsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
@@ -62,7 +62,8 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
         model.setDataset(null);
         return;
       }
-      model.setDataset(new RowBoxPlotDataset(n.getFirst(), model.getGroupingColumn(),
+      model.setDataset(new RowBoxPlotDataset(ProjectService.getMetadata(), n.getFirst(),
+          model.getGroupingColumn(),
           model.getAbundanceMeasure()));
     });
   }

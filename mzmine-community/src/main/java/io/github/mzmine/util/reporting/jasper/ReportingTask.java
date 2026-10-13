@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -57,6 +58,7 @@ public class ReportingTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(ReportingTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   @NotNull
   private final FeatureList flist;
   private final boolean includeProcessingParam;
@@ -67,6 +69,7 @@ public class ReportingTask extends AbstractFeatureListTask {
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList flist, Class<? extends MZmineModule> module) {
     super(storage, moduleCallDate, parameters, module);
+    this.project = project;
 
     this.flist = flist;
     includeProcessingParam = parameters.getValue(ReportingParameters.includeProcessingParameters);
@@ -89,7 +92,7 @@ public class ReportingTask extends AbstractFeatureListTask {
     final ReportUtils reportUtils = createReportUtils();
 
     final Map<String, Object> metadata = generateMetadata((ReportingParameters) getParameters());
-    reportModule = reportType.getModuleInstance().createInstance(reportTypeParam);
+    reportModule = reportType.getModuleInstance().createInstance(project, reportTypeParam);
     try {
       final JasperPrint jasperPrint = reportModule.generateReport(flist, metadata, reportUtils);
       if (isCanceled()) {
@@ -135,7 +138,7 @@ public class ReportingTask extends AbstractFeatureListTask {
     final Structure2DRenderConfig structureRenderConfig = styleParams.getValue(
         ReportingStyleParameters.structureRendering).createConfig().multiplyZoom(2.5);
 
-    return new ReportUtils(theme, structureRenderConfig);
+    return new ReportUtils(project.getProjectMetadata(), theme, structureRenderConfig);
   }
 
   @NotNull Map<String, Object> generateMetadata(@NotNull final ReportingParameters parameters) {

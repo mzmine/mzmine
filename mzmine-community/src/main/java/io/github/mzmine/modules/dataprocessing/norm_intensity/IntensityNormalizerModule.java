@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -60,7 +61,7 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList featureLists[] = parameters.getParameter(IntensityNormalizerParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {

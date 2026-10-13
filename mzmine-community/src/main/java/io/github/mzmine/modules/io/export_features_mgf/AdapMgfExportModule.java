@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,7 @@ public class AdapMgfExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    AdapMgfExportTask task = new AdapMgfExportTask(parameters, moduleCallDate);
+    AdapMgfExportTask task = new AdapMgfExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

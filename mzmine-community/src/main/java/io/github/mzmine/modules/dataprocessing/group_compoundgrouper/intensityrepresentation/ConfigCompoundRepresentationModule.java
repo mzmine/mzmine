@@ -86,7 +86,7 @@ public class ConfigCompoundRepresentationModule implements MZmineProcessingModul
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
     final ModularFeatureList[] featureLists = parameters.getValue(
-        ConfigCompoundRepresentationParameters.FEATURE_LISTS).getMatchingFeatureLists();
+        ConfigCompoundRepresentationParameters.FEATURE_LISTS).getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (final ModularFeatureList flist : featureLists) {
       tasks.add(new ConfigCompoundRepresentationTask(flist, parameters, storage, moduleCallDate));

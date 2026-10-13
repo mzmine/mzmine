@@ -36,6 +36,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.ColorUtils;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -67,7 +68,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
 
     // If there is some illegal value, do not load the preview but just exit
     ArrayList<String> errorMessages = new ArrayList<String>();
-    boolean paramsOK = parameterSet.checkParameterValues(errorMessages, true);
+    boolean paramsOK = parameterSet.checkParameterValues(ProjectService.getProject(), errorMessages,
+        true);
     if (!paramsOK) {
       return;
     }

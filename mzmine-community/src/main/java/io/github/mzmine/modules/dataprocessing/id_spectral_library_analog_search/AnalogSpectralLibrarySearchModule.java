@@ -63,7 +63,7 @@ public class AnalogSpectralLibrarySearchModule extends AbstractProcessingModule 
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
     final ModularFeatureList[] featureLists = parameters.getValue(
-        AnalogSpectralLibrarySearchParameters.featureLists).getMatchingFeatureLists();
+        AnalogSpectralLibrarySearchParameters.featureLists).getMatchingFeatureLists(project);
     if (featureLists.length == 0) {
       return ExitCode.OK;
     }

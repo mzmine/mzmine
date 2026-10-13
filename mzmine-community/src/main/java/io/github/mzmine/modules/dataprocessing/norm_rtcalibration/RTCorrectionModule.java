@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,7 @@ public class RTCorrectionModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final List<String> errors = new ArrayList<>();
-    if (!parameters.checkParameterValues(errors)) {
+    if (!parameters.checkParameterValues(project, errors)) {
       String msg = MODULE_NAME + "\nPlease check parameter values:\n" + String.join("\n", errors);
       MZmineCore.getDesktop().displayErrorMessage(msg);
     } else {

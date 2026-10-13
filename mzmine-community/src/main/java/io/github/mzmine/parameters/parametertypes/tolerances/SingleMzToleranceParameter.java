@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -150,7 +151,8 @@ public class SingleMzToleranceParameter implements
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
 
     if (value == null) {
       errorMessages.add(name + " is not set properly");

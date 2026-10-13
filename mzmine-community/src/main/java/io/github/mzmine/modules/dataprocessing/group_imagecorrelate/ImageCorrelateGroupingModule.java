@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -64,7 +64,7 @@ public class ImageCorrelateGroupingModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] featureLists = parameters.getValue(
-        ImageCorrelateGroupingParameters.FEATURE_LISTS).getMatchingFeatureLists();
+        ImageCorrelateGroupingParameters.FEATURE_LISTS).getMatchingFeatureLists(project);
     for (ModularFeatureList pkl : featureLists) {
       tasks.add(new ImageCorrelateGroupingTask(parameters, pkl, moduleCallDate));
     }

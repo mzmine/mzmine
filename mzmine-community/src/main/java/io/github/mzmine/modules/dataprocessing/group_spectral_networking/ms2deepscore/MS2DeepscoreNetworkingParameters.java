@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2dee
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
@@ -99,9 +100,10 @@ public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages,
-      final boolean skipRawDataAndFeatureListParameters) {
-    boolean result = super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    boolean result = super.checkParameterValues(project, errorMessages,
+        skipRawDataAndFeatureListParameters);
 
     var modelFile = getValue(ms2deepscoreModelFile);
     if (modelFile == null || !modelFile.exists()) {

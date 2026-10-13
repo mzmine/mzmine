@@ -82,7 +82,7 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final ModularFeatureList[] featureLists = parameters.getParameter(
-        SpectralLibrarySearchParameters.peakLists).getValue().getMatchingFeatureLists();
+        SpectralLibrarySearchParameters.peakLists).getValue().getMatchingFeatureLists(project);
     Task newTask = new SpectralLibrarySearchTask(parameters, featureLists, moduleCallDate);
     tasks.add(newTask);
 

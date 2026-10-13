@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.statistics;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.OptionalDouble;
@@ -156,10 +157,10 @@ public class DataTableUtils {
   /**
    * @return a new table with only matching raw files or null if no samples
    */
-  public static @NotNull FeaturesDataTable applySampleFilter(@NotNull FeaturesDataTable data,
-      @NotNull SampleTypeFilter sampleFilter) {
-    final List<RawDataFile> files = data.getRawDataFiles().stream().filter(sampleFilter::matches)
-        .toList();
+  public static @NotNull FeaturesDataTable applySampleFilter(@NotNull MetadataTable metadata,
+      @NotNull FeaturesDataTable data, @NotNull SampleTypeFilter sampleFilter) {
+    final List<RawDataFile> files = data.getRawDataFiles().stream()
+        .filter(raw -> sampleFilter.matches(metadata, raw)).toList();
 
     if (files.isEmpty()) {
       return FeaturesDataTable.EMPTY;

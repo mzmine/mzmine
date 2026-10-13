@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
@@ -33,6 +34,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
@@ -98,8 +100,11 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
     setParameter(foldChangeSideOption, fcSides);
   }
 
-  public FoldChangeSignificanceRowFilter createFilter(List<FeatureListRow> rows,
-      List<RawDataFile> rawFiles) {
+  /**
+   * @param metadata the groups are resolved in this metadata table
+   */
+  public @NotNull FoldChangeSignificanceRowFilter createFilter(@NotNull MetadataTable metadata,
+      @NotNull List<FeatureListRow> rows, @NotNull List<RawDataFile> rawFiles) {
     // prepare data
     final AbundanceMeasure measure = getValue(abundanceMeasure);
     final ImputationFunctions missingImputation = getValue(missingValueImputation);
@@ -117,8 +122,8 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
     final FoldChangeFilterSides fcSideOption = this.getValue(foldChangeSideOption);
     final SignificanceTests significanceTest = this.getValue(test);
 
-    return new FoldChangeSignificanceRowFilter(dataTable, group, filterPValue, maxP, minFC,
-        fcSideOption, significanceTest);
+    return new FoldChangeSignificanceRowFilter(metadata, dataTable, group, filterPValue, maxP,
+        minFC, fcSideOption, significanceTest);
   }
 
   @Override
@@ -127,8 +132,8 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
     final Optional<Double> maxP = getOptionalValue(maxPValue);
     final double minFC = getValue(minLog2FoldChange);
 
@@ -138,9 +143,9 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
     if (!applyFoldChangeFilter && !applySignificancePFilter) {
       errorMessages.add(
           "At least one filter needs to be activated: fold-change and/or p-value filter.");
-      super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+      super.checkParameterValues(project, errorMessages, skipRawDataAndFeatureListParameters);
       return false;
     }
-    return super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+    return super.checkParameterValues(project, errorMessages, skipRawDataAndFeatureListParameters);
   }
 }

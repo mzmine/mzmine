@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,11 +24,13 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.StringCrypter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 public class EncryptionKeyParameter implements Parameter<StringCrypter> {
@@ -52,7 +54,8 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 

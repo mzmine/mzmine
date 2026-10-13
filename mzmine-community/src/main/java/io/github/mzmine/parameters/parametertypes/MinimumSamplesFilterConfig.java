@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Map;
@@ -65,22 +64,13 @@ public record MinimumSamplesFilterConfig(@NotNull AbsoluteAndRelativeInt minSamp
    * @return a filter that can be applied to filter rows
    * @throws MetadataColumnDoesNotExistException if column is missing
    */
-  public @NotNull MinimumSamplesFilter createFilter(List<RawDataFile> files)
-      throws MetadataColumnDoesNotExistException {
-    return createFilter(files, ProjectService.getMetadata());
-  }
-
-  /**
-   * @return a filter that can be applied to filter rows
-   * @throws MetadataColumnDoesNotExistException if column is missing
-   */
   public @NotNull MinimumSamplesFilter createFilter(List<RawDataFile> files,
       @NotNull MetadataTable metadata) throws MetadataColumnDoesNotExistException {
     if (StringUtils.hasValue(columnName)) {
       // group by column
       final MetadataColumn<?> column = metadata.getColumnByName(columnName);
       if (column == null) {
-        throw new MetadataColumnDoesNotExistException(columnName);
+        throw new MetadataColumnDoesNotExistException(columnName, metadata);
       }
       final Map<?, List<RawDataFile>> groups = metadata.groupFilesByColumn(files, column);
 

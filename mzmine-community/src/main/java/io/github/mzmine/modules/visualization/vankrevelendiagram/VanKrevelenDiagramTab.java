@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,7 +64,7 @@ public class VanKrevelenDiagramTab extends SimpleTab {
     setContent(root);
     setSubTitle(getFeatureListsSubtitle(List.of(
         parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
-            .getMatchingFeatureLists())));
+            .getMatchingFeatureLists(ProjectService.getProject()))));
   }
 
   @NotNull

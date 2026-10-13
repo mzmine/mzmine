@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
@@ -130,7 +131,8 @@ public class TagLabelsParameter implements UserParameter<List<String>, TagLabels
   }
 
   @Override
-  public boolean checkValue(@NotNull final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value.isEmpty()) {
       errorMessages.add(name + ": define at least one tag label");
       return false;

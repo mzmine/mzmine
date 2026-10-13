@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,13 +32,10 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MathUtils;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import org.jfree.data.DomainOrder;
 import org.jfree.data.general.AbstractDataset;
@@ -65,16 +62,17 @@ class IntensityPlotDataset extends AbstractDataset implements StatisticalCategor
 
   @SuppressWarnings("rawtypes")
   IntensityPlotDataset(ParameterSet parameters) {
+    final MZmineProject project = ProjectService.getProject();
 
     FeatureList featureList = parameters.getParameter(IntensityPlotParameters.featureList)
-        .getValue().getMatchingFeatureLists()[0];
+        .getValue().getMatchingFeatureLists(project)[0];
     this.xAxisValueSource = parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
         .getValue();
     this.yAxisValueSource = parameters.getParameter(IntensityPlotParameters.yAxisValueSource)
         .getValue();
 
     this.selectedFiles = parameters.getParameter(IntensityPlotParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     this.selectedRows = parameters.getParameter(IntensityPlotParameters.selectedRows)
         .getMatchingRows(featureList);

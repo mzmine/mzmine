@@ -1,5 +1,31 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -20,15 +46,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SetRepresentativeRowTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final @NotNull ModularFeatureList flist;
   private final int compoundId;
   private final int representativeRowId;
 
-  protected SetRepresentativeRowTask(@NotNull final Instant moduleCallDate,
+  protected SetRepresentativeRowTask(@NotNull final MZmineProject project,
+      @NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters) {
     super(null, moduleCallDate, parameters, SetRepresentativeRowModule.class);
+    this.project = project;
     this.flist = parameters.getValue(SetRepresentativeRowParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     this.compoundId = parameters.getValue(SetRepresentativeRowParameters.compoundId);
     this.representativeRowId = parameters.getValue(
         SetRepresentativeRowParameters.representativeRowId);

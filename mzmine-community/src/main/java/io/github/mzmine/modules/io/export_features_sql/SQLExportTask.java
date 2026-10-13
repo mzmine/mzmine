@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,10 @@
 
 package io.github.mzmine.modules.io.export_features_sql;
 
-import java.io.ByteArrayInputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -45,11 +40,18 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.ByteArrayInputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 
 class SQLExportTask extends AbstractTask {
 
+  private final @NotNull MZmineProject project;
   private final FeatureList featureList;
   private final String connectionString;
   private final String tableName;
@@ -60,11 +62,13 @@ class SQLExportTask extends AbstractTask {
 
   private Connection dbConnection;
 
-  SQLExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  SQLExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
 
     this.featureList = parameters.getParameter(SQLExportParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     this.connectionString =
         parameters.getParameter(SQLExportParameters.connectionString).getValue();
 

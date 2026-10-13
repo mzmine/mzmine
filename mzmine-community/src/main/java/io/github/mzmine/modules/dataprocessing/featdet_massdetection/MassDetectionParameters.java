@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -121,9 +122,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
     // Check the selected mass detector
     MassDetectors detector = getValue(massDetector);
@@ -143,7 +144,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
     }
 
     // check files
-    RawDataFile[] selectedFiles = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
+    RawDataFile[] selectedFiles = getParameter(dataFiles).getValue()
+        .getMatchingRawDataFiles(project);
     getParameter(dataFiles).getValue().resetSelection(); // reset selection after evaluation.
 
     // If no file selected (e.g. in batch mode setup), just return

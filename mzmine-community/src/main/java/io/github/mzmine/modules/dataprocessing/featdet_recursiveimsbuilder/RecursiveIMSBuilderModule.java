@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,8 +65,8 @@ public class RecursiveIMSBuilderModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-    for (RawDataFile rawDataFile : parameters
-        .getParameter(RecursiveIMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles()) {
+    for (RawDataFile rawDataFile : parameters.getParameter(
+        RecursiveIMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles(project)) {
       if (rawDataFile instanceof IMSRawDataFile) {
         tasks.add(new RecursiveIMSBuilderTask(storage, (IMSRawDataFile) rawDataFile, parameters, project, moduleCallDate));
       }

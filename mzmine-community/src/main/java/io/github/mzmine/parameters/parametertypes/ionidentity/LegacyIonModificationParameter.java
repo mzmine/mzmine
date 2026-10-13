@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.scene.control.Label;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -250,21 +252,22 @@ class LegacyIonModificationParameter implements UserParameter<LegacyIonModificat
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     final LegacyIonModification[][] value = getValue();
     if (value == null) {
       errorMessages.add("Adducts is not set properly");
       return false;
     }
 
-    adducts.checkValue(errorMessages);
+    adducts.checkValue(project, errorMessages);
     final List<LegacyIonModification> adductsWithNoCharge = Arrays.stream(adducts.getValue())
         .filter(i -> i.getCharge() == 0).toList();
     if (!adductsWithNoCharge.isEmpty()) {
       errorMessages.add("The adduct(s): " + adductsWithNoCharge
           + " have no charge. Use \"Modifcations\" for neutral modifications.");
     }
-    modification.checkValue(errorMessages);
+    modification.checkValue(project, errorMessages);
 
     return errorMessages.isEmpty();
   }

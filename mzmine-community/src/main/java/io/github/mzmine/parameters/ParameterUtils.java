@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -91,7 +92,8 @@ public class ParameterUtils {
    */
   @NotNull
   public static FeatureList[] getMatchingFeatureListsFromParameter(
-      final @NotNull ParameterSet parameters) throws IllegalStateException {
+      final @NotNull MZmineProject project, final @NotNull ParameterSet parameters)
+      throws IllegalStateException {
     // get parameters here only needed to run one task per featureList
     var featureListParameters = parameters.streamForClass(FeatureListsParameter.class).toList();
     int nFlistParams = featureListParameters.size();
@@ -106,7 +108,7 @@ public class ParameterUtils {
               + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for feature lists found
-    return parameters.getValue(featureListParameters.getFirst()).getMatchingFeatureLists();
+    return parameters.getValue(featureListParameters.getFirst()).getMatchingFeatureLists(project);
   }
 
   /**
@@ -118,7 +120,8 @@ public class ParameterUtils {
    */
   @NotNull
   public static RawDataFile[] getMatchingRawDataFilesFromParameter(
-      final @NotNull ParameterSet parameters) throws IllegalStateException {
+      final @NotNull MZmineProject project, final @NotNull ParameterSet parameters)
+      throws IllegalStateException {
     // get parameters here only needed to run one task per RawDataFile
     var rawFilesParameter = parameters.streamForClass(RawDataFilesParameter.class).toList();
     int nRawFiles = rawFilesParameter.size();
@@ -133,8 +136,9 @@ public class ParameterUtils {
               + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for RawDataFiles found
-    return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles();
+    return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles(project);
   }
+
 
   /**
    * @param parameters    input parameters

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement;
 
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ImsMs2RefinementTask extends AbstractTask {
 
+  private final @NotNull MZmineProject project;
   private final MassDetector fol;
   private final FeatureList[] flists;
   private final int minNumPoints;
@@ -63,13 +65,14 @@ public class ImsMs2RefinementTask extends AbstractTask {
   private final long numRows;
   private int processedRows = 0;
 
-  public ImsMs2RefinementTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      ParameterSet param) {
+  public ImsMs2RefinementTask(@NotNull MZmineProject project, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, ParameterSet param) {
     super(storage, moduleCallDate);
     this.param = param;
+    this.project = project;
 
     flists = param.getParameter(ImsMs2RefinementParameters.flists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     useMinPoints = param.getParameter(ImsMs2RefinementParameters.minNumPoints).getValue();
     minNumPoints = param.getParameter(ImsMs2RefinementParameters.minNumPoints)
         .getEmbeddedParameter().getValue();

@@ -46,16 +46,16 @@ public record Metadata2GroupsSelection(@NotNull String columnName, @NotNull Stri
   }
 
   /**
-   * @return Checks if the current metadata table contains the specified column and the specified
+   * @return Checks if the metadata table contains the specified column and the specified
    * value. Case insensitive, see {@link #matchesValue(Object)}.
    */
   @Override
-  public boolean isValid() {
+  public boolean isValid(@NotNull MetadataTable metadata) {
     if (columnName.isBlank() || groupA.isBlank() || groupB.isBlank()) {
       return false;
     }
 
-    final Map<RawDataFile, Object> columnValues = getColumnData();
+    final Map<RawDataFile, Object> columnValues = getColumnData(metadata);
     if (columnValues == null) {
       return false;
     }
@@ -99,9 +99,10 @@ public record Metadata2GroupsSelection(@NotNull String columnName, @NotNull Stri
    * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
    * does not contain the value.
    */
-  public List<RawDataFile> getMatchingFilesA(List<RawDataFile> rawFiles) {
-    final Map<RawDataFile, Object> column = getColumnData();
-    if (!isValid() || column == null) {
+  public @NotNull List<RawDataFile> getMatchingFilesA(@NotNull MetadataTable metadata,
+      @NotNull List<RawDataFile> rawFiles) {
+    final Map<RawDataFile, Object> column = getColumnData(metadata);
+    if (!isValid(metadata) || column == null) {
       return List.of();
     }
 
@@ -113,9 +114,10 @@ public record Metadata2GroupsSelection(@NotNull String columnName, @NotNull Stri
    * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
    * does not contain the value.
    */
-  public List<RawDataFile> getMatchingFilesB(List<RawDataFile> rawFiles) {
-    final Map<RawDataFile, Object> column = getColumnData();
-    if (!isValid() || column == null) {
+  public @NotNull List<RawDataFile> getMatchingFilesB(@NotNull MetadataTable metadata,
+      @NotNull List<RawDataFile> rawFiles) {
+    final Map<RawDataFile, Object> column = getColumnData(metadata);
+    if (!isValid(metadata) || column == null) {
       return List.of();
     }
 

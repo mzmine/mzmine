@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -113,8 +114,8 @@ class AverageIntensityNormalizationTypeModuleTest {
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
-    summary.addMergeFunction(prevFile, prevFunction);
-    summary.addMergeFunction(nextFile, nextFunction);
+    summary.addMergeFunction(new MetadataTable(false), prevFile, prevFunction);
+    summary.addMergeFunction(new MetadataTable(false), nextFile, nextFunction);
 
     // internally we never use summary.functions for interpolation because
     // interpolation should be based on a single steps functions not on the merged composite function

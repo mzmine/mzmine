@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.FeaturePreviewPane;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,7 +78,8 @@ class BaselineCorrectionPreview extends FeaturePreviewPane {
       @Nullable Feature feature) {
 
     final List<String> errorMessages = new ArrayList<>();
-    if (feature == null || !parameters.checkParameterValues(errorMessages, true)) {
+    if (feature == null || !parameters.checkParameterValues(ProjectService.getProject(),
+        errorMessages, true)) {
       if (!errorMessages.isEmpty()) {
         FxThread.runLater(() -> DialogLoggerUtil.showMessageDialog("Invalid parameter settings",
             "Please double check parameters: " + errorMessages.stream()

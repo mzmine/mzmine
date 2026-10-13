@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,7 +61,7 @@ public class MaldiSpotFeatureDetectionModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     final RawDataFile[] files = parameters.getParameter(MaldiSpotFeatureDetectionParameters.files)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
     for (RawDataFile file : files) {
       if (file instanceof ImagingRawDataFile imsImagingRawDataFile) {

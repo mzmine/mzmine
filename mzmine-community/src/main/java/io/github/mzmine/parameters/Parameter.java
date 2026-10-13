@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,11 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -46,7 +48,16 @@ public interface Parameter<ValueType> {
 
   void setValue(ValueType newValue);
 
-  boolean checkValue(Collection<String> errorMessages);
+  /**
+   * Checks the value. Project dependent values, like selected raw data files or feature lists, are
+   * resolved against the given project. Parameters that embed other parameters pass the project
+   * on.
+   *
+   * @param project       the project the parameter is evaluated against
+   * @param errorMessages error messages are added here
+   * @return true if the value is valid
+   */
+  boolean checkValue(@NotNull MZmineProject project, @NotNull Collection<String> errorMessages);
 
   /**
    *

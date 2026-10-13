@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod;
 
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
@@ -106,7 +107,8 @@ public class RtRawFileCorrectionParameter implements
 
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return calibrationFunctions != null;
   }
 
@@ -150,10 +152,9 @@ public class RtRawFileCorrectionParameter implements
     for (AbstractRtCorrectionFunction func : calibrationFunctions) {
       final Element correctionFunctionElement = doc.createElement(rtCorrectionFunctionElement);
 
-      final RawDataFile file = func.getRawDataFile();
-      if (file == null) {
-        continue; // file not loaded anymore
-      }
+      // decision: save by placeholder name without resolving the file in a project, the same way
+      // it is loaded. Functions of removed files are resolved to null when they are used
+      final RawDataFilePlaceholder file = func.getRawDataFilePlaceholder();
 
       correctionFunctionElement.setAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
       correctionFunctionElement.setAttribute(rtCorrectionModuleAttribute,

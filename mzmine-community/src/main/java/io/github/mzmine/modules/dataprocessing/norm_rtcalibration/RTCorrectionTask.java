@@ -76,7 +76,7 @@ class RTCorrectionTask extends AbstractTask {
 
     this.project = project;
     this.originalFeatureLists = parameters.getParameter(RTCorrectionParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     this.parameters = parameters;
 
     suffix = parameters.getParameter(RTCorrectionParameters.suffix).getValue();

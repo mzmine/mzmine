@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.proxy;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.web.ProxyType;
@@ -81,7 +82,8 @@ public class ProxyConfigParameter extends AbstractParameter<FullProxyConfig, Pro
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     // any checks needed? it is never null
     return true;
   }

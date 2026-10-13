@@ -74,7 +74,7 @@ public class MassCalibrationModule implements MZmineProcessingModule {
     final MemoryMapStorage storageMemoryMap = MemoryMapStorage.forMassList();
 
     RawDataFile[] dataFiles = parameters.getParameter(MassCalibrationParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new MassCalibrationTask(dataFile, parameters, storageMemoryMap, moduleCallDate);
       tasks.add(newTask);

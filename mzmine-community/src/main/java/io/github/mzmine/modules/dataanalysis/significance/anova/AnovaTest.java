@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,10 +33,10 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.math3.stat.inference.TestUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class AnovaTest implements RowSignificanceTest {
 
@@ -45,12 +45,14 @@ public class AnovaTest implements RowSignificanceTest {
   // the data table
   private final FeaturesDataTable dataTable;
 
-  public AnovaTest(FeaturesDataTable dataTable, MetadataColumn<?> groupingColumn)
-      throws MetadataColumnDoesNotExistException {
+  /**
+   * @param metadata the files are grouped by the column values in this metadata table
+   */
+  public AnovaTest(@NotNull MetadataTable metadata, FeaturesDataTable dataTable,
+      MetadataColumn<?> groupingColumn) throws MetadataColumnDoesNotExistException {
     this.dataTable = dataTable;
     this.groupingColumn = groupingColumn;
 
-    final MetadataTable metadata = ProjectService.getMetadata();
     // limit to actual raw data files to not select files not in feature table
     final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(
         dataTable.getRawDataFiles(), groupingColumn);

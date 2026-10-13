@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypesParameter;
@@ -78,8 +79,9 @@ public class AdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages) {
-    var result = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull final MZmineProject project,
+      @NotNull final Collection<String> errorMessages) {
+    var result = super.checkParameterValues(project, errorMessages);
     // check that combination is valid - either source scans or merged
     final List<MergedSpectraFinalSelectionTypes> finalSelection = getValue(mergingOptions);
     final boolean isNoInputScans = getValue(includeInputScans) == SelectInputScans.NONE;

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
@@ -54,6 +55,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMeta
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxMenuUtil;
@@ -644,7 +646,9 @@ public class BatchWizardTab extends SimpleTab {
 
     // Update parameters from pane and check
     updateAllParametersFromUi();
-    sequenceSteps.forEach(step -> step.checkParameterValues(errorMessages));
+    // decision: GUI code, the wizard validates against the currently opened project
+    final MZmineProject project = ProjectService.getProject();
+    sequenceSteps.forEach(step -> step.checkParameterValues(project, errorMessages));
 
     if (!errorMessages.isEmpty()) {
       MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);

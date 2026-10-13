@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,6 +27,7 @@ package io.github.mzmine.modules.tools.siriusapi.modules.export;
 
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -51,21 +53,25 @@ public class SiriusApiExportRowsTask extends AbstractFeatureListTask implements
     TaskSubSupplier<Map<Integer, String>> {
 
   private static final Logger logger = Logger.getLogger(SiriusApiExportRowsTask.class.getName());
+  private final @NotNull MZmineProject project;
   private final String idString;
   private Map<Integer, String> rowIdToSiriusId = null;
   private ModularFeatureList flist;
 
   /**
+   * @param project        the project to resolve the feature list selection from
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
    * @param moduleCallDate the call date of module to order execution order
    */
-  protected SiriusApiExportRowsTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  protected SiriusApiExportRowsTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
     flist = parameters.getValue(SiriusApiExportRowsParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     idString = parameters.getOptionalValue(SiriusApiExportRowsParameters.rowIds).orElse("");
   }
 

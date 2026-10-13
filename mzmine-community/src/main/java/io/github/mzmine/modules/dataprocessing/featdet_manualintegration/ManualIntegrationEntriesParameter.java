@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manualintegration;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.parameters.UserParameter;
@@ -168,7 +169,8 @@ public class ManualIntegrationEntriesParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value.isEmpty()) {
       errorMessages.add("No manual integrations are defined.");
       return false;

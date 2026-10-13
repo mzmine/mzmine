@@ -43,6 +43,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotP
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.awt.BasicStroke;
@@ -180,7 +181,8 @@ public class KendrickPane extends DashboardComputationPane {
     params.setParameter(KendrickMassPlotParameters.bubbleSizeValues,
         KendrickPlotDataTypes.INTENSITY);
 
-    final KendrickMassPlotXYZDataset dataset = new KendrickMassPlotXYZDataset(params, 1, 1);
+    final KendrickMassPlotXYZDataset dataset = new KendrickMassPlotXYZDataset(
+        ProjectService.getProject(), params, 1, 1);
     baseDataset = dataset;
     dataset.addTaskStatusListener((_, newStatus, _) -> {
       if (dataset != baseDataset) {

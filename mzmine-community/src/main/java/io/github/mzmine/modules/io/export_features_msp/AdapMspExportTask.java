@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,8 @@
 package io.github.mzmine.modules.io.export_features_msp;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
-import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -45,7 +44,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.AnnotationUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -57,6 +55,7 @@ public class AdapMspExportTask extends AbstractTask {
 
   private static final Pattern ATTRIBUTE_NAME_PATTERN = Pattern.compile("^[\\w]+$");
 
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final File fileName;
   private final String plNamePattern = "{}";
@@ -67,10 +66,12 @@ public class AdapMspExportTask extends AbstractTask {
   private final boolean integerMZ;
   private final IntegerMode roundMode;
 
-  AdapMspExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  AdapMspExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
     this.featureLists = parameters.getParameter(AdapMspExportParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     this.fileName = parameters.getParameter(AdapMspExportParameters.FILENAME).getValue();
 

@@ -45,12 +45,14 @@ public class NormalizationFunctionUtils {
    * Get reference files from sample batch or throw {@link IllegalStateException} if no empty
    * reference files (and not allowed)
    *
+   * @param metadata   the sample types are taken from this metadata table
    * @param allowEmpty if false and empty result, throw exception
    */
   @NotNull
-  public static List<RawDataFile> getReferenceSamplesOrThrow(boolean allowEmpty,
-      @NotNull SamplesBatch samplesBatch, @NotNull SampleTypeFilter includedTypes) {
-    final List<RawDataFile> filtered = includedTypes.filterFiles(samplesBatch.getRaws());
+  public static List<RawDataFile> getReferenceSamplesOrThrow(@NotNull MetadataTable metadata,
+      boolean allowEmpty, @NotNull SamplesBatch samplesBatch,
+      @NotNull SampleTypeFilter includedTypes) {
+    final List<RawDataFile> filtered = includedTypes.filterFiles(metadata, samplesBatch.getRaws());
     if (filtered.isEmpty() && !allowEmpty) {
       throw new IllegalStateException(
           "No reference files found for batch with ID %s for sample types: %s".formatted(
@@ -125,7 +127,7 @@ public class NormalizationFunctionUtils {
       };
 
       // finally add to summary and merge with previously applied functions
-      summary.addMergeFunction(fileToInterpolate, resultFunction);
+      summary.addMergeFunction(metadata, fileToInterpolate, resultFunction);
     }
   }
 }

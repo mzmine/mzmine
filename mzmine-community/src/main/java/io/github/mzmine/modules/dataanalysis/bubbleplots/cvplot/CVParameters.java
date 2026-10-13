@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 
 public class CVParameters extends SimpleParameterSet {
@@ -52,7 +53,7 @@ public class CVParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     FeatureList[] selectedPeakLists = getParameter(featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(ProjectService.getProject());
     if (selectedPeakLists.length > 0) {
       RawDataFile[] plDataFiles = selectedPeakLists[0].getRawDataFiles()
           .toArray(RawDataFile[]::new);

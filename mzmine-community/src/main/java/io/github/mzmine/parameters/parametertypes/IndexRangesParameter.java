@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.collections.IndexRangesList;
 import java.util.Collection;
@@ -103,7 +104,8 @@ public class IndexRangesParameter implements UserParameter<IndexRangesList, Inde
   }
 
   @Override
-  public boolean checkValue(@NotNull final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(name + ": cannot parse index ranges. Use a list like 1,5-6");
       return false;

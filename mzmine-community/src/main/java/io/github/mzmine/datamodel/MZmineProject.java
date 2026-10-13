@@ -34,7 +34,6 @@ import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Hashtable;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,11 +114,6 @@ public interface MZmineProject {
    * Returns all feature lists which contain given data file
    */
   FeatureList[] getFeatureLists(RawDataFile file);
-
-  Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues();
-
-  void setProjectParametersAndValues(
-      Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues);
 
   /**
    * Feature list for name

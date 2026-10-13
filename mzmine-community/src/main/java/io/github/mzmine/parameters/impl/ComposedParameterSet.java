@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.impl;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -115,14 +116,17 @@ public abstract class ComposedParameterSet implements ParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages) {
-    return getParamSet().checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull final MZmineProject project,
+      @NotNull final Collection<String> errorMessages) {
+    return getParamSet().checkParameterValues(project, errorMessages);
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    return getParamSet().checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+  public boolean checkParameterValues(@NotNull final MZmineProject project,
+      @NotNull final Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
+    return getParamSet().checkParameterValues(project, errorMessages,
+        skipRawDataAndFeatureListParameters);
   }
 
   @Override

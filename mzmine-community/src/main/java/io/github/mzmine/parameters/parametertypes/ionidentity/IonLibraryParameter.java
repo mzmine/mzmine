@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
@@ -39,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -116,7 +118,8 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (library == null) {
       errorMessages.add(name + " is undefined");
       return false;

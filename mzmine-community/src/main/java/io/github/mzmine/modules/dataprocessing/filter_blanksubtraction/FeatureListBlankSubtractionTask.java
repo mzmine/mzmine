@@ -94,10 +94,10 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     this.handleOriginal = parameters.getValue(FeatureListBlankSubtractionParameters.handleOriginal);
     this.blankSelection = parameters.getParameter(
         FeatureListBlankSubtractionParameters.blankRawDataFiles).getValue();
-    this.blankRaws = List.of(blankSelection.getMatchingRawDataFiles().clone());
+    this.blankRaws = List.of(blankSelection.getMatchingRawDataFiles(project).clone());
     this.originalFeatureList = parameters.getParameter(
             FeatureListBlankSubtractionParameters.alignedPeakList).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     this.minBlankDetections = Math.max(1,
         parameters.getParameter(FeatureListBlankSubtractionParameters.minBlanks).getValue());
     this.subtractionOption = parameters.getParameter(

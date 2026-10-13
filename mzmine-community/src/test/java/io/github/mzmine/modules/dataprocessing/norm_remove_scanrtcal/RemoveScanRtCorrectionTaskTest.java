@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
@@ -46,6 +47,24 @@ import org.junit.jupiter.api.Test;
 
 class RemoveScanRtCorrectionTaskTest {
 
+  private static final MZmineProject PROJECT = mock(MZmineProject.class);
+
+  private static FeatureListAppliedMethod correction(String date, RawDataFile... files) {
+    final FeatureListAppliedMethod method = mock(FeatureListAppliedMethod.class);
+    final ParameterSet parameters = mock(ParameterSet.class);
+    final List<AbstractRtCorrectionFunction> corrections = Arrays.stream(files).map(file -> {
+      final AbstractRtCorrectionFunction correction = mock(AbstractRtCorrectionFunction.class);
+      when(correction.getRawDataFile(PROJECT)).thenReturn(file);
+      return correction;
+    }).toList();
+
+    when(method.getModule()).thenReturn(new ApplyRtCorrectionToRawFileModule());
+    when(method.getModuleCallDate()).thenReturn(Instant.parse(date));
+    when(method.getParameters()).thenReturn(parameters);
+    when(parameters.getValue(ApplyRtCorrectionToRawFileParameters.calis)).thenReturn(corrections);
+    return method;
+  }
+
   @Test
   void removesCompleteStackForAllCorrectionFiles() {
     final RawDataFile rawA = rawFile();
@@ -56,7 +75,7 @@ class RemoveScanRtCorrectionTaskTest {
     rawA.getAppliedMethods().addAll(first, second, clear);
     rawB.getAppliedMethods().addAll(first, second, clear);
 
-    assertTrue(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(
+    assertTrue(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(PROJECT,
         List.of(rawA, rawB)));
     assertTrue(rawA.getAppliedMethods().isEmpty());
     assertTrue(rawB.getAppliedMethods().isEmpty());
@@ -71,7 +90,7 @@ class RemoveScanRtCorrectionTaskTest {
     rawA.getAppliedMethods().addAll(correction, clear);
     rawB.getAppliedMethods().add(correction);
 
-    assertFalse(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(
+    assertFalse(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(PROJECT,
         List.of(rawA)));
     assertEquals(List.of(correction, clear), rawA.getAppliedMethods());
     assertEquals(List.of(correction), rawB.getAppliedMethods());
@@ -86,7 +105,7 @@ class RemoveScanRtCorrectionTaskTest {
     final FeatureListAppliedMethod clear = clearMethod("2026-01-01T10:03:00Z");
     raw.getAppliedMethods().addAll(first, processingStep, second, clear);
 
-    assertFalse(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(
+    assertFalse(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(PROJECT,
         List.of(raw)));
     assertEquals(List.of(first, processingStep, second, clear), raw.getAppliedMethods());
   }
@@ -100,9 +119,15 @@ class RemoveScanRtCorrectionTaskTest {
     final FeatureListAppliedMethod finalClear = clearMethod("2026-01-01T10:03:00Z");
     raw.getAppliedMethods().addAll(first, clear, second, finalClear);
 
-    assertTrue(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(
+    assertTrue(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(PROJECT,
         List.of(raw)));
     assertEquals(List.of(first, clear), raw.getAppliedMethods());
+  }
+
+  private static RawDataFile rawFile() {
+    final RawDataFile raw = mock(RawDataFile.class);
+    when(raw.getAppliedMethods()).thenReturn(FXCollections.observableArrayList());
+    return raw;
   }
 
   @Test
@@ -115,32 +140,10 @@ class RemoveScanRtCorrectionTaskTest {
     rawA.getAppliedMethods().addAll(correction, clearA);
     rawB.getAppliedMethods().addAll(correction, clearB);
 
-    assertTrue(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(
+    assertTrue(RemoveScanRtCorrectionTask.removeRevertedRtCorrectionsIfAllFilesCleared(PROJECT,
         List.of(rawA, rawB)));
     assertTrue(rawA.getAppliedMethods().isEmpty());
     assertTrue(rawB.getAppliedMethods().isEmpty());
-  }
-
-  private static RawDataFile rawFile() {
-    final RawDataFile raw = mock(RawDataFile.class);
-    when(raw.getAppliedMethods()).thenReturn(FXCollections.observableArrayList());
-    return raw;
-  }
-
-  private static FeatureListAppliedMethod correction(String date, RawDataFile... files) {
-    final FeatureListAppliedMethod method = mock(FeatureListAppliedMethod.class);
-    final ParameterSet parameters = mock(ParameterSet.class);
-    final List<AbstractRtCorrectionFunction> corrections = Arrays.stream(files).map(file -> {
-      final AbstractRtCorrectionFunction correction = mock(AbstractRtCorrectionFunction.class);
-      when(correction.getRawDataFile()).thenReturn(file);
-      return correction;
-    }).toList();
-
-    when(method.getModule()).thenReturn(new ApplyRtCorrectionToRawFileModule());
-    when(method.getModuleCallDate()).thenReturn(Instant.parse(date));
-    when(method.getParameters()).thenReturn(parameters);
-    when(parameters.getValue(ApplyRtCorrectionToRawFileParameters.calis)).thenReturn(corrections);
-    return method;
   }
 
   private static FeatureListAppliedMethod clearMethod(String date) {

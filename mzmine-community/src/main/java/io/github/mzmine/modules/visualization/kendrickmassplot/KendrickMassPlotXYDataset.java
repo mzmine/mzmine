@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FormulaUtils;
 import java.awt.Color;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -68,7 +69,7 @@ public class KendrickMassPlotXYDataset extends AbstractXYDataset {
   public KendrickMassPlotXYDataset(ParameterSet parameters) {
 
     FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
-        .getValue().getMatchingFeatureLists()[0];
+        .getValue().getMatchingFeatureLists(ProjectService.getProject())[0];
 
     this.seriesKey = "Kendrick plot";
 

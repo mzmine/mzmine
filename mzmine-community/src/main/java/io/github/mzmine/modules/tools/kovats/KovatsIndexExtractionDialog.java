@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,8 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import io.github.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
@@ -53,11 +55,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -329,7 +329,7 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
    */
   private void initRawDataFileSelection() {
     RawDataFile[] selectedFiles = parameterSet.getValue(KovatsIndexExtractionParameters.dataFiles)
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(ProjectService.getProject());
 
     if (selectedFiles == null) {
       // find kovats or dro file

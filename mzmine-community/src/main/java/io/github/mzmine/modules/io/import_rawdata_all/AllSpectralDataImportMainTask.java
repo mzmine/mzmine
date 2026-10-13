@@ -130,7 +130,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(project,
         parameters);
 
-    ColorByMetadataTask task = new ColorByMetadataTask(moduleCallDate,
+    ColorByMetadataTask task = new ColorByMetadataTask(project, moduleCallDate,
         ColorByMetadataParameters.createDefault(loaded), AllSpectralDataImportModule.class);
     task.run();
     return task;
@@ -146,7 +146,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   private Task extractMetadata() {
     final List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
         project, parameters);
-    final Task extractTask = SampleMetadataExtractionParameters.createTaskWithDataFiles(
+    final Task extractTask = SampleMetadataExtractionParameters.createTaskWithDataFiles(project,
         extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class,
         loaded.toArray(RawDataFile[]::new));
     extractTask.run();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -137,13 +137,15 @@ public class RawDataFilesParameter implements
     return "Raw data files that this module will take as its input.";
   }
 
+
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     RawDataFile[] matchingFiles;
     if (value == null) {
       matchingFiles = new RawDataFile[0];
     } else {
-      matchingFiles = value.getMatchingRawDataFiles();
+      matchingFiles = value.getMatchingRawDataFiles(project);
     }
     if (value != null) {
       value.resetSelection(); // has to be reset after evaluation
@@ -162,9 +164,6 @@ public class RawDataFilesParameter implements
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-
-    RawDataFile[] currentDataFiles = ProjectService.getProjectManager().getCurrentProject()
-        .getDataFiles();
 
     RawDataFilesSelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");
@@ -239,7 +238,7 @@ public class RawDataFilesParameter implements
     xmlElement.setAttribute("type", value.getSelectionType().getUniqueID());
 
     if (value.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES
-        && value.getSpecificFiles() != null) {
+        && value.getSpecificFilesPlaceholders() != null) {
       final MZmineProject project = ProjectService.getProject();
       for (RawDataFile item : value.getSpecificFilesPlaceholders()) {
         assert item != null;

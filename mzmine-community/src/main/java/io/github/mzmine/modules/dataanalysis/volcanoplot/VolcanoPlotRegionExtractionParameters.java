@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
@@ -87,9 +88,10 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
     return param;
   }
 
-  public VolcanoPlotModel toModel(FeaturesDataTable dataTable) {
+  public @NotNull VolcanoPlotModel toModel(@NotNull MZmineProject project,
+      @NotNull FeaturesDataTable dataTable) {
     VolcanoPlotModel model = new VolcanoPlotModel();
-    model.setFlists(List.of(getValue(flists).getMatchingFeatureLists()));
+    model.setFlists(List.of(getValue(flists).getMatchingFeatureLists(project)));
     model.setTest(getValue(config));
     final AbundanceDataTablePreparationConfig preparationConfig = getParameter(
         dataPreparationConfig).createConfig();

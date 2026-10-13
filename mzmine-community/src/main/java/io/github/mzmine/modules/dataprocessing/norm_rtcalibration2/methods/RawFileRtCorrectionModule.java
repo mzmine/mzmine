@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
@@ -46,6 +48,7 @@ public sealed interface RawFileRtCorrectionModule extends MZmineModule, UniqueId
    * Creates an interpolated RT correction function based on two other correction functions. The two
    * functions are weighted with the given weights.
    *
+   * @param project                The project to resolve the files of the other calibrations.
    * @param file                   The file to create the function for.
    * @param rtSortedStandards      The standards sorted by ascending retention time.
    * @param previousRunCalibration The calibration of the previous run.
@@ -55,7 +58,8 @@ public sealed interface RawFileRtCorrectionModule extends MZmineModule, UniqueId
    * @param parameters             The parameters for this {@link RawFileRtCorrectionModule}
    * @return A new RT correction function.
    */
-  AbstractRtCorrectionFunction createInterpolated(@NotNull final RawDataFile file,
+  AbstractRtCorrectionFunction createInterpolated(@NotNull final MZmineProject project,
+      @NotNull final RawDataFile file,
       @NotNull final List<RtStandard> rtSortedStandards,
       @NotNull final AbstractRtCorrectionFunction previousRunCalibration,
       final double previousRunWeight,

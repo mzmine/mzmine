@@ -132,6 +132,7 @@ public final class FeatureListPreferences {
    * @return the filtered files, may be empty
    */
   public @NotNull List<RawDataFile> getRsdFiles(@NotNull final List<RawDataFile> sourceFiles) {
+    // TODO explicit project: use the project of the feature list once it keeps a weak reference
     final MetadataTable metadata = ProjectService.getMetadata();
     final long metadataVersion = metadata.getVersion();
 
@@ -149,7 +150,7 @@ public final class FeatureListPreferences {
 
       // make sure its the right version
       cachedMetadataVersion = metadata.getVersion();
-      final List<RawDataFile> filtered = rsdSampleTypeFilter.filterFiles(sourceFiles);
+      final List<RawDataFile> filtered = rsdSampleTypeFilter.filterFiles(metadata, sourceFiles);
       cachedRsdFiles = filtered;
       cachedSourceFiles = sourceFiles;
       cachedMetadata = metadata;

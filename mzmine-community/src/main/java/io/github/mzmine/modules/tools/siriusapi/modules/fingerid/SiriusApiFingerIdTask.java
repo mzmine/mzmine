@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -34,9 +36,9 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.tools.siriusapi.SiriusJobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
+import io.github.mzmine.modules.tools.siriusapi.SiriusJobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
@@ -62,11 +64,13 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
 
   public static final int FEATURE_COUNT_THRESHOLD = 50;
   private static final CloseableReentrantReadWriteLock optOutLock = new CloseableReentrantReadWriteLock();
+  private final @NotNull MZmineProject project;
   private final ModularFeatureList flist;
   private final String idStr;
   private SiriusJobWaiterTask jobWaiterTask = null;
 
   /**
+   * @param project        the project to resolve the feature list selection from
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
@@ -74,12 +78,14 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected SiriusApiFingerIdTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
+  protected SiriusApiFingerIdTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
     idStr = parameters.getOptionalValue(SiriusApiFingerIdParameters.rowIds).orElse("");
-    flist = parameters.getValue(SiriusApiFingerIdParameters.flist).getMatchingFeatureLists()[0];
+    flist = parameters.getValue(SiriusApiFingerIdParameters.flist)
+        .getMatchingFeatureLists(project)[0];
   }
 
   @Override
@@ -117,8 +123,8 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
       final Job job = sirius.api().jobs()
           .startJob(sirius.getProject().getProjectId(), submission, List.of(JobOptField.PROGRESS));
 
-      jobWaiterTask = new SiriusJobWaiterTask(this, getModuleClass(), moduleCallDate, parameters,
-          () -> sirius.api().jobs()
+      jobWaiterTask = new SiriusJobWaiterTask(project, this, getModuleClass(), moduleCallDate,
+          parameters, () -> sirius.api().jobs()
               .getJob(sirius.getProject().getProjectId(), job.getId(), List.of()),
           () -> SiriusToMzmine.importResultsForRows(sirius, rows));
       jobWaiterTask.run();

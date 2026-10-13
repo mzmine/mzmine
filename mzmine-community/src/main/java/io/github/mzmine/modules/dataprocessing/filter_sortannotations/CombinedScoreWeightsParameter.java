@@ -25,10 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_sortannotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -77,7 +79,8 @@ public class CombinedScoreWeightsParameter extends
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (weights == null) {
       errorMessages.add(name + " is undefined");
       return false;

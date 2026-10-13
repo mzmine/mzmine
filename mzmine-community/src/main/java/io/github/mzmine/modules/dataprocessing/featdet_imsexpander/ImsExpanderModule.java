@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,7 @@ public class ImsExpanderModule implements MZmineProcessingModule {
     final Integer numThreads = MZmineCore.getConfiguration().getPreferences()
         .getParameter(MZminePreferences.numOfThreads).getValue();
     final ModularFeatureList[] featureLists = parameters.getParameter(
-        ImsExpanderParameters.featureLists).getValue().getMatchingFeatureLists();
+        ImsExpanderParameters.featureLists).getValue().getMatchingFeatureLists(project);
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList featureList : featureLists) {

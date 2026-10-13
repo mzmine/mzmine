@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -137,7 +138,7 @@ public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CC
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new ReferenceCCSCalibrationTask(null, moduleCallDate, parameters));
+    tasks.add(new ReferenceCCSCalibrationTask(project, null, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 

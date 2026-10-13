@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
@@ -66,7 +67,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     FeatureList[] selectedFeatureLists = getParameter(featureList).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(ProjectService.getProject());
     if (selectedFeatureLists.length > 0) {
       RawDataFile[] plDataFiles = selectedFeatureLists[0].getRawDataFiles()
           .toArray(RawDataFile[]::new);

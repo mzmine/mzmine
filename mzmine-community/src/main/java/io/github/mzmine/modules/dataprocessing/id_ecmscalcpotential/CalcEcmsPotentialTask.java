@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,7 +60,8 @@ public class CalcEcmsPotentialTask extends AbstractTask {
     this.parameters = parameters;
     this.project = project;
 
-    flists = parameters.getValue(CalcEcmsPotentialParameters.flists).getMatchingFeatureLists();
+    flists = parameters.getValue(CalcEcmsPotentialParameters.flists)
+        .getMatchingFeatureLists(project);
     delayTimeSeconds = parameters.getValue(CalcEcmsPotentialParameters.delayTime);
     potentialRampSpeed = parameters.getValue(CalcEcmsPotentialParameters.potentialRampSpeed);
     potentialAssignmentPercentage = parameters.getValue(

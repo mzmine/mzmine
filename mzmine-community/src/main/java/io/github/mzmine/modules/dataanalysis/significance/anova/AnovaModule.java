@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,10 +57,10 @@ public class AnovaModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList[] featureLists = parameters.getValue(AnovaParameters.featureLists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     for (FeatureList featureList : featureLists) {
-      tasks.add(new AnovaTask(featureList, parameters, moduleCallDate));
+      tasks.add(new AnovaTask(project, featureList, parameters, moduleCallDate));
     }
 
     return ExitCode.OK;

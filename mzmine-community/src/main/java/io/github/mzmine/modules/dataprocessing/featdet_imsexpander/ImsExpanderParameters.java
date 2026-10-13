@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsexpander;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -85,14 +86,15 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages);
     if (!superCheck) {
       return false;
     }
 
     ModularFeatureList[] matchingFeatureLists = getParameter(featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     for (ModularFeatureList flist : matchingFeatureLists) {
       if (flist.getNumberOfRawDataFiles() > 1) {

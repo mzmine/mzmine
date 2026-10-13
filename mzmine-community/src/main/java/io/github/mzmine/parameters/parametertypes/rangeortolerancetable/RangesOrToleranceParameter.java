@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -110,8 +112,9 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    boolean failed = !toleranceParameter.checkValue(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    boolean failed = !toleranceParameter.checkValue(project, errorMessages);
     String invalid = value.ranges().stream().filter(v -> !v.isValid()).map(RangeOrValue::toString)
         .collect(Collectors.joining(", "));
     if (!invalid.isBlank()) {

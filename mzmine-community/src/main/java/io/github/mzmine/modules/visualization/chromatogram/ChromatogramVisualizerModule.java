@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -252,7 +252,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final RawDataFile[] dataFiles = parameters.getParameter(TICVisualizerParameters.DATA_FILES)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     final Range<Double> mzRange = parameters.getParameter(TICVisualizerParameters.MZ_RANGE)
         .getValue();
     final ScanSelection scanSelection = parameters.getParameter(

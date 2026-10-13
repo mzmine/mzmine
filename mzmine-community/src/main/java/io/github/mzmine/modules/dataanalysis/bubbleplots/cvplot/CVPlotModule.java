@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,8 +60,8 @@ public class CVPlotModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList featureLists[] =
-        parameters.getParameter(CVParameters.featureLists).getValue().getMatchingFeatureLists();
+    FeatureList featureLists[] = parameters.getParameter(CVParameters.featureLists).getValue()
+        .getMatchingFeatureLists(project);
 
     for (FeatureList pl : featureLists) {
 

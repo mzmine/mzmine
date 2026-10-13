@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,15 +25,16 @@
 
 package io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.tools.siriusapi.SiriusJobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
+import io.github.mzmine.modules.tools.siriusapi.SiriusJobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
@@ -54,11 +56,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class SiriusApiRankAnnotationsTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final @NotNull String idStr;
   private final @NotNull ModularFeatureList flist;
   private String description = "Ranking annotations using Sirius.";
 
   /**
+   * @param project        the project to resolve the feature list selection from
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
@@ -66,12 +70,14 @@ public class SiriusApiRankAnnotationsTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected SiriusApiRankAnnotationsTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
+  protected SiriusApiRankAnnotationsTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
     idStr = parameters.getOptionalValue(SiriusApiFingerIdParameters.rowIds).orElse("");
-    flist = parameters.getValue(SiriusApiFingerIdParameters.flist).getMatchingFeatureLists()[0];
+    flist = parameters.getValue(SiriusApiFingerIdParameters.flist)
+        .getMatchingFeatureLists(project)[0];
   }
 
   @Override
@@ -125,7 +131,8 @@ public class SiriusApiRankAnnotationsTask extends AbstractFeatureListTask {
 
         final Job job = sirius.api().jobs()
             .startJob(sirius.getProject().getProjectId(), config, List.of(JobOptField.PROGRESS));
-        SiriusJobWaiterTask task = new SiriusJobWaiterTask(this, SiriusApiFingerIdModule.class, Instant.now(),
+        SiriusJobWaiterTask task = new SiriusJobWaiterTask(project, this,
+            SiriusApiFingerIdModule.class, Instant.now(),
             //
             SiriusApiFingerIdParameters.of(List.of(row)), () -> sirius.api().jobs()
             .getJob(sirius.getProject().getProjectId(), job.getId(), List.of(JobOptField.PROGRESS)),

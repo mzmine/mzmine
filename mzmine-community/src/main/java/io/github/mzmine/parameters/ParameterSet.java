@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesParameters;
 import io.github.mzmine.modules.presets.ModulePreset;
@@ -216,25 +217,29 @@ public interface ParameterSet extends ParameterContainer {
   /**
    * check all parameters. Also {@link FeatureListsParameter} and {@link RawDataFilesParameter}.
    * Those parameters cannot be checked in batch mode. Then use
-   * {@link #checkParameterValues(Collection, boolean)}
+   * {@link #checkParameterValues(MZmineProject, Collection, boolean)}
    *
+   * @param project       project dependent parameters are evaluated against this project
    * @param errorMessages will add error messages for each parameter here
    * @return true if all parameters are set correctly
    */
-  default boolean checkParameterValues(Collection<String> errorMessages) {
-    return checkParameterValues(errorMessages, false);
+  default boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    return checkParameterValues(project, errorMessages, false);
   }
 
   /**
    * check all parameters with the option to skip {@link FeatureListsParameter} and
    * {@link RawDataFilesParameter}. Those parameters cannot be checked in batch mode.
    *
+   * @param project                             project dependent parameters are evaluated
+   *                                            against this project
    * @param errorMessages                       will add error messages for each parameter here
    * @param skipRawDataAndFeatureListParameters skip RawDataFile and FeatureList selections if true
    * @return true if all parameters are set correctly
    */
-  boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters);
+  boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters);
 
   ParameterSet cloneParameterSet();
 

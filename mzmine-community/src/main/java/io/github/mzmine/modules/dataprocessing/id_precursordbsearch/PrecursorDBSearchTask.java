@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -56,6 +57,7 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(PrecursorDBSearchTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final List<@NotNull FeatureList> featureLists;
   private final MZTolerance mzTol;
   private final RTTolerance rtTol;
@@ -64,10 +66,12 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
   private final RITolerance riTol;
   private int libraryEntries;
 
-  public PrecursorDBSearchTask(final ParameterSet parameters, final Instant moduleCallDate) {
+  public PrecursorDBSearchTask(@NotNull final MZmineProject project,
+      @NotNull final ParameterSet parameters, @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate, parameters, PrecursorDBSearchModule.class);
-    this.featureLists = List.of(
-        parameters.getValue(PrecursorDBSearchParameters.featureLists).getMatchingFeatureLists());
+    this.project = project;
+    this.featureLists = List.of(parameters.getValue(PrecursorDBSearchParameters.featureLists)
+        .getMatchingFeatureLists(project));
     mzTol = parameters.getValue(PrecursorDBSearchParameters.mzTolerancePrecursor);
     rtTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         PrecursorDBSearchParameters.rtTolerance, null);

@@ -25,13 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
-import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
-import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
-import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
-import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirementParameter;
-import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
@@ -45,7 +40,12 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirementParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -233,9 +233,9 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
   }
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages,
-      final boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
     final List<ImportType<?>> selectedTypes = getValue(standardCompounds).stream()

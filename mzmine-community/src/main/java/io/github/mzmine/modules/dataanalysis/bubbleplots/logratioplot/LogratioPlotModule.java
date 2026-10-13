@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.awt.Color;
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZAnalyzerWindow;
@@ -40,6 +35,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+import java.awt.Color;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 public class LogratioPlotModule implements MZmineRunnableModule {
 
@@ -61,8 +61,8 @@ public class LogratioPlotModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList featureLists[] =
-        parameters.getParameter(CVParameters.featureLists).getValue().getMatchingFeatureLists();
+    FeatureList featureLists[] = parameters.getParameter(CVParameters.featureLists).getValue()
+        .getMatchingFeatureLists(project);
 
     for (FeatureList pl : featureLists) {
 

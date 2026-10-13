@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -89,7 +89,7 @@ public class RawDataFilesComponent extends GridPane {
         final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
             "Select files", "Select files",
             ProjectService.getProjectManager().getCurrentProject().getDataFiles(),
-            currentValue.getSpecificFiles());
+            currentValue.getSpecificFiles(ProjectService.getProject()));
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{filesParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
@@ -169,7 +169,8 @@ public class RawDataFilesComponent extends GridPane {
       numFilesLabel.setTooltip(null);
       currentlySelected.set(null);
     } else {
-      List<RawDataFile> files = List.of(currentValue.getMatchingRawDataFiles());
+      List<RawDataFile> files = List.of(
+          currentValue.getMatchingRawDataFiles(ProjectService.getProject()));
 
       if (currentlySelected.get() == null || !currentlySelected.get().equals(files)) {
         currentlySelected.set(files);

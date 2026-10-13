@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
@@ -169,10 +170,12 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     embeddedParameters.saveValuesToXML(xmlElement);
   }
 
+
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value) {
-      return checkEmbeddedValues(errorMessages);
+      return checkEmbeddedValues(project, errorMessages);
     }
     return true;
   }

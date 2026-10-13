@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -260,7 +261,8 @@ public class DataTypeCheckListParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return value != null;
   }
 

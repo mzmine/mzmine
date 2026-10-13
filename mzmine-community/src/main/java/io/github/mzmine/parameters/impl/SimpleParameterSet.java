@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.impl;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
@@ -251,7 +252,8 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages,
       final boolean skipRawDataAndFeatureListParameters) {
     boolean allParametersOK = true;
     for (Parameter<?> p : parameters) {
@@ -260,7 +262,7 @@ public class SimpleParameterSet implements ParameterSet {
         continue;
       }
 
-      boolean pOK = p.checkValue(errorMessages);
+      boolean pOK = p.checkValue(project, errorMessages);
       if (!pOK) {
         allParametersOK = false;
       }
@@ -269,11 +271,12 @@ public class SimpleParameterSet implements ParameterSet {
       }
 
       if (p instanceof RawDataFilesParameter rfp) {
-        pOK = checkRawDataFileIonMobilitySupport(rfp.getValue().getMatchingRawDataFiles(),
+        pOK = checkRawDataFileIonMobilitySupport(rfp.getValue().getMatchingRawDataFiles(project),
             errorMessages);
         rfp.getValue().resetSelection(); // has to be reset after evaluation
       } else if (p instanceof FeatureListsParameter) {
-        FeatureList[] lists = ((FeatureListsParameter) p).getValue().getMatchingFeatureLists();
+        FeatureList[] lists = ((FeatureListsParameter) p).getValue()
+            .getMatchingFeatureLists(project);
         Set<RawDataFile> files = new HashSet<>();
         Arrays.stream(lists).map(FeatureList::getRawDataFiles)
             .forEach(listFiles -> listFiles.forEach(file -> files.add(file)));

@@ -45,7 +45,6 @@ import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
@@ -620,14 +619,6 @@ public final class MZmineCore {
       return;
     }
     StartupSplash.show();
-  }
-
-  /**
-   * Use {@link ProjectService#getMetadata()} instead.
-   */
-  @Deprecated
-  public static @NotNull MetadataTable getProjectMetadata() {
-    return ProjectService.getMetadata();
   }
 
   private void init() {

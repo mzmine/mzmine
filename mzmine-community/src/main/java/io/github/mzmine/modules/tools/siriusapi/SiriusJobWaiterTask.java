@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
@@ -50,6 +51,7 @@ public class SiriusJobWaiterTask extends AbstractSimpleTask {
 
   private static final Logger logger = Logger.getLogger(SiriusJobWaiterTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   @Nullable
   private final Task parentTask;
   private final @NotNull Supplier<Job> jobSupplier;
@@ -59,15 +61,16 @@ public class SiriusJobWaiterTask extends AbstractSimpleTask {
   /**
    * @param jobSupplier supplier to retrieve the job status from the sirius api.
    */
-  public SiriusJobWaiterTask(@Nullable Task parentTask,
+  public SiriusJobWaiterTask(@NotNull MZmineProject project, @Nullable Task parentTask,
       @NotNull Class<? extends MZmineModule> callingModule, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Supplier<Job> jobSupplier,
       @NotNull Runnable onFinished) {
     super(null, moduleCallDate, parameters, callingModule);
+    this.project = project;
     this.parentTask = parentTask;
     this.jobSupplier = jobSupplier;
     this.onFinished = onFinished;
-    flist = ParameterUtils.getMatchingFeatureListsFromParameter(getParameters());
+    flist = ParameterUtils.getMatchingFeatureListsFromParameter(project, getParameters());
   }
 
   @Override

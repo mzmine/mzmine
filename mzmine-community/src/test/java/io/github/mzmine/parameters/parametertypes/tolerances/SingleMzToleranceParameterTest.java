@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -93,13 +94,13 @@ class SingleMzToleranceParameterTest {
     final SingleMzToleranceParameter parameter = newParameter(MzToleranceUnit.PPM);
     final List<String> errors = new ArrayList<>();
 
-    assertTrue(parameter.checkValue(errors));
+    assertTrue(parameter.checkValue(new MZmineProjectImpl(), errors));
 
     parameter.setValue(MzToleranceUnit.PPM.toTolerance(0));
-    assertFalse(parameter.checkValue(errors));
+    assertFalse(parameter.checkValue(new MZmineProjectImpl(), errors));
 
     parameter.setValue(null);
-    assertFalse(parameter.checkValue(errors));
+    assertFalse(parameter.checkValue(new MZmineProjectImpl(), errors));
   }
 
   @Test

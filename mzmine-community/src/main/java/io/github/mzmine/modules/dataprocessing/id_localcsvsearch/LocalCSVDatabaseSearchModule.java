@@ -62,7 +62,7 @@ public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
     // run only one task so that database import errors only appear once
     // the matching is fast to run on multiple feature lists at once
     FeatureList[] featureLists = parameters.getParameter(LocalCSVDatabaseSearchParameters.peakLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     Task newTask = new LocalCSVDatabaseSearchTask(featureLists, parameters, moduleCallDate);
     tasks.add(newTask);

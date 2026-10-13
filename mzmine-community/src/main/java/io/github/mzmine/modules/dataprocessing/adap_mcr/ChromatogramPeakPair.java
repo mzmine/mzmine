@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.ParameterSet;
@@ -47,14 +48,15 @@ public record ChromatogramPeakPair(@NotNull FeatureList peaks, @Nullable Feature
     return chromatograms==null? peaks.getName() : chromatograms.getName() + " / " + peaks.getName();
   }
 
-  public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
-      @NotNull ParameterSet parameterSet) {
+  public static @NotNull Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
+      @NotNull MZmineProject project, @NotNull ParameterSet parameterSet) {
     Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
 
     FeatureList[] chromatograms = parameterSet.getParameter(
-        ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS).getValue().getMatchingFeatureLists();
+            ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS).getValue()
+        .getMatchingFeatureLists(project);
     FeatureList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0) {
       assert peaks != null;
       for (final FeatureList flist : peaks) {

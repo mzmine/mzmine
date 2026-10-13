@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,7 +69,7 @@ public class MzMLExportModule implements MZmineProcessingModule {
       folder = folder.getParentFile();
 
     RawDataFile[] dataFile = parameters.getParameter(MzMLExportParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     for (RawDataFile r : dataFile) {
       File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(), extension);

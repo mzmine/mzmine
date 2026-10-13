@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,8 +62,8 @@ public class OnlineLcReactivityModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     for (ModularFeatureList flist : parameters.getValue(OnlineLcReactivityParameters.flists)
-        .getMatchingFeatureLists()) {
-      tasks.add(new OnlineLcReactivityTask(parameters, flist, moduleCallDate));
+        .getMatchingFeatureLists(project)) {
+      tasks.add(new OnlineLcReactivityTask(project, parameters, flist, moduleCallDate));
     }
     return ExitCode.OK;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,7 +60,7 @@ public class ScanSignalRemovalModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getValue(ScanSignalRemovalParameters.dataFiles)
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forMassList();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new ScanSignalRemovalTask(dataFile, parameters, storage, moduleCallDate);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -212,7 +212,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   protected void loadPreview(boolean rerun) {
     ArrayList<String> errors = new ArrayList<>();
-    boolean paramsOK = parameterSet.checkParameterValues(errors);
+    boolean paramsOK = parameterSet.checkParameterValues(ProjectService.getProject(), errors);
     if (!paramsOK) {
       return;
     }

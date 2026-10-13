@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -33,12 +34,14 @@ import io.github.mzmine.modules.tools.batchwizard.ParameterCustomizationPane;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -84,12 +87,14 @@ public class ParameterOverridesParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
 
     boolean check = true;
     final List<String> myErrors = new ArrayList<>();
     for (ParameterOverride override : value) {
-      check = check && override.parameterWithValue().checkValue(myErrors);
+      check =
+          check && override.parameterWithValue().checkValue(ProjectService.getProject(), myErrors);
     }
     myErrors.stream().map("Parameter override: %s"::formatted).forEach(errorMessages::add);
     return check;

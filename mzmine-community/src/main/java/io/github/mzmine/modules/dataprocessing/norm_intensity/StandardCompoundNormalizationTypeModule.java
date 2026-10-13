@@ -90,9 +90,9 @@ public final class StandardCompoundNormalizationTypeModule implements
 
   @NotNull
   public List<RawDataFile> getReferenceSamples(@NotNull final FeatureList flist,
-      @NotNull SamplesBatch samplesBatch,
+      @NotNull SamplesBatch samplesBatch, @NotNull MetadataTable metadata,
       @NotNull final ParameterSet normalizationModuleParameters) {
-    return NormalizationFunctionUtils.getReferenceSamplesOrThrow(false, samplesBatch,
+    return NormalizationFunctionUtils.getReferenceSamplesOrThrow(metadata, false, samplesBatch,
         normalizationModuleParameters.getValue(
             StandardCompoundNormalizationTypeParameters.sampleTypes));
   }
@@ -113,9 +113,9 @@ public final class StandardCompoundNormalizationTypeModule implements
       @NotNull StandardCompoundSelection selection) {
 
     final List<RawDataFile> referenceSamples = getReferenceSamples(featureList, samplesBatch,
-        moduleSpecificParameters);
+        metadata, moduleSpecificParameters);
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> refFunctions = createReferenceFunctions(
-        summary, referenceSamples, mainParameters, moduleSpecificParameters, selection);
+        summary, referenceSamples, metadata, mainParameters, moduleSpecificParameters, selection);
 
     NormalizationFunctionUtils.interpolateLinearBinary(summary, samplesBatch, refFunctions,
         metadata);
@@ -143,6 +143,7 @@ public final class StandardCompoundNormalizationTypeModule implements
   @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
       @NotNull final IntensityNormalizationSearchableSummary summary,
       @NotNull final List<@NotNull RawDataFile> referenceFiles,
+      @NotNull final MetadataTable metadata,
       @NotNull final ParameterSet mainParameters,
       @NotNull final ParameterSet moduleSpecificParameters,
       @NotNull final StandardCompoundSelection selection) {
@@ -173,7 +174,7 @@ public final class StandardCompoundNormalizationTypeModule implements
           mzVsRtBalance, StandardCompoundFactorMode.getDefault(), referencePoints);
 
       // add or merge function into a new instance within summary
-      summary.addMergeFunction(rawFile, function);
+      summary.addMergeFunction(metadata, rawFile, function);
 
       // return the actual function of this step for interpolation
       fileToFunction.put(rawFile, function);

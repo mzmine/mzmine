@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.modules.dataanalysis.volcanoplot.FeatureDataPreparationT
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
+import io.github.mzmine.project.ProjectService;
 import java.awt.geom.Point2D;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -106,7 +107,8 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     // only extract and prepare data from selected samples for greater separation
     final FeatureList featureList = flists.getFirst();
     final SampleTypeFilter sampleFilter = model.getSampleTypeFilter();
-    final List<RawDataFile> selectedFiles = sampleFilter.filterFiles(featureList.getRawDataFiles());
+    final List<RawDataFile> selectedFiles = sampleFilter.filterFiles(ProjectService.getMetadata(),
+        featureList.getRawDataFiles());
 
     // create the new dataset
     final var config = new AbundanceDataTablePreparationConfig(model.getAbundance(),

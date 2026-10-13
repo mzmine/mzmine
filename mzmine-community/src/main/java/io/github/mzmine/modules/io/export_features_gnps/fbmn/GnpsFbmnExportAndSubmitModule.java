@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,7 +69,8 @@ public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     // add gnps export task
-    GnpsFbmnExportAndSubmitTask task = new GnpsFbmnExportAndSubmitTask(parameters, moduleCallDate);
+    GnpsFbmnExportAndSubmitTask task = new GnpsFbmnExportAndSubmitTask(project, parameters,
+        moduleCallDate);
     tasks.add(task);
 
     return ExitCode.OK;

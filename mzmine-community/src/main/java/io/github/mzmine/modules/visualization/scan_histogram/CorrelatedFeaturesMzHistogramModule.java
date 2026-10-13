@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,8 @@ public class CorrelatedFeaturesMzHistogramModule implements MZmineRunnableModule
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] flists = parameters.getParameter(
-        CorrelatedFeaturesMzHistogramParameters.featureLists).getValue().getMatchingFeatureLists();
+            CorrelatedFeaturesMzHistogramParameters.featureLists).getValue()
+        .getMatchingFeatureLists(project);
 
     for (ModularFeatureList flist : flists) {
       Task newTask = new CorrelatedFeaturesMzHistogramTask(flist, parameters.cloneParameterSet(),

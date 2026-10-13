@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
@@ -144,8 +145,9 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    if (!super.checkParameterValues(errorMessages)) {
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    if (!super.checkParameterValues(project, errorMessages)) {
       return false;
     }
 

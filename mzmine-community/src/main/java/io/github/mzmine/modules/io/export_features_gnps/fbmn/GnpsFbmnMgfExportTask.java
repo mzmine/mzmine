@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -77,6 +78,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   private static final Logger logger = Logger.getLogger(GnpsFbmnMgfExportTask.class.getName());
 
   //
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final File fileName;
   private final FeatureListRowsFilter filter;
@@ -87,10 +89,12 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   private final @NotNull FragmentScanSelection scanMergeSelect;
   private int currentIndex = 0;
 
-  GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  GnpsFbmnMgfExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     normalizer = parameters.getValue(GnpsFbmnExportAndSubmitParameters.NORMALIZER);
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();

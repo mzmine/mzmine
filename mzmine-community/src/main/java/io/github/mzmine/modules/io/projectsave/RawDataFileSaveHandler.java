@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -149,7 +148,8 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
 
-    List<BatchQueue> cleanedBatchQueues = List.of(RawDataSavingUtils.makeBatchQueue(files));
+    List<BatchQueue> cleanedBatchQueues = List.of(
+        RawDataSavingUtils.makeBatchQueue(project, files));
     progress += stepProgress;
 
     if (saveFilesInProject) {

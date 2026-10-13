@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.other_detectors;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -119,7 +120,8 @@ public class OtherTraceSelectionParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       return false;
     }

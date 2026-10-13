@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -70,6 +71,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderer;
 import io.github.mzmine.modules.visualization.molstructure.StructureRenderService;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrumPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -139,6 +141,7 @@ public class ReportUtils {
   private final Function<RawDataFile, Color> getSpectrumColor = RawDataFile::getColorAWT;
   @NotNull
   private final EStandardChartTheme theme;
+  private final @NotNull MetadataTable metadata;
   private final Structure2DRenderConfig structureRenderConfig;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
   private final NumberFormats formats = ConfigService.getGuiFormats();
@@ -152,8 +155,12 @@ public class ReportUtils {
   private EChartViewer mirrorChart = null; // must be regenerated for each match
   private LipidSpectrumPlot lipidChart = null;
 
-  public ReportUtils(@NotNull EStandardChartTheme theme,
+  /**
+   * @param metadata the samples are grouped by the metadata of this table, e.g., in box plots
+   */
+  public ReportUtils(@NotNull MetadataTable metadata, @NotNull EStandardChartTheme theme,
       Structure2DRenderConfig structureRenderConfig) {
+    this.metadata = metadata;
     this.theme = theme;
     this.structureRenderConfig = structureRenderConfig;
 
@@ -568,7 +575,7 @@ public class ReportUtils {
       return false;
     }
 
-    final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn,
+    final RowBoxPlotDataset ds = new RowBoxPlotDataset(metadata, row, groupingColumn,
         boxPlotAbundanceMeasure);
     if (ds.getColumnCount() == 0 || ds.getRowCount() == 0 || row.getRawDataFiles().size() <= 1) {
       return false;

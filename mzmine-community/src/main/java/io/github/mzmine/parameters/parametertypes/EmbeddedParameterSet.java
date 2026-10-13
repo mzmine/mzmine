@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * In case a parameter embeds a parameter set, this interface shall be implemented. This is required
@@ -53,12 +55,14 @@ public interface EmbeddedParameterSet<T extends ParameterSet, V> extends Paramet
    * Checks all embedded parameter values. If errors occur, a new line is added for the parent
    * parameter and all parameters
    *
+   * @param project       project dependent parameters are evaluated against this project
    * @param errorMessages all errors as lines, headed by the parent parameter
    * @return true if all values are set correctly
    */
-  default boolean checkEmbeddedValues(final Collection<String> errorMessages) {
+  default boolean checkEmbeddedValues(@NotNull final MZmineProject project,
+      @NotNull final Collection<String> errorMessages) {
     List<String> newMessages = new ArrayList<>();
-    boolean success = getEmbeddedParameters().checkParameterValues(newMessages);
+    boolean success = getEmbeddedParameters().checkParameterValues(project, newMessages);
     if (!newMessages.isEmpty()) {
       String name = (this instanceof Parameter<?> p) ? p.getName() : "";
       errorMessages.add(name + ":");

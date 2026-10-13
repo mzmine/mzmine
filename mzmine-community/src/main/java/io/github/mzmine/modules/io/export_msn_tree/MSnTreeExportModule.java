@@ -71,7 +71,7 @@ public class MSnTreeExportModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    MSnTreeExportTask task = new MSnTreeExportTask(parameters, moduleCallDate);
+    MSnTreeExportTask task = new MSnTreeExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }

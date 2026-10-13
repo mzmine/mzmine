@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.setcalibration;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
@@ -42,11 +43,14 @@ public class SetCCSCalibrationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(SetCCSCalibrationTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final ParameterSet parameterSet;
 
-  protected SetCCSCalibrationTask(ParameterSet parameters, @Nullable MemoryMapStorage storage,
+  protected SetCCSCalibrationTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
+    this.project = project;
     this.parameterSet = parameters;
   }
 
@@ -64,7 +68,7 @@ public class SetCCSCalibrationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     final RawDataFile[] files = parameterSet.getParameter(SetCCSCalibrationParameters.files)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     final CCSCalibration calibration = parameterSet.getValue(SetCCSCalibrationParameters.ccsCal);
     for (RawDataFile file : files) {
       if (file instanceof IMSRawDataFile imsFile) {

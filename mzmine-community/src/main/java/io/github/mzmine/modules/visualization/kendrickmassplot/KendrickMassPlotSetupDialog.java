@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.project.ProjectService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -55,12 +57,13 @@ public class KendrickMassPlotSetupDialog extends ParameterSetupDialog {
   }
 
   private void addSuggestedRepeatingUnits() {
+    final MZmineProject project = ProjectService.getProject();
     ModularFeatureList[] matchingFeatureLists = parameterSet.getParameter(
-        KendrickMassPlotParameters.featureList).getValue().getMatchingFeatureLists();
+        KendrickMassPlotParameters.featureList).getValue().getMatchingFeatureLists(project);
     ModularFeatureList matchingFeatureList;
     if (matchingFeatureLists.length > 0) {
       matchingFeatureList = parameterSet.getParameter(KendrickMassPlotParameters.featureList)
-          .getValue().getMatchingFeatureLists()[0];
+          .getValue().getMatchingFeatureLists(project)[0];
     } else {
       logger.log(Level.WARNING, "No feature list selected");
       return;

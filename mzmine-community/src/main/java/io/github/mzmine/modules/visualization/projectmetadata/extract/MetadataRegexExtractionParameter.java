@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.UserParameter;
@@ -110,7 +111,8 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value.isEmpty()) {
       errorMessages.add("Add at least one regex column mapping.");
       return false;

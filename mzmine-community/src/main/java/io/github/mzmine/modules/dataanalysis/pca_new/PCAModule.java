@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,7 +53,7 @@ public class PCAModule extends AbstractRunnableModule {
 
     final PCATab tab = new PCATab();
     final ModularFeatureList flist = parameters.getParameter(PCAParameters.flist).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     tab.onFeatureListSelectionChanged(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);
     return ExitCode.OK;

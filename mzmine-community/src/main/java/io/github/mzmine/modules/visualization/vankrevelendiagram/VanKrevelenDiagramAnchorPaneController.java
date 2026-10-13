@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
@@ -53,7 +54,7 @@ public class VanKrevelenDiagramAnchorPaneController {
   public void initialize(ParameterSet parameters) {
     this.parameters = parameters.cloneParameterSet();
     this.featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(ProjectService.getProject())[0];
 
     String title = "Van Krevelen Diagram of" + featureList;
     String zAxisLabel = parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues)

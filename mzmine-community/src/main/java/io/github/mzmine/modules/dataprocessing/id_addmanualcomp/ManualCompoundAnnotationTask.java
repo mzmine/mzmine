@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_addmanualcomp;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -34,7 +35,6 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -46,11 +46,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class ManualCompoundAnnotationTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final String rowIdStr;
   private final ModularFeatureList flist;
   private final String annotationStr;
 
   /**
+   * @param project        the project to resolve the feature list from
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
@@ -58,13 +60,15 @@ public class ManualCompoundAnnotationTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected ManualCompoundAnnotationTask(@Nullable MemoryMapStorage storage,
+  protected ManualCompoundAnnotationTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
     rowIdStr = parameters.getValue(ManualCompoundAnnotationParameters.rowIds);
     flist = parameters.getValue(ManualCompoundAnnotationParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     annotationStr = parameters.getValue(ManualCompoundAnnotationParameters.annotations);
   }
 
@@ -73,7 +77,7 @@ public class ManualCompoundAnnotationTask extends AbstractFeatureListTask {
     final List<FeatureListRow> rows = FeatureListUtils.idStringToRows(flist, rowIdStr);
     rows.forEach(row -> {
       final List<FeatureAnnotation> annotations = FeatureAnnotation.parseFromXMLString(
-          annotationStr, ProjectService.getProject(), flist, (ModularFeatureListRow) row);
+          annotationStr, project, flist, (ModularFeatureListRow) row);
       for (final FeatureAnnotation annotation : annotations) {
         switch (annotation) {
           case CompoundDBAnnotation comp -> row.addCompoundAnnotation(comp);

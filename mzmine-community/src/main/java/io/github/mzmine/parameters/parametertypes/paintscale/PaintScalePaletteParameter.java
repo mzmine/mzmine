@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.paintscale;
 import static io.github.mzmine.util.color.SimpleColorPalette.MZMINE_BLUE_ORANGE;
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
@@ -97,7 +98,8 @@ public class PaintScalePaletteParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (getValue() == null || !getValue().isValid()) {
       errorMessages.add("Not enough colors in color palette " + getName());
       return false;

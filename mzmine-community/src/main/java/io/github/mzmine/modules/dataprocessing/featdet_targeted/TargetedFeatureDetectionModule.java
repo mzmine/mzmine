@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,7 @@ public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     RawDataFile[] dataFiles = parameters.getParameter(
-        TargetedFeatureDetectionParameters.rawDataFile).getValue().getMatchingRawDataFiles();
+        TargetedFeatureDetectionParameters.rawDataFile).getValue().getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new TargetedFeatureDetectionModuleTask(project, parameters, dataFile, storage,

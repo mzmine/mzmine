@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -35,14 +36,16 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.XMLUtils;
 import java.awt.Color;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
@@ -130,42 +133,30 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   /**
-   * @return The first matching raw data file of the current project.
-   */
-  @Nullable
-  public RawDataFile getMatchingFile() {
-    // must filter for null as findFirst throws npe otherwise
-    return streamMatchingFiles(new RawDataFilePlaceholder[]{this}).filter(Objects::nonNull)
-        .findFirst().orElse(null);
-  }
-
-  public boolean matches(@Nullable final RawDataFile file) {
-    return file != null && file.getName().equals(name) && (absPath == null || Objects.equals(
-        absPath, file.getAbsolutePath())) && (fileHashCode == null || Objects.equals(fileHashCode,
-        file.hashCode()));
-  }
-
-
-  /**
    * Matching raw data files. May contain null if a file was not found. This points to files being
    * removed from the project.
    *
+   * @param project the raw data files are searched in this project
    * @return of matching raw data files. null for missing files.
    */
   public static @NotNull Stream<@Nullable RawDataFile> streamMatchingFiles(
+      @NotNull final MZmineProject project,
       @NotNull RawDataFilePlaceholder @Nullable [] placeholders) {
     if (placeholders == null) {
       return Stream.empty();
     }
 
     // get all files once
-    final List<RawDataFile> allFiles = ProjectService.getProject().getCurrentRawDataFiles();
+    final List<RawDataFile> allFiles = project.getCurrentRawDataFiles();
+    final Set<RawDataFile> projectFiles = Collections.newSetFromMap(new IdentityHashMap<>());
+    projectFiles.addAll(allFiles);
 
     // find all raw files and use the same allFiles instance
     return Arrays.stream(placeholders)
         .map(placeholder -> {
           final RawDataFile direct = placeholder.weakRawRef.get();
-          if (direct != null) {
+          // decision: a referenced file of another project, e.g., a replaced project, does not match
+          if (direct != null && projectFiles.contains(direct)) {
             return direct;
           }
           // find in all files
@@ -178,15 +169,22 @@ public class RawDataFilePlaceholder implements RawDataFile {
         });
   }
 
+  public boolean matches(@Nullable final RawDataFile file) {
+    return file != null && file.getName().equals(name) && (absPath == null || Objects.equals(
+        absPath, file.getAbsolutePath())) && (fileHashCode == null || Objects.equals(fileHashCode,
+        file.hashCode()));
+  }
+
   /**
    * Matching raw data files. May contain null if a file was not found. This points to files being
    * removed from the project.
    *
    * @return array of matching raw data files. null for missing files.
    */
-  public static @NotNull RawDataFile @NotNull [] getMatchingFilesNullable(
+  public static @Nullable RawDataFile @NotNull [] getMatchingFilesNullable(
+      @NotNull final MZmineProject project,
       @NotNull RawDataFilePlaceholder @Nullable [] placeholders) {
-    return streamMatchingFiles(placeholders).toArray(RawDataFile[]::new);
+    return streamMatchingFiles(project, placeholders).toArray(RawDataFile[]::new);
   }
 
   /**
@@ -195,8 +193,21 @@ public class RawDataFilePlaceholder implements RawDataFile {
    * @return array of matching raw data files. null filtered
    */
   public static @NotNull RawDataFile @NotNull [] getMatchingFilesFilterNull(
+      @NotNull final MZmineProject project,
       @NotNull RawDataFilePlaceholder @Nullable [] placeholders) {
-    return streamMatchingFiles(placeholders).filter(Objects::nonNull).toArray(RawDataFile[]::new);
+    return streamMatchingFiles(project, placeholders).filter(Objects::nonNull)
+        .toArray(RawDataFile[]::new);
+  }
+
+  /**
+   * @param project the raw data file is searched in this project
+   * @return The first matching raw data file of the project.
+   */
+  @Nullable
+  public RawDataFile getMatchingFile(@NotNull final MZmineProject project) {
+    // must filter for null as findFirst throws npe otherwise
+    return streamMatchingFiles(project, new RawDataFilePlaceholder[]{this}).filter(Objects::nonNull)
+        .findFirst().orElse(null);
   }
 
   @Override
@@ -408,8 +419,10 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public @NotNull List<OtherDataFile> getOtherDataFiles() {
-    if (getMatchingFile() != null) {
-      return getMatchingFile().getOtherDataFiles();
+    // decision: no project available here, only use the referenced file
+    final RawDataFile file = weakRawRef.get();
+    if (file != null) {
+      return file.getOtherDataFiles();
     }
     return List.of();
   }

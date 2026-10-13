@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,7 +56,7 @@ public class FeatureNetworkOverviewModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ModularFeatureList[] featureLists = parameters.getParameter(
-        FeatureNetworkOverviewParameters.featureLists).getValue().getMatchingFeatureLists();
+        FeatureNetworkOverviewParameters.featureLists).getValue().getMatchingFeatureLists(project);
 
     NetworkOverviewWindow window = new NetworkOverviewWindow(featureLists[0], null, null,
         NetworkOverviewFlavor.IIMN);

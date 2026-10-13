@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,7 @@ public class ExportScansFeatureModule extends SingleTaskFeatureListsModule {
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList[] featureList) {
-    return new ExportScansFeatureTask(storage, moduleCallDate, parameters, this.getClass(),
+    return new ExportScansFeatureTask(project, storage, moduleCallDate, parameters, this.getClass(),
         featureList);
   }
 }

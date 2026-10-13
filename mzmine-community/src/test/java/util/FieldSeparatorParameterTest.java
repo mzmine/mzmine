@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorOption;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -142,13 +143,13 @@ public class FieldSeparatorParameterTest {
   void testCheckValue() {
     final List<String> errors = new ArrayList<>();
     final FieldSeparatorParameter parameter = FieldSeparatorParameter.forReading("description");
-    assertTrue(parameter.checkValue(errors));
+    assertTrue(parameter.checkValue(new MZmineProjectImpl(), errors));
 
     parameter.setValue(new FieldSeparator(FieldSeparatorOption.CUSTOM, ""));
-    assertFalse(parameter.checkValue(errors));
+    assertFalse(parameter.checkValue(new MZmineProjectImpl(), errors));
     assertEquals(1, errors.size());
 
     parameter.setValue(new FieldSeparator(FieldSeparatorOption.CUSTOM, "|"));
-    assertTrue(parameter.checkValue(errors));
+    assertTrue(parameter.checkValue(new MZmineProjectImpl(), errors));
   }
 }

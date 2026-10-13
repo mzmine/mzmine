@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.List;
@@ -51,9 +51,9 @@ public class ColorByMetadataUtils {
    * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
    *                                             column is null.
    */
-  public static @NotNull ColorByMetadataResults colorByColumn(
+  public static @NotNull ColorByMetadataResults colorByColumn(final @NotNull MetadataTable metadata,
       final @Nullable MetadataColumn<?> column, final @NotNull List<RawDataFile> raws) {
-    return colorByColumn(column, raws, ColorByMetadataConfig.createDefault());
+    return colorByColumn(metadata, column, raws, ColorByMetadataConfig.createDefault());
   }
 
   /**
@@ -66,10 +66,10 @@ public class ColorByMetadataUtils {
    * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
    *                                             column is null.
    */
-  public static @NotNull ColorByMetadataResults colorByColumn(
+  public static @NotNull ColorByMetadataResults colorByColumn(final @NotNull MetadataTable metadata,
       final @Nullable MetadataColumn<?> column, final @NotNull List<RawDataFile> raws,
       final @NotNull ColorByMetadataConfig config) {
-    var groups = ProjectService.getMetadata().groupFilesByColumnIncludeNull(raws, column);
+    var groups = metadata.groupFilesByColumnIncludeNull(raws, column);
 
     if (config.isUseGradient(groups.size()) && column != null && column.hasNaturalOrder()) {
       // create paint scale gradient

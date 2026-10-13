@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,8 +63,8 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
     // one storage for all files in the same module call
     MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
-    RawDataFile[] dataFiles =
-        parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
+    RawDataFile[] dataFiles = parameters.getParameter(new RawDataFilesParameter()).getValue()
+        .getMatchingRawDataFiles(project);
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask = new ScanSmoothingTask(project, dataFiles[i], parameters, storage, moduleCallDate);

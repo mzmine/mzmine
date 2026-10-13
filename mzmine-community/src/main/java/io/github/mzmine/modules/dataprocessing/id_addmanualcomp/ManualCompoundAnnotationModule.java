@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
@@ -55,7 +56,8 @@ public class ManualCompoundAnnotationModule extends AbstractProcessingModule {
     final ManualCompoundAnnotationParameters param = ManualCompoundAnnotationParameters.of(
         row.getFeatureList(), row, annotations);
     if (runNow) {
-      new ManualCompoundAnnotationTask(null, Instant.now(), param,
+      // decision: GUI entry point, runs directly on the project currently open in the GUI
+      new ManualCompoundAnnotationTask(ProjectService.getProject(), null, Instant.now(), param,
           ManualCompoundAnnotationModule.class).run();
     } else {
       MZmineCore.runMZmineModule(ManualCompoundAnnotationModule.class, param);
@@ -68,7 +70,7 @@ public class ManualCompoundAnnotationModule extends AbstractProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     final ManualCompoundAnnotationTask manualCompoundAnnotationTask = new ManualCompoundAnnotationTask(
-        null, moduleCallDate, parameters, this.getClass());
+        project, null, moduleCallDate, parameters, this.getClass());
     tasks.add(manualCompoundAnnotationTask);
     return ExitCode.OK;
   }

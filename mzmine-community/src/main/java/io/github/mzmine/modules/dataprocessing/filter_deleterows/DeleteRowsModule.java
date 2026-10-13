@@ -36,6 +36,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
@@ -67,8 +68,9 @@ public class DeleteRowsModule extends AbstractProcessingModule {
   }
 
   private static void deleteOnThisThread(DeleteRowsParameters params) {
-    final DeleteRowsTask task = new DeleteRowsTask(null, Instant.now(), params,
-        DeleteRowsModule.class);
+    // decision: only called from GUI entry points (feature table), so use the current project
+    final DeleteRowsTask task = new DeleteRowsTask(ProjectService.getProject(), null, Instant.now(),
+        params, DeleteRowsModule.class);
     task.run();
   }
 
@@ -124,7 +126,8 @@ public class DeleteRowsModule extends AbstractProcessingModule {
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    tasks.add(new DeleteRowsTask(null, moduleCallDate, parameters, DeleteRowsModule.class));
+    tasks.add(
+        new DeleteRowsTask(project, null, moduleCallDate, parameters, DeleteRowsModule.class));
     return ExitCode.OK;
   }
 }

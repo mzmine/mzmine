@@ -76,7 +76,7 @@ public class CompoundGrouperModule implements MZmineProcessingModule {
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
     final ModularFeatureList[] featureLists = parameters.getValue(
-        CompoundGrouperParameters.FEATURE_LISTS).getMatchingFeatureLists();
+        CompoundGrouperParameters.FEATURE_LISTS).getMatchingFeatureLists(project);
     for (final ModularFeatureList flist : featureLists) {
       tasks.add(new CompoundGrouperTask(flist, parameters, moduleCallDate, false));
     }

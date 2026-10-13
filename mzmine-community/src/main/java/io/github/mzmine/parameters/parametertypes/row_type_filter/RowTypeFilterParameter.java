@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.parameters.CompositeParametersParameter;
 import io.github.mzmine.parameters.Parameter;
@@ -138,7 +139,8 @@ public class RowTypeFilterParameter extends
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return getValue() != null;
   }
 

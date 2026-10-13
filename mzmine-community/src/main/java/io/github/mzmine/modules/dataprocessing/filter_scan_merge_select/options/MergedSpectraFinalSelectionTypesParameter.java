@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class MergedSpectraFinalSelectionTypesParameter extends
     CheckComboParameter<MergedSpectraFinalSelectionTypes> {
@@ -50,9 +52,10 @@ public class MergedSpectraFinalSelectionTypesParameter extends
 
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     var types = getValue();
-    var result = super.checkValue(errorMessages);
+    var result = super.checkValue(project, errorMessages);
     if (!MergedSpectraFinalSelectionTypes.isValidSelection(types, true)) {
       errorMessages.add(MergedSpectraFinalSelectionTypes.getAdvancedValidDescription());
       return false;

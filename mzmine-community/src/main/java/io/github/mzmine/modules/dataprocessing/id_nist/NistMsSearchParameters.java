@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText
 import static io.github.mzmine.javafx.components.factories.FxTexts.italicText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -273,9 +274,10 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages) {
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
 
-    final boolean valid = super.checkParameterValues(errorMessages);
+    final boolean valid = super.checkParameterValues(project, errorMessages);
 
     // super already reports a missing directory so return here before config
     if (getValue(NIST_DIRECTORY) == null) {

@@ -69,7 +69,7 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] featureLists = parameters.getParameter(IsotopeGrouperParameters.peakLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (final ModularFeatureList featureList : featureLists) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,7 +86,7 @@ public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule 
       @NotNull final Instant moduleCallDate) {
 
     try {
-      var rawFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(parameters);
+      var rawFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(project, parameters);
 
       // raw data processing modules memory map to mass list storage
       MemoryMapStorage storage = requiresMemoryMapping ? MemoryMapStorage.forMassList() : null;

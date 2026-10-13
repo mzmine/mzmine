@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter.Mode;
@@ -144,7 +145,8 @@ public class SampleTypeFilterParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!requiresSelection || !value.isEmpty()) {
       return true;
     }

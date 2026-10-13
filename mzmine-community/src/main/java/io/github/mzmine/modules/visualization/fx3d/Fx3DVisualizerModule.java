@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -121,7 +121,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
       @NotNull Instant moduleCallDate) {
 
     final RawDataFile[] currentDataFiles = parameters.getParameter(
-        Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles();
+        Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles(project);
 
     final ScanSelection scanSel = parameters.getParameter(Fx3DVisualizerParameters.scanSelection)
         .getValue();

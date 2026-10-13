@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
@@ -36,6 +37,7 @@ import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -163,14 +165,16 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
     embeddedParameter.saveValueToXML(xmlElement);
   }
 
+
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(getName() + " is not set properly");
       return false;
     }
     if (useEmbeddedParameter()) {
-      return embeddedParameter.checkValue(errorMessages);
+      return embeddedParameter.checkValue(project, errorMessages);
     }
     return true;
   }

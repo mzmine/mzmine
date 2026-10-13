@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -51,7 +52,8 @@ class MetadataColumnNormalizationTypeParametersTest {
     final MetadataColumnNormalizationTypeParameters parameters = MetadataColumnNormalizationTypeParameters.create(concentration.getTitle(), Mode.divide);
 
     final List<String> errors = new ArrayList<>();
-    final boolean valid = parameters.checkParameterValues(errors, false);
+    final boolean valid = parameters.checkParameterValues(ProjectService.getProject(), errors,
+        false);
 
     assertTrue(valid);
     assertTrue(errors.isEmpty());
@@ -63,7 +65,8 @@ class MetadataColumnNormalizationTypeParametersTest {
        "missing_column", Mode.divide);
 
     final List<String> errors = new ArrayList<>();
-    final boolean valid = parameters.checkParameterValues(errors, false);
+    final boolean valid = parameters.checkParameterValues(ProjectService.getProject(), errors,
+        false);
 
     assertFalse(valid);
     assertTrue(errors.stream()
@@ -78,7 +81,8 @@ class MetadataColumnNormalizationTypeParametersTest {
         groupColumn.getTitle(), Mode.divide);
 
     final List<String> errors = new ArrayList<>();
-    final boolean valid = parameters.checkParameterValues(errors, false);
+    final boolean valid = parameters.checkParameterValues(ProjectService.getProject(), errors,
+        false);
 
     assertFalse(valid);
     assertTrue(errors.stream().anyMatch(m -> m.contains("must be numeric")));
@@ -90,7 +94,8 @@ class MetadataColumnNormalizationTypeParametersTest {
         "missing_column", Mode.divide);
 
     final List<String> errors = new ArrayList<>();
-    final boolean valid = parameters.checkParameterValues(errors, true);
+    final boolean valid = parameters.checkParameterValues(ProjectService.getProject(), errors,
+        true);
 
     assertTrue(valid);
     assertTrue(errors.isEmpty());

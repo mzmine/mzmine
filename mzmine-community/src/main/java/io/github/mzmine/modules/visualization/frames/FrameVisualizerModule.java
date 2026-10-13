@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,7 +62,7 @@ public class FrameVisualizerModule implements MZmineRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     final RawDataFile file = parameters.getValue(FrameVisualizerParameters.files)
-        .getMatchingRawDataFiles()[0];
+        .getMatchingRawDataFiles(project)[0];
     if (file instanceof IMSRawDataFile) {
       final FrameVisualizerTab tab = new FrameVisualizerTab("IMS Frame visualizer", true);
       tab.onRawDataFileSelectionChanged(List.of(file));

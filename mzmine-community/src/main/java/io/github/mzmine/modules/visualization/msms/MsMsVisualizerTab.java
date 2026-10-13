@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -93,7 +94,7 @@ public class MsMsVisualizerTab extends MZmineTab {
 
     this.parameters = parameters;
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
+        .getMatchingRawDataFiles(ProjectService.getProject())[0];
 
     BorderPane borderPane = new BorderPane();
     setContent(borderPane);

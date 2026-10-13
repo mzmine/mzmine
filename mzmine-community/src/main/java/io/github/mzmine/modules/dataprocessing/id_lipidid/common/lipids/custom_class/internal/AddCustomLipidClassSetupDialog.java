@@ -65,6 +65,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FormulaUtils;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -224,7 +225,7 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
       if (lipidChainTypes.length != numberOfCAtomsList.size()) {
         adjustExampleCarbonAndDbeNumbers(lipidChainTypes);
       }
-      if (parameterSet.checkParameterValues(new ArrayList<>(), true)) {
+      if (parameterSet.checkParameterValues(ProjectService.getProject(), new ArrayList<>(), true)) {
         updateExampleLipid();
       }
     } finally {

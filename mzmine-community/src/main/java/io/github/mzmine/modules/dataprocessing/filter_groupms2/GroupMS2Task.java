@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -53,13 +54,14 @@ public class GroupMS2Task extends AbstractTask {
    * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
-  public GroupMS2Task(final FeatureList list, final ParameterSet parameterSet,
-      @NotNull Instant moduleCallDate) {
+  public GroupMS2Task(@NotNull MZmineProject project, final FeatureList list,
+      final ParameterSet parameterSet, @NotNull Instant moduleCallDate) {
     super(((ModularFeatureList) list).getMemoryMapStorage(),
         moduleCallDate); // use storage from feature list to store merged ms2 spectra.
     this.list = list;
 
-    groupMS2Processor = new GroupMS2Processor(this, list, parameterSet, getMemoryMapStorage());
+    groupMS2Processor = new GroupMS2Processor(project, this, list, parameterSet,
+        getMemoryMapStorage());
 
     parameters = parameterSet;
   }

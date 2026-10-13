@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
@@ -40,13 +42,14 @@ import org.w3c.dom.Element;
 public final class MultilinearRawFileRtCorrectionModule implements RawFileRtCorrectionModule {
 
   @Override
-  public AbstractRtCorrectionFunction createInterpolated(@NotNull RawDataFile file,
+  public AbstractRtCorrectionFunction createInterpolated(@NotNull final MZmineProject project,
+      @NotNull RawDataFile file,
       @NotNull List<RtStandard> rtSortedStandards,
       @NotNull AbstractRtCorrectionFunction previousRunCalibration, double previousRunWeight,
       @NotNull AbstractRtCorrectionFunction nextRunCalibration, double nextRunWeight,
       @NotNull final RTMeasure rtMeasure, @NotNull ParameterSet parameters) {
 
-    return new MultiLinearRtCorrectionFunction(file, rtSortedStandards,
+    return new MultiLinearRtCorrectionFunction(project, file, rtSortedStandards,
         (MultiLinearRtCorrectionFunction) previousRunCalibration, previousRunWeight,
         (MultiLinearRtCorrectionFunction) nextRunCalibration, nextRunWeight,
         parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth),

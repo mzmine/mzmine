@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -89,9 +90,11 @@ public class ComponentWrapperParameter<ValueType, EmbeddedParameterType extends 
     embeddedParameter.saveValueToXML(xmlElement);
   }
 
+
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return embeddedParameter.checkValue(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    return embeddedParameter.checkValue(project, errorMessages);
   }
 
   @Override

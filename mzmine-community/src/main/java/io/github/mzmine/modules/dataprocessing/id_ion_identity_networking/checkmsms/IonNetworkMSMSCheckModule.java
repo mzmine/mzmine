@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,7 +70,7 @@ public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] pkl = parameters.getParameter(IonNetworkMSMSCheckParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     for (ModularFeatureList p : pkl) {
       tasks.add(new IonNetworkMSMSCheckTask(project, parameters, p, moduleCallDate));
     }

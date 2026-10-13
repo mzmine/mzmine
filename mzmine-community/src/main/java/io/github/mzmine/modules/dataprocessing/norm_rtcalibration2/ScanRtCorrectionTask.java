@@ -97,7 +97,7 @@ class ScanRtCorrectionTask extends AbstractTask {
     this.project = project;
     this.flists = Arrays.stream(
             parameters.getParameter(RTCorrectionParameters.featureLists).getValue()
-                .getMatchingFeatureLists())
+                .getMatchingFeatureLists(project))
         .sorted(FeatureListUtils.createDescendingNumberOfRowsSorter()).map(FeatureList.class::cast)
         .toList();
     mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
@@ -130,6 +130,7 @@ class ScanRtCorrectionTask extends AbstractTask {
   }
 
   static @NotNull List<AbstractRtCorrectionFunction> interpolateMissingCalibrations(
+      @NotNull final MZmineProject project,
       List<FeatureList> referenceFlists, List<FeatureList> allFeatureLists, MetadataTable metadata,
       List<RtStandard> monotonousStandards, RawFileRtCorrectionModule correctionModule,
       @NotNull final RTMeasure rtMeasure, ParameterSet correctionModuleParameters) {
@@ -140,7 +141,7 @@ class ScanRtCorrectionTask extends AbstractTask {
     final Map<RawDataFile, AbstractRtCorrectionFunction> referenceCalibrations = referenceFlists.stream()
         .map(flist -> correctionModule.createFromStandards(flist, monotonousStandards, rtMeasure,
             correctionModuleParameters))
-        .collect(Collectors.toMap(AbstractRtCorrectionFunction::getRawDataFile, cali -> cali));
+        .collect(Collectors.toMap(cali -> cali.getRawDataFile(project), cali -> cali));
 
     final List<AbstractRtCorrectionFunction> allCalibrations = new ArrayList<>(
         referenceCalibrations.values());
@@ -153,9 +154,10 @@ class ScanRtCorrectionTask extends AbstractTask {
       }
 
       // if we cannot find one cali, just reuse the same as previous and next. Makes downstream implementation easier.
-      AbstractRtCorrectionFunction previousCali = getPreviousRun(file, referenceCalibrations,
+      AbstractRtCorrectionFunction previousCali = getPreviousRun(project, file,
+          referenceCalibrations, metadata);
+      AbstractRtCorrectionFunction nextCali = getNextRun(project, file, referenceCalibrations,
           metadata);
-      AbstractRtCorrectionFunction nextCali = getNextRun(file, referenceCalibrations, metadata);
       previousCali = previousCali == null ? nextCali : previousCali;
       nextCali = nextCali == null ? previousCali : nextCali;
       if (previousCali == null) {
@@ -165,9 +167,9 @@ class ScanRtCorrectionTask extends AbstractTask {
 
       final LocalDateTime runDate = metadata.getValue(metadata.getRunDateColumn(), file);
       final LocalDateTime previousRunDate = metadata.getValue(metadata.getRunDateColumn(),
-          previousCali.getRawDataFile());
+          previousCali.getRawDataFile(project));
       final LocalDateTime nextRunDate = metadata.getValue(metadata.getRunDateColumn(),
-          nextCali.getRawDataFile());
+          nextCali.getRawDataFile(project));
 
       final long totalTimeDistance =
           Math.abs(runDate.until(nextRunDate, ChronoUnit.SECONDS)) + Math.abs(
@@ -177,9 +179,9 @@ class ScanRtCorrectionTask extends AbstractTask {
       final double nextRunWeight =
           (double) Math.abs(runDate.until(previousRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
 
-      final AbstractRtCorrectionFunction newCali = correctionModule.createInterpolated(file,
-          monotonousStandards, previousCali, previousWeight, nextCali, nextRunWeight, rtMeasure,
-          correctionModuleParameters);
+      final AbstractRtCorrectionFunction newCali = correctionModule.createInterpolated(project,
+          file, monotonousStandards, previousCali, previousWeight, nextCali, nextRunWeight,
+          rtMeasure, correctionModuleParameters);
       allCalibrations.add(newCali);
     }
 
@@ -293,7 +295,8 @@ class ScanRtCorrectionTask extends AbstractTask {
     return goodStandards;
   }
 
-  private static AbstractRtCorrectionFunction getPreviousRun(@NotNull RawDataFile file,
+  private static AbstractRtCorrectionFunction getPreviousRun(@NotNull MZmineProject project,
+      @NotNull RawDataFile file,
       @NotNull Map<RawDataFile, @NotNull AbstractRtCorrectionFunction> functions,
       @NotNull MetadataTable metadata) {
     final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
@@ -306,7 +309,7 @@ class ScanRtCorrectionTask extends AbstractTask {
     AbstractRtCorrectionFunction previousRunCali = null;
 
     for (AbstractRtCorrectionFunction function : functions.values()) {
-      final RawDataFile thatFile = function.getRawDataFile();
+      final RawDataFile thatFile = function.getRawDataFile(project);
       final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
       if (thatDate == null) {
         throw new FileHasNoRunDateException(thatFile);
@@ -322,7 +325,8 @@ class ScanRtCorrectionTask extends AbstractTask {
     return previousRunCali;
   }
 
-  private static AbstractRtCorrectionFunction getNextRun(@NotNull RawDataFile file,
+  private static AbstractRtCorrectionFunction getNextRun(@NotNull MZmineProject project,
+      @NotNull RawDataFile file,
       @NotNull Map<RawDataFile, @NotNull AbstractRtCorrectionFunction> functions,
       @NotNull MetadataTable metadata) {
     final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
@@ -335,7 +339,7 @@ class ScanRtCorrectionTask extends AbstractTask {
     AbstractRtCorrectionFunction nextRunCali = null;
 
     for (AbstractRtCorrectionFunction function : functions.values()) {
-      final RawDataFile thatFile = function.getRawDataFile();
+      final RawDataFile thatFile = function.getRawDataFile(project);
       final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
       if (thatDate == null) {
         throw new FileHasNoRunDateException(thatFile);
@@ -380,7 +384,7 @@ class ScanRtCorrectionTask extends AbstractTask {
     if (clearPreviousCorrection) {
       RawDataFile[] files = flists.stream().flatMap(fl -> fl.getRawDataFiles().stream())
           .toArray(RawDataFile[]::new);
-      RemoveScanRtCorrectionModule.clearRtCorrection(files, moduleCallDate,
+      RemoveScanRtCorrectionModule.clearRtCorrection(project, files, moduleCallDate,
           "Resetting RT correction before calculating new correction.");
       // map to a value so parallel stream blocks (no forEach)
       int ignored = flists.parallelStream().mapToInt(flist -> {
@@ -395,8 +399,10 @@ class ScanRtCorrectionTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
     }
 
-    final List<FeatureList> referenceFlistsByNumRows = flists.stream()
-        .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
+    final MetadataTable metadata = project.getProjectMetadata();
+    final List<FeatureList> referenceFlistsByNumRows = flists.stream().filter(
+            flist -> flist.getRawDataFiles().stream()
+                .allMatch(raw -> sampleTypeFilter.matches(metadata, raw)))
         .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
     if (referenceFlistsByNumRows.isEmpty()) {
       final RuntimeException ex = new RuntimeException(
@@ -425,10 +431,11 @@ class ScanRtCorrectionTask extends AbstractTask {
     }
 
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
+        project,
         referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
         calibrationModule, rtMeasure, calibrationModuleParameters);
 
-    ApplyRtCorrectionToRawFileModule.applyOnThisThread(allCalibrations);
+    ApplyRtCorrectionToRawFileModule.applyOnThisThread(project, allCalibrations);
 
     for (FeatureList flist : flists) {
       for (FeatureListRow row : flist.getRowsCopy()) {

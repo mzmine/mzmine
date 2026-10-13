@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 
 import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -157,12 +158,9 @@ public class SumformulaParameter extends StringParameter {
     }
   }
 
-  public boolean checkValue() {
-    return checkValue(null);
-  }
-
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!valueRequired) {
       return true;
     }

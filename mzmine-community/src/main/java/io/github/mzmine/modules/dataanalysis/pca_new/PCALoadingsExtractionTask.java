@@ -38,6 +38,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -63,7 +64,7 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.project = project;
     sourceFlist = parameters.getValue(PCALoadingsExtractionParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     resultFlist = FeatureListUtils.createCopy(sourceFlist, " extracted", storage, false);
   }
 
@@ -72,13 +73,37 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     return List.of(resultFlist);
   }
 
+  private static void prepareData(@NotNull MetadataTable metadata, @NotNull PCAModel pcaModel) {
+    // always apply mean centering for PCA
+    final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
+        pcaModel.getImputationFunction(), pcaModel.getScalingFunction(),
+        ScalingFunctions.MeanCentering);
+
+    // only on samples
+    final FeatureList featureList = pcaModel.getFlists().getFirst();
+
+    final SampleTypeFilter sampleFilter = pcaModel.getSampleTypeFilter();
+    final List<RawDataFile> selectedSamples = sampleFilter.filterFiles(metadata,
+        featureList.getRawDataFiles());
+    if (selectedSamples.isEmpty()) {
+      pcaModel.setFeatureDataTable(null);
+      return;
+    }
+
+    // only prepare data for list of files
+    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
+        featureList.getRows(), selectedSamples, config);
+
+    pcaModel.setFeatureDataTable(dataTable);
+  }
+
   @Override
   protected void process() {
     final var param = (PCALoadingsExtractionParameters) parameters;
-    final PCAModel pcaModel = param.toPcaModel();
+    final PCAModel pcaModel = param.toPcaModel(project);
 
     // prepare data
-    prepareData(pcaModel);
+    prepareData(project.getProjectMetadata(), pcaModel);
 
     final PCAUpdateTask task = new PCAUpdateTask("task", pcaModel);
     if (!task.checkPreConditions()) {
@@ -111,30 +136,6 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     // the relationship maps and the ion identity networks reference rows directly
     FeatureListUtils.transferRowRelationsAndIIN(sourceFlist, resultFlist, rowMapping::get);
     project.addFeatureList(resultFlist);
-  }
-
-  private static void prepareData(PCAModel pcaModel) {
-    // always apply mean centering for PCA
-    final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
-        pcaModel.getImputationFunction(), pcaModel.getScalingFunction(),
-        ScalingFunctions.MeanCentering);
-
-    // only on samples
-    final FeatureList featureList = pcaModel.getFlists().getFirst();
-
-    final SampleTypeFilter sampleFilter = pcaModel.getSampleTypeFilter();
-    final List<RawDataFile> selectedSamples = sampleFilter.filterFiles(
-        featureList.getRawDataFiles());
-    if (selectedSamples.isEmpty()) {
-      pcaModel.setFeatureDataTable(null);
-      return;
-    }
-
-    // only prepare data for list of files
-    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
-        featureList.getRows(), selectedSamples, config);
-
-    pcaModel.setFeatureDataTable(dataTable);
   }
 
   @Override

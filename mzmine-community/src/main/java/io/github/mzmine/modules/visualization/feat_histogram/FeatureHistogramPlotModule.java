@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,8 @@ public class FeatureHistogramPlotModule extends AbstractRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    var flist = parameters.getValue(FeatureHistogramPlotParameters.flist).getMatchingFeatureLists();
+    var flist = parameters.getValue(FeatureHistogramPlotParameters.flist)
+        .getMatchingFeatureLists(project);
     final FeatureHistogramPlotTab tab = new FeatureHistogramPlotTab(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);
 

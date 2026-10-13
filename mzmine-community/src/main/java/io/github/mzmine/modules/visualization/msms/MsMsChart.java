@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import javafx.beans.property.Property;
@@ -56,7 +57,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     MsMsXYAxisType xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
     MsMsXYAxisType yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
     RawDataFile[] dataFiles = parameters.getParameter(MsMsParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(ProjectService.getProject());
 
     setDomainAxisLabel(xAxisType.toString());
     setRangeAxisLabel(yAxisType.toString());

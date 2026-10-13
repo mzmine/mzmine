@@ -94,7 +94,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
       @NotNull final Instant moduleCallDate) {
 
     for (final FeatureList featureList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists()) {
+        .getValue().getMatchingFeatureLists(project)) {
 
       tasks.add(createTask(featureList, null, parameters, moduleCallDate));
     }

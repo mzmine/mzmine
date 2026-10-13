@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,7 +50,7 @@ public class BaselineCorrectionModule extends AbstractProcessingModule {
       @NotNull Instant moduleCallDate) {
 
     final @NotNull ModularFeatureList[] flists = parameters.getValue(
-        BaselineCorrectionParameters.flists).getMatchingFeatureLists();
+        BaselineCorrectionParameters.flists).getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (final @NotNull ModularFeatureList flist : flists) {

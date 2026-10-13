@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,7 +67,7 @@ public class MZRangeComponent extends DoubleRangeComponent {
         RawDataFilesComponent rdc = setupDialog.getComponentForParameter(
             new RawDataFilesParameter());
         if (rdc != null) {
-          RawDataFile[] matchingFiles = rdc.getValue().getMatchingRawDataFiles();
+          RawDataFile[] matchingFiles = rdc.getValue().getMatchingRawDataFiles(project);
           if (matchingFiles.length > 0) {
             currentFiles = matchingFiles;
           }
@@ -84,7 +84,7 @@ public class MZRangeComponent extends DoubleRangeComponent {
             featureListsParameter);
         if (featureListsComponent != null) {
           featureListsParameter.setValueFromComponent(featureListsComponent);
-          featureLists = featureListsParameter.getValue().getMatchingFeatureLists();
+          featureLists = featureListsParameter.getValue().getMatchingFeatureLists(project);
         }
 
       } catch (Exception ex) {

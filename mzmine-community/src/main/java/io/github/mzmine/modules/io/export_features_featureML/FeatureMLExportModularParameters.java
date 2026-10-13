@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_features_featureML;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -34,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import java.util.Collection;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureMLExportModularParameters extends SimpleParameterSet {
 
@@ -56,14 +58,15 @@ public class FeatureMLExportModularParameters extends SimpleParameterSet {
 
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages);
 
     // Check if substitute pattern is present in filename if several feature lists are selected by the user
     String plNamePattern = "{}";
     boolean substitute = this.getValue(filename).getPath().contains(plNamePattern);
 
-    if (!substitute && this.getValue(featureLists).getMatchingFeatureLists().length > 1) {
+    if (!substitute && this.getValue(featureLists).getMatchingFeatureLists(project).length > 1) {
       errorMessages.add("""
           Cannot export multiple feature lists to the same featureML file. Please use "{}" pattern in filename. \
           This will be replaced with the feature list name to generate one file per feature list.

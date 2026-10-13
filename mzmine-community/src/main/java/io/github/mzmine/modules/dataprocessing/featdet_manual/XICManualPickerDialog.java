@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,12 @@
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -37,13 +40,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Stroke;
@@ -219,10 +221,11 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     this.parameters = parameters;
     mzRange = parameters.getParameter(XICManualPickerParameters.mzRange).getValue();
     rtRange = parameters.getParameter(XICManualPickerParameters.rtRange).getValue();
+    final MZmineProject project = ProjectService.getProject();
     flist = parameters.getParameter(XICManualPickerParameters.flists).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     rawDataFile = parameters.getParameter(XICManualPickerParameters.rawDataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
+        .getMatchingRawDataFiles(project)[0];
 
     ScanSelection sel = new ScanSelection(1, rawDataFile.getDataRTRange());
     Scan[] scans = sel.getMatchingScans(rawDataFile);

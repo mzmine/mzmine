@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ package io.github.mzmine.modules.io.export_features_gnps.gc;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
@@ -81,6 +82,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(GnpsGcExportAndSubmitTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final ParameterSet parameters;
   private final AtomicDouble progress = new AtomicDouble(0);
 
@@ -91,12 +93,14 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   private File file;
   private final boolean openFolder;
 
-  GnpsGcExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  GnpsGcExportAndSubmitTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
     this.parameters = parameters;
 
     this.featureList = parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_LISTS)
-        .getValue().getMatchingFeatureLists()[0];
+        .getValue().getMatchingFeatureLists(project)[0];
     this.representativeMZ = parameters.getParameter(
         GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ).getValue();
     this.featureMeasure = parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY)

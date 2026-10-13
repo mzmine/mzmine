@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
@@ -154,7 +155,8 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
 
     final boolean check;
     if (value == null) {

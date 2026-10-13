@@ -78,7 +78,7 @@ public class MobilityScanMergerModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     for (RawDataFile file : parameters.getParameter(MobilityScanMergerParameters.rawDataFiles)
-        .getValue().getMatchingRawDataFiles()) {
+        .getValue().getMatchingRawDataFiles(project)) {
       if (file instanceof IMSRawDataFile) {
         tasks.add(new MobilityScanMergerTask((IMSRawDataFile) file, parameters, moduleCallDate));
       }

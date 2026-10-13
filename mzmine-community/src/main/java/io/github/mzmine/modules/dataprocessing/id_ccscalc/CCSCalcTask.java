@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,7 +69,7 @@ public class CCSCalcTask extends AbstractTask {
     this.rangeChargeMap = parameters.getParameter(CCSCalcParameters.assumeChargeStage)
         .getEmbeddedParameter().getValue();
     this.featureLists = parameters.getParameter(CCSCalcParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     this.project = project;
     this.parameters = parameters;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -120,7 +120,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
 
     //check updated values
     ArrayList<String> messages = new ArrayList<>();
-    boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+    boolean allParametersOK = paramPane.getParameterSet()
+        .checkParameterValues(ProjectService.getProject(), messages);
 
     if (!allParametersOK) {
       StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");

@@ -103,7 +103,7 @@ public final class MetadataColumnNormalizationTypeModule implements Normalizatio
           metadataConfig.mode().isDivide() ? 1d / factor : factor);
 
       // add or merge function into a new instance within summary
-      summary.addMergeFunction(file, function);
+      summary.addMergeFunction(metadata, file, function);
     }
   }
 

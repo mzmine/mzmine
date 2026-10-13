@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,7 @@ public class ImsMs2RefinementModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new ImsMs2RefinementTask(null, moduleCallDate, parameters));
+    tasks.add(new ImsMs2RefinementTask(project, null, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 

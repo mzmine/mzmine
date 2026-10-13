@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -79,10 +81,11 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
     addFinalRt(rtSortedStandards, fullRtRange, lastStandardAverageRT, thisRtValues,
         standardRtValues, rtMeasure);
 
-    movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
+    movAvg = getInterpolatorIteratively(file, bandwidth, standardRtValues, thisRtValues);
   }
 
-  public MultiLinearRtCorrectionFunction(@NotNull final RawDataFile file,
+  public MultiLinearRtCorrectionFunction(@NotNull final MZmineProject project,
+      @NotNull final RawDataFile file,
       @NotNull final List<RtStandard> rtSortedStandards,
       @NotNull final MultiLinearRtCorrectionFunction previousRunCalibration,
       final double previousRunWeight,
@@ -99,8 +102,8 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
     thisRtValues.add(0d);
     standardRtValues.add(0d);
 
-    final RawDataFile prevFile = previousRunCalibration.getRawDataFile();
-    final RawDataFile nextFile = nextRunCalibration.getRawDataFile();
+    final RawDataFile prevFile = previousRunCalibration.getRawDataFile(project);
+    final RawDataFile nextFile = nextRunCalibration.getRawDataFile(project);
     for (RtStandard standard : rtSortedStandards) {
       final double previous = standard.standards().get(prevFile).getAverageRT() * previousRunWeight;
       final double next = standard.standards().get(nextFile).getAverageRT() * nextRunWeight;
@@ -118,13 +121,14 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
     addFinalRt(rtSortedStandards, fullRtRange, lastStandardRt, thisRtValues, standardRtValues,
         rtMeasure);
 
-    movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
+    movAvg = getInterpolatorIteratively(file, bandwidth, standardRtValues, thisRtValues);
   }
 
+  // decision: constructors pass their file directly instead of resolving the placeholder, so no
+  // project is needed here
   @NotNull
-  private PolynomialSplineFunction getInterpolatorIteratively(double initialBandwidth,
-      DoubleArrayList calibratedRtValues, DoubleArrayList thisRtValues) {
-    final RawDataFile file = getRawDataFilePlaceholder().getMatchingFile();
+  private PolynomialSplineFunction getInterpolatorIteratively(@NotNull final RawDataFile file,
+      double initialBandwidth, DoubleArrayList calibratedRtValues, DoubleArrayList thisRtValues) {
     final double[] subtracted = AsymmetricLeastSquaresCorrection.subtract(
         calibratedRtValues.toDoubleArray(), thisRtValues.toDoubleArray());
     subtracted[0] = 0d; // ensure the first point is not shifted to keep all RTs > 0

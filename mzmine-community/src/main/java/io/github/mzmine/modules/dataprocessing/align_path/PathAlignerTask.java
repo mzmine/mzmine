@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,7 +59,7 @@ class PathAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
     peakLists = (ModularFeatureList[]) parameters.getParameter(PathAlignerParameters.peakLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     peakListName = parameters.getParameter(PathAlignerParameters.peakListName).getValue();
   }

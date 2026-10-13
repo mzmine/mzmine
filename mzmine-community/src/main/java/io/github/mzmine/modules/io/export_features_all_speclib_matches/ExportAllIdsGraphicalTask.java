@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -83,6 +84,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   final int bufferSize = 100;
   final SpectralMatchPanelFX[] panelBuffer = new SpectralMatchPanelFX[bufferSize];
   final File[] filenameBuffer = new File[bufferSize];
+  private final @NotNull MZmineProject project;
   private final FeatureList[] flists;
   private final File dir;
   private final GraphicsExportParameters exportParameters;
@@ -103,10 +105,12 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   private int totalIds = 1;
   private final AtomicInteger processed = new AtomicInteger(0);
 
-  protected ExportAllIdsGraphicalTask(ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate) {
+  protected ExportAllIdsGraphicalTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
-    flists = parameters.getValue(ExportAllIdsGraphicalParameters.flists).getMatchingFeatureLists();
+    this.project = project;
+    flists = parameters.getValue(ExportAllIdsGraphicalParameters.flists)
+        .getMatchingFeatureLists(project);
     dir = parameters.getValue(ExportAllIdsGraphicalParameters.dir);
     numIds = parameters.getValue(ExportAllIdsGraphicalParameters.numMatches);
     dpiFactor = parameters.getValue(ExportAllIdsGraphicalParameters.dpiScalingFactor);

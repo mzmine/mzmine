@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,7 +59,7 @@ public class VennExportModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     ModularFeatureList[] matchingFeatureLists = parameters.getParameter(VennExportParameters.flists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     for (ModularFeatureList matchingFeatureList : matchingFeatureLists) {
       tasks.add(new VennExportTask(null, moduleCallDate, matchingFeatureList, parameters));

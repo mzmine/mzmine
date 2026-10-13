@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,7 +54,7 @@ public class QualityParametersModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     for (FeatureList featureList : parameters.getParameter(QualityParametersParameters.peakLists)
-        .getValue().getMatchingFeatureLists()) {
+        .getValue().getMatchingFeatureLists(project)) {
       runModule(featureList, parameters, moduleCallDate);
     }
     return ExitCode.OK;

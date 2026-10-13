@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,13 @@
 
 package io.github.mzmine.modules.io.export_scans_modular;
 
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.WrongParameterConfigException;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import io.github.mzmine.project.ProjectService;
+import org.jetbrains.annotations.NotNull;
 
 public class ProjectMetadataToLibraryMapperParameters extends SimpleParameterSet {
 
@@ -52,13 +53,16 @@ public class ProjectMetadataToLibraryMapperParameters extends SimpleParameterSet
     super(compoundNameFromSampleMetadata, descriptionFromSampleMetadata);
   }
 
-  public ProjectMetadataToLibraryEntryMapper createMapper() throws WrongParameterConfigException {
+  /**
+   * @param metadata the columns are searched in this metadata table
+   */
+  public @NotNull ProjectMetadataToLibraryEntryMapper createMapper(@NotNull MetadataTable metadata)
+      throws WrongParameterConfigException {
     final String compoundNameFromSampleMetadata = this.getEmbeddedParameterValueIfSelectedOrElse(
         ProjectMetadataToLibraryMapperParameters.compoundNameFromSampleMetadata, null);
     final String descriptionFromSampleMetadata = this.getEmbeddedParameterValueIfSelectedOrElse(
         ProjectMetadataToLibraryMapperParameters.descriptionFromSampleMetadata, null);
 
-    final var metadata = ProjectService.getMetadata();
     MetadataColumn<?> nameColumn = null;
     MetadataColumn<?> descriptionColumn = null;
     if (compoundNameFromSampleMetadata != null) {
@@ -77,7 +81,7 @@ public class ProjectMetadataToLibraryMapperParameters extends SimpleParameterSet
             + descriptionFromSampleMetadata);
       }
     }
-    return new ProjectMetadataToLibraryEntryMapper(nameColumn, descriptionColumn);
+    return new ProjectMetadataToLibraryEntryMapper(metadata, nameColumn, descriptionColumn);
   }
 
 }

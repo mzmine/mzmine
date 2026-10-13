@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -72,6 +73,7 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
   private final double[] GROUP_THRESHOLDS = {0.4, 0.6, 0.85};
   private final String fieldSeparator = ",";
 
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final File fileName;
   private final MZTolerance mzTol;
@@ -88,11 +90,12 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
   private @Nullable ParallelTextWriterTask writerTask;
   private final boolean splitByEnergy;
 
-  public IntraFeatureRowMs2SimilarityTask(ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  public IntraFeatureRowMs2SimilarityTask(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     this.featureLists = parameters.getParameter(IntraFeatureRowMs2SimilarityParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     exportToFile = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.filename);
     File file = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         IntraFeatureRowMs2SimilarityParameters.filename, null);

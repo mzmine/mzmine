@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Dat
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import io.github.mzmine.project.ProjectService;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,7 +78,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 
     // If the parameters are not complete, exit
     ArrayList<String> errors = new ArrayList<String>();
-    boolean paramsOK = parameters.checkParameterValues(errors);
+    boolean paramsOK = parameters.checkParameterValues(ProjectService.getProject(), errors);
     if (!paramsOK) {
       return;
     }

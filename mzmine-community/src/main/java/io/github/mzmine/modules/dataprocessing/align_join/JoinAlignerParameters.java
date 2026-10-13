@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -157,9 +158,11 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages,
+  public boolean checkParameterValues(@NotNull final MZmineProject project,
+      @NotNull final Collection<String> errorMessages,
       final boolean skipRawDataAndFeatureListParameters) {
-    boolean state = super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+    boolean state = super.checkParameterValues(project, errorMessages,
+        skipRawDataAndFeatureListParameters);
 
     var mzWeight = getValue(MZWeight);
     var rtWeight = getValue(RTWeight);

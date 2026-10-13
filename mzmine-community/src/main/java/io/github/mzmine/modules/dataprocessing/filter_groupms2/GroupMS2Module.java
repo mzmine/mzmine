@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,10 +60,10 @@ public class GroupMS2Module implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final FeatureList[] peakLists = parameters.getParameter(GroupMS2Parameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new GroupMS2Task(peakList, parameters, moduleCallDate);
+      Task newTask = new GroupMS2Task(project, peakList, parameters, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;

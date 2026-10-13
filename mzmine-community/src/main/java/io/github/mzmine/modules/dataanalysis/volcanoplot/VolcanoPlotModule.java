@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,7 +50,7 @@ public class VolcanoPlotModule extends AbstractRunnableModule {
       @NotNull Instant moduleCallDate) {
 
     final ModularFeatureList flist = parameters.getValue(VolcanoPlotParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     final VolcanoPlotTab tab = new VolcanoPlotTab(flist);
     MZmineCore.getDesktop().addTab(tab);
 

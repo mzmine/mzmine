@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,14 @@
 package io.github.mzmine.parameters.parametertypes.submodules;
 
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -136,8 +138,10 @@ public class SubModuleParameter<SUB extends ParameterSet> implements
     embeddedParameters.saveValuesToXML(xmlElement);
   }
 
+
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return embeddedParameters.checkParameterValues(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    return embeddedParameters.checkParameterValues(project, errorMessages);
   }
 }

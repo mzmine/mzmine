@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_features_sirius;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -80,6 +81,7 @@ public class SiriusExportTask extends AbstractTask {
 
   public static final String MULTI_NAME_PATTERN = "{}";
   private static final Logger logger = Logger.getLogger(SiriusExportTask.class.getName());
+  private final @NotNull MZmineProject project;
   private final ParameterSet parameters;
   private final ModularFeatureList[] featureLists;
   private final File fileName;
@@ -96,12 +98,14 @@ public class SiriusExportTask extends AbstractTask {
   private final FragmentScanSelection scanMergeSelect;
 
 
-  public SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public SiriusExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
 
+    this.project = project;
     this.parameters = parameters;
     this.featureLists = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     this.fileName = parameters.getValue(SiriusExportParameters.FILENAME);
     var mergeSelect = parameters.getParameter(SiriusExportParameters.spectraMergeSelect)
         .getValueWithParameters();

@@ -43,12 +43,13 @@ public class RemoveScanRtCorrectionModule implements MZmineProcessingModule {
    * Removes corrected retention times from scans for the given data files in this thread. Always
    * adds an applied method.
    */
-  public static void clearRtCorrection(RawDataFile[] dataFile, @NotNull Instant moduleCallDate,
+  public static void clearRtCorrection(@NotNull MZmineProject project,
+      @NotNull RawDataFile[] dataFile, @NotNull Instant moduleCallDate,
       @Nullable String callerDescription) {
     final RemoveScanRtCorrectionParameters param = RemoveScanRtCorrectionParameters.create(
         dataFile);
-    final RemoveScanRtCorrectionTask t = new RemoveScanRtCorrectionTask(null, moduleCallDate, param,
-        RemoveScanRtCorrectionModule.class, callerDescription);
+    final RemoveScanRtCorrectionTask t = new RemoveScanRtCorrectionTask(project, null,
+        moduleCallDate, param, RemoveScanRtCorrectionModule.class, callerDescription);
     t.run();
   }
 
@@ -62,8 +63,9 @@ public class RemoveScanRtCorrectionModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new RemoveScanRtCorrectionTask(null, moduleCallDate, parameters, this.getClass(),
-        "Manually called reset of RT correction."));
+    tasks.add(
+        new RemoveScanRtCorrectionTask(project, null, moduleCallDate, parameters, this.getClass(),
+            "Manually called reset of RT correction."));
 
     return ExitCode.OK;
   }

@@ -99,17 +99,6 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
-    return projectParametersAndValues;
-  }
-
-  @Override
-  public void setProjectParametersAndValues(
-      Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
-    this.projectParametersAndValues = projectParametersAndValues;
-  }
-
-  @Override
   public @NotNull MetadataTable getProjectMetadata() {
     return projectMetadata;
   }

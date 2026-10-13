@@ -65,7 +65,7 @@ public class ImageBuilderModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] files = parameters.getParameter(ImageBuilderParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 

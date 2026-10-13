@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,25 +26,27 @@
 package io.github.mzmine.modules.visualization.projectmetadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import java.util.Comparator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RawDataByMetadataSorter {
 
-  public static Comparator<RawDataFile> byColumn(String column) {
-    MetadataColumn col = ProjectService.getMetadata().getColumnByName(column);
-    return byColumn(col);
+  public static @Nullable Comparator<RawDataFile> byColumn(@NotNull MetadataTable metadata,
+      @Nullable String column) {
+    MetadataColumn col = metadata.getColumnByName(column);
+    return byColumn(metadata, col);
   }
 
-  public static <T extends Comparable<T>> Comparator<RawDataFile> byColumn(
-      MetadataColumn<T> column) {
+  public static <T extends Comparable<T>> @Nullable Comparator<RawDataFile> byColumn(
+      @NotNull MetadataTable metadata, @Nullable MetadataColumn<T> column) {
     if (column == null) {
       return null;
     }
-    return Comparator.comparing(
-        raw -> ProjectService.getProject().getProjectMetadata().getValue(column, raw),
+    return Comparator.comparing(raw -> metadata.getValue(column, raw),
         Comparator.nullsLast(Comparator.naturalOrder()));
   }
 
@@ -52,14 +54,13 @@ public class RawDataByMetadataSorter {
   /**
    * Sort by run date and then by name - or just by name if run date is empty
    */
-  public static Comparator<RawDataFile> byDateAndName() {
-    DateMetadataColumn dateCol = ProjectService.getMetadata().getRunDateColumn();
+  public static @NotNull Comparator<RawDataFile> byDateAndName(@NotNull MetadataTable metadata) {
+    DateMetadataColumn dateCol = metadata.getRunDateColumn();
     if (dateCol == null) {
       return Comparator.comparing(RawDataFile::getName);
     }
 
-    return Comparator.comparing(
-        (RawDataFile raw) -> ProjectService.getMetadata().getValue(dateCol, raw),
+    return Comparator.comparing((RawDataFile raw) -> metadata.getValue(dateCol, raw),
         Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(RawDataFile::getName);
   }
 

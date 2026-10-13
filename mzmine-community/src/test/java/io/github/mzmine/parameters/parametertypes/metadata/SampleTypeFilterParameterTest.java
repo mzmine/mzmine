@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter.Mode;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -195,20 +196,20 @@ class SampleTypeFilterParameterTest {
     assertEquals(parameter.getValue(), clone.getValue());
     // the old CheckComboParameter dropped requiresSelection when cloning
     clone.setValue(SampleTypeFilter.none());
-    assertFalse(clone.checkValue(new ArrayList<>()));
+    assertFalse(clone.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
   }
 
   @Test
   void checkValueOnlyFailsWhenSelectionIsRequired() {
     final SampleTypeFilterParameter optional = newParameter();
     optional.setValue(SampleTypeFilter.none());
-    assertTrue(optional.checkValue(new ArrayList<>()));
+    assertTrue(optional.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
 
     final SampleTypeFilterParameter required = new SampleTypeFilterParameter("Sample types",
         "description", SampleTypeFilter.all(), true);
-    assertTrue(required.checkValue(new ArrayList<>()));
+    assertTrue(required.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
     required.setValue(SampleTypeFilter.ofValues(List.of()));
-    assertFalse(required.checkValue(new ArrayList<>()));
+    assertFalse(required.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
   }
 
   private static SampleTypeFilterParameter saveAndLoad(SampleTypeFilterParameter parameter)

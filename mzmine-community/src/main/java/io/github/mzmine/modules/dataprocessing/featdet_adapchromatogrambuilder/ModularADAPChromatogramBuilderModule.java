@@ -71,7 +71,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     RawDataFile[] dataFiles = parameters.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
 
     for (final RawDataFile file : dataFiles) {
       // only the image builder supplies a minimum number of total scans

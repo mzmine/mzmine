@@ -553,7 +553,7 @@ public class BatchTask extends AbstractTask {
 
     // Check if the parameter settings are valid
     ArrayList<String> messages = new ArrayList<String>();
-    boolean paramsCheck = batchStepParameters.checkParameterValues(messages);
+    boolean paramsCheck = batchStepParameters.checkParameterValues(getProject(), messages);
     if (!paramsCheck) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(

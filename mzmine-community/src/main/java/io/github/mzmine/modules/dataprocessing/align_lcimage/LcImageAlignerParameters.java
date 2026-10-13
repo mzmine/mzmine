@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_lcimage;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.parameters.Parameter;
@@ -74,11 +75,12 @@ public class LcImageAlignerParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages);
 
     final ModularFeatureList[] matchingFeatureLists = getValue(
-        LcImageAlignerParameters.flists).getMatchingFeatureLists();
+        LcImageAlignerParameters.flists).getMatchingFeatureLists(project);
     final var imageList = Arrays.stream(matchingFeatureLists)
         .filter(flist -> flist.hasFeatureType(ImageType.class)).toList();
     final var baseLists = Arrays.stream(matchingFeatureLists)
