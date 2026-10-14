@@ -242,11 +242,6 @@ public final class SampleTypeFilter {
     return raws.stream().filter(this::matches).toList();
   }
 
-  /** Filters files against explicitly supplied project metadata. */
-  public List<RawDataFile> filterFiles(final MetadataTable metadata, final List<RawDataFile> raws) {
-    return raws.stream().filter(raw -> matches(metadata, raw)).toList();
-  }
-
   public boolean matches(final Feature feature) {
     return matches(feature.getRawDataFile());
   }
