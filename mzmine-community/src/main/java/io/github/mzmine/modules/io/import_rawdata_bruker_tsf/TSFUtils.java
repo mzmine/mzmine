@@ -50,7 +50,6 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,23 +74,11 @@ public class TSFUtils implements AutoCloseable {
   private MemorySegment profileIntensityBuffer = offHeap.allocate(TSFLib.C_INT, bufferSize);
   private MemorySegment errorBuffer = offHeap.allocate(TSFLib.C_CHAR, 256);
 
-  // Java profile scratch arrays used by the existing zero-filtering logic.
-  private long[] profileIntensityArray = new long[bufferSize];
-  private double[] profileIndexArray = createPopulatedArray(bufferSize);
-  private double[] profileDeletedZeroMzs;
-  private double[] profileDeletedZeroIntensities;
+  // Scaled intensities of the profile points kept by the zero-filtering.
+  private double[] profileIntensities = new double[bufferSize];
 
   public TSFUtils() {
     setNumThreads(1);
-  }
-
-  @NotNull
-  public static double[] createPopulatedArray(final int size) {
-    final double[] array = new double[size];
-    for (int i = 0; i < size; i++) {
-      array[i] = i;
-    }
-    return array;
   }
 
   /**
@@ -159,19 +146,16 @@ public class TSFUtils implements AutoCloseable {
       return new double[][]{new double[0], new double[0]};
     }
 
-    convertUnsignedIntSegmentToLong(profileIntensityBuffer, profileIntensityArray, numDataPoints);
-
-    final AtomicInteger numValues = new AtomicInteger(0);
-    final double[][] filtered = deleteZeroIntensities(profileIndexArray, profileIntensityArray,
-        numDataPoints, numValues);
-    final int convertedSize = numValues.get();
+    // decision: read the raw uint32 profile and scale it ourselves. Benchmarked faster than
+    // tsf_read_scaled_profile_spectrum_v2, which converts to float inside the native library.
+    final double scalingFactor = TSFLib.tsf_read_scaling_factor(handle, frameId);
+    // filter directly on the native buffers, kept indices are written straight to indexBuffer
+    final int convertedSize = filterZeroIntensities(profileIntensityBuffer, numDataPoints,
+        scalingFactor, indexBuffer, profileIntensities);
     if (convertedSize == 0) {
       return new double[][]{new double[0], new double[0]};
     }
 
-    for (int i = 0; i < convertedSize; i++) {
-      indexBuffer.setAtIndex(TSFLib.C_DOUBLE, i, filtered[0][i]);
-    }
     final int conversionResult = TSFLib.tsf_index_to_mz(handle, frameId, indexBuffer, mzBuffer,
         convertedSize);
     if (conversionResult == 0) {
@@ -182,7 +166,7 @@ public class TSFUtils implements AutoCloseable {
     final int resultSize = convertedSize - 1;
     final double[] mzs = mzBuffer.asSlice(0, (long) resultSize * TSFLib.C_DOUBLE.byteSize())
         .toArray(TSFLib.C_DOUBLE);
-    return new double[][]{mzs, Arrays.copyOf(filtered[1], resultSize)};
+    return new double[][]{mzs, Arrays.copyOf(profileIntensities, resultSize)};
   }
 
   /**
@@ -358,27 +342,6 @@ public class TSFUtils implements AutoCloseable {
     return errorBuffer.getString(0, StandardCharsets.UTF_8);
   }
 
-  @NotNull
-  private double[][] deleteZeroIntensities(@NotNull final double[] mzs,
-      @NotNull final long[] intensities, final int numDataPoints,
-      @NotNull final AtomicInteger outNumValues) {
-    if (numDataPoints == 0) {
-      outNumValues.set(0);
-      return new double[][]{new double[0], new double[0]};
-    }
-
-    if (profileDeletedZeroMzs == null || profileDeletedZeroMzs.length < numDataPoints) {
-      profileDeletedZeroMzs = new double[numDataPoints];
-      profileDeletedZeroIntensities = new double[numDataPoints];
-    }
-
-    // reuse the scratch buffers as the output of the pure filtering step
-    outNumValues.set(filterZeroIntensities(mzs, intensities, numDataPoints, profileDeletedZeroMzs,
-        profileDeletedZeroIntensities));
-
-    return new double[][]{profileDeletedZeroMzs, profileDeletedZeroIntensities};
-  }
-
   /**
    * Removes long runs of zero intensities from a profile spectrum while keeping every non-zero
    * point together with its immediate zero neighbours (the shoulders of each peak). If at least one
@@ -386,53 +349,53 @@ public class TSFUtils implements AutoCloseable {
    * again by the caller after the index-to-mz conversion). The first point (index 0) is never
    * emitted.
    *
-   * @param mzs            index (or m/z) values; read for indices {@code [1, numDataPoints - 1]}
-   * @param intensities    intensity values; read for indices {@code [0, numDataPoints - 1]}
+   * @param intensities    raw profile intensities as uint32 ({@link TSFLib#C_INT}), the position
+   *                       is the index; read for indices {@code [0, numDataPoints - 1]}
    * @param numDataPoints  number of valid entries to consider
-   * @param outMzs         output buffer for kept m/z values, must hold at least
-   *                       {@code numDataPoints}
-   * @param outIntensities output buffer for kept intensities, must hold at least
-   *                       {@code numDataPoints}
+   * @param scalingFactor  factor to multiply the raw intensities with, see
+   *                       {@link TSFLib#tsf_read_scaling_factor(long, long)}
+   * @param outIndices     output segment for the kept indices ({@link TSFLib#C_DOUBLE}), must hold
+   *                       at least {@code numDataPoints} values
+   * @param outIntensities output buffer for the kept, scaled intensities, must hold at least
+   *                       {@code numDataPoints} values
    * @return the number of values written to the output buffers (0 if nothing was kept)
    */
-  public static int filterZeroIntensities(@NotNull final double[] mzs,
-      @NotNull final long[] intensities, final int numDataPoints, @NotNull final double[] outMzs,
+  public static int filterZeroIntensities(@NotNull final MemorySegment intensities,
+      final int numDataPoints, final double scalingFactor, @NotNull final MemorySegment outIndices,
       @NotNull final double[] outIntensities) {
-    if (numDataPoints == 0) {
+    if (numDataPoints < 2) {
       return 0;
     }
 
     int numValues = 0;
+    // values are uint32 read into a signed int, so values >= 2^31 are negative in Java. Only ever
+    // compare against != 0, a > 0 check would treat these large intensities as zero.
+    int previous = intensities.getAtIndex(TSFLib.C_INT, 0);
+    int current = intensities.getAtIndex(TSFLib.C_INT, 1);
 
     // decision: iterate up to the last real point (index numDataPoints - 1) so it is not dropped.
     // The last point has no successor within the data, so its next value counts as 0. This also
     // avoids reading intensities[numDataPoints], which may hold stale data from a previous scan.
     for (int i = 1; i < numDataPoints; i++) {
-      final long next = (i + 1 < numDataPoints) ? intensities[i + 1] : 0L;
-      if (intensities[i] != 0 // current value != 0
-          || next > 0 // next value != 0
-          || intensities[i - 1] > 0) { // previous value != 0
-        outMzs[numValues] = mzs[i];
-        outIntensities[numValues] = intensities[i];
+      final int next = (i + 1 < numDataPoints) ? intensities.getAtIndex(TSFLib.C_INT, i + 1) : 0;
+      if (current != 0 || next != 0 || previous != 0) {
+        outIndices.setAtIndex(TSFLib.C_DOUBLE, numValues, i);
+        // convert as unsigned, otherwise intensities >= 2^31 would become negative
+        outIntensities[numValues] = Integer.toUnsignedLong(current) * scalingFactor;
         numValues++;
       }
+      previous = current;
+      current = next;
     }
 
     if (numValues > 0) {
       // add a last 0 as a conversion boundary
-      outMzs[numValues] = mzs[numDataPoints - 1];
+      outIndices.setAtIndex(TSFLib.C_DOUBLE, numValues, numDataPoints - 1);
       outIntensities[numValues] = 0d;
       numValues++;
     }
 
     return numValues;
-  }
-
-  private void convertUnsignedIntSegmentToLong(@NotNull final MemorySegment source,
-      @NotNull final long[] destination, final int numValues) {
-    for (int i = 0; i < numValues; i++) {
-      destination[i] = Integer.toUnsignedLong(source.getAtIndex(TSFLib.C_INT, i));
-    }
   }
 
   private void growBuffers(final int requiredCapacity, final long frameId) {
@@ -445,12 +408,7 @@ public class TSFUtils implements AutoCloseable {
     mzBuffer = offHeap.allocate(TSFLib.C_DOUBLE, bufferSize);
     centroidIntensityBuffer = offHeap.allocate(TSFLib.C_FLOAT, bufferSize);
     profileIntensityBuffer = offHeap.allocate(TSFLib.C_INT, bufferSize);
-    profileIntensityArray = new long[bufferSize];
-    profileIndexArray = createPopulatedArray(bufferSize);
-    if (profileDeletedZeroMzs != null) {
-      profileDeletedZeroMzs = new double[bufferSize];
-      profileDeletedZeroIntensities = new double[bufferSize];
-    }
+    profileIntensities = new double[bufferSize];
   }
 
   private void ensureOpen() {

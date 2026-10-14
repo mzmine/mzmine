@@ -26,47 +26,45 @@
 package tsfimportest;
 
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFUtils;
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link TSFUtils#filterZeroIntensities} - the pure zero-run deletion used when
- * loading Bruker TSF profile spectra. Kept native-free so it runs on every platform.
+ * loading Bruker TSF profile spectra. Kept native-free (heap segments only) so it runs on every
+ * platform.
  */
 class TSFUtilsTest {
 
   /**
-   * @param size number of index bins
-   * @return an index array [0, 1, 2, ...] mirroring the {@code profileIndexArray} used in
-   * production
+   * Runs the filter on heap segments wrapping the given arrays.
    */
-  private static double[] indexArray(final int size) {
-    final double[] array = new double[size];
-    for (int i = 0; i < size; i++) {
-      array[i] = i;
-    }
-    return array;
+  private static int filter(final int @NotNull [] intensities, final int numDataPoints,
+      final double scalingFactor, final double @NotNull [] outIndices,
+      final double @NotNull [] outIntensities) {
+    return TSFUtils.filterZeroIntensities(MemorySegment.ofArray(intensities), numDataPoints,
+        scalingFactor, MemorySegment.ofArray(outIndices), outIntensities);
   }
 
   @Test
   void emptySpectrumReturnsZero() {
-    final double[] outMzs = new double[4];
+    final double[] outIndices = new double[4];
     final double[] outIntensities = new double[4];
 
-    final int numValues = TSFUtils.filterZeroIntensities(indexArray(4), new long[4], 0, outMzs,
-        outIntensities);
+    final int numValues = filter(new int[4], 0, 1d, outIndices, outIntensities);
 
     Assertions.assertEquals(0, numValues);
   }
 
   @Test
   void allZeroSpectrumKeepsNothing() {
-    final double[] outMzs = new double[4];
+    final double[] outIndices = new double[4];
     final double[] outIntensities = new double[4];
 
-    final int numValues = TSFUtils.filterZeroIntensities(indexArray(4), new long[]{0, 0, 0, 0}, 4,
-        outMzs, outIntensities);
+    final int numValues = filter(new int[]{0, 0, 0, 0}, 4, 1d, outIndices, outIntensities);
 
     // nothing kept -> not even a trailing conversion boundary is appended
     Assertions.assertEquals(0, numValues);
@@ -74,15 +72,15 @@ class TSFUtilsTest {
 
   @Test
   void peakWithShouldersIsKept() {
-    final double[] outMzs = new double[5];
+    final double[] outIndices = new double[5];
     final double[] outIntensities = new double[5];
 
-    final int numValues = TSFUtils.filterZeroIntensities(indexArray(5), new long[]{0, 10, 0, 20, 5},
-        5, outMzs, outIntensities);
+    final int numValues = filter(new int[]{0, 10, 0, 20, 5}, 5, 1d, outIndices, outIntensities);
 
     // kept indices 1..4 plus a trailing boundary that repeats the last index with intensity 0
     Assertions.assertEquals(5, numValues);
-    Assertions.assertArrayEquals(new double[]{1, 2, 3, 4, 4}, Arrays.copyOf(outMzs, numValues));
+    Assertions.assertArrayEquals(new double[]{1, 2, 3, 4, 4},
+        Arrays.copyOf(outIndices, numValues));
     Assertions.assertArrayEquals(new double[]{10, 0, 20, 5, 0},
         Arrays.copyOf(outIntensities, numValues));
   }
@@ -93,32 +91,27 @@ class TSFUtilsTest {
    */
   @Test
   void lastDataPointIsNotDropped() {
-    final double[] outMzs = new double[4];
+    final double[] outIndices = new double[4];
     final double[] outIntensities = new double[4];
 
-    final int numValues = TSFUtils.filterZeroIntensities(indexArray(4), new long[]{0, 0, 0, 7}, 4,
-        outMzs, outIntensities);
+    final int numValues = filter(new int[]{0, 0, 0, 7}, 4, 1d, outIndices, outIntensities);
 
     // index 2 kept as the peak's left shoulder, index 3 (the last bin) kept with its real
     // intensity, then the trailing zero boundary
     Assertions.assertEquals(3, numValues);
-    Assertions.assertArrayEquals(new double[]{2, 3, 3}, Arrays.copyOf(outMzs, numValues));
+    Assertions.assertArrayEquals(new double[]{2, 3, 3}, Arrays.copyOf(outIndices, numValues));
     Assertions.assertArrayEquals(new double[]{0, 7, 0}, Arrays.copyOf(outIntensities, numValues));
-    // the last real intensity must be present in the output
-    Assertions.assertTrue(
-        Arrays.stream(Arrays.copyOf(outIntensities, numValues)).anyMatch(v -> v == 7d));
   }
 
   @Test
   void isolatedPeakKeepsBothShoulders() {
-    final double[] outMzs = new double[5];
+    final double[] outIndices = new double[5];
     final double[] outIntensities = new double[5];
 
-    final int numValues = TSFUtils.filterZeroIntensities(indexArray(5), new long[]{0, 0, 5, 0, 0},
-        5, outMzs, outIntensities);
+    final int numValues = filter(new int[]{0, 0, 5, 0, 0}, 5, 1d, outIndices, outIntensities);
 
     Assertions.assertEquals(4, numValues);
-    Assertions.assertArrayEquals(new double[]{1, 2, 3, 4}, Arrays.copyOf(outMzs, numValues));
+    Assertions.assertArrayEquals(new double[]{1, 2, 3, 4}, Arrays.copyOf(outIndices, numValues));
     Assertions.assertArrayEquals(new double[]{0, 5, 0, 0},
         Arrays.copyOf(outIntensities, numValues));
   }
@@ -129,18 +122,49 @@ class TSFUtilsTest {
    */
   @Test
   void staleDataBeyondNumDataPointsIsIgnored() {
-    final double[] outMzs = new double[5];
+    final double[] outIndices = new double[5];
     final double[] outIntensities = new double[5];
     // indices 3 and 4 hold stale non-zero values from a hypothetical previous, larger scan
-    final long[] intensities = new long[]{0, 10, 0, 999, 999};
+    final int[] intensities = new int[]{0, 10, 0, 999, 999};
 
-    final int numValues = TSFUtils.filterZeroIntensities(indexArray(5), intensities, 3, outMzs,
-        outIntensities);
+    final int numValues = filter(intensities, 3, 1d, outIndices, outIntensities);
 
-    // index 1 (=10) and index 2 (left neighbour of nothing, kept because its predecessor is > 0),
-    // then the boundary at the last valid index (2). The stale 999s are never read.
+    // index 1 (=10) and index 2 (kept because its predecessor is != 0), then the boundary at the
+    // last valid index (2). The stale 999s are never read.
     Assertions.assertEquals(3, numValues);
-    Assertions.assertArrayEquals(new double[]{1, 2, 2}, Arrays.copyOf(outMzs, numValues));
+    Assertions.assertArrayEquals(new double[]{1, 2, 2}, Arrays.copyOf(outIndices, numValues));
     Assertions.assertArrayEquals(new double[]{10, 0, 0}, Arrays.copyOf(outIntensities, numValues));
+  }
+
+  @Test
+  void scalingFactorIsApplied() {
+    final double[] outIndices = new double[4];
+    final double[] outIntensities = new double[4];
+
+    final int numValues = filter(new int[]{0, 10, 20, 0}, 4, 2.5d, outIndices, outIntensities);
+
+    Assertions.assertEquals(4, numValues);
+    Assertions.assertArrayEquals(new double[]{25, 50, 0, 0},
+        Arrays.copyOf(outIntensities, numValues));
+  }
+
+  /**
+   * Intensities are uint32. Values >= 2^31 are negative as a Java int and must neither be treated
+   * as zero (for the neighbour check) nor be converted as negative values.
+   */
+  @Test
+  void unsignedIntensitiesAboveIntMaxAreKept() {
+    final double[] outIndices = new double[5];
+    final double[] outIntensities = new double[5];
+    // -1 is 0xFFFFFFFF = 4294967295 as uint32
+    final int[] intensities = new int[]{0, 0, -1, 0, 0};
+
+    final int numValues = filter(intensities, 5, 1d, outIndices, outIntensities);
+
+    // both shoulders of the peak at index 2 are kept
+    Assertions.assertEquals(4, numValues);
+    Assertions.assertArrayEquals(new double[]{1, 2, 3, 4}, Arrays.copyOf(outIndices, numValues));
+    Assertions.assertArrayEquals(new double[]{0, 4294967295d, 0, 0},
+        Arrays.copyOf(outIntensities, numValues));
   }
 }
