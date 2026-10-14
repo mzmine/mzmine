@@ -37,9 +37,9 @@ public class TSFLib extends TSFLib$shared {
           .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
     } catch (IllegalArgumentException e) {
       if (Platform.isMac()) {
-        throw new RuntimeException("TDF is not supported on MacOS.", e);
+        throw new RuntimeException("TSF is not supported on MacOS.", e);
       }
-      throw new RuntimeException("Failed to load TDF library.", e);
+      throw new RuntimeException("Failed to load TSF library.", e);
     }
   }
 

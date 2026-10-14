@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
 import com.google.common.collect.Range;
+import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -180,11 +181,11 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
             getMemoryMapStorage());
       }
 
-    newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
-    metaDataTable.applyToFileMetadata(newMZmineFile.getFileMetadata());
-    // tsf files have no ion mobility dimension
-    calibrationInfoTable.applyToFileMetadata(newMZmineFile.getFileMetadata(),
-        frameTable.getPolarityColumn(), false);
+      newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+      metaDataTable.applyToFileMetadata(newMZmineFile.getFileMetadata());
+      // tsf files have no ion mobility dimension
+      calibrationInfoTable.applyToFileMetadata(newMZmineFile.getFileMetadata(),
+          frameTable.getPolarityColumn(), false);
 
       final int numScans = frameTable.getFrameIdColumn().size();
       totalScans = numScans;
@@ -201,11 +202,11 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
       addMsMsInfo(newMZmineFile);
       assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
 
-    newMZmineFile.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.BRUKER_TSF);
-    RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
+      newMZmineFile.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.BRUKER_TSF);
+      RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
 
-    newMZmineFile.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
 
       project.addFile(newMZmineFile);
       setStatus(TaskStatus.FINISHED);
@@ -215,8 +216,18 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
       // The native Bruker library failed to load or link. Static initialization of TSFLib wraps
       // such failures in an ExceptionInInitializerError (a LinkageError), which is not an Exception
       // and would otherwise escape uncaught, leaving the task without an ERROR status.
-      error("Could not load the native Bruker TSF library. TSF is not supported on macOS. On "
-          + "Windows, please ensure the VC++ 2017 redistributable is installed.", new Exception(e));
+      final StringBuilder msg = new StringBuilder("Could not load the native Bruker TSF library. ");
+      if (Platform.isMac()) {
+        msg.append("TSF is not supported on macOS.\n");
+      } else if (Platform.isLinux()) {
+        msg.append(
+            "Unknown error while initialising TSF library. Ensure libtimsdata.so is present in external_tools/bruker_tdf, otherwise please contact the developers.\n");
+      } else if (Platform.isWindows()) {
+        msg.append(
+            "Please ensure the VC++ 2017 redistributable (>14.44) is installed and that timsdata.dll is present in external_tools/bruker_tdf.\n");
+      }
+
+      error(msg + e.getMessage(), new Exception(e));
     }
   }
 
@@ -230,8 +241,8 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
       final Scan scan;
       try {
-        scan = tsfUtils.loadScan(newMZmineFile, frameId, metaDataTable,
-            frameTable, frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
+        scan = tsfUtils.loadScan(newMZmineFile, frameId, metaDataTable, frameTable,
+            frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
       } catch (Exception e) {
         error("Error while loading scan %d in of file %s".formatted(frameId, rawDataFileName), e);
         return false;

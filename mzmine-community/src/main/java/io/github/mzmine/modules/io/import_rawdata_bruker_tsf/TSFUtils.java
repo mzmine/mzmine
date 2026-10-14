@@ -359,12 +359,6 @@ public class TSFUtils implements AutoCloseable {
   }
 
   @NotNull
-  public double[][] deleteZeroIntensities(@NotNull final double[] mzs,
-      @NotNull final long[] intensities, @NotNull final AtomicInteger outNumValues) {
-    return deleteZeroIntensities(mzs, intensities, intensities.length, outNumValues);
-  }
-
-  @NotNull
   private double[][] deleteZeroIntensities(@NotNull final double[] mzs,
       @NotNull final long[] intensities, final int numDataPoints,
       @NotNull final AtomicInteger outNumValues) {
