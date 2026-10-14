@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,14 @@
 package io.github.mzmine.datamodel.features.types;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChart;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingFeatureChartCellFactory;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChartCell;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.logging.Logger;
 import javafx.scene.Node;
+import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,22 +57,19 @@ public class ImageType extends LinkedGraphicalType {
   @Override
   public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
       RawDataFile raw, AtomicDouble progress) {
-    if (row == null || (cellData != null && !cellData) || row.getFeature(raw) == null
-        || !(raw instanceof ImagingRawDataFile)) {
+    throw new UnsupportedOperationException("Should not be called");
+  }
+
+  @Override
+  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
+    final var column = super.createColumn(raw, parentType, subColumnIndex);
+    if (column == null) {
       return null;
     }
 
-    ModularFeature feature = row.getFeature(raw);
-    ImagingRawDataFile imagingFile = (ImagingRawDataFile) feature.getRawDataFile();
-    if (Double.compare(imagingFile.getImagingParam().getLateralHeight(), 0d) == 0
-        || Double.compare(imagingFile.getImagingParam().getLateralWidth(), 0d) == 0
-        || feature == null || feature.getRawDataFile() == null
-        || feature.getFeatureData() == null) {
-      return null;
-    }
-
-    var chart = new ImageChart(feature, progress);
-    return chart;
+    column.setCellFactory(new CountingFeatureChartCellFactory(i -> new ImageChartCell(i, raw)));
+    return column;
   }
 
   @Override

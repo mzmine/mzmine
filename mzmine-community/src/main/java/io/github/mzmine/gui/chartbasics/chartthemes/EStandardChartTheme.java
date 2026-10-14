@@ -415,6 +415,9 @@ public class EStandardChartTheme extends StandardChartTheme {
     if (itemLabelFont != null) {
       renderer.setDefaultItemLabelFont(itemLabelFont);
     }
+    if (getItemLabelPaint() != null) {
+      renderer.setDefaultItemLabelPaint(getItemLabelPaint());
+    }
     // only apply to those renderers that we know should behave like this
     if (renderer instanceof PeakRenderer || renderer instanceof ColoredXYLineRenderer
         || renderer instanceof TICPlotRenderer) {

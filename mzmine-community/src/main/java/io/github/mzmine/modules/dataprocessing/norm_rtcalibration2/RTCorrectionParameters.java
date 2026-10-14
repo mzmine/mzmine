@@ -77,7 +77,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum standard intensity",
       "Minimum height of a feature to be selected as standard for RT correction",
-      MZmineCore.getConfiguration().getIntensityFormat());
+      MZmineCore.getConfiguration().getIntensityFormat(), null, 0d, Double.MAX_VALUE);
 
   // defaults to "all sample types" instead of listing every known type, so that a batch does not
   // silently exclude custom or newly added sample types
@@ -88,7 +88,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
       Any custom group name of the mzmine_sample_type column can be selected, not just the
       predefined types.
-      """, SampleTypeFilter.all());
+      """, SampleTypeFilter.all(), true);
 
   public static final ComboParameter<RTMeasure> rtMeasure = new ComboParameter<>(
       "RT standard calculation",

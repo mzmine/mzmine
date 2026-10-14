@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
+import com.opencsv.ICSVParser;
+import com.opencsv.RFC4180ParserBuilder;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IonizationType;
@@ -37,11 +39,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import it.unimi.dsi.fastutil.ints.IntList;
+import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,6 +80,15 @@ public class ParsingUtils {
    * Value separator for storing lists and arrays.
    */
   public static String SEPARATOR = ";";
+
+  /**
+   * Shared between threads. The only state of the parser is the pending value of
+   * {@link ICSVParser#parseLineMulti(String)}, which is never set by
+   * {@link ICSVParser#parseLine(String)} and {@link ICSVParser#parseToLine(String[], boolean)}. Do
+   * not use parseLineMulti on this instance.
+   */
+  private static final ICSVParser STRING_LIST_PARSER = new RFC4180ParserBuilder().withSeparator(
+      SEPARATOR.charAt(0)).build();
 
   public static double @NotNull [] stringToDoubleArray(String string) {
     if (StringUtils.isBlank(string)) {
@@ -415,6 +428,34 @@ public class ParsingUtils {
 
   public static String[] stringToStringArray(String str) {
     return str.split(SEPARATOR);
+  }
+
+  /**
+   * Joins the values by {@link #SEPARATOR}. Values that contain the separator, quotes, or line
+   * breaks are quoted by the rules of RFC4180, e.g., ["Hi;A", "Hello"] becomes
+   * {@code "Hi;A";Hello}.
+   *
+   * @see #stringToStringList(String)
+   */
+  public static @NotNull String stringListToString(@NotNull Collection<String> values) {
+    return STRING_LIST_PARSER.parseToLine(values.toArray(String[]::new), false);
+  }
+
+  /**
+   * Splits a string written by {@link #stringListToString(Collection)} back into its values. Quoted
+   * values may contain the separator, quotes, and line breaks. Values are not stripped.
+   *
+   * @return the values or an empty list for an empty string
+   */
+  public static @NotNull List<String> stringToStringList(@NotNull String str) {
+    if (str.isEmpty()) {
+      return List.of();
+    }
+    try {
+      return List.of(STRING_LIST_PARSER.parseLine(str));
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Cannot parse string list: " + str, e);
+    }
   }
 
   public static IonizationType ionizationNameToIonizationType(String ionizationName) {

@@ -2010,19 +2010,6 @@
             ]
         },
         {
-            "moduleName": "net.sourceforge.jmol:jmol",
-            "moduleVersion": "14.31.10",
-            "moduleUrls": [
-                "http://jmol.sourceforge.net/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                }
-            ]
-        },
-        {
             "moduleName": "org.apache.commons:commons-collections4",
             "moduleVersion": "4.4",
             "moduleUrls": [

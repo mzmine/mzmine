@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -45,6 +46,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.IsotopePa
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.IsotopePatternQualityResult.RowIsotopes;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +64,10 @@ public final class IsotopePatternCheck implements QualityCheck {
   /// Same threshold {@link FeatureAnnotation#calculateIsotopePattern()} uses, so both prediction
   /// paths agree.
   private static final double MIN_PREDICTED_ABUNDANCE = 0.005;
+
+  /// Wide on purpose: only used to pick the signal that belongs to the row m/z out of the detected
+  /// and the predicted pattern, where the neighbouring isotope signals sit a full mass unit away.
+  private static final MZTolerance ANCHOR_TOLERANCE = MZTolerance.WIDE_25_PPM_OR_10_MDA;
 
   @Override
   public @NotNull QualityCheckType type() {
@@ -165,8 +171,11 @@ public final class IsotopePatternCheck implements QualityCheck {
   }
 
   /// Scale the predicted pattern onto the measured intensity scale, or its 0..1 abundances would be
-  /// invisible next to raw MS1 intensities. Prefers the detected pattern's base peak, else the
-  /// tallest measured signal inside the predicted m/z window.
+  /// invisible next to raw MS1 intensities. Anchors on the row's own m/z: the predicted signal at
+  /// the row m/z is matched to the measured signal there (the tallest one inside
+  /// {@link #ANCHOR_TOLERANCE}). Anchoring on the base peak instead misplaces the whole predicted
+  /// pattern whenever a heavier isotope is the tallest signal, which is common for larger formulas.
+  /// Falls back to base peak matching when the row m/z is not covered by both patterns.
   private static @Nullable PredictedPattern normalizeToMeasured(
       @Nullable final PredictedPattern predicted, @Nullable final IsotopePattern detected,
       @NotNull final FeatureListRow row) {
@@ -174,6 +183,11 @@ public final class IsotopePatternCheck implements QualityCheck {
       return null;
     }
     final IsotopePattern pattern = predicted.pattern();
+    final Double anchored = anchorIntensityAtRowMz(pattern, detected, row);
+    if (anchored != null) {
+      return scale(predicted, anchored);
+    }
+
     Double target = detected == null ? null : detected.getBasePeakIntensity();
     if (target == null || target <= 0d) {
       final Range<Double> mzRange = pattern.getDataPointMZRange();
@@ -183,27 +197,62 @@ public final class IsotopePatternCheck implements QualityCheck {
     if (target == null || target <= 0d) {
       return predicted;
     }
-    return new PredictedPattern(IsotopePatternCalculator.normalizeIsotopePattern(pattern, target),
+    return scale(predicted, target);
+  }
+
+  /// The intensity the predicted base peak has to reach so that the predicted signal at the row m/z
+  /// matches the measured one. Null when either pattern has no signal at the row m/z, so the caller
+  /// falls back. The detour via the base peak is needed because
+  /// {@link IsotopePatternCalculator#normalizeIsotopePattern(IsotopePattern, double)} targets the
+  /// maximum.
+  private static @Nullable Double anchorIntensityAtRowMz(@NotNull final IsotopePattern predicted,
+      @Nullable final IsotopePattern detected, @NotNull final FeatureListRow row) {
+    final Double rowMz = row.getAverageMZ();
+    if (rowMz == null || rowMz <= 0d) {
+      return null;
+    }
+    final Range<Double> anchorRange = ANCHOR_TOLERANCE.getToleranceRange(rowMz);
+    final double lower = anchorRange.lowerEndpoint();
+    final double upper = anchorRange.upperEndpoint();
+
+    Double measuredAnchor = maxIntensityInRange(detected, lower, upper);
+    if (measuredAnchor == null) {
+      // nothing detected at the row m/z: read the intensity straight off the raw scan
+      measuredAnchor = maxIntensityInRange(pickRepresentativeScan(row), lower, upper);
+    }
+    final Double predictedAnchor = maxIntensityInRange(predicted, lower, upper);
+    final Double predictedBase = predicted.getBasePeakIntensity();
+    if (measuredAnchor == null || predictedAnchor == null || predictedAnchor <= 0d
+        || predictedBase == null || predictedBase <= 0d) {
+      return null;
+    }
+    return predictedBase * measuredAnchor / predictedAnchor;
+  }
+
+  private static @NotNull PredictedPattern scale(@NotNull final PredictedPattern predicted,
+      final double basePeakIntensity) {
+    return new PredictedPattern(
+        IsotopePatternCalculator.normalizeIsotopePattern(predicted.pattern(), basePeakIntensity),
         predicted.formula());
   }
 
   /// Tallest intensity within {@code [minMZ, maxMZ]}, or null when there is no signal there.
-  private static @Nullable Double maxIntensityInRange(@Nullable final Scan scan, final double minMZ,
-      final double maxMZ) {
-    if (scan == null) {
+  private static @Nullable Double maxIntensityInRange(@Nullable final MassSpectrum spectrum,
+      final double minMZ, final double maxMZ) {
+    if (spectrum == null) {
       return null;
     }
     double max = 0d;
-    for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
-      final double mz = scan.getMzValue(i);
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      final double mz = spectrum.getMzValue(i);
       if (mz < minMZ) {
         continue;
       }
-      // assumption: scan data points are sorted by m/z, so we can stop at the upper bound.
+      // assumption: data points are sorted by m/z, so we can stop at the upper bound.
       if (mz > maxMZ) {
         break;
       }
-      max = Math.max(max, scan.getIntensityValue(i));
+      max = Math.max(max, spectrum.getIntensityValue(i));
     }
     return max > 0d ? max : null;
   }

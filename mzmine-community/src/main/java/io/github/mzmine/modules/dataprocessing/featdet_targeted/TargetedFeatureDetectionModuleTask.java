@@ -120,8 +120,8 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         .getValue();
     featureListFile = parameters.getParameter(TargetedFeatureDetectionParameters.featureListFile)
         .getValue();
-    fieldSeparator = parameters.getParameter(TargetedFeatureDetectionParameters.fieldSeparator)
-        .getValue();
+    fieldSeparator = parameters.getValue(TargetedFeatureDetectionParameters.fieldSeparator)
+        .separator();
     intTolerance = parameters.getParameter(TargetedFeatureDetectionParameters.intTolerance)
         .getValue();
     mzTolerance = parameters.getParameter(TargetedFeatureDetectionParameters.mzTolerance)

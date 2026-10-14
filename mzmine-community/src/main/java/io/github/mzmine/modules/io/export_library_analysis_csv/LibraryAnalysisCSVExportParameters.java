@@ -31,7 +31,8 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -44,8 +45,8 @@ import org.jetbrains.annotations.NotNull;
 public class LibraryAnalysisCSVExportParameters extends SimpleParameterSet {
 
   public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the exported file", ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forWriting(
+      "Character used to separate the columns of the exported file.", FieldSeparator.COMMA);
   public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
       "Weights for m/z and intensity", Weights.VALUES, Weights.SQRT);
   public static final OptionalParameter<MZToleranceParameter> removePrecursorRange = new OptionalParameter<>(

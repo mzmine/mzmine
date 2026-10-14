@@ -75,4 +75,10 @@ public final class R2RMS2CosineSimilarityGNPS extends InternalTypedRowsRelations
         : annotation;
   }
 
+  @Override
+  public @NotNull R2RMS2CosineSimilarityGNPS withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new R2RMS2CosineSimilarityGNPS(a, b, cosine, annotation, edgeType);
+  }
+
 }

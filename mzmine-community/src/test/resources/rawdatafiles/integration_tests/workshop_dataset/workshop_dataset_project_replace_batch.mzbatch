@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<batch mzmine_version="4.10.57">
+<batch mzmine_version="4.10.85">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
-            <file relative_path="..\171103_PMA_TK_QC_04-4to5min.mzML">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
-            <file relative_path="..\171103_PMA_TK_QC_05-4to5min.mzML">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_05-4to5min.mzML</file>
+            <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
+            <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_05-4to5min.mzML</file>
         </parameter>
         <parameter name="Vendor data options">
             <parameter name="Try vendor centroiding">false</parameter>
@@ -46,6 +46,9 @@
                     <parameter name="Intensity calculation">Height</parameter>
                     <parameter name="Smoothing" selected_item="none">
                         <module name="none"/>
+                        <module name="gaussian">
+                            <parameter name="Width (points)">5</parameter>
+                        </module>
                         <module name="savitzky_golay">
                             <parameter name="Width (points)">5</parameter>
                         </module>
@@ -81,6 +84,9 @@
                     <parameter name="Intensity calculation">Height</parameter>
                     <parameter name="Smoothing" selected_item="none">
                         <module name="none"/>
+                        <module name="gaussian">
+                            <parameter name="Width (points)">5</parameter>
+                        </module>
                         <module name="savitzky_golay">
                             <parameter name="Width (points)">5</parameter>
                         </module>
@@ -100,7 +106,7 @@
             <parameter name="Denormalize fragment scans (traps)">true</parameter>
         </parameter>
         <parameter name="Metadata file" selected="true">
-            <current_file relative_path="..\fake_metadata.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</current_file>
+            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</current_file>
             <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</last_file>
         </parameter>
         <parameter name="Extract sample metadata" selected="false">
@@ -109,8 +115,8 @@
         </parameter>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
-            <file relative_path="..\..\..\..\spectral_libraries\integration_tests\massbank_nist_for_tests.msp">D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\massbank_nist_for_tests.msp</file>
-            <file relative_path="..\..\..\..\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json">D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json</file>
+            <file>D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\massbank_nist_for_tests.msp</file>
+            <file>D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json</file>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
@@ -149,6 +155,9 @@
                 <parameter name="Intensity calculation">Height</parameter>
                 <parameter name="Smoothing" selected_item="none">
                     <module name="none"/>
+                    <module name="gaussian">
+                        <parameter name="Width (points)">5</parameter>
+                    </module>
                     <module name="savitzky_golay">
                         <parameter name="Width (points)">5</parameter>
                     </module>
@@ -202,6 +211,9 @@
                 <parameter name="Intensity calculation">Height</parameter>
                 <parameter name="Smoothing" selected_item="none">
                     <module name="none"/>
+                    <module name="gaussian">
+                        <parameter name="Width (points)">5</parameter>
+                    </module>
                     <module name="savitzky_golay">
                         <parameter name="Width (points)">5</parameter>
                     </module>
@@ -245,6 +257,7 @@
             <ppmtolerance>10.0</ppmtolerance>
         </parameter>
         <parameter name="Suffix">eics</parameter>
+        <parameter name="Clear previous RT corrections">true</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule" module_name="Smoothing" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
@@ -309,15 +322,18 @@
         <parameter name="Never remove feature with MS2">true</parameter>
         <parameter name="Original feature list">REMOVE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule" module_name="Isotopic peaks finder" parameter_version="1">
+    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule" module_name="Isotopic peaks finder" parameter_version="2">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
-        <parameter name="Chemical elements">H,C,N,O,S</parameter>
-        <parameter name="m/z tolerance (feature-to-scan)">
-            <absolutetolerance>0.0015</absolutetolerance>
-            <ppmtolerance>10.0</ppmtolerance>
+        <parameter name="Algorithm" selected_item="automatic">
+            <module name="automatic">
+                <parameter name="m/z tolerance (feature-to-scan)">
+                    <absolutetolerance>0.0015</absolutetolerance>
+                    <ppmtolerance>10.0</ppmtolerance>
+                </parameter>
+                <parameter name="Require 13C isotope peak">true</parameter>
+                <parameter name="Maximum charge of isotope m/z">5</parameter>
+            </module>
         </parameter>
-        <parameter name="Maximum charge of isotope m/z">5</parameter>
-        <parameter name="Search in scans">SINGLE MOST INTENSE</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule" module_name="Join aligner" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
@@ -535,7 +551,7 @@
             <ionLibrary id="1944315c-6b03-4b87-8479-0c699ce35a7b">
                 <origin kind="local"/>
                 <name>Legacy library imported</name>
-                <savedDate>2026-09-03T10:15:20.9444548</savedDate>
+                <savedDate>2026-09-22T17:04:39.6146927</savedDate>
                 <lastUpdatedDate>2026-05-28T16:18:03.8610782</lastUpdatedDate>
                 <parts>
                     <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
@@ -596,12 +612,12 @@
         </parameter>
         <parameter name="Annotation refinement" selected="true">
             <parameter name="Minimum size" selected="false">2</parameter>
-            <parameter libraryVersion="2" name="Ion library" selected="true">
+            <parameter libraryVersion="2" name="Require main ions library" selected="true">
                 <ionLibrary id="ea03009b-5b2e-3fcc-958b-4d42d7715dd2">
                     <origin kind="builtin"/>
                     <name>mzmine default main ions (+/-)</name>
-                    <savedDate>2026-09-03T10:15:20.9454547</savedDate>
-                    <lastUpdatedDate>2026-09-03T09:59:06.8416795</lastUpdatedDate>
+                    <savedDate>2026-09-22T17:04:39.6162018</savedDate>
+                    <lastUpdatedDate>2026-09-22T16:59:35.0249543</lastUpdatedDate>
                     <parts>
                         <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
                         <parts charge="1" formula="H" id="1" mass="1.00727645209073" name="H"/>
@@ -1104,10 +1120,10 @@
                 <parameter name="Normalization type">Nearest standard</parameter>
                 <parameter name="m/z vs RT balance">1.0</parameter>
                 <parameter name="Standard compounds file">
-                    <current_file relative_path="..\fake_is_norm.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</current_file>
+                    <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</current_file>
                     <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</last_file>
-                    <last_file relative_path="..\..\..\..\..\..\..\..\..\..\tmp\is_norm\is_norm_micro.csv">D:\tmp\is_norm\is_norm_micro.csv</last_file>
-                    <last_file relative_path="..\..\..\..\..\..\..\..\..\..\tmp\is_norm\is_norm_micro - Copy.csv">D:\tmp\is_norm\is_norm_micro - Copy.csv</last_file>
+                    <last_file>D:\tmp\is_norm\is_norm_micro.csv</last_file>
+                    <last_file>D:\tmp\is_norm\is_norm_micro - Copy.csv</last_file>
                 </parameter>
                 <parameter name="Field separator">,</parameter>
                 <parameter name="Standard compounds">
@@ -1148,7 +1164,7 @@
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Row selection">all_major_ions</parameter>
         <parameter name="Filename">
-            <current_file relative_path="..\expected_results.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results.csv</current_file>
+            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results.csv</current_file>
             <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results.csv</last_file>
             <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</last_file>
         </parameter>
@@ -1159,16 +1175,16 @@
     </batchstep>
     <batchstep method="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule" module_name="Save project as" parameter_version="1">
         <parameter name="Project file">
-            <current_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
-            <last_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
-            <last_file relative_path="..\..\..\..\..\..\..\..\..\..\tmp\iimn comp.mzmine">D:\tmp\iimn comp.mzmine</last_file>
+            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
+            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
+            <last_file>D:\tmp\iimn comp.mzmine</last_file>
         </parameter>
         <parameter name="Project type">Standalone (large/flexible)</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.io.projectload.ProjectLoadModule" module_name="Open project..." parameter_version="1">
         <parameter name="Project file">
-            <current_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
-            <last_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
+            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
+            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
         </parameter>
         <parameter name="Merge onto existing">false</parameter>
         <parameter name="Keep current spectral libraries">false</parameter>
@@ -1177,7 +1193,7 @@
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Row selection">all_major_ions</parameter>
         <parameter name="Filename">
-            <current_file relative_path="..\expected_results_project.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</current_file>
+            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</current_file>
             <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</last_file>
         </parameter>
         <parameter name="Field separator">,</parameter>

@@ -31,7 +31,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OrderParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -46,8 +46,8 @@ public class SpectraIdentificationCustomDatabaseParameters extends SimpleParamet
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
       "Name of file that contains information for peak identification", FileSelectionType.OPEN);
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file", ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forReading(
+      "Character used to separate fields in the database file. Auto detect determines the separator from the file itself.");
 
   public static final OrderParameter<FieldItem> fieldOrder =
       new OrderParameter<FieldItem>("Field order",

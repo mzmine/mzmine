@@ -760,12 +760,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     extractSumSpectrumFromMobScans.visibleProperty().bind(hasIonMobilityData);
     extractSumSpectrumFromMobScans.setOnAction(e -> {
       Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
-          ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
+          ((IonMobilogramTimeSeries) selectedOrBestFeature.getFeatureData()).getSummedMobilogram());
       if (fwhm != null) {
-        MergedMassSpectrum spectrum = SpectraMerging.extractSummedMobilityScan(selectedFeature,
+        MergedMassSpectrum spectrum = SpectraMerging.extractSummedMobilityScan(
+            selectedOrBestFeature,
             SpectraMerging.defaultMs1MergeTol, fwhm, null);
-        SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(), spectrum,
-            selectedFeature);
+        SpectraVisualizerModule.addNewSpectrumTab(selectedOrBestFeature.getRawDataFile(), spectrum,
+            selectedOrBestFeature);
       }
     });
 

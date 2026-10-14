@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DIAImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
@@ -56,6 +57,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.DiaFr
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.PrmFrameTargetTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFCalibrationInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
@@ -72,6 +74,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
@@ -107,6 +111,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   private File tdf, tdfBin;
   private String rawDataFileName;
   private TDFMetaDataTable metaDataTable;
+  private TDFCalibrationInfoTable calibrationInfoTable;
   private TDFFrameTable frameTable;
   private TDFPrecursorTable precursorTable;
   private TDFPasefFrameMsMsInfoTable pasefFrameMsMsInfoTable;
@@ -230,6 +235,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     }
 
     metaDataTable = new TDFMetaDataTable();
+    calibrationInfoTable = new TDFCalibrationInfoTable();
     frameTable = new TDFFrameTable();
     precursorTable = new TDFPrecursorTable();
     pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
@@ -256,6 +262,9 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     }
 
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+    metaDataTable.applyToFileMetadata(newMZmineFile.getFileMetadata());
+    calibrationInfoTable.applyToFileMetadata(newMZmineFile.getFileMetadata(),
+        frameTable.getPolarityColumn(), true);
 
     rawDataFileName = tdfBin.getParentFile().getName();
     synchronized (org.sqlite.JDBC.class) {
@@ -344,6 +353,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
       assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
       assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
+      newMZmineFile.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.BRUKER_TDF);
+      RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
 
     } catch (RuntimeException e) {
       error("Error importing file %s. %s".formatted(fileNameToOpen.getName(), e.getMessage()), e);
@@ -390,6 +401,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
         setDescription("Reading metadata for " + tdf.getName());
         metaDataTable.executeQuery(connection);
+        calibrationInfoTable.executeQuery(connection);
 
         setDescription("Reading frame data for " + tdf.getName());
         frameTable.executeQuery(connection);

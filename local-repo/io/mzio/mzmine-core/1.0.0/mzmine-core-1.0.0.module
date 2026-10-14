@@ -27,11 +27,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 14380,
-          "sha512": "97e41153cebbe8e18f8a106ced534a35b9958ad28549f574548151cfdba2cff2274b1c35ba9470c80d0dd2eb34d6bad15e8c81b60091e209edc715098a40949a",
-          "sha256": "75c361d41a491d1effb60ea6b6f7646154116da921ff287d89d2b61a9ee7d44f",
-          "sha1": "b6ac19c5b8427a715346bf97ab22222da92fd7a3",
-          "md5": "5d2638f9fddf194c495eeb7150b1b920"
+          "size": 15214,
+          "sha512": "fc52794963a17980fcd2a1c0fb291cab01057a30b4ca32b3ae9e26747b7f03869c8e49f53a483fd077d4de7243c03643afe1bbf30a19cfad96a5c33eb158c3f2",
+          "sha256": "1b2680f9b5134dd04f03dd020434ae6853519dbae569dd141bdba59f834dac57",
+          "sha1": "3ea80bbbfbb6e85d1fb861bf7828637ab8eb54de",
+          "md5": "5c44e1744dc76d6c33ede57c3bf608aa"
         }
       ]
     },
@@ -56,7 +56,7 @@
           "group": "org.controlsfx",
           "module": "controlsfx",
           "version": {
-            "requires": "11.2.2"
+            "requires": "11.2.4"
           }
         },
         {
@@ -116,42 +116,42 @@
           "group": "org.openjfx",
           "module": "javafx-base",
           "version": {
-            "requires": "24"
+            "requires": "26"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-graphics",
           "version": {
-            "requires": "24"
+            "requires": "26"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-controls",
           "version": {
-            "requires": "24"
+            "requires": "26"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-fxml",
           "version": {
-            "requires": "24"
+            "requires": "26"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-swing",
           "version": {
-            "requires": "24"
+            "requires": "26"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-web",
           "version": {
-            "requires": "24"
+            "requires": "26"
           }
         }
       ],
@@ -159,11 +159,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 14380,
-          "sha512": "97e41153cebbe8e18f8a106ced534a35b9958ad28549f574548151cfdba2cff2274b1c35ba9470c80d0dd2eb34d6bad15e8c81b60091e209edc715098a40949a",
-          "sha256": "75c361d41a491d1effb60ea6b6f7646154116da921ff287d89d2b61a9ee7d44f",
-          "sha1": "b6ac19c5b8427a715346bf97ab22222da92fd7a3",
-          "md5": "5d2638f9fddf194c495eeb7150b1b920"
+          "size": 15214,
+          "sha512": "fc52794963a17980fcd2a1c0fb291cab01057a30b4ca32b3ae9e26747b7f03869c8e49f53a483fd077d4de7243c03643afe1bbf30a19cfad96a5c33eb158c3f2",
+          "sha256": "1b2680f9b5134dd04f03dd020434ae6853519dbae569dd141bdba59f834dac57",
+          "sha1": "3ea80bbbfbb6e85d1fb861bf7828637ab8eb54de",
+          "md5": "5c44e1744dc76d6c33ede57c3bf608aa"
         }
       ]
     }

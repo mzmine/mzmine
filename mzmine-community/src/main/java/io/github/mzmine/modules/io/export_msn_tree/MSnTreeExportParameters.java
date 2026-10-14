@@ -39,7 +39,8 @@ package io.github.mzmine.modules.io.export_msn_tree;
 
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -53,8 +54,9 @@ public class MSnTreeExportParameters extends SimpleParameterSet {
       "Tolerance for building MSn trees to pair MSn on each level", 0.001, 5);
   public static final RawDataFilesParameter RAW_FILES = new RawDataFilesParameter();
 
-  public static final StringParameter SEPARATOR = new StringParameter("Separator",
-      "Separator used in tabular data file", "\t");
+  public static final FieldSeparatorParameter SEPARATOR = FieldSeparatorParameter.forWriting(
+      "Separator", "Character used to separate the columns of the exported file.",
+      FieldSeparator.TAB);
   private static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("tab separated file", "*.tsv"), //
       new ExtensionFilter("comma separated file", "*.csv") //

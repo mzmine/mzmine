@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,6 +54,7 @@ public class PeakRenderer extends XYBarRenderer {
   public PeakRenderer(Color color, boolean isTransparent) {
 
     this.isTransparent = isTransparent;
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
 
     // Set painting color
     setDefaultPaint(color);
@@ -68,8 +69,6 @@ public class PeakRenderer extends XYBarRenderer {
     // We want to paint the peaks using simple color without any gradient
     // effects
     setBarPainter(new StandardXYBarPainter());
-
-    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,
