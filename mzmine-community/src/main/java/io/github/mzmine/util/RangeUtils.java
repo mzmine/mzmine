@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.util;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.util.maths.ArithmeticUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.math.BigDecimal;
@@ -168,7 +169,7 @@ public class RangeUtils {
   }
 
   public static <N extends Number & Comparable<?>> N rangeLength(SimpleRange<N> range) {
-    return ArithmeticUtils.subtract(range.upperBound(), range.lowerBound());
+    return range.length();
   }
 
   /**
@@ -178,8 +179,20 @@ public class RangeUtils {
    * @return Range center
    */
   public static <N extends Number & Comparable<N>> N rangeCenter(Range<N> range) {
-    return ArithmeticUtils.divide(ArithmeticUtils.add(range.upperEndpoint(), range.lowerEndpoint()),
+    N lower = range.lowerEndpoint();
+    N halfDiff = ArithmeticUtils.divide(ArithmeticUtils.subtract(range.upperEndpoint(), lower),
         (N) (Number) 2.0f);
+    return ArithmeticUtils.add(lower, halfDiff);
+  }
+
+  /**
+   * Returns central value of the given range. i.e. [a..b] -> [a + b] / 2
+   *
+   * @param range Range
+   * @return Range center
+   */
+  public static double rangeCenter(SimpleDoubleRange range) {
+    return range.lower() + (range.upper() - range.lower()) / 2.0;
   }
 
   /**

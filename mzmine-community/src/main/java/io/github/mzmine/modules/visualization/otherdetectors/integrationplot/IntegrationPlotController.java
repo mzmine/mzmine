@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -144,19 +143,16 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   void onAbortPressed() {
-    logger.finest("Abort integration pressed");
     clearIntegration();
   }
 
   private void clearIntegration() {
-    logger.finest("Clearing integration");
     model.setState(State.NOT_INTEGRATING);
     model.setCurrentStartTime(null);
     model.setCurrentEndTime(null);
   }
 
   void onEditPressed() {
-    logger.finest("Edit feature pressed");
     final IntensityTimeSeries feature = model.getSelectedFeature();
     assert feature != null;
     model.getIntegratedFeatures().remove(feature);

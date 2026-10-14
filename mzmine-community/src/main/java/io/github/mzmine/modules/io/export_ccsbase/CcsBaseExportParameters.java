@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,7 +54,9 @@ public class CcsBaseExportParameters extends SimpleParameterSet {
           "stepped field, calibrated with Agilent tune mix", "stepped-field"));
 
   public CcsBaseExportParameters() {
-    super(flists, file, fallbackMoleculeInfo, calibrationMethod);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io_export_ccsbase/ccsbase_export.html",
+        flists, file, fallbackMoleculeInfo, calibrationMethod);
   }
 
   @Override

@@ -27,6 +27,8 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
 import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirementParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
@@ -43,7 +45,6 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -101,9 +102,8 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
     }
   }
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the standard compounds file. Use '\\t' for tab separated files.",
-      ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forReading(
+      "Character used to separate fields in the standard compounds file. Auto detect determines the separator from the file itself.");
 
   private static final List<ImportType<?>> importTypes = List.of(
       new ImportType<>(true, "mz", new PrecursorMZType()), //
@@ -188,7 +188,8 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       final @NotNull List<SampleType> selectedSampleTypes,
       final @NotNull StandardUsageType selectedStandardUsageType,
       final double selectedMzVsRtBalance, final @NotNull File selectedStandardCompoundsFile,
-      final @NotNull String selectedFieldSeparator, final @NotNull MZTolerance selectedMzTolerance,
+      final @NotNull FieldSeparator selectedFieldSeparator,
+      final @NotNull MZTolerance selectedMzTolerance,
       final @NotNull RTTolerance selectedRtTolerance,
       final @NotNull MobilityTolerance selectedMobilityTolerance,
       final @NotNull StandardCompoundNormalizationMode selectedMode) {
@@ -201,7 +202,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       final @NotNull List<SampleType> selectedSampleTypes,
       final @NotNull StandardUsageType selectedStandardUsageType,
       final double selectedMzVsRtBalance, final @NotNull File selectedStandardCompoundsFile,
-      final @NotNull String selectedFieldSeparator,
+      final @NotNull FieldSeparator selectedFieldSeparator,
       final @NotNull List<ImportType<?>> selectedStandardCompounds,
       final @NotNull MZTolerance selectedMzTolerance,
       final @NotNull RTTolerance selectedRtTolerance,

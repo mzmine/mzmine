@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -38,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.List;
+import java.util.Map;
 
 public class FragmentGraphCalcParameters extends SimpleParameterSet {
 
@@ -76,5 +78,13 @@ public class FragmentGraphCalcParameters extends SimpleParameterSet {
   public FragmentGraphCalcParameters() {
     super(ms1Tolerance, ms2Tolerance, ms2SignalFilter, elements, maximumFormulae, heuristicParams,
         polarity, allowedIons);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    // IonLibraryParameter#cloneParameter used to drop the custom name, old xml uses default name
+    map.put(IonLibraryParameter.DEFAULT_NAME, getParameter(allowedIons));
+    return map;
   }
 }

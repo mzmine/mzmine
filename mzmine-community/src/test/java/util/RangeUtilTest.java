@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,7 +60,15 @@ public class RangeUtilTest {
     Assertions.assertTrue(SimpleRange.ofDouble(Range.all()).contains(-Double.MAX_VALUE));
     Assertions.assertTrue(SimpleRange.ofDouble(Range.all()).contains(Double.MAX_VALUE));
 
-    // todo: make these work
+    // the SimpleRange overload saturates instead of overflowing, see SimpleRangeTest
+    Assertions.assertEquals(Double.MAX_VALUE,
+        RangeUtils.rangeLength(SimpleRange.ofDouble(Range.all())));
+    Assertions.assertEquals(Float.MAX_VALUE,
+        RangeUtils.rangeLength(SimpleRange.ofFloat(Range.all())));
+    Assertions.assertEquals(Integer.MAX_VALUE,
+        RangeUtils.rangeLength(SimpleRange.ofInteger(Range.all())));
+
+    // todo: the guava Range overload still overflows to infinity and throws on unbounded ranges
 //    Assertions.assertEquals(Double.MAX_VALUE,
 //        RangeUtils.rangeLength(SimpleRange.ofDouble(Range.all()).guava()));
 

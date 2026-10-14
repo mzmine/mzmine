@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -513,7 +513,8 @@ class AutoLibraryParserTest {
         thirdEntry.getAsString(DBEntryField.PRINCIPAL_INVESTIGATOR).orElse(null));
     assertEquals("MX_UC_1333_p17_E08_6.raw",
         thirdEntry.getAsString(DBEntryField.FILENAME).orElse(null));
-    assertEquals("$:00in-source", thirdEntry.getAsString(DBEntryField.SYNONYMS).orElse(null));
+    Assertions.assertEquals(List.of("$:00in-source"),
+        thirdEntry.getField(DBEntryField.SYNONYMS).orElse(null));
     assertEquals("direct injection", thirdEntry.getAsString(DBEntryField.ION_SOURCE).orElse(null));
 
     // Verify exact number of data points matches num peaks
@@ -666,8 +667,9 @@ class AutoLibraryParserTest {
     // Second entry - Pyrophen (LC-ESI-ITFT MS2)
     final SpectralLibraryEntry secondEntry = entries.get(1);
     assertEquals("Pyrophen", secondEntry.getAsString(DBEntryField.NAME).orElse(null));
-    assertEquals("N-[(1S)-1-(4-methoxy-6-oxopyran-2-yl)-2-phenylethyl]acetamide",
-        secondEntry.getAsString(DBEntryField.SYNONYMS).orElse(null));
+    Assertions.assertEquals(
+        List.of("N-[(1S)-1-(4-methoxy-6-oxopyran-2-yl)-2-phenylethyl]acetamide"),
+        secondEntry.getField(DBEntryField.SYNONYMS).orElse(null));
     assertEquals("MSBNK-AAFC-AC000854",
         secondEntry.getAsString(DBEntryField.ENTRY_ID).orElse(null));
     assertEquals("VFMQMACUYWGDOJ-AWEZNQCLSA-N",
@@ -697,8 +699,8 @@ class AutoLibraryParserTest {
     // Third entry - Benzyl butyl phthalate (LC-ESI-QFT MS2)
     final SpectralLibraryEntry thirdEntry = entries.get(2);
     assertEquals("Benzyl butyl phthalate", thirdEntry.getAsString(DBEntryField.NAME).orElse(null));
-    assertEquals("2-O-benzyl 1-O-butyl benzene-1,2-dicarboxylate",
-        thirdEntry.getAsString(DBEntryField.SYNONYMS).orElse(null));
+    Assertions.assertEquals(List.of("2-O-benzyl 1-O-butyl benzene-1,2-dicarboxylate"),
+        thirdEntry.getField(DBEntryField.SYNONYMS).orElse(null));
     assertEquals("MSBNK-CASMI_2016-SM836901",
         thirdEntry.getAsString(DBEntryField.ENTRY_ID).orElse(null));
     assertEquals("IRIAEXORFWYRCZ-UHFFFAOYSA-N",

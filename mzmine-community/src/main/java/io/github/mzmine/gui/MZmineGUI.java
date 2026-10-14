@@ -54,7 +54,6 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.StartupSplash;
-import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
@@ -84,6 +83,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
 import io.mzio.mzmine.gui.workspace.Workspace;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
+import io.mzio.mzmine.startup.MZmineExit;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
@@ -180,9 +180,9 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
       if (DialogLoggerUtil.showDialogYesNo("Exit mzmine", "Are you sure you want to exit?")) {
         // Quit the JavaFX thread
         Platform.exit();
-        // Call System.exit() because there are probably some background
+        // Call MZmineExit.exit() because there are probably some background
         // threads still running
-        System.exit(0);
+        MZmineExit.exit(0);
       }
     });
   }
@@ -672,11 +672,6 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
 
     // check user in gui mode and show message now
     MZmineCore.checkUserRemainingDays(CurrentUserService.getUser());
-
-    // register shutdown hook only if we have GUI - we don't want to
-    // save configuration on exit if we only run a batch
-    Runtime.getRuntime().addShutdownHook(new ShutDownHook());
-    Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
   }
 
   private static void autoUpdatePreferencesByStageWindowSettings(Stage stage) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -350,6 +350,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     renderer.setDefaultItemLabelGenerator(new SimpleXYLabelGenerator(chart));
     renderer.setDefaultToolTipGenerator(new SimpleToolTipGenerator());
+    // use the theme's item label paint so labels stay legible in dark themes
+    renderer.setDefaultItemLabelPaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
     return renderer;
   }
 

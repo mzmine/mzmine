@@ -126,8 +126,7 @@ public class MatchedSignalsPane extends DashboardComputationPane {
     if (scans.isEmpty()) {
       return null;
     }
-    return scans.stream().max(Comparator.comparingDouble(scan -> scan.getTIC() == null ? 0d
-        : scan.getTIC())).orElse(scans.getFirst());
+    return scans.stream().max(Comparator.comparingDouble(Scan::getTIC)).orElse(scans.getFirst());
   }
 
 }

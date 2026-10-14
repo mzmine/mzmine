@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,9 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
@@ -117,8 +120,8 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         .getValue();
     featureListFile = parameters.getParameter(TargetedFeatureDetectionParameters.featureListFile)
         .getValue();
-    fieldSeparator = parameters.getParameter(TargetedFeatureDetectionParameters.fieldSeparator)
-        .getValue();
+    fieldSeparator = parameters.getValue(TargetedFeatureDetectionParameters.fieldSeparator)
+        .separator();
     intTolerance = parameters.getParameter(TargetedFeatureDetectionParameters.intTolerance)
         .getValue();
     mzTolerance = parameters.getParameter(TargetedFeatureDetectionParameters.mzTolerance)
@@ -238,9 +241,10 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
           ID++);
       final OverlappingCompoundAnnotation mergedAnnotation = mergedAnnotations.get(row);
 
-      final Range<Double> mzRange = mzTolerance.getToleranceRange(
+      final SimpleDoubleRange mzRange = mzTolerance.getSimpleToleranceRange(
           mergedAnnotation.evaluateMergedToleranceRange(mzTolerance));
-      final Range<Float> rtRange = mergedAnnotation.evaluateMergedRtToleranceRange(rtTolerance);
+      final SimpleFloatRange rtRange = SimpleRange.ofFloat(
+          mergedAnnotation.evaluateMergedRtToleranceRange(rtTolerance));
       final Range<Float> mobRange = mergedAnnotation.evaluateMergedMobilityToleranceRange(mobTol);
 
       newRow.setCompoundAnnotations(mergedAnnotation.getAnnotations());

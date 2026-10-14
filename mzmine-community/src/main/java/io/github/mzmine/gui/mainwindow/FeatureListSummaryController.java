@@ -30,12 +30,15 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.PlaceholderModule;
 import io.github.mzmine.parameters.Parameter;
@@ -51,7 +54,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.util.ExitCode;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,40 +62,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureListSummaryController {
+public class FeatureListSummaryController extends FxController<FeatureListSummaryModel> {
 
   private static final Logger logger = Logger.getLogger(
       FeatureListSummaryController.class.getName());
 
-  @FXML
-  public TextField tfNumRows;
-  @FXML
-  public TextField tfNumAnnotated;
-  @FXML
-  public Label lbNumAnnotated;
-  @FXML
-  public TextField tfCreated;
-  @FXML
-  public ListView<FeatureListAppliedMethod> lvAppliedMethods;
-  @FXML
-  public TextArea tvParameterValues;
-  @FXML
-  public Label lbFeatureListName;
-  @FXML
-  public Button btnOpenInBatchQueue;
-  @FXML
-  public Button exportfeature;
+  private final FeatureListSummaryViewBuilder viewBuilder;
+
+  public FeatureListSummaryController() {
+    super(new FeatureListSummaryModel());
+    viewBuilder = new FeatureListSummaryViewBuilder(model, this::setFeatureListPreferences,
+        this::setAsBatchQueue, this::exportRecord);
+  }
 
   public static String parameterToString(Parameter<?> parameter, @Nullable String prefix) {
     String name = parameter.getName();
@@ -126,40 +111,63 @@ public class FeatureListSummaryController {
     return sb.toString();
   }
 
-  @FXML
-  public void initialize() {
-
-    lvAppliedMethods.getSelectionModel().selectedItemProperty()
-        .addListener((observable, oldValue, newValue) -> {
-          tvParameterValues.clear();
-
-          if (newValue == null) {
-            return;
-          }
-
-          tvParameterValues.appendText(newValue.toString());
-          tvParameterValues.appendText("\n");
-          tvParameterValues.appendText(newValue.getDescription());
-          tvParameterValues.appendText("\n");
-          for (Parameter<?> parameter : newValue.getParameters().getParameters()) {
-            tvParameterValues.appendText(parameterToString(parameter, null));
-            tvParameterValues.appendText("\n");
-          }
-        });
+  @Override
+  protected @NotNull FxViewBuilder<FeatureListSummaryModel> getViewBuilder() {
+    return viewBuilder;
   }
 
   public void setFeatureList(@Nullable ModularFeatureList featureList) {
-    clear();
+    onGuiThread(() -> {
+      clearModel();
+      if (featureList == null) {
+        return;
+      }
 
-    if (featureList == null) {
-      return;
-    }
+      model.setFeatureList(featureList);
+      model.setTitle(featureList.getName());
+      model.setNumRowsLabel("Number of Rows");
+      model.setNumRows(String.valueOf(featureList.getNumberOfRows()));
+      model.setNumAnnotatedLabel("Annotated rows");
+      model.setNumAnnotated(String.valueOf(countAnnotatedRows(featureList)));
+      model.setCreatedLabel("Date created");
+      model.setCreated(featureList.getDateCreated());
+      model.getAppliedMethods().setAll(featureList.getAppliedMethods());
+    });
+  }
 
-    lbFeatureListName.setText(featureList.getName());
-    tfNumRows.setText(String.valueOf(featureList.getNumberOfRows()));
-    tfNumAnnotated.setText(String.valueOf(countAnnotatedRows(featureList)));
-    tfCreated.setText(featureList.getDateCreated());
-    lvAppliedMethods.setItems(featureList.getAppliedMethods());
+  public void setRawDataFile(@Nullable RawDataFile file) {
+    onGuiThread(() -> {
+      clearModel();
+      if (file == null) {
+        return;
+      }
+
+      model.setTitle(file.getName());
+      model.setNumRowsLabel("Number of scans");
+      model.setNumRows(String.valueOf(file.getNumOfScans()));
+      model.setNumAnnotatedLabel("Number of MSn scans");
+      model.setNumAnnotated(String.valueOf(countMsnScans(file)));
+      model.setCreatedLabel("File path");
+      model.setCreated(file.getAbsolutePath());
+      model.getAppliedMethods().setAll(file.getAppliedMethods());
+    });
+  }
+
+  public void clear() {
+    onGuiThread(this::clearModel);
+  }
+
+  private void clearModel() {
+    // preferences only apply to a feature list, not to a raw data file summary
+    model.setFeatureList(null);
+    model.setTitle("None selected");
+    model.setNumRowsLabel("Number of Rows");
+    model.setNumRows("");
+    model.setNumAnnotatedLabel("Annotated rows");
+    model.setNumAnnotated("");
+    model.setCreatedLabel("Date created");
+    model.setCreated("");
+    model.getAppliedMethods().clear();
   }
 
   /**
@@ -170,34 +178,32 @@ public class FeatureListSummaryController {
     return featureList.getRows().stream().filter(FeatureListRow::isIdentified).count();
   }
 
-  public void setRawDataFile(@Nullable RawDataFile file) {
-    clear();
-    if (file == null) {
+  /**
+   * @return the number of MSn scans (MS level > 1) in the raw data file.
+   */
+  private long countMsnScans(@NotNull RawDataFile file) {
+    return file.stream().filter(scan -> scan.getMSLevel() > 1).count();
+  }
+
+  /**
+   * Opens the same setup dialog as the feature list context menu, preloaded with the preferences of
+   * the shown feature list.
+   */
+  void setFeatureListPreferences() {
+    final ModularFeatureList featureList = model.getFeatureList();
+    if (featureList == null) {
       return;
     }
-
-    lbFeatureListName.setText(file.getName());
-    tfNumRows.setText(String.valueOf(file.getNumOfScans()));
-    tfCreated.setText(file.getAbsolutePath());
-    lvAppliedMethods.setItems(file.getAppliedMethods());
+    FeatureListPreferencesModule.showSetupAndApply(List.of(featureList));
   }
 
-  public void clear() {
-    lbFeatureListName.setText("None selected");
-    tfNumRows.setText("");
-    tfNumAnnotated.setText("");
-    tfCreated.setText("");
-    lvAppliedMethods.getItems().clear();
-    tvParameterValues.setText("");
-  }
-
-  @FXML
   void setAsBatchQueue() {
 
     BatchQueue queue = new BatchQueue();
 
     List<String> warnings = new ArrayList<>();
-    for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+    final List<FeatureListAppliedMethod> appliedMethods = model.getAppliedMethods();
+    for (FeatureListAppliedMethod item : appliedMethods) {
       if (item == null) {
         logger.info("Skipping module ???, cannot find module class. Was it renamed?");
         continue;
@@ -216,12 +222,12 @@ public class FeatureListSummaryController {
               Module at position %d (%s - %s) does not exist in this mzmine version.
               It may have been replaced by a newer version. Reproducing the previous results with \
               this batch requires manual addition of the replacement module.""".formatted(
-              lvAppliedMethods.getItems().indexOf(item), item.toString(), item.getDescription()));
+              appliedMethods.indexOf(item), item.toString(), item.getDescription()));
         } else {
           warnings.add("""
               Module at position %d (%s) cannot be executed in batch mode.
               Executing this batch will not lead to exactly the same results.
-              """.formatted(lvAppliedMethods.getItems().indexOf(item)));
+              """.formatted(appliedMethods.indexOf(item), item.getModule().getName()));
         }
       }
     }
@@ -265,9 +271,8 @@ public class FeatureListSummaryController {
     }
   }
 
-  @FXML
-    //Export Record
-  void exportRecord() throws IOException {
+  //Export Record
+  void exportRecord() {
     boolean result = DialogLoggerUtil.showDialogYesNo("Export Feature Summary?",
         "Export Feature Summary List\nDo you wish to continue?");
     if (!result) {
@@ -282,7 +287,7 @@ public class FeatureListSummaryController {
     try {
       BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
       PrintWriter pw = new PrintWriter(writer);
-      for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+      for (FeatureListAppliedMethod item : model.getAppliedMethods()) {
         String sb = item.getDescription();
         //StringBuilder sb = new StringBuilder(item.getDescription());
         pw.println(sb);

@@ -2010,19 +2010,6 @@
             ]
         },
         {
-            "moduleName": "net.sourceforge.jmol:jmol",
-            "moduleVersion": "14.31.10",
-            "moduleUrls": [
-                "http://jmol.sourceforge.net/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                }
-            ]
-        },
-        {
             "moduleName": "org.apache.commons:commons-collections4",
             "moduleVersion": "4.4",
             "moduleUrls": [
@@ -2590,23 +2577,6 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.eclipse.parsson:jakarta.json",
-            "moduleVersion": "1.1.0",
-            "moduleUrls": [
-                "https://www.eclipse.org"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Eclipse Public License - v 2.0",
-                    "moduleLicenseUrl": "https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
                 }
             ]
         },

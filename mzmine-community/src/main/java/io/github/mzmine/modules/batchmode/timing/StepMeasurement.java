@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,5 +53,17 @@ public record StepMeasurement(int step, String name, double secondsToFinish,
     this(time.step(), time.name(), time.secondsToFinish(), time.usedHeapGB(),
         storage.filesCreatedInStep(), storage.reservedGBInStep(), storage.usedGBInStep(),
         storage.liveFiles(), storage.liveUsedGB());
+  }
+
+  /**
+   * Single line summary of timing, heap and temp file usage, used when logging a step directly
+   * after it finished.
+   */
+  @Override
+  public String toString() {
+    final String heap = usedHeapGB == null ? "" : ", used heap: %s GB".formatted(usedHeapGB);
+    return "Step %d: %s took %.3f seconds%s; temp files created: %d (reserved %.3f GB, used %.3f GB); live: %d files / %.3f GB".formatted(
+        step, name, secondsToFinish, heap, tempFilesCreated, reservedTempFileGB, usedTempFileGB,
+        liveTempFiles, liveTempFileUsedGB);
   }
 }

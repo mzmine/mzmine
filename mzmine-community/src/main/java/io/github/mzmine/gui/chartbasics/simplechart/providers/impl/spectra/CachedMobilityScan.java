@@ -136,9 +136,8 @@ public class CachedMobilityScan implements MobilityScan {
     return originalMobilityScan.getDataPointMZRange();
   }
 
-  @Nullable
   @Override
-  public Double getTIC() {
+  public double getTIC() {
     return tic;
   }
 

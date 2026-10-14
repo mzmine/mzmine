@@ -58,6 +58,29 @@ public enum WizardPart {
     };
   }
 
+  public String caption() {
+    return switch (this) {
+      case ION_INTERFACE -> "Sample introduction";
+      case IMS -> "Ion mobility";
+      case MS -> "Mass spectrometer";
+      default -> this.toString();
+    };
+  }
+
+  public String tooltip() {
+    return switch (this) {
+      case ION_INTERFACE ->
+          "How the sample is introduced to the mass analyzer, e.g. HPLC, MALDI, or GC?";
+      case DATA_IMPORT -> "The raw MS data files that shall be imported and processed.";
+      case MS -> "The type of mass spectrometer used for this analysis.";
+      case FILTER -> "Additional filtering steps for this dataset.";
+      case IMS -> "Select if and which ion mobility analyzer was used.";
+      case WORKFLOW -> "Select the mzmine workflow for this dataset.";
+      case ANNOTATION -> "Select the annotation steps, e.g. libraries you want to use.";
+      case CUSTOMIZATION -> "Additional advanced customization for this wizard.";
+    };
+  }
+
   /**
    * 1 String for parts with only one preset. Parts with more presets are managed by an
    * {@link Enum}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntrySorter;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -87,10 +88,13 @@ public class SortSpectralMatchesTask extends AbstractTask {
       return;
     }
 
-    // reversed order: by similarity score
+    // reversed order: by similarity score. Equal scores are broken by the entry itself, otherwise
+    // the winning annotation would depend on the order the library import tasks happened to finish
     matches = matches.stream()
-        .filter(m -> !filterMinSimilarity || m.getSimilarity().getScore() >= minScore)
-        .sorted(Comparator.comparingDouble(SpectralDBAnnotation::getScore).reversed())
+        .filter(m -> !filterMinSimilarity || m.getSimilarity().getScore() >= minScore).sorted(
+            Comparator.comparingDouble(SpectralDBAnnotation::getScore).reversed()
+                .thenComparing(SpectralDBAnnotation::getEntry,
+                    SpectralLibraryEntrySorter.DETERMINISTIC))
         .collect(Collectors.toList());
 
     // set sorted list, caching of isotope pattern and other properties is called in row

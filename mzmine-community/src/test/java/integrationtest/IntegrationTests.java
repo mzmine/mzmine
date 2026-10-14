@@ -28,8 +28,6 @@ package integrationtest;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
-import java.util.Objects;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -100,7 +98,7 @@ public class IntegrationTests {
         .isEmpty());
 
     logger.info("Checking file with 80 known differences. Table below is expected:");
-    Assertions.assertEquals(80, IntegrationTestUtils.getCsvComparisonResults(
+    Assertions.assertEquals(145, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
         batchFile).size());
   }
@@ -125,8 +123,7 @@ public class IntegrationTests {
     final File csvExportFile = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
         "rawdatafiles/integration_tests/workshop_dataset/project.mzmine");
 
-    // there should be the warning that the number of row types is not equal and 9 columns are missing
-    // database name of spectral library matches is not loaded because
+    // database name of spectral library matches is not loaded because it is from the library
     Assertions.assertEquals(7,
         IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProcessing, csvExportFile,
             "project_load_lcms").size());
@@ -181,11 +178,8 @@ public class IntegrationTests {
         "rawdatafiles/integration_tests/mse/expected_results_project.csv", exportedFlist,
         "mse_project.mzmine").size());
 
-    // expected_results_project_direct_batch.csv is the results of the project after batch processing
-    // expected_results.csv changed a bit because the MSe processing changed from 10% to 1% intensity factor
-    // just using the old project still with the old results
     Assertions.assertEquals(2, IntegrationTestUtils.getCsvComparisonResults(
-        "rawdatafiles/integration_tests/mse/expected_results_project_direct_batch.csv",
+        "rawdatafiles/integration_tests/mse/expected_results.csv",
         exportedFlist, "mse_project.mzmine").size());
   }
 

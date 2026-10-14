@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,12 +30,16 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.modules.dataprocessing.featdet_manualintegration.ManualIntegrationEntry;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.BooleanProperty;
@@ -89,6 +93,10 @@ public class IntegrationDashboardModel {
   private final NumberBinding cellsPerPage = gridNumColumns.multiply(gridNumRows);
   private final NumberBinding numPages = featureDataEntries.sizeProperty().divide(cellsPerPage)
       .add(1);
+
+  // accumulates all manual integrations of the current session, keyed by row id then raw file, so
+  // they can be committed as a single reproducible applied method. iteration order = insertion order.
+  private final Map<Integer, Map<RawDataFile, ManualIntegrationEntry>> manualIntegrations = new LinkedHashMap<>();
 
   public int getGridNumColumns() {
     return gridNumColumns.get();
@@ -316,5 +324,31 @@ public class IntegrationDashboardModel {
 
   public ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty() {
     return cursorPosition;
+  }
+
+  /**
+   * Records a manual integration for the given row and file. A later integration of the same
+   * row+file replaces the earlier one, so the accumulated set always reflects the latest state.
+   */
+  public void putManualIntegration(int rowId, @NotNull RawDataFile file,
+      @NotNull ManualIntegrationEntry entry) {
+    manualIntegrations.computeIfAbsent(rowId, _ -> new LinkedHashMap<>()).put(file, entry);
+  }
+
+  /**
+   * @return all manual integrations accumulated in this session, in insertion order.
+   */
+  public @NotNull List<ManualIntegrationEntry> getManualIntegrations() {
+    final List<ManualIntegrationEntry> all = new ArrayList<>();
+    manualIntegrations.values().forEach(perFile -> all.addAll(perFile.values()));
+    return all;
+  }
+
+  public boolean hasManualIntegrations() {
+    return !manualIntegrations.isEmpty();
+  }
+
+  public void clearManualIntegrations() {
+    manualIntegrations.clear();
   }
 }

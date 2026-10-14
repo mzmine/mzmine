@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,8 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
@@ -61,6 +63,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedMobilityScan;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -353,14 +356,35 @@ public class ScanUtils {
    */
   @Nullable
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
+    return findBasePeak(scan, SimpleRange.ofDouble(mzRange));
+  }
+
+  /**
+   * Find a base peak of a given scan in a given m/z range
+   *
+   * @param scan    Scan to search
+   * @param mzRange mz range to search in
+   * @return data point containing base peak m/z and intensity
+   */
+  @Nullable
+  public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull SimpleDoubleRange mzRange) {
+    return findBasePeak(scan, mzRange.lower(), mzRange.upper());
+  }
+
+  /**
+   * Find a base peak of a given scan in a given m/z range
+   *
+   * @param scan  Scan to search
+   * @param lower lower mz range
+   * @param upper upper mz range
+   * @return data point containing base peak m/z and intensity
+   */
+  public static DataPoint findBasePeak(@NotNull Scan scan, double lower, double upper) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
-    if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
+    if (scanBasePeakMz != null && lower <= scanBasePeakMz && scanBasePeakMz <= upper) {
       return new SimpleDataPoint(scanBasePeakMz,
           requireNonNullElse(scan.getBasePeakIntensity(), 0d));
     }
-
-    final double lower = mzRange.lowerEndpoint();
-    final double upper = mzRange.upperEndpoint();
 
     boolean found = false;
     double baseMz = 0d;
@@ -2597,16 +2621,33 @@ public class ScanUtils {
 
 
   /**
-   * Integer conversion methods.
+   * How the signals that fall into the same nominal mass are combined by
+   * {@link #integerDataPoints(DataPoint[], IntegerMode)}.
    */
-  public enum IntegerMode {
+  public enum IntegerMode implements UniqueIdSupplier {
 
-    SUM("Merging mode: Sum"), MAX("Merging mode: Maximum");
+    /**
+     * Add up the intensities, so that the nominal mass carries the total of every signal in it.
+     */
+    SUM("Merging mode: Sum"),
+
+    /**
+     * Keep only the most intense signal of the nominal mass.
+     */
+    MAX("Merging mode: Maximum");
 
     private final String intMode;
 
     IntegerMode(String intMode) {
       this.intMode = intMode;
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case SUM -> "sum";
+        case MAX -> "max";
+      };
     }
 
     @Override

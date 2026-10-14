@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,9 +25,13 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import io.github.mzmine.javafx.validation.DecorationTargetProvider;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import java.util.List;
+import java.util.Objects;
+import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * UI pane for customizing batch module parameters. This is the editor component for
@@ -37,7 +42,7 @@ import javafx.scene.layout.BorderPane;
  * {@link ParameterCustomizationModel}) so that the existing
  * {@link io.github.mzmine.parameters.UserParameter} API is preserved.
  */
-public class ParameterCustomizationPane extends BorderPane {
+public class ParameterCustomizationPane extends BorderPane implements DecorationTargetProvider {
 
   private final ParameterCustomizationController controller;
 
@@ -58,5 +63,10 @@ public class ParameterCustomizationPane extends BorderPane {
    */
   public void setParameterOverrides(List<ParameterOverride> overrides) {
     controller.setParameterOverrides(overrides);
+  }
+
+  @Override
+  public @NotNull Node getDecorationTarget() {
+    return Objects.requireNonNullElse(controller.getCachedNodeForDecoration(), this);
   }
 }

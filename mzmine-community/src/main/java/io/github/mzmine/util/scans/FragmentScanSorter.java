@@ -43,7 +43,7 @@ public abstract class FragmentScanSorter {
    * MS1>MS2>MS3 then highest TIC then highest number of data points
    */
   public static final Comparator<Scan> DEFAULT_TIC = comparingInt(Scan::getMSLevel) //
-      .thenComparing(Scan::getTIC, nullsLast(reverseOrder()))
+      .thenComparing(Comparator.comparingDouble(Scan::getTIC).reversed())
       .thenComparing(Scan::getNumberOfDataPoints, reverseOrder());
 
   /**

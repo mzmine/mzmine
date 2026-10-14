@@ -34,6 +34,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomOption;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomValue;
 import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import java.util.Objects;
@@ -170,8 +172,11 @@ public class SampleTypeFilterHeaderColumn extends TreeTableColumn<ModularFeature
         () -> "Redefining RSD sample types of feature list %s to %s".formatted(flist.getName(),
             filter));
 
-    final FeatureListPreferencesParameters parameters = FeatureListPreferencesParameters.fromPreferences(
-        flist.getPreferences().withRsdSampleTypeFilter(filter));
+    // only the sample types are redefined, all other preferences of the list stay as they are
+    final FeatureListPreferencesParameters parameters = FeatureListPreferencesParameters.keepAllAsIs(
+        flist.getPreferences());
+    parameters.setParameter(FeatureListPreferencesParameters.rsdSampleTypes,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.CUSTOM, filter));
     parameters.getParameter(FeatureListPreferencesParameters.flists)
         .setValue(FeatureListsSelectionType.SPECIFIC_FEATURELISTS, new FeatureList[]{flist});
     // run the module instead of setting the preferences directly, so that the applied method is

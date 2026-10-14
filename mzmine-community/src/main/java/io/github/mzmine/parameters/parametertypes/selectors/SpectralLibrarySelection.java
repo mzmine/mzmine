@@ -43,6 +43,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -69,8 +70,11 @@ public class SpectralLibrarySelection {
         libraries.stream().map(SpectralLibrary::getPath).toList());
   }
 
+  /// Sorted to have the same order in all use cases
+  ///
+  /// @return sorted (by name) list of matching libraries
   public List<SpectralLibrary> getMatchingLibraries() {
-    return switch (selectionType) {
+    final List<SpectralLibrary> libraries = switch (selectionType) {
       case ALL_IMPORTED ->
           ProjectService.getProjectManager().getCurrentProject().getCurrentSpectralLibraries()
               .stream().toList();
@@ -83,6 +87,11 @@ public class SpectralLibrarySelection {
         yield List.of();
       }
     };
+
+    final List<SpectralLibrary> sorted = libraries.stream().sorted(
+        Comparator.comparing(SpectralLibrary::getName).thenComparing(SpectralLibrary::getPath,
+            Comparator.nullsLast(Comparator.comparing(File::getAbsolutePath)))).toList();
+    return sorted;
   }
 
   public SpectralLibrarySelectionType getSelectionType() {
@@ -123,7 +132,7 @@ public class SpectralLibrarySelection {
    * Checks if all spectral libraries are available, otherwise ask for import, finally return
    * selected list of libraries.
    *
-   * @return all selected spectral libraries
+   * @return all selected spectral libraries, sorted by name for same order in all use cases
    * @throws SpectralLibrarySelectionException when specific libraries are provided but are not
    *                                           imported (GUI: ask to import, CLI: throw exception).
    */

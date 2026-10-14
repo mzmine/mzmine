@@ -28,6 +28,9 @@ package io.github.mzmine.datamodel.features.preferences;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractRsdType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesDtoParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -52,8 +55,13 @@ import org.w3c.dom.Element;
  */
 public final class FeatureListPreferences {
 
+  public static final @NotNull List<String> DEFAULT_TAG_LABELS = List.of("Tag 1", "Tag 2", "Tag 3",
+      "Tag 4");
+
   // from parameters
   private final @NotNull SampleTypeFilter rsdSampleTypeFilter;
+  private final @NotNull IonTypeRanking ionTypeRanking;
+  private final @NotNull List<String> tagLabels;
 
   // cached fields not from parameters
   /**
@@ -67,15 +75,24 @@ public final class FeatureListPreferences {
   private @Nullable MetadataTable cachedMetadata;
   private long cachedMetadataVersion;
 
-  public FeatureListPreferences(@NotNull final SampleTypeFilter rsdSampleTypeFilter) {
+  public FeatureListPreferences(@NotNull final SampleTypeFilter rsdSampleTypeFilter,
+      @NotNull final IonTypeRanking ionTypeRanking) {
+    this(rsdSampleTypeFilter, ionTypeRanking, DEFAULT_TAG_LABELS);
+  }
+
+  public FeatureListPreferences(@NotNull final SampleTypeFilter rsdSampleTypeFilter,
+      @NotNull final IonTypeRanking ionTypeRanking, @NotNull final List<String> tagLabels) {
     this.rsdSampleTypeFilter = rsdSampleTypeFilter;
+    this.ionTypeRanking = ionTypeRanking;
+    this.tagLabels = List.copyOf(tagLabels);
   }
 
   /**
    * @return the default preferences as created in the {@link FeatureList} constructor
    */
   public static @NotNull FeatureListPreferences createDefault() {
-    return new FeatureListPreferences(SampleTypeFilter.qc());
+    return new FeatureListPreferences(SampleTypeFilter.qc(), IonTypeRanking.createDefault(),
+        DEFAULT_TAG_LABELS);
   }
 
   /**
@@ -83,6 +100,26 @@ public final class FeatureListPreferences {
    */
   public @NotNull SampleTypeFilter getRsdSampleTypeFilter() {
     return rsdSampleTypeFilter;
+  }
+
+  /**
+   * The ranking used to sort the {@link IonIdentity} of a row, best first. All ion identity
+   * networking modules read it from here, see
+   * {@link IonNetworkLogic#sortIonIdentities(FeatureList)}.
+   *
+   * @return the ion type ranking, defaults to {@link IonTypeRanking#createDefault()}
+   */
+  public @NotNull IonTypeRanking getIonTypeRanking() {
+    return ionTypeRanking;
+  }
+
+  /**
+   * The ordered labels of the row tag checkboxes. Their position is the stable identity of a tag.
+   *
+   * @return tooltip labels; the list size defines the number of checkboxes
+   */
+  public @NotNull List<String> getTagLabels() {
+    return tagLabels;
   }
 
   /**
@@ -135,14 +172,22 @@ public final class FeatureListPreferences {
 
   public @NotNull FeatureListPreferences withRsdSampleTypeFilter(
       @NotNull final SampleTypeFilter filter) {
-    return new FeatureListPreferences(filter);
+    return new FeatureListPreferences(filter, ionTypeRanking, tagLabels);
+  }
+
+  public @NotNull FeatureListPreferences withIonTypeRanking(@NotNull final IonTypeRanking ranking) {
+    return new FeatureListPreferences(rsdSampleTypeFilter, ranking, tagLabels);
+  }
+
+  public @NotNull FeatureListPreferences withTagLabels(@NotNull final List<String> labels) {
+    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, labels);
   }
 
   /**
    * @return a copy without the internal cache
    */
   public @NotNull FeatureListPreferences copy() {
-    return new FeatureListPreferences(rsdSampleTypeFilter);
+    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, tagLabels);
   }
 
   public void saveToXML(@NotNull final Element element) {
@@ -173,16 +218,18 @@ public final class FeatureListPreferences {
   @Override
   public boolean equals(final Object o) {
     return o instanceof FeatureListPreferences other && rsdSampleTypeFilter.equals(
-        other.rsdSampleTypeFilter);
+        other.rsdSampleTypeFilter) && ionTypeRanking.equals(other.ionTypeRanking)
+        && tagLabels.equals(other.tagLabels);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(rsdSampleTypeFilter);
+    return Objects.hash(rsdSampleTypeFilter, ionTypeRanking, tagLabels);
   }
 
   @Override
   public String toString() {
-    return "FeatureListPreferences{rsdSampleTypeFilter=" + rsdSampleTypeFilter + '}';
+    return "FeatureListPreferences{rsdSampleTypeFilter=" + rsdSampleTypeFilter + ", ionTypeRanking="
+        + ionTypeRanking + ", tagLabels=" + tagLabels + '}';
   }
 }

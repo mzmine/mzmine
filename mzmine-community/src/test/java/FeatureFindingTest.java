@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,8 +24,10 @@
  */
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Range;
@@ -68,6 +70,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
@@ -224,16 +227,9 @@ public class FeatureFindingTest {
   @DisplayName("Test ADAP chromatogram builder")
   void chromatogramBuilderTest() throws InterruptedException {
 
-    ADAPChromatogramBuilderParameters paramChrom = new ADAPChromatogramBuilderParameters();
-    paramChrom.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.ALL_FILES);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, 4);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
-        new MZTolerance(0.002, 10));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 3E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 1E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
+    ADAPChromatogramBuilderParameters paramChrom = ADAPChromatogramBuilderParameters.create(
+        new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), new ScanSelection(1), 4,
+        new MZTolerance(0.002, 10), chromSuffix, 1E5, 3E5, false);
 
     logger.info("Testing ADAPChromatogramBuilder");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50,
@@ -512,17 +508,17 @@ public class FeatureFindingTest {
     assertEquals(104, processed2.getNumberOfRows());
 
     // has isotope pattern
-    assertNotNull(
-        processed1.streamFeatures().map(Feature::getIsotopePattern).filter(Objects::nonNull)
-            .findFirst().orElse(null), "No isotope pattern");
-    assertNotNull(
-        processed2.streamFeatures().map(Feature::getIsotopePattern).filter(Objects::nonNull)
-            .findFirst().orElse(null), "No isotope pattern");
+    assertNull(processed1.streamFeatures().map(Feature::getIsotopePattern).filter(Objects::nonNull)
+            .findFirst().orElse(null),
+        "isotope pattern should be null, was removed from this step and is now part of isotope finder");
+    assertNull(processed2.streamFeatures().map(Feature::getIsotopePattern).filter(Objects::nonNull)
+            .findFirst().orElse(null),
+        "isotope pattern should be null, was removed from this step and is now part of isotope finder");
 
     // any with charge
-    assertTrue(processed1.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
+    assertFalse(processed1.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
         "No charge detected");
-    assertTrue(processed2.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
+    assertFalse(processed2.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
         "No charge detected");
   }
 

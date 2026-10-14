@@ -112,6 +112,8 @@ public class BatchSpeedTestMain {
 //    String batchFile = property("batch", "D:\\Data\\batch\\test_small_microbes.mzbatch");
     String batchFile = property("batch",
         "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\speedtest_benchmark\\Orbitrap_QE_environmental_DOM_sea_water\\0_dom_250_mzmine4-10-25-factor_speed.mzbatch");
+//    String batchFile = property("batch",
+//        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\speedtest_benchmark\\2026summerschool_drugs\\speedtest_drugs_summerschool26.mzbatch");
 //    List<String> samples = List.of("rawdatafiles/DOM_a.mzML",
 //        "rawdatafiles/DOM_a_invalid_chars.mzML", "rawdatafiles/DOM_a_invalid_header.mzML",
 //        "rawdatafiles/DOM_b.mzXML", "rawdatafiles/DOM_b_invalid_header.mzXML");

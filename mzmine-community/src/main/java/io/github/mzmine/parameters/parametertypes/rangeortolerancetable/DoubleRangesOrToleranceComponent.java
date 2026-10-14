@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,31 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 
-import io.github.mzmine.javafx.components.factories.FxButtons;
-import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
-import java.util.List;
-import java.util.function.Function;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
-import org.jmol.util.C;
 
 public class DoubleRangesOrToleranceComponent<C extends Node> extends RangesOrToleranceComponent<Double, C> {
 

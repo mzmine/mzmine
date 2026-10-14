@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum LocalMaxSmoothingOptions implements ModuleOptionsEnum<MassDetectorPreprocessorModule> {
 
-  NONE, SAVITZKY_GOLAY;
+  NONE, GAUSSIAN, SAVITZKY_GOLAY;
 
   /**
    * Create the configured preprocessor for this option.
@@ -57,6 +57,7 @@ public enum LocalMaxSmoothingOptions implements ModuleOptionsEnum<MassDetectorPr
   public Class<? extends MassDetectorPreprocessorModule> getModuleClass() {
     return switch (this) {
       case NONE -> LocalMaxNoSmoothingModule.class;
+      case GAUSSIAN -> LocalMaxGaussianModule.class;
       case SAVITZKY_GOLAY -> LocalMaxSavitzkyGolayModule.class;
     };
   }
@@ -65,6 +66,7 @@ public enum LocalMaxSmoothingOptions implements ModuleOptionsEnum<MassDetectorPr
   public String toString() {
     return switch (this) {
       case NONE -> "None";
+      case GAUSSIAN -> "Gaussian";
       case SAVITZKY_GOLAY -> "Savitzky-Golay";
     };
   }
@@ -74,6 +76,7 @@ public enum LocalMaxSmoothingOptions implements ModuleOptionsEnum<MassDetectorPr
     // do not change these values for load/save
     return switch (this) {
       case NONE -> "none";
+      case GAUSSIAN -> "gaussian";
       case SAVITZKY_GOLAY -> "savitzky_golay";
     };
   }

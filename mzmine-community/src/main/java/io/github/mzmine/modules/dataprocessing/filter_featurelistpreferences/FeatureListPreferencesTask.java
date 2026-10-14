@@ -28,12 +28,20 @@ package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.TagDataType;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableFilterMenu;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.BitSet;
 import java.util.List;
+import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,10 +65,60 @@ public class FeatureListPreferencesTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final FeatureListPreferences preferences = param.toPreferences();
+    // parameters on KEEP_AS_IS define no value, those preferences are taken from the feature list
+    final FeatureListPreferences current = flist.getPreferences();
+    final FeatureListPreferences preferences = param.toPreferences(current);
+    if (preferences.equals(current)) {
+      // nothing to apply, e.g. all parameters are on KEEP_AS_IS
+      return;
+    }
+
+    final boolean rankingChanged = !current.getIonTypeRanking()
+        .equals(preferences.getIonTypeRanking());
+    final int currentTagCount = current.getTagLabels().size();
+    final int newTagCount = preferences.getTagLabels().size();
+
     flist.setPreferences(preferences);
-    // derived columns like the RSD are computed on demand, therefore refresh the visible cells
-    FeatureTableFXUtil.updateCellsForFeatureList(flist);
+
+    if (newTagCount < currentTagCount) {
+      trimTagValues(newTagCount);
+    }
+
+    if (rankingChanged) {
+      // the ion identities of a row are stored best first, so a new ranking has to reorder them.
+      // sortIonIdentities reads the ranking from the preferences that were just set
+      IonNetworkLogic.sortIonIdentities(flist);
+    }
+
+    if (DesktopService.isGUI()) {
+      // decision: a preference change refreshes every table showing this list and its tag filter.
+      FxThread.runLater(() -> {
+        for (final var table : FeatureTableFXUtil.getTablesFor(flist)) {
+          if (table.getParent() instanceof BorderPane pane
+              && pane.getBottom() instanceof FxFeatureTableFilterMenu filterMenu) {
+            filterMenu.refreshTagLabels();
+          }
+          table.refresh();
+        }
+      });
+    }
+  }
+
+  /**
+   * Removes tag selections for labels that were removed from the feature-list preferences.
+   */
+  private void trimTagValues(final int tagCount) {
+    final TagDataType tagType = DataTypes.get(TagDataType.class);
+    for (final var row : flist.getRows()) {
+      final BitSet tags = row.get(tagType);
+      if (tags == null || tags.length() <= tagCount) {
+        continue;
+      }
+
+      final BitSet trimmedTags = (BitSet) tags.clone();
+      trimmedTags.clear(tagCount, trimmedTags.length());
+      row.set(tagType, trimmedTags);
+    }
   }
 
   @Override

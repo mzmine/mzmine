@@ -53,25 +53,36 @@ import org.w3c.dom.Element;
  */
 public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibraryComponent> {
 
+  public static final String DEFAULT_NAME = "Ion library";
+
   @Nullable
   private IonLibrary library;
+
+  /**
+   * The description as passed in by the caller, without the generic description that
+   * {@link #IonLibraryParameter(String, String, IonLibrary)} appends. Kept so that
+   * {@link #cloneParameter()} recreates the same parameter without appending it twice.
+   */
+  private final @Nullable String callerDescription;
 
   public IonLibraryParameter() {
     this(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
   }
 
   public IonLibraryParameter(@Nullable IonLibrary defaultValue) {
-    this("Ion library", "", defaultValue);
+    this(DEFAULT_NAME, null, defaultValue);
   }
 
-  public IonLibraryParameter(String name, String description, @Nullable IonLibrary defaultValue) {
+  public IonLibraryParameter(String name, @Nullable String description,
+      @Nullable IonLibrary defaultValue) {
     String fullDescription = "Select an ion library. Ion types and libraries are created in a separate tab, search for module '%s'".formatted(
         GlobalIonLibrariesModule.NAME);
-    if (description != null) {
+    if (!StringUtils.isBlank(description)) {
       fullDescription = description + "\n" + fullDescription;
     }
 
     super(name, fullDescription, defaultValue);
+    this.callerDescription = description;
   }
 
   @Override
@@ -157,6 +168,6 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
 
   @Override
   public IonLibraryParameter cloneParameter() {
-    return new IonLibraryParameter(library);
+    return new IonLibraryParameter(name, callerDescription, library);
   }
 }

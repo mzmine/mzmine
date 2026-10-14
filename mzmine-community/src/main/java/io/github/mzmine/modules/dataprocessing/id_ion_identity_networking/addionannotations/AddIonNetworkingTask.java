@@ -32,12 +32,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.identities.iontype.BuildingIonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -45,10 +45,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CorrelationGroupingUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -162,14 +163,16 @@ public class AddIonNetworkingTask extends AbstractTask {
   private void annotateGroup(SearchableIonLibrary library, RowGroup g,
       // AtomicInteger finished,
       AtomicInteger compared, AtomicInteger annotPairs) {
-    // all networks of this group
-    IonNetwork[] nets = IonNetworkLogic.getAllNetworks(g.getRows(), false);
+    // all networks of this group, using building networks to modify content
+    final List<BuildingIonNetwork> nets = Arrays.stream(
+        IonNetworkLogic.getAllNetworks(g.getRows(), false)).map(BuildingIonNetwork::new).toList();
+    final Set<BuildingIonNetwork> modified = new HashSet<>();
 
     for (int i = 0; i < g.size(); i++) {
       FeatureListRow row = g.get(i);
       // min height
       if (row.getBestFeature().getHeight() >= minHeight) {
-        for (IonNetwork net : nets) {
+        for (BuildingIonNetwork net : nets) {
           // only if not already in network
           // check against existing networks
           if (!net.isUndefined() && !net.containsKey(row) && isCorrelated(g, row, net)) {
@@ -181,13 +184,19 @@ public class AddIonNetworkingTask extends AbstractTask {
               final IonIdentity id = new IonIdentity(first);
               row.addIonIdentity(id);
               net.put(row, id);
+              modified.add(net);
               annotPairs.incrementAndGet();
             }
           }
         }
       }
     }
-    // finished.incrementAndGet();
+
+    // apply changed networks to their rows
+    for (BuildingIonNetwork net : modified) {
+      // convert to simple and set to rows
+      net.setNetworkToAllRows();
+    }
   }
 
 
@@ -213,11 +222,7 @@ public class AddIonNetworkingTask extends AbstractTask {
   private void refineAndFinishNetworks() {
     // create network IDs
     LOG.info("Corr: create annotation network numbers");
-    AtomicInteger netID = new AtomicInteger(0);
-    IonNetworkLogic.streamNetworks(featureList,
-        new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false).forEach(n -> {
-      n.setID(netID.getAndIncrement());
-    });
+    IonNetworkLogic.renumberNetworks(featureList);
 
     // recalc annotation networks
     IonNetworkLogic.removeEmptyNetworks(featureList);

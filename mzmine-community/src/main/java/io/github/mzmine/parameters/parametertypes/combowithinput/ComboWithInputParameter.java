@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -104,7 +104,8 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
   @Override
   public void setValueFromComponent(ComboWithInputComponent<EnumType> component) {
     var option = component.getSelectedOption();
-    if (useEmbeddedParameter()) {
+    // check the selected option in component
+    if (Objects.equals(option, inputTrigger)) {
       Node embeddedComponent = component.getEmbeddedComponent();
       ((UserParameter) this.embeddedParameter).setValueFromComponent(embeddedComponent);
     }

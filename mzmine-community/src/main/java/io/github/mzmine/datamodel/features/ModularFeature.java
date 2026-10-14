@@ -170,18 +170,7 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
 
     setAllMS2FragmentScans(allMS2FragmentScanNumbers);
 
-    float fwhm = QualityParameters.calculateFWHM(this);
-    if (!Float.isNaN(fwhm)) {
-      set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(this);
-    if (!Float.isNaN(tf)) {
-      set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(this);
-    if (!Float.isNaN(af)) {
-      set(AsymmetryFactorType.class, af);
-    }
+    QualityParameters.calculateAndSetQualityParameters(this);
   }
 
   /**

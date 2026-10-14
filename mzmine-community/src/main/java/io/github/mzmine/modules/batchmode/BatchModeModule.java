@@ -39,6 +39,7 @@ import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.startup.MZmineExit;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -105,7 +106,7 @@ public class BatchModeModule implements MZmineProcessingModule {
           logger.log(Level.SEVERE,
               "Exiting because some parameter sets have been updated since the batch was "
                   + "created. Please update the batch file by opening it in the GUI and try again.");
-          System.exit(1);
+          MZmineExit.exit(1);
         }
       }
 
@@ -186,6 +187,10 @@ public class BatchModeModule implements MZmineProcessingModule {
           ProjectLoaderParameters.projectFile, overrideProjectFile)) {
         return null;
       }
+    }
+
+    if (!BatchUtils.confirmModuleOrderWarnings(newQueue)) {
+      return null;
     }
 
     ParameterSet parameters = new BatchModeParameters();
