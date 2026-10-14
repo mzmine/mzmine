@@ -1242,7 +1242,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       final @NotNull MZTolerance mzTolInterSample, final @NotNull RTTolerance interSampleRtTol) {
 
     final ParameterSet correctorParam = MultilinearRawFileRtCalibrationParameters.create(0.1);
-
     final SampleTypeFilter sampleTypeFilter =
         batchHasQcs ? SampleTypeFilter.qc() : SampleTypeFilter.of(SampleType.QC, SampleType.SAMPLE);
 

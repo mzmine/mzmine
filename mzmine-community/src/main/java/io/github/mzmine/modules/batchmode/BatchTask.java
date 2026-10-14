@@ -77,6 +77,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Alert.AlertType;
@@ -94,6 +95,9 @@ public class BatchTask extends AbstractTask {
    */
   public static final String WHOLE_BATCH_NAME = "WHOLE BATCH";
   private final BatchQueue queue;
+  private final AtomicReference<@Nullable ThreadPoolTask> activeThreadPoolTask =
+      new AtomicReference<>();
+  private final AtomicReference<@Nullable WrappedTask[]> activeWrappedTasks = new AtomicReference<>();
   // advanced parameters
   private final int stepsPerDataset;
   private final int totalSteps;
@@ -182,7 +186,14 @@ public class BatchTask extends AbstractTask {
     tasksToRun.clear();
     // Submit the tasks to the task controller for processing
     // this runs the ThreadPoolTask on this thread (blocking) and calls all sub tasks in the default executor
-    WrappedTask finishedTask = taskController.runTaskOnThisThreadBlocking(threadPoolTask);
+    setActiveThreadPoolTask(threadPoolTask);
+    final WrappedTask finishedTask;
+    try {
+      WrappedTask completedTask = taskController.runTaskOnThisThreadBlocking(threadPoolTask);
+      finishedTask = completedTask;
+    } finally {
+      activeThreadPoolTask.compareAndSet(threadPoolTask, null);
+    }
     if (finishedTask == null) {
       return TaskStatus.ERROR;
     }
@@ -549,10 +560,10 @@ public class BatchTask extends AbstractTask {
     }
 
     List<Task> currentStepTasks = new ArrayList<>();
-    Instant moduleCallDate = Instant.now();
+    final Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
         + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
-    ExitCode exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
+    final ExitCode exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
         moduleCallDate);
     logger.finest(
         () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
@@ -625,7 +636,14 @@ public class BatchTask extends AbstractTask {
         .addTasks(tasksToRun.toArray(new Task[0]));
     tasksToRun.clear(); // do not keep the instance alive during long-running tasks
 
-    TaskStatus result = TaskUtils.waitForTasksToFinish(this, wrappedTasks);
+    setActiveWrappedTasks(wrappedTasks);
+    final TaskStatus result;
+    try {
+      result = TaskUtils.waitForTasksToFinish(this, wrappedTasks);
+      waitForSubmittedTasksToExit(wrappedTasks);
+    } finally {
+      activeWrappedTasks.compareAndSet(wrappedTasks, null);
+    }
 
     // any error message - even if null this means that there was an error
     Optional<String> errorMessage = Arrays.stream(wrappedTasks)
@@ -646,7 +664,7 @@ public class BatchTask extends AbstractTask {
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
       var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-          ProjectService.getProject(), batchStepParameters);
+          getProject(), batchStepParameters);
 
       // because of concurrency - the project may not have all the new raw data files - but all newly created files are in createdDataFiles
       Set<RawDataFile> files = new HashSet<>(loadedRawDataFiles);
@@ -731,9 +749,61 @@ public class BatchTask extends AbstractTask {
     return queue.clone();
   }
 
+  @Override
+  public void cancel() {
+    super.cancel();
+    final ThreadPoolTask poolTask = activeThreadPoolTask.get();
+    if (poolTask != null) {
+      poolTask.cancel();
+    }
+    final WrappedTask[] wrappedTasks = activeWrappedTasks.get();
+    if (wrappedTasks != null) {
+      for (final WrappedTask wrappedTask : wrappedTasks) {
+        wrappedTask.cancel();
+      }
+    }
+  }
+
+  private void setActiveThreadPoolTask(final @NotNull ThreadPoolTask poolTask) {
+    activeThreadPoolTask.set(poolTask);
+    if (isCanceled()) {
+      poolTask.cancel();
+    }
+  }
+
+  private void setActiveWrappedTasks(final @NotNull WrappedTask[] wrappedTasks) {
+    activeWrappedTasks.set(wrappedTasks);
+    if (isCanceled()) {
+      for (final WrappedTask wrappedTask : wrappedTasks) {
+        wrappedTask.cancel();
+      }
+    }
+  }
+
+  /**
+   * TaskUtils observes task status, which can become canceled while a worker is still unwinding.
+   * Keep this batch task alive until each wrapper has either skipped queued work or exited run.
+   */
+  private void waitForSubmittedTasksToExit(final @NotNull WrappedTask[] wrappedTasks) {
+    boolean interrupted = false;
+    try {
+      while (Arrays.stream(wrappedTasks).anyMatch(task -> !task.isExecutionComplete())) {
+        interrupted |= Thread.interrupted();
+        if (interrupted || isCanceled()) {
+          for (final WrappedTask task : wrappedTasks) {
+            task.cancel();
+          }
+        }
+        java.util.concurrent.locks.LockSupport.parkNanos(10_000_000L);
+      }
+    } finally {
+      if (interrupted) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
   private MZmineProject getProject() {
-    // uses the current project as the project may change, e.g., by loading a project in the batch
-    // potentially make a supplier in the future. will need to update the project opening task in that case.
     return ProjectService.getProject();
   }
 

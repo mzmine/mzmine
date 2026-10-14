@@ -27,7 +27,6 @@ package io.github.mzmine.modules.tools.tools_autoparam;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimators;
@@ -96,8 +95,8 @@ public class AutoParamDashboardTask extends AbstractTask {
     if (DesktopService.isGUI()) {
       final InterSampleRtStatistics rtStatistics = ParameterEstimators.interSampleRtStatistics(
           RawDataAnalysis.analyze(stats));
-      FxThread.runLater(() -> MZmineCore.getDesktop().addTab(new SimpleTab("Data File Statistics",
-          new DataFileStatisticsDashboardPane(stats, rtStatistics))));
+      FxThread.runLater(() -> MZmineCore.getDesktop().addTab(
+          new DataFileStatisticsDashboardTab(stats, rtStatistics)));
     }
 
     progress = 1d;

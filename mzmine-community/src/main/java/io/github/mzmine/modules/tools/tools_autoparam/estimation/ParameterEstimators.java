@@ -214,21 +214,26 @@ public final class ParameterEstimators {
           "needs features aligned across at least three files");
     }
     // decision: require both an outlier relative to other files and a shift relevant to peak width.
-    final double threshold = Math.max(3d * quantile(medians, 0.5),
-        0.5d * RawDataParameterEstimation.estimateFwhm(widths));
+    final double threshold = rtCorrectionThreshold(medians, widths);
     return new ParameterEstimate<>(medians[medians.length - 1] > threshold, ValueOrigin.RAW_DATA,
         domain);
   }
 
   /**
-   * Median start and median end of the effective retention time ranges of the files (without dead
-   * volume, calibrant plugs and re-equilibration). If fewer than half of the files have an
-   * effective range, the union of the MS1 retention time ranges of the files.
-   * <p>
-   * decision: estimate only, the single choice domain keeps the optimizer from changing it.
-   * decision: the estimate always replaces the wizard preset (0.3 or 0.5 min start), the preset is
-   * only kept without any file.
+   * The retention-time correction decision threshold, in minutes.
+   *
+   * <p>This is shared with bounded evidence reporting so the displayed threshold cannot drift from
+   * the estimator decision.</p>
    */
+  public static double rtCorrectionThreshold(final double @NotNull [] fileMedianRtDeviations,
+      final double @NotNull [] fwhms) {
+    if (fileMedianRtDeviations.length < 3 || fwhms.length == 0) {
+      return Double.NaN;
+    }
+    return Math.max(3d * quantile(fileMedianRtDeviations, 0.5),
+        0.5d * RawDataParameterEstimation.estimateFwhm(fwhms));
+  }
+
   /**
    * The polarity fixed by the pre-classification. "No filter" keeps the preset, so it is not
    * written to the wizard.
@@ -249,6 +254,15 @@ public final class ParameterEstimators {
     };
   }
 
+  /**
+   * Median start and median end of the effective retention time ranges of the files (without dead
+   * volume, calibrant plugs and re-equilibration). If fewer than half of the files have an
+   * effective range, the union of the MS1 retention time ranges of the files.
+   * <p>
+   * decision: estimate only, the single choice domain keeps the optimizer from changing it.
+   * decision: the estimate always replaces the wizard preset (0.3 or 0.5 min start), the preset is
+   * only kept without any file.
+   */
   public static @NotNull ParameterEstimate<Range<Double>> cropRtRange(
       @NotNull ParameterEstimationContext context) {
     final List<DataFileStatistics> files = context.analysis().files();

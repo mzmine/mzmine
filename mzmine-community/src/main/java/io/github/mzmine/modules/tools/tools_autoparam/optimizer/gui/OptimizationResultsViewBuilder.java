@@ -103,18 +103,18 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
   private final NumberFormat threeDecimals = new DecimalFormat("0.###");
   private final NumberFormat noDecimals = new DecimalFormat("0");
 
-  private final Runnable onAcceptPressed;
-  private final Runnable openInBatch;
+  private final @Nullable Runnable onAcceptPressed;
+  private final @Nullable Runnable openInBatch;
   private final Runnable onExportPressed;
-  private final Runnable quickRun;
+  private final @Nullable Runnable quickRun;
   @Nullable
   private final Runnable stopSearch;
   @Nullable
   private final Stage stage;
 
   protected OptimizationResultsViewBuilder(@NotNull OptimizationResultModel model,
-      @NotNull Runnable onAcceptPressed, @NotNull Runnable openInBatch,
-      @NotNull Runnable onExportPressed, @NotNull Runnable quickRun, @Nullable Runnable stopSearch,
+      @Nullable Runnable onAcceptPressed, @Nullable Runnable openInBatch,
+      @NotNull Runnable onExportPressed, @Nullable Runnable quickRun, @Nullable Runnable stopSearch,
       @Nullable final Stage stage) {
     super(model);
     this.onAcceptPressed = onAcceptPressed;
@@ -189,24 +189,32 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
       }
     }
 
-    final Button acceptButton = FxButtons.createButton("Apply to wizard", FxIcons.CHECK_CIRCLE,
-        null, onAcceptPressed);
-    final Button batchButton = FxButtons.createButton("Open in batch", FxIcons.BATCH, null,
-        openInBatch);
     final Button exportButton = FxButtons.createButton("Export to .csv", FxIcons.FILE, null,
         onExportPressed);
-    final Button quickRunButton = FxButtons.createButton("Quick run & annotate", FxIcons.BATCH,
-        null, quickRun);
 
     final BooleanBinding noUsableSelection = model.optimizationRunningProperty()
         .or(model.selectedSolutionProperty().isNull());
-    acceptButton.disableProperty().bind(noUsableSelection);
-    batchButton.disableProperty().bind(noUsableSelection);
-    quickRunButton.disableProperty().bind(noUsableSelection);
     exportButton.disableProperty().bind(Bindings.isEmpty(model.getDisplayedSolutions()));
 
     final ButtonBar buttonBar = new ButtonBar();
-    buttonBar.getButtons().addAll(exportButton, batchButton, quickRunButton, acceptButton);
+    buttonBar.getButtons().add(exportButton);
+    // decision: omit mutation actions when this native view is used for inspection from chat.
+    if (openInBatch != null) {
+      final Button button = FxButtons.createButton("Open in batch", FxIcons.BATCH, null, openInBatch);
+      button.disableProperty().bind(noUsableSelection);
+      buttonBar.getButtons().add(button);
+    }
+    if (quickRun != null) {
+      final Button button = FxButtons.createButton("Quick run & annotate", FxIcons.BATCH, null, quickRun);
+      button.disableProperty().bind(noUsableSelection);
+      buttonBar.getButtons().add(button);
+    }
+    if (onAcceptPressed != null) {
+      final Button button = FxButtons.createButton("Apply to wizard", FxIcons.CHECK_CIRCLE,
+          null, onAcceptPressed);
+      button.disableProperty().bind(noUsableSelection);
+      buttonBar.getButtons().add(button);
+    }
     borderPane.setBottom(buttonBar);
 
     if (stopSearch != null) {

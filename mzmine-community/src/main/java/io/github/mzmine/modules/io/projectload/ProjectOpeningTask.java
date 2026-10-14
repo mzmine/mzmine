@@ -199,7 +199,6 @@ public class ProjectOpeningTask extends AbstractTask {
 
       currentLoadedObjectName = "Project metadata";
       ProjectMetadataProjectIO.loadFromZip(zipFile);
-
       currentLoadedObjectName = "Raw file metadata";
       try {
         RawFileMetadataProjectIO.loadFromZip(zipFile, newProject);

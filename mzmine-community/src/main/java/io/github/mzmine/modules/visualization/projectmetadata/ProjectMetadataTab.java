@@ -36,6 +36,8 @@ import javafx.scene.layout.BorderPane;
  */
 public class ProjectMetadataTab extends SimpleTab {
 
+  private ProjectMetadataPaneController controller;
+
   private static final Logger logger = Logger.getLogger(ProjectMetadataTab.class.getName());
 
   public ProjectMetadataTab() {
@@ -45,7 +47,7 @@ public class ProjectMetadataTab extends SimpleTab {
       // try to load the markdown object from the FXML file
       FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectMetadataPane.fxml"));
       BorderPane borderPane = loader.load();
-      ProjectMetadataPaneController controller = loader.getController();
+      controller = loader.getController();
       // set stage for a controller of the loaded object
       controller.setStage(MZmineCore.getDesktop().getMainWindow());
 
@@ -53,6 +55,11 @@ public class ProjectMetadataTab extends SimpleTab {
     } catch (Exception e) {
       logger.severe("Didn't manage to load the markdown from ProjectMetadataDialog.fxml");
     }
+  }
+
+  /** Refresh an open view after reviewed external edits to the native metadata table. */
+  public void refresh() {
+    if (controller != null) controller.refresh();
   }
 
 }

@@ -46,6 +46,12 @@ public enum SolutionOrigin {
   ESTIMATE("Estimate"),
 
   /**
+   * The user's unmodified wizard settings, evaluated as the review baseline. This is deliberately
+   * not a search candidate and therefore never participates in optimizer ranking.
+   */
+  CURRENT("Current"),
+
+  /**
    * A Gaussian perturbation around the estimate, injected into the initial population.
    */
   PERTURBED("Perturbed"),

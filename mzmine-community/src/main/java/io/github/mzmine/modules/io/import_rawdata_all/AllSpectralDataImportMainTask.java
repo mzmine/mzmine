@@ -41,20 +41,32 @@ import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AllSpectralDataImportMainTask extends AbstractTask {
 
   private final ThreadPoolTask mainImportTask;
+  private final List<? extends Task> importTasks;
   private final File metadataFile;
   private final ParameterSet parameters;
   // embedded extraction parameters if the option is selected, otherwise null
   private final ParameterSet extractMetadataParameters;
   private final boolean sortAndRecolor;
+  private final Set<RawDataFile> baselineRawDataFiles;
+  private final List<? extends Task> rawDataImportTasks;
+  private volatile @Nullable Task currentFollowupTask;
 
   public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
       final @NotNull ParameterSet parameters) {
+    this(tasks, List.of(), parameters);
+  }
+
+  public AllSpectralDataImportMainTask(final @NotNull List<? extends Task> tasks,
+      final @NotNull List<? extends Task> rawDataImportTasks, final @NotNull ParameterSet parameters) {
     super(Instant.now(), "Main data import task");
+    importTasks = List.copyOf(tasks);
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
     metadataFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         AllSpectralDataImportParameters.metadataFile, null);
@@ -62,6 +74,8 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
         AllSpectralDataImportParameters.extractMetadata, null);
     sortAndRecolor = parameters.getValue(AllSpectralDataImportParameters.sortAndRecolor);
     this.parameters = parameters;
+    baselineRawDataFiles = Set.copyOf(ProjectService.getProject().getCurrentRawDataFiles());
+    this.rawDataImportTasks = List.copyOf(rawDataImportTasks);
   }
 
 
@@ -127,25 +141,65 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
 
     ColorByMetadataTask task = new ColorByMetadataTask(moduleCallDate,
         ColorByMetadataParameters.createDefault(loaded), AllSpectralDataImportModule.class);
-    task.run();
+    runFollowupTask(task);
     return task;
   }
 
   private Task loadMetadata() {
     var metaParams = ProjectMetadataImportParameters.create(metadataFile, false, false);
     var metadataTask = new ProjectMetadataImportTask(metaParams, moduleCallDate);
-    metadataTask.run();
+    runFollowupTask(metadataTask);
     return metadataTask;
   }
 
   private Task extractMetadata() {
     final List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
         ProjectService.getProject(), parameters);
+    final RawDataFile[] files = loaded.toArray(RawDataFile[]::new);
     final Task extractTask = SampleMetadataExtractionParameters.createTaskWithDataFiles(
-        extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class,
-        loaded.toArray(RawDataFile[]::new));
-    extractTask.run();
+        extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class, files);
+    runFollowupTask(extractTask);
     return extractTask;
+  }
+
+  /** Cancels both the pool and whichever native post-import task is currently running. */
+  @Override
+  public void cancel() {
+    super.cancel();
+    mainImportTask.cancel();
+    importTasks.forEach(Task::cancel);
+    final Task followup = currentFollowupTask;
+    if (followup != null) {
+      followup.cancel();
+    }
+  }
+
+  /** Actual raw files added while this native import task was running. */
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return AllSpectralDataImportParameters.getLoadedRawDataFiles(ProjectService.getProject(), parameters).stream()
+        .filter(raw -> !baselineRawDataFiles.contains(raw)).toList();
+  }
+
+  /** Bounded measured import counts for the prepared native import. */
+  public @NotNull ImportOutcome getImportOutcome() {
+    final int selected = rawDataImportTasks.size();
+    final int imported = getImportedRawDataFiles().size();
+    final int failed = (int) rawDataImportTasks.stream()
+        .filter(task -> task.getStatus() == TaskStatus.ERROR).count();
+    return new ImportOutcome(selected, imported, failed);
+  }
+
+  private void runFollowupTask(final @NotNull Task task) {
+    currentFollowupTask = task;
+    try {
+      task.run();
+    } finally {
+      currentFollowupTask = null;
+    }
+  }
+
+  public record ImportOutcome(int selectedRawFileCount, int importedRawFileCount,
+                              int failedRawFileCount) {
   }
 
   @Override

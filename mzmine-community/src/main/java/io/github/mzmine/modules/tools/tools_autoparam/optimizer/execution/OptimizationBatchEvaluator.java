@@ -28,9 +28,12 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.BatchTask;
+import io.github.mzmine.modules.batchmode.BatchUtils;
+import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
@@ -56,17 +59,17 @@ import java.io.File;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.moeaframework.core.Solution;
 
 /**
  * Runs one optimized batch queue and translates its feature list into scores and diagnostics.
  */
-final class OptimizationBatchEvaluator {
+final class OptimizationBatchEvaluator implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(OptimizationBatchEvaluator.class.getName());
 
@@ -75,9 +78,19 @@ final class OptimizationBatchEvaluator {
   private final @NotNull MetricContext metricContext;
   private final @NotNull List<FeatureRecord> benchmarkFeatures;
   private final @NotNull AtomicReference<TaskStatus> externalStatus;
+  private final @NotNull Object lifecycleLock = new Object();
+  /** Guarded by {@link #lifecycleLock}. */
+  private @Nullable BatchTask activeBatchTask;
+  /** Guarded by {@link #lifecycleLock}. */
+  private boolean batchRunning;
+  /** Guarded by {@link #lifecycleLock}. */
+  private boolean cancelRequested;
+  /** Guarded by {@link #lifecycleLock}. */
+  private boolean closed;
 
   OptimizationBatchEvaluator(File @NotNull [] files, @NotNull List<SweepMetric> metrics,
-      @NotNull MetricContext metricContext, @NotNull List<FeatureRecord> benchmarkFeatures,
+      @NotNull MetricContext metricContext,
+      @NotNull List<FeatureRecord> benchmarkFeatures,
       @NotNull AtomicReference<TaskStatus> externalStatus) {
     this.files = files.clone();
     this.metrics = List.copyOf(metrics);
@@ -86,7 +99,7 @@ final class OptimizationBatchEvaluator {
     this.externalStatus = externalStatus;
   }
 
-  private @NotNull BatchQueue createEvaluationQueue(@NotNull WizardSequence sequence) {
+  private @NotNull BatchQueue createEvaluationQueue(final @NotNull WizardSequence sequence) {
     final WorkflowWizardParameterFactory workflow = (WorkflowWizardParameterFactory) sequence.get(
         WizardPart.WORKFLOW).orElseThrow().getFactory();
 
@@ -95,7 +108,16 @@ final class OptimizationBatchEvaluator {
         .setParameter(DataImportWizardParameters.fileNames, files);
 
     final BatchQueue queue = workflow.getBatchBuilder(sequence).createQueue();
-    queue.removeIf(step -> isPostProcessingModule(step.getModule()));
+    queue.removeIf(step -> isPostProcessingModule(step.getModule())
+        || step.getModule() instanceof AutoSaveBatchModule);
+    // decision: match runBatchQueue after wizard overrides; metadata was imported during preparation.
+    if (!queue.setImportFiles(files, null, null)) {
+      throw new IllegalStateException("Could not set the optimization batch input files");
+    }
+    if (!BatchUtils.confirmModuleOrderWarnings(queue)) {
+      throw new IllegalStateException(
+          "Optimization batch was not started because processing-order warnings were declined");
+    }
     return queue;
   }
 
@@ -107,32 +129,17 @@ final class OptimizationBatchEvaluator {
         || module instanceof CompoundGrouperModule;
   }
 
-  /**
-   * Waits until the batch ends, so it does not add feature lists to the project anymore.
-   */
-  private static void waitForBatchEnd(@NotNull BatchTask batchTask) {
-    while (!batchTask.isFinished() && !batchTask.isCanceled()) {
-      sleepWhileWaiting();
+  private void waitForBatchToExitLocked() {
+    boolean interrupted = false;
+    while (batchRunning) {
+      try {
+        lifecycleLock.wait();
+      } catch (InterruptedException e) {
+        interrupted = true;
+      }
     }
-  }
-
-  private static void sleepWhileWaiting() {
-    try {
-      TimeUnit.MILLISECONDS.sleep(200);
-    } catch (InterruptedException e) {
+    if (interrupted) {
       Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupted while waiting for optimized batch", e);
-    }
-  }
-
-  /**
-   * Waits until the batch ends or the optimization is canceled. Stop search keeps the optimization
-   * status at PROCESSING, so the current batch still finishes.
-   */
-  private void waitForCompletion(@NotNull BatchTask batchTask) {
-    while (!batchTask.isFinished() && !batchTask.isCanceled()
-        && externalStatus.get() == TaskStatus.PROCESSING) {
-      sleepWhileWaiting();
     }
   }
 
@@ -165,42 +172,108 @@ final class OptimizationBatchEvaluator {
 
   int evaluate(@NotNull WizardSequence sequence, @NotNull Solution solution,
       boolean shapeDiagnosticEnabled, @NotNull IntSupplier reserveBatchExecution) {
+    ensureNotCanceledOrClosed();
     final BatchQueue queue = createEvaluationQueue(sequence);
-    final MZmineProject project = ProjectService.getProject();
     // decision: reserve immediately before launch so a generational algorithm cannot overshoot
     // the full-batch budget between termination checks.
     final int batchExecutionIndex = reserveBatchExecution.getAsInt();
-    final BatchTask batchTask = BatchModeModule.runBatchQueue(queue, project, files, null, null,
-        null, Instant.now(), null, null);
-    if (batchTask == null) {
-      throw new RuntimeException("Cannot run auto-optimizer while another batch is running.");
-    }
-
-    waitForCompletion(batchTask);
+    final MZmineProject project = ProjectService.getProject();
+    final BatchTask batchTask = launch(project, queue, "optimization batch");
     try {
-      if (externalStatus.get() != TaskStatus.PROCESSING) {
-        // decision: on cancel, stop the candidate instead of letting it run in the background.
-        // The batch stops after its current step.
-        batchTask.cancel();
-        waitForBatchEnd(batchTask);
-        throw new RuntimeException("Batch optimization task was canceled");
+      // BatchTask drains submitted children before returning, including after cancellation.
+      runBatch(batchTask);
+      if (batchTask.getStatus() == TaskStatus.ERROR) {
+        throw new RuntimeException("Batch optimization task failed: " + batchTask.getErrorMessage());
       }
-      if (batchTask.isCanceled()) {
+      if (batchTask.isCanceled() || externalStatus.get() != TaskStatus.PROCESSING) {
         throw new RuntimeException("Batch optimization task was canceled");
       }
 
-      final FeatureList newest = batchTask.getLatestCreatedFeatureLists().getFirst();
+      final List<FeatureList> createdLists = batchTask.getLatestCreatedFeatureLists();
+      if (createdLists == null || createdLists.isEmpty()) {
+        throw new IllegalStateException("Optimization batch produced no feature list");
+      }
+      final FeatureList newest = createdLists.getFirst();
       applyScores(newest, solution);
       applyDiagnostics(newest, solution, shapeDiagnosticEnabled);
       solution.setAttribute(WizardOptimizationProblem.ATTR_BATCH_RUNTIME_SECONDS,
           batchTask.getStepTimes().getLast().secondsToFinish());
       return batchExecutionIndex;
     } finally {
-      // also removes the feature lists of canceled or failed candidates
-      final List<FeatureList> created = batchTask.getLatestCreatedFeatureLists();
-      if (created != null) {
-        project.removeFeatureLists(created);
+      try {
+        final List<FeatureList> created = batchTask.getLatestCreatedFeatureLists();
+        if (created != null) {
+          project.removeFeatureLists(created);
+        }
+      } finally {
+        finishBatch(batchTask);
       }
+    }
+  }
+
+  private void ensureNotCanceledOrClosed() {
+    synchronized (lifecycleLock) {
+      if (closed) {
+        throw new IllegalStateException("The optimization evaluator is already closed");
+      }
+      if (cancelRequested) {
+        throw new RuntimeException("Batch optimization task was canceled");
+      }
+    }
+  }
+
+  private @NotNull BatchTask launch(@NotNull MZmineProject project, @NotNull BatchQueue queue,
+      @NotNull String description) {
+    synchronized (lifecycleLock) {
+      ensureNotCanceledOrClosed();
+      final BatchTask batchTask = BatchModeModule.prepareBatchTask(project, queue, Instant.now());
+      if (batchTask == null) {
+        throw new IllegalStateException("Could not prepare " + description);
+      }
+      activeBatchTask = batchTask;
+      batchRunning = true;
+      return batchTask;
+    }
+  }
+
+  private static void runBatch(final @NotNull BatchTask batchTask) {
+    // Keep native authorization, task visibility and concurrent-batch guards while draining here.
+    if (MZmineCore.getTaskController().runTaskOnThisThreadBlocking(batchTask) == null) {
+      throw new IllegalStateException("The optimization batch could not be submitted");
+    }
+  }
+
+  private void finishBatch(@NotNull BatchTask batchTask) {
+    synchronized (lifecycleLock) {
+      if (activeBatchTask == batchTask) {
+        activeBatchTask = null;
+        batchRunning = false;
+        lifecycleLock.notifyAll();
+      }
+    }
+  }
+
+  /** Nonblocking: safe for task-status and UI listeners. */
+  void cancel() {
+    final @Nullable BatchTask batchTask;
+    synchronized (lifecycleLock) {
+      cancelRequested = true;
+      batchTask = activeBatchTask;
+    }
+    if (batchTask != null) {
+      batchTask.cancel();
+    }
+  }
+
+  @Override
+  public void close() {
+    cancel();
+    synchronized (lifecycleLock) {
+      if (closed) {
+        return;
+      }
+      waitForBatchToExitLocked();
+      closed = true;
     }
   }
 

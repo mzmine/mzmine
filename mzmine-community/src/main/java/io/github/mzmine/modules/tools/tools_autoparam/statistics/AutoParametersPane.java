@@ -162,4 +162,3 @@ public class AutoParametersPane extends BorderPane {
     });
   }
 }
-

@@ -250,6 +250,13 @@ public class OptimizationResultsController extends FxController<OptimizationResu
         stopSearchAction == null ? null : this::requestStopSearch, stage);
   }
 
+  /** Reuses the result table and charts when application is reviewed in another surface. */
+  public @NotNull javafx.scene.layout.Region buildInspectionView(
+      final @Nullable Stage inspectionStage) {
+    return new OptimizationResultsViewBuilder(model, null, null, this::exportSolutions, null,
+        null, inspectionStage).build();
+  }
+
   private void requestStopSearch() {
     if (!model.isOptimizationRunning() || model.isStopSearchRequested()
         || stopSearchAction == null) {
@@ -403,7 +410,7 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     }
     applySelectedSolutionToWizard(mode.get());
 
-    final WizardSequence sequenceSteps = wizardTab.getSequence();
+    final WizardSequence sequenceSteps = wizardTab.snapshotSequence();
 
     final Optional<WizardStepParameters> workflow = sequenceSteps.get(WizardPart.WORKFLOW);
     if (workflow.isEmpty()) {
