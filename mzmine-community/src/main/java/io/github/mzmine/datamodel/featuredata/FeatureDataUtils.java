@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -483,11 +484,22 @@ public class FeatureDataUtils {
 
   public static void normalizeAbundances(@NotNull ModularFeature feature,
       @Nullable final NormalizationFunction normalizer) {
+    normalizeAbundances(feature, normalizer, feature.getFeatureList().getFeatureRow(feature));
+  }
+
+  /** Applies a row-aware function without treating unreviewed rows as identity-normalized. */
+  public static void normalizeAbundances(@NotNull final ModularFeature feature,
+      @Nullable final NormalizationFunction normalizer, @Nullable final FeatureListRow row) {
     if (normalizer == null) {
       return;
     }
-
-    final double factor = normalizer.getNormalizationFactor(feature.getMZ(), feature.getRT());
+    final java.util.OptionalDouble resolved = normalizer.getNormalizationFactor(row, feature.getMZ(),
+        feature.getRT());
+    if (resolved.isEmpty()) {
+      clearIntensityNormalization(feature);
+      return;
+    }
+    final double factor = resolved.getAsDouble();
     feature.set(NormalizedAreaType.class, (float) (feature.getArea() * factor));
     feature.set(NormalizedHeightType.class, (float) (feature.getHeight() * factor));
   }

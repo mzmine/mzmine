@@ -25,10 +25,13 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalDouble;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,7 +40,7 @@ import org.w3c.dom.Element;
  */
 public sealed interface NormalizationFunction extends UniqueIdSupplier permits
     CompositeNormalizationFunction, FactorNormalizationFunction, InterpolatedNormalizationFunction,
-    StandardCompoundNormalizationFunction {
+    StandardCompoundNormalizationFunction, FeatureRowNormalizationFunction {
 
   String XML_FUNCTION_ELEMENT = "normalizationFunction";
   String XML_FUNCTION_TYPE_ATTR = "type";
@@ -99,6 +102,15 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
    */
   double getNormalizationFactor(@NotNull Double mz, @NotNull Float rt);
 
+  /**
+   * Resolves a factor in feature-row context. Empty means that this row was not covered by the
+   * frozen reviewed function and must remain without normalized values.
+   */
+  default @NotNull OptionalDouble getNormalizationFactor(@Nullable final FeatureListRow row,
+      @NotNull final Double mz, @NotNull final Float rt) {
+    return OptionalDouble.of(getNormalizationFactor(mz, rt));
+  }
+
   void saveToXML(@NotNull Element functionElement);
 
 
@@ -120,6 +132,8 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
       case InterpolatedNormalizationFunction.XML_TYPE ->
           InterpolatedNormalizationFunction.loadFromXML(functionElement);
       case CompositeNormalizationFunction.XML_TYPE -> CompositeNormalizationFunction.loadFromXML(functionElement);
+      case FeatureRowNormalizationFunction.XML_TYPE ->
+          FeatureRowNormalizationFunction.loadFromXML(functionElement);
       default -> throw new IllegalArgumentException(
           "Unsupported normalization function type: " + functionType);
     };

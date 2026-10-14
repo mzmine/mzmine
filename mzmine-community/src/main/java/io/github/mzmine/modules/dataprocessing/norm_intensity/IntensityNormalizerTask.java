@@ -381,7 +381,8 @@ class IntensityNormalizerTask extends AbstractTask {
 
     // apply those to all samples in the same batch
     for (SamplesBatch sampleBatch : sampleBatches) {
-      final double normFactor = interBatchMedian / sampleBatch.getMedianReferenceNormMetric();
+      final double normFactor = QcBatchNormalization.interBatchFactor(interBatchMedian,
+          sampleBatch.getMedianReferenceNormMetric());
       // reuse same function for all files in this batch
       final FactorNormalizationFunction fileFunction = new FactorNormalizationFunction(normFactor);
 
@@ -572,7 +573,7 @@ class IntensityNormalizerTask extends AbstractTask {
           continue;
         }
 
-        FeatureDataUtils.normalizeAbundances(mfeature, fn);
+        FeatureDataUtils.normalizeAbundances(mfeature, fn, row);
       }
 
       // each function is one raw data files finished

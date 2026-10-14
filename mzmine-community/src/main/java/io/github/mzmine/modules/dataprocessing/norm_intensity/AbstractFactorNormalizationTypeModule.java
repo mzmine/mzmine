@@ -83,7 +83,8 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> functions = new HashMap<>();
     for (final Entry<@NotNull RawDataFile, @NotNull Double> entry : referenceToNormalizationMetric.entrySet()) {
       final RawDataFile file = entry.getKey();
-      final double normalizationFactor = medianNormMetric / entry.getValue();
+      final double normalizationFactor = QcBatchNormalization.referenceFactor(medianNormMetric,
+          entry.getValue());
 
       final NormalizationFunction function = new FactorNormalizationFunction(normalizationFactor);
       // add or merge function into a new instance within summary

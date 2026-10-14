@@ -30,8 +30,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ArrayUtils;
-import io.github.mzmine.util.MathUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,12 +75,7 @@ public final class FeatureIntensityNormalizationModule extends
               featureList.getName()));
     }
 
-    final double result = switch (mode) {
-      case MEDIAN -> MathUtils.calcMedian(abundances);
-      case AVERAGE -> MathUtils.calcAvg(abundances);
-      case SUM_TIC -> ArrayUtils.sum(abundances);
-      case MAX -> ArrayUtils.max(abundances).orElse(0d);
-    };
+    final double result = QcBatchNormalization.metric(abundances, mode);
 
     if (!Double.isFinite(result) || Double.compare(result, 0d) == 0) {
       throw new IllegalStateException(
