@@ -36,6 +36,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MVCI view that uses a builder to generate a MiniTaskView on demand
@@ -60,14 +61,12 @@ public class MiniTaskView extends FxViewBuilder<TasksViewModel> {
     return hBox;
   }
 
-  private LabeledProgressBar createTaskPane() {
-    // Important: bind to task list size too, otherwise the label can stay at "0 tasks" until the
-    // first progress update changes allTasksProgressProperty().
-    final var sizeBinding = Bindings.size(model.getTasks());
+  private @NotNull LabeledProgressBar createTaskPane() {
+    // decision: observe the list directly; an unread size binding stops notifying after one change.
     return new LabeledProgressBar( //
         model.allTasksProgressProperty(),
         Bindings.createStringBinding(this::computeTasksText, model.allTasksProgressProperty(),
-            sizeBinding));
+            model.getTasks()));
   }
 
   private LabeledProgressBar createBatchPane() {
