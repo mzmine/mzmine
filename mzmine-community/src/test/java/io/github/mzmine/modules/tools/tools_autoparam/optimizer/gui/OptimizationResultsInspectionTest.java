@@ -13,7 +13,10 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.layout.BorderPane;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
+@DisabledOnOs(value = OS.LINUX, disabledReason = "JavaFX needs a display; Linux CI is headless.")
 class OptimizationResultsInspectionTest {
   @BeforeAll
   static void toolkit() {
