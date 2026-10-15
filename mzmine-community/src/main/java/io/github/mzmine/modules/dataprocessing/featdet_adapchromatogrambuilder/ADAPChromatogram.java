@@ -43,15 +43,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ADAPChromatogram {
 
-  /**
-   * Shared comparator instance.
-   */
-  private static final Comparator<Scan> SCAN_ORDER = Comparator.comparingInt(Scan::getScanNumber)
-      .thenComparingDouble(Scan::getRetentionTime);
-
-  // Data points of the chromatogram (map of scan number -> m/z feature)
-  // private Hashtable<Integer, DataPoint> dataPointsMap;
-  private final TreeMap<Scan, DataPoint> dataPointsMap = new TreeMap<>(SCAN_ORDER);
+  private final TreeMap<Scan, DataPoint> dataPointsMap = new TreeMap<>();
   public int tmp_see_same_scan_count = 0;
   // Chromatogram m/z weighted
   private double mz;
