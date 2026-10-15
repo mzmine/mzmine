@@ -26,7 +26,6 @@
 package io.github.mzmine.util.scans;
 
 import static io.github.mzmine.util.spectraldb.entry.DBEntryField.MERGED_SPEC_TYPE;
-import static java.util.Comparator.comparingDouble;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsLast;
 import static java.util.Objects.requireNonNullElse;
@@ -895,8 +894,7 @@ public class ScanUtils {
     double mzRangeMin = mzRange.lowerEndpoint();
     double mzRangeMax = mzRange.upperEndpoint();
 
-    final Stream<Scan> stream = dataFile.stream()
-        .filter(s -> s.getMSLevel() == 2)
+    final Stream<Scan> stream = dataFile.stream().filter(s -> s.getMSLevel() == 2)
         .filter(s -> matchesMS2Scan(s, rtRangeMin, rtRangeMax, mzRangeMin, mzRangeMax));
     return sorter == null ? stream : stream.sorted(sorter);
   }
@@ -917,10 +915,8 @@ public class ScanUtils {
    */
   public static @NotNull List<Scan> listMS2ScansSortedByPrecursorMz(
       @NotNull final RawDataFile dataFile) {
-    return dataFile.stream()
-        .filter(s -> s.getMSLevel() == 2)
-        .sorted(Comparator.comparing(Scan::getPrecursorMz, nullsLast(naturalOrder())))
-        .toList();
+    return dataFile.stream().filter(s -> s.getMSLevel() == 2)
+        .sorted(Comparator.comparing(Scan::getPrecursorMz, nullsLast(naturalOrder()))).toList();
   }
 
   /**
@@ -937,15 +933,13 @@ public class ScanUtils {
    * @return a new mutable list, empty if nothing matches
    */
   public static @NotNull List<Scan> findMS2FragmentScans(
-      @NotNull final List<Scan> ms2SortedByPrecursorMz,
-      @Nullable final Range<Float> rtRange,
-      @NotNull final Range<Double> mzRange,
-      @Nullable final Comparator<Scan> sorter) {
+      @NotNull final List<Scan> ms2SortedByPrecursorMz, @Nullable final Range<Float> rtRange,
+      @NotNull final Range<Double> mzRange, @Nullable final Comparator<Scan> sorter) {
     final float rtRangeMin = rtRange != null ? rtRange.lowerEndpoint() : Float.NEGATIVE_INFINITY;
     final float rtRangeMax = rtRange != null ? rtRange.upperEndpoint() : Float.POSITIVE_INFINITY;
 
     List<Scan> matchingScans = BinarySearch.indexRange(mzRange, ms2SortedByPrecursorMz,
-            Scan::getPrecursorMz).sublist(ms2SortedByPrecursorMz);
+        Scan::getPrecursorMz).sublist(ms2SortedByPrecursorMz);
     final List<Scan> matches = new ArrayList<>(matchingScans.size());
     for (Scan scan : matchingScans) {
       final float rt = scan.getRetentionTime();
@@ -969,11 +963,8 @@ public class ScanUtils {
    * @param mzRangeMax maximum MZ
    * @return true if scan precursor mz is in range and rt
    */
-  private static boolean matchesMS2Scan(Scan s,
-      float rtRangeMin,
-      float rtRangeMax,
-      double mzRangeMin,
-      double mzRangeMax) {
+  private static boolean matchesMS2Scan(Scan s, float rtRangeMin, float rtRangeMax,
+      double mzRangeMin, double mzRangeMax) {
     final float rt = s.getRetentionTime();
     if (rt < rtRangeMin || rt > rtRangeMax) {
       return false;
