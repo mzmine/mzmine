@@ -781,8 +781,9 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
   }
 
   @Override
-  public void displayErrorMessage(String msg) {
-    displayMessage("Error", msg);
+  public void displayErrorMessage(final @NotNull String msg) {
+    logger.severe(msg);
+    DialogLoggerUtil.showErrorDialog("Error", msg);
   }
 
   @Override
