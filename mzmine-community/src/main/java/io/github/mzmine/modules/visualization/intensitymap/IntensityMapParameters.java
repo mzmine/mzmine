@@ -54,7 +54,8 @@ public class IntensityMapParameters extends SimpleParameterSet {
   public static final MZRangeParameter mzRange = new MZRangeParameter();
 
   public IntensityMapParameters() {
-    super(new Parameter[]{dataFile, mode, scanSelection, dataSource, mzRange});
+    super(new Parameter[]{dataFile, mode, scanSelection, dataSource, mzRange},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/intensity_map/intensity_map_visualizer.html");
   }
 
   @Override
