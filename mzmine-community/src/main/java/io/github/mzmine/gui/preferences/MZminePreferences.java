@@ -260,6 +260,11 @@ public class MZminePreferences extends SimpleParameterSet {
               + "used to process ion mobility data."));
   public static final HiddenParameter<Map<String, Boolean>> siriusCountWarningOptOut = new HiddenParameter<>(
       new OptOutParameter("Sirius feature count warning", ""));
+  /**
+   * If this map holds true, the user opted out of showing the message.
+   */
+  public static final HiddenParameter<Map<String, Boolean>> otherOptOutWarnings = new HiddenParameter<>(
+      new OptOutParameter("Message opt out", "Collects opt out choices other than IMS and Sirius"));
 
   // ---------------------------------------------- Hidden parameters
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
@@ -297,6 +302,7 @@ public class MZminePreferences extends SimpleParameterSet {
             imsModuleWarnings, windowSettings, useTabSubtitles,
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
+            otherOptOutWarnings,
             // conversion, data handling
             applyVendorCentroiding, watersLockmass, massLynxImportChoice, msConvertPath,
             keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses,
