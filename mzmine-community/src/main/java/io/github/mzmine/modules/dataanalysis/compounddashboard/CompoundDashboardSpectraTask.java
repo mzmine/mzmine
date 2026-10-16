@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -37,6 +38,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassS
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -46,6 +48,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +64,7 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
   private final @Nullable FeatureListRow ms2Row;
   private final @Nullable Scan ms2Scan;
   private final @NotNull SimpleColorPalette palette;
+  private final @NotNull Set<FeatureListRow> displayedRows;
 
   private List<DatasetAndRenderer> ms1Out = List.of();
   private List<DatasetAndRenderer> ms2Out = List.of();
@@ -70,13 +74,15 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
   public CompoundDashboardSpectraTask(@NotNull CompoundDashboardModel model,
       @NotNull CompoundRow compound, @Nullable RawDataFile file, @Nullable FeatureListRow ms2Row,
-      @Nullable Scan ms2Scan, @NotNull SimpleColorPalette palette) {
+      @Nullable Scan ms2Scan, @NotNull SimpleColorPalette palette,
+      @NotNull Set<FeatureListRow> displayedRows) {
     super("Compound dashboard spectra", model);
     this.compound = compound;
     this.file = file;
     this.ms2Row = ms2Row;
     this.ms2Scan = ms2Scan;
     this.palette = palette;
+    this.displayedRows = displayedRows;
   }
 
   @Override
@@ -138,6 +144,9 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
     // compound first level is all ions
     for (final FeatureListRow row : compound.getMemberRows()) {
+      if (!isDisplayed(row)) {
+        continue;
+      }
       final DoubleArrayList mzs = new DoubleArrayList();
       final DoubleArrayList intensities = new DoubleArrayList();
 
@@ -174,6 +183,17 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
     return out;
   }
 
+  /**
+   * @return true if the ion row or one of its isotope rows is displayed
+   */
+  private boolean isDisplayed(@NotNull final FeatureListRow row) {
+    if (displayedRows.contains(row)) {
+      return true;
+    }
+    return row instanceof CompoundRow ionRow && ionRow.getMemberRows().stream()
+        .anyMatch(displayedRows::contains);
+  }
+
   private @Nullable Scan pickRepresentativeScan(@NotNull final FeatureListRow row) {
     if (file != null) {
       final Feature f = row.getFeature(file);
@@ -204,14 +224,30 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
       ms2TitleOut = "";
       return List.of();
     }
-    ms2TitleOut = buildMs2Title(ms2Scan);
-    final String label = "MS2 " + (CompoundDashboardColoring.ionTypeLabel(ms2Row) != null
-        ? CompoundDashboardColoring.ionTypeLabel(ms2Row) : "");
+    final boolean deconvolutedEi = ScanUtils.isGcEiSpectrum(ms2Scan);
+    ms2TitleOut = deconvolutedEi ? buildEiTitle(ms2Scan) : buildMs2Title(ms2Scan);
+    final String label = deconvolutedEi ? "EI spectrum"
+        : "MS2 " + (CompoundDashboardColoring.ionTypeLabel(ms2Row) != null
+            ? CompoundDashboardColoring.ionTypeLabel(ms2Row) : "");
     final Color awt = FxColorUtil.fxColorToAWT(colors.colorFor(ms2Row));
     final ColoredXYBarRenderer renderer = new ColoredXYBarRenderer(false);
     // match the on-plot stick label color to the dataset color
     renderer.setDefaultItemLabelPaint(awt);
     return List.of(new DatasetAndRenderer(new MassSpectrumProvider(ms2Scan, label, awt), renderer));
+  }
+
+  /**
+   * GC-EI pseudo spectra are deconvoluted MS1 spectra. They have no scan number, activation method
+   * or energy.
+   */
+  private static @NotNull String buildEiTitle(@NotNull final Scan spectrum) {
+    if (spectrum instanceof MergedMassSpectrum merged) {
+      final int samples = merged.getSourceSpectra().size();
+      return "Deconvoluted EI spectrum (merged from %d sample%s)".formatted(samples,
+          samples == 1 ? "" : "s");
+    }
+    return "Deconvoluted EI spectrum (%s; RT %s min)".formatted(spectrum.getDataFile().getName(),
+        ConfigService.getGuiFormats().rt(spectrum.getRetentionTime()));
   }
 
   private static @NotNull String buildMs2Title(@NotNull final Scan ms2) {
