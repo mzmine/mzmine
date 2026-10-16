@@ -102,6 +102,7 @@ import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityre
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.group_isotope_labeling_networking.IsotopeLabelingNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
@@ -372,6 +373,7 @@ public class BatchModeModulesList {
           ConfigCompoundRepresentationModule.class, //
           ImageCorrelateGroupingModule.class, //
           MainSpectralNetworkingModule.class, //
+          IsotopeLabelingNetworkingModule.class, //
           AnnotateIsomersModule.class, //
 
           /*
