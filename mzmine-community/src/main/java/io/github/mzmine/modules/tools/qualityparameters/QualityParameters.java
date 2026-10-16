@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.tools.qualityparameters;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
@@ -142,6 +144,18 @@ public class QualityParameters {
    */
   @Nullable
   public static Float calculateFWHM(@Nullable final SummedIntensityMobilitySeries series) {
+    final SimpleFloatRange fwhmRange = calculateFWHMRange(series);
+    return fwhmRange == null ? null : fwhmRange.length();
+  }
+
+  /**
+   * The FWHM is the only quality parameter that is meaningful for a mobilogram.
+   *
+   * @return the full width at half maximum in mobility units, or null if it cannot be determined
+   */
+  @Nullable
+  public static SimpleRange.SimpleFloatRange calculateFWHMRange(
+      @Nullable final SummedIntensityMobilitySeries series) {
     if (series == null || series.getNumberOfValues() < 3) {
       return null;
     }
@@ -151,7 +165,7 @@ public class QualityParameters {
       mobilities[i] = (float) series.getMobility(i);
     }
     final double[] intensities = series.getIntensityValues(new double[series.getNumberOfValues()]);
-    return calculateFWHM(findThresholdCrossings(mobilities, intensities));
+    return calculateFWHMRange(findThresholdCrossings(mobilities, intensities));
   }
 
   /**
@@ -176,6 +190,33 @@ public class QualityParameters {
     final float[] bounds = resolveFwhmBoundsWithFallbacks(c);
     final float fwhm = bounds[1] - bounds[0];
     return fwhm > 0 && !Float.isInfinite(fwhm) ? fwhm : null;
+  }
+
+  /**
+   * Full width at half maximum.
+   * <p>
+   * decision: a side that never drops below half the apex intensity, e.g. because the peak is cut
+   * off or because a co-eluting peak fills up one flank, is mirrored from the opposite side. The
+   * mirrored width is never narrower than what was actually observed on that side. If neither side
+   * drops below half maximum, both flanks are extrapolated down to the threshold, see
+   * {@link #extrapolateToThreshold(double, float[], double[], int, int)}.
+   * <p>
+   * The result never exceeds twice the observed x range of the peak.
+   *
+   * @param c the crossings of the peak, or null if it has none
+   * @return the fwhm range or null if it cannot be determined
+   */
+  @Nullable
+  public static SimpleRange.SimpleFloatRange calculateFWHMRange(
+      @Nullable final ThresholdCrossings c) {
+    if (c == null) {
+      return null;
+    }
+    final float[] bounds = resolveFwhmBoundsWithFallbacks(c);
+    if (!Float.isInfinite(bounds[0]) || !Float.isFinite(bounds[1])) {
+      return null;
+    }
+    return SimpleRange.ofFloat(bounds[0], bounds[1]);
   }
 
   /**
