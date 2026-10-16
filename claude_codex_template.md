@@ -9,13 +9,13 @@
 
 - When creating new methods or updating methods, add @Nullable and @NotNull annotations to method
   parameters and return values. Use the JetBrains annotations.
+- Don't apply Objects.requireNonNull checks or similar to annotated variables.
 - If variables do not change, make them final.
 - use exhaustive switches when pattern matching sealed interfaces or enums.
 - Use java.util.Logger for logging
 - Prefer separate files over nested classes
 - Never add the license yourself, the IDE will do that automatically on commit.
-- Set a single observable list/collection to JavaFX UI components and update it via setAll instead
-  of setting new lists so we can bind and add listeners and they don't get discarded.
+- Add javadoc, use @param and @return
 - Never use static imports for static method accesses. Only import the class and qualify the call
   with the class name.
 
