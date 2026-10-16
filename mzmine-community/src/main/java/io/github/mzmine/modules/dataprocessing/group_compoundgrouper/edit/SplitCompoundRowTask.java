@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -22,14 +23,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SplitCompoundRowTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final @NotNull ModularFeatureList flist;
   private final int sourceCompoundId;
   private final @NotNull String rowIdsToMove;
 
-  protected SplitCompoundRowTask(@NotNull final Instant moduleCallDate,
+  protected SplitCompoundRowTask(@NotNull final MZmineProject project,
+      @NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters) {
     super(null, moduleCallDate, parameters, SplitCompoundRowModule.class);
-    this.flist = parameters.getValue(SplitCompoundRowParameters.flist).getMatchingFeatureLists()[0];
+    this.project = project;
+    this.flist = parameters.getValue(SplitCompoundRowParameters.flist)
+        .getMatchingFeatureLists(project)[0];
     this.sourceCompoundId = parameters.getValue(SplitCompoundRowParameters.sourceCompoundId);
     this.rowIdsToMove = parameters.getValue(SplitCompoundRowParameters.rowIdsToMove);
   }

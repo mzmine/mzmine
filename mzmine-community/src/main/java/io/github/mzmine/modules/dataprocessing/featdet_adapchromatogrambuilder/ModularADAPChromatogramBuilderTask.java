@@ -172,7 +172,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     logger.info(() -> "Started chromatogram builder on " + dataFile);
 
     if (clearRtCorrection) {
-      RemoveScanRtCorrectionModule.clearRtCorrection(new RawDataFile[]{dataFile},
+      RemoveScanRtCorrectionModule.clearRtCorrection(project, new RawDataFile[]{dataFile},
           getModuleCallDate(), "Resetting RT correction during chromatogram builder.");
     }
 

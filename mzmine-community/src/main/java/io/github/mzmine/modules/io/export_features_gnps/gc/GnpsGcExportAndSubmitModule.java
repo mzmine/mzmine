@@ -75,7 +75,8 @@ public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
   public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     // add gnps export task
-    GnpsGcExportAndSubmitTask task = new GnpsGcExportAndSubmitTask(parameters, moduleCallDate);
+    GnpsGcExportAndSubmitTask task = new GnpsGcExportAndSubmitTask(project, parameters,
+        moduleCallDate);
     /*
      * We do not add the task to the tasks collection, but instead directly submit to the task
      * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the

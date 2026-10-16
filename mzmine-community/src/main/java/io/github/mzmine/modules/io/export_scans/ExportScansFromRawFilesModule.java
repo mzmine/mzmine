@@ -66,7 +66,7 @@ public class ExportScansFromRawFilesModule implements MZmineProcessingModule {
         .getValue();
     Scan[] scans = new Scan[0];
     for (RawDataFile raw : parameters.getParameter(ExportScansFromRawFilesParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles()) {
+        .getValue().getMatchingRawDataFiles(project)) {
       scans = ArrayUtils.addAll(scans, select.getMatchingScans(raw));
     }
 

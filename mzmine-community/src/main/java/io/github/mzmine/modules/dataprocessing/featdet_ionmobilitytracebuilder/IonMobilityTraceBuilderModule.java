@@ -54,7 +54,7 @@ public class IonMobilityTraceBuilderModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] files = parameters.getParameter(IonMobilityTraceBuilderParameters.rawDataFiles)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
 
     for (RawDataFile file : files) {
       if (!(file instanceof IMSRawDataFile)) {

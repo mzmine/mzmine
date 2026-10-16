@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -39,15 +39,20 @@ import org.jetbrains.annotations.NotNull;
 public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
 
   private static final Logger logger = Logger.getLogger(ProjectMetadataImportTask.class.getName());
+  private final @NotNull MZmineProject project;
   private final File[] files;
   private final int totalFiles;
   private final Boolean skipColOnError;
   private final Boolean removeAttributesPrefix;
   private int doneFiles = 0;
 
-  public ProjectMetadataImportTask(@NotNull ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  /**
+   * @param project the metadata is imported into this project
+   */
+  public ProjectMetadataImportTask(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(moduleCallDate, parameters);
+    this.project = project;
     File file = parameters.getValue(ProjectMetadataImportParameters.fileName);
     this.files = new File[]{file};
     this.totalFiles = files.length;
@@ -63,7 +68,7 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
 
   @Override
   protected void process() {
-    ProjectMetadataReader reader = new ProjectMetadataReader(skipColOnError,
+    ProjectMetadataReader reader = new ProjectMetadataReader(project, skipColOnError,
         removeAttributesPrefix);
 
     MetadataTable mergedMetadata = null;
@@ -104,8 +109,8 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
     if (mergedMetadata == null) {
       return;
     }
-    
-    MetadataTable projectMetadata = ProjectService.getMetadata();
+
+    MetadataTable projectMetadata = project.getProjectMetadata();
     projectMetadata.merge(mergedMetadata);
   }
 }

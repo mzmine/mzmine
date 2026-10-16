@@ -25,10 +25,12 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -94,7 +96,7 @@ public abstract class CustomComboParameter<E extends Enum<?>, VALUETYPE extends 
 
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // always save the choices
     xmlElement.setAttribute(CHOICES_ATTRIBUTE,
         Arrays.stream(options).map(Enum::name).collect(Collectors.joining(",")));
@@ -102,7 +104,8 @@ public abstract class CustomComboParameter<E extends Enum<?>, VALUETYPE extends 
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (valueRequired && value == null) {
       errorMessages.add(name + " is not set properly");
       return false;

@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 
 public class LogratioParameters extends SimpleParameterSet {
@@ -57,7 +58,8 @@ public class LogratioParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     FeatureListsSelection featureListSel = getParameter(featureLists).getValue();
-    FeatureList[] selectedFeatureLists = featureListSel.getMatchingFeatureLists();
+    FeatureList[] selectedFeatureLists = featureListSel.getMatchingFeatureLists(
+        ProjectService.getProject());
     RawDataFile[] plDataFiles = selectedFeatureLists[0].getRawDataFiles()
         .toArray(RawDataFile[]::new);
 

@@ -113,7 +113,7 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
       }
 
       final List<String> errors = new ArrayList<>();
-      if (!parameters.checkParameterValues(errors)) {
+      if (!parameters.checkParameterValues(ProjectService.getProject(), errors)) {
         String msg =
             "Please check parameter values:\n" + errors.stream().collect(Collectors.joining("\n"));
         MZmineCore.getDesktop().displayErrorMessage(msg);

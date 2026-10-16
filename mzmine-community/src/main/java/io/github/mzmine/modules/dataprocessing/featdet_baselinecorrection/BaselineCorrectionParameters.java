@@ -29,6 +29,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.arpls.ArplsBaselineCorrectorParameters;
@@ -77,12 +78,13 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    boolean value = super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    boolean value = super.checkParameterValues(project, errorMessages,
+        skipRawDataAndFeatureListParameters);
 
     final @NotNull ModularFeatureList[] flists = getValue(
-        BaselineCorrectionParameters.flists).getMatchingFeatureLists();
+        BaselineCorrectionParameters.flists).getMatchingFeatureLists(project);
     final String error = Arrays.stream(flists).filter(flist -> flist.getNumberOfRawDataFiles() > 1)
         .map(ModularFeatureList::getName).collect(Collectors.joining(", "));
 

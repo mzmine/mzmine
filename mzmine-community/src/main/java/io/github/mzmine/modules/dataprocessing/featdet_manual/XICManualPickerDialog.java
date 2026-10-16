@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -219,10 +221,11 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     this.parameters = parameters;
     mzRange = parameters.getParameter(XICManualPickerParameters.mzRange).getValue();
     rtRange = parameters.getParameter(XICManualPickerParameters.rtRange).getValue();
+    final MZmineProject project = ProjectService.getProject();
     flist = parameters.getParameter(XICManualPickerParameters.flists).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     rawDataFile = parameters.getParameter(XICManualPickerParameters.rawDataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
+        .getMatchingRawDataFiles(project)[0];
 
     ScanSelection sel = new ScanSelection(1, rawDataFile.getDataRTRange());
     Scan[] scans = sel.getMatchingScans(rawDataFile);

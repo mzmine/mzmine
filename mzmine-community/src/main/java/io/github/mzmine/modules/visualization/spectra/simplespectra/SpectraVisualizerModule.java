@@ -66,7 +66,7 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     RawDataFile dataFile = parameters.getParameter(SpectraVisualizerParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
+        .getMatchingRawDataFiles(project)[0];
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
     Scan scan = dataFile.getScanAtNumber(scanNumber);

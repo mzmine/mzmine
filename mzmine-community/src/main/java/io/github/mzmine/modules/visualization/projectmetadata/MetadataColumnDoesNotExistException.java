@@ -25,12 +25,17 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata;
 
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import org.jetbrains.annotations.NotNull;
 
 public class MetadataColumnDoesNotExistException extends RuntimeException {
 
-  public MetadataColumnDoesNotExistException(String requestedColumn) {
+  /**
+   * @param metadata the metadata table that was searched, used to list the existing headers
+   */
+  public MetadataColumnDoesNotExistException(@NotNull String requestedColumn,
+      @NotNull MetadataTable metadata) {
     super("Metadata column %s does not exist. Existing headers: %s".formatted(requestedColumn,
-        String.join(", ", MZmineCore.getProjectMetadata().getColumnTitles())));
+        String.join(", ", metadata.getColumnTitles())));
   }
 }

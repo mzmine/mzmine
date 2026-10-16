@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
@@ -100,7 +101,8 @@ public class NormalizationFunctionsParameter implements
   }
 
   @Override
-  public boolean checkValue(final @NotNull Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 
@@ -114,7 +116,7 @@ public class NormalizationFunctionsParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final @NotNull Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     ArrayList<RawFileNormalizationFunction> functions = new ArrayList<>();
     ArrayList<String> messages = new ArrayList<>();
 
@@ -161,7 +163,7 @@ public class NormalizationFunctionsParameter implements
   }
 
   @Override
-  public void saveValueToXML(final @NotNull Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
 
     final Element funcElement = doc.createElement("functions");

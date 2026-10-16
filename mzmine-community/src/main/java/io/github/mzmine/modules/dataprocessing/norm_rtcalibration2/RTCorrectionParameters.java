@@ -29,10 +29,12 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.createMoreThanOneFileMessage;
 import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.createUnsatisfiedSampleFilterMessage;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
@@ -108,12 +110,12 @@ public class RTCorrectionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
 
     if (!skipRawDataAndFeatureListParameters) {
       var flists = Arrays.stream(
-              getValue(RTCorrectionParameters.featureLists).getMatchingFeatureLists())
+              getValue(RTCorrectionParameters.featureLists).getMatchingFeatureLists(project))
           .sorted(Comparator.comparing(FeatureList::getNumberOfRows)).map(FeatureList.class::cast)
           .toList();
 
@@ -124,8 +126,10 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       }
 
       var sampleTypeFilter = getValue(RTCorrectionParameters.sampleTypes);
-      final List<FeatureList> referenceFlists = flists.stream()
-          .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
+      final MetadataTable metadata = project.getProjectMetadata();
+      final List<FeatureList> referenceFlists = flists.stream().filter(
+              flist -> flist.getRawDataFiles().stream()
+                  .allMatch(raw -> sampleTypeFilter.matches(metadata, raw)))
           .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
       if (referenceFlists.isEmpty()) {
         errorMessages.add(createUnsatisfiedSampleFilterMessage(sampleTypeFilter, flists));

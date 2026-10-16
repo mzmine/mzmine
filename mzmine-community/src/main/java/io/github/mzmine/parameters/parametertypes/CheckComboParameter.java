@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
@@ -142,7 +143,7 @@ public class CheckComboParameter<ValueType> implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList itemElements = xmlElement.getElementsByTagName(XML_ITEM_TAG);
     Set<ValueType> selectedValues = new HashSet<>();
 
@@ -180,7 +181,7 @@ public class CheckComboParameter<ValueType> implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value.isEmpty()) {
       return;
     }
@@ -209,7 +210,8 @@ public class CheckComboParameter<ValueType> implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return !requiresSelection || (value != null && !value.isEmpty());
   }
 

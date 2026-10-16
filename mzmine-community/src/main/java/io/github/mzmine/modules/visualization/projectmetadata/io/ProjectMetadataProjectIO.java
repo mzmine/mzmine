@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +41,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 import org.jetbrains.annotations.NotNull;
 
-/** Saves and restores the current project metadata snapshot in an MZmine project archive. */
+/** Saves and restores the project metadata snapshot in an MZmine project archive. */
 public final class ProjectMetadataProjectIO {
 
   public static final String PROJECT_METADATA_FILENAME = "project_metadata.tsv";
@@ -54,8 +54,9 @@ public final class ProjectMetadataProjectIO {
   /**
    * @return {@code true} if metadata was written, or {@code false} for an empty metadata table
    */
-  public static boolean saveToZip(@NotNull final ZipOutputStream zipStream) throws IOException {
-    final MetadataTable metadata = ProjectService.getMetadata();
+  public static boolean saveToZip(@NotNull final ZipOutputStream zipStream,
+      @NotNull final MZmineProject project) throws IOException {
+    final MetadataTable metadata = project.getProjectMetadata();
     if (metadata.getColumns().isEmpty()) {
       logger.info("Project metadata is empty, nothing to save");
       return false;
@@ -64,7 +65,7 @@ public final class ProjectMetadataProjectIO {
     File tempFile = null;
     try {
       tempFile = FileAndPathUtil.createTempFile(TEMP_FILE_PREFIX, ".tsv");
-      final ProjectMetadataWriter writer = new ProjectMetadataWriter(metadata,
+      final ProjectMetadataWriter writer = new ProjectMetadataWriter(project,
           MetadataFileFormat.MZMINE_INTERNAL);
       if (!writer.exportTo(tempFile)) {
         throw new IOException("Could not export project metadata for project saving.");
@@ -82,7 +83,8 @@ public final class ProjectMetadataProjectIO {
   /**
    * @return {@code true} if archived metadata was found and imported, otherwise {@code false}
    */
-  public static boolean loadFromZip(@NotNull final ZipFile zipFile) throws IOException {
+  public static boolean loadFromZip(@NotNull final ZipFile zipFile,
+      @NotNull final MZmineProject project) throws IOException {
     final ZipEntry entry = zipFile.getEntry(PROJECT_METADATA_FILENAME);
     if (entry == null) {
       return false;
@@ -95,14 +97,14 @@ public final class ProjectMetadataProjectIO {
         Files.copy(input, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
       }
 
-      final ProjectMetadataReader reader = new ProjectMetadataReader(false, false);
+      final ProjectMetadataReader reader = new ProjectMetadataReader(project, false, false);
       final MetadataTable importedMetadata = reader.readFile(tempFile);
       final List<String> errors = reader.getErrors();
       if (importedMetadata == null || !errors.isEmpty()) {
         throw new IOException("Could not import project metadata: " + String.join("; ", errors));
       }
 
-      ProjectService.getMetadata().merge(importedMetadata);
+      project.getProjectMetadata().merge(importedMetadata);
       return true;
     } finally {
       deleteTempFile(tempFile);

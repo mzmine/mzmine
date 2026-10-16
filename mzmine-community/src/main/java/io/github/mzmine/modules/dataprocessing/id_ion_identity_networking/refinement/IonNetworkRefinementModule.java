@@ -75,8 +75,7 @@ public class IonNetworkRefinementModule implements MZmineProcessingModule {
       @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] pkl = parameters.getParameter(IonNetworkRefinementParameters.PEAK_LISTS)
-        .getValue()
-        .getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     for (ModularFeatureList p : pkl) {
       tasks.add(new IonNetworkRefinementTask(project, parameters, p, moduleCallDate));
     }

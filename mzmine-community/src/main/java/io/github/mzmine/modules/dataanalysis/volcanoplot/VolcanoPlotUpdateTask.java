@@ -43,6 +43,7 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestRes
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
@@ -193,7 +194,8 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
    */
   private @Nullable RowSignificanceTest createTest() {
     try {
-      final RowSignificanceTest test = testConfig.toValidConfig(dataTable);
+      final RowSignificanceTest test = testConfig.toValidConfig(ProjectService.getMetadata(),
+          dataTable);
       if (test == null) {
         // toValidConfig only logs the actual reason
         userWarning = """

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class GridMassParameters extends SimpleParameterSet {
 
@@ -93,8 +95,9 @@ public class GridMassParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    boolean allParameterOK = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    boolean allParameterOK = super.checkParameterValues(project, errorMessages);
 
     var selection = getValue(scanSelection);
     if (!selection.getMsLevelFilter().isSingleMsLevel(1)) {

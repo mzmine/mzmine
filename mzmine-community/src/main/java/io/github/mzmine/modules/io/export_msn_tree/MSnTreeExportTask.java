@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_msn_tree;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
@@ -51,11 +52,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class MSnTreeExportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(MSnTreeExportTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final File outFile;
   private final RawDataFile[] raws;
   private final MZTolerance mzTol;
@@ -65,10 +68,12 @@ public class MSnTreeExportTask extends AbstractTask {
   private int total = 0;
   private int done;
 
-  public MSnTreeExportTask(ParameterSet parameters, Instant moduleCallDate) {
+  public MSnTreeExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     outFile = parameters.getValue(MSnTreeExportParameters.FILENAME);
-    raws = parameters.getValue(MSnTreeExportParameters.RAW_FILES).getMatchingRawDataFiles();
+    raws = parameters.getValue(MSnTreeExportParameters.RAW_FILES).getMatchingRawDataFiles(project);
     mzTol = parameters.getValue(MSnTreeExportParameters.MZ_TOL);
     sep = parameters.getValue(MSnTreeExportParameters.SEPARATOR).separator();
     description = String.format("Exporting %d raw files as MSn trees to tabular file %s",

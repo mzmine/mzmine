@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -42,16 +43,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RawDataOverviewTask extends AbstractTask {
 
+  private final @NotNull MZmineProject project;
   private RawDataFile rawDataFiles[];
 
   private int totalSteps = 0;
   private int appliedSteps = 0;
 
-  public RawDataOverviewTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public RawDataOverviewTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
 
     this.rawDataFiles = parameters.getParameter(RawDataOverviewParameters.rawDataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     this.totalSteps = rawDataFiles.length;
   }

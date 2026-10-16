@@ -47,7 +47,8 @@ public class SiriusApiFingerIdModule extends AbstractProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new SiriusApiFingerIdTask(null, moduleCallDate, parameters, this.getClass()));
+    tasks.add(
+        new SiriusApiFingerIdTask(project, null, moduleCallDate, parameters, this.getClass()));
     return ExitCode.OK;
   }
 

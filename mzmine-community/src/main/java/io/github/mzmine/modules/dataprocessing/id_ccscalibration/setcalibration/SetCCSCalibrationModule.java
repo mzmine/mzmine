@@ -77,7 +77,7 @@ public class SetCCSCalibrationModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new SetCCSCalibrationTask(parameters, null, moduleCallDate));
+    tasks.add(new SetCCSCalibrationTask(project, parameters, null, moduleCallDate));
     return ExitCode.OK;
   }
 

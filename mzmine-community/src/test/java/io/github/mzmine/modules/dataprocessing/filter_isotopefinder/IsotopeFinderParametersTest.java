@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -87,9 +88,9 @@ class IsotopeFinderParametersTest {
     algo.setParameter(AutomaticIsotopeFinderParameters.maxCharge, 4);
     algo.setParameter(AutomaticIsotopeFinderParameters.requireC13, true);
 
-    final String xml = ParameterUtils.saveValuesToXMLString(params);
+    final String xml = ParameterUtils.saveValuesToXMLString(new MZmineProjectImpl(), params);
     final IsotopeFinderParameters loaded = cloned();
-    ParameterUtils.loadValuesFromXMLString(loaded, xml);
+    ParameterUtils.loadValuesFromXMLString(new MZmineProjectImpl(), loaded, xml);
 
     assertEquals(IsotopeFinderModeOptions.AUTOMATIC, loaded.getValue(IsotopeFinderParameters.mode));
     final ParameterSet loadedAlgo = loaded.getParameter(IsotopeFinderParameters.mode)
@@ -144,7 +145,8 @@ class IsotopeFinderParametersTest {
     root.appendChild(legacyScanRange);
 
     final IsotopeFinderParameters params = cloned();
-    params.loadValuesFromXML(root); // must not throw on the unknown parameters
+    // must not throw on the unknown parameters
+    params.loadValuesFromXML(new MZmineProjectImpl(), root);
 
     // the legacy top level setup maps onto the automatic algorithm, which carries the two values
     assertEquals(IsotopeFinderModeOptions.AUTOMATIC, params.getValue(IsotopeFinderParameters.mode));

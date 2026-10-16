@@ -212,7 +212,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   protected void loadPreview(boolean rerun) {
     ArrayList<String> errors = new ArrayList<>();
-    boolean paramsOK = parameterSet.checkParameterValues(errors);
+    boolean paramsOK = parameterSet.checkParameterValues(ProjectService.getProject(), errors);
     if (!paramsOK) {
       return;
     }

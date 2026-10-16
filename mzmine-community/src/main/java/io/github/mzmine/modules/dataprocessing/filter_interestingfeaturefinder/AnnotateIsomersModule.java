@@ -62,7 +62,7 @@ public class AnnotateIsomersModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (var flist : parameters.getParameter(AnnotateIsomersParameters.featureLists).getValue()
-        .getMatchingFeatureLists()) {
+        .getMatchingFeatureLists(project)) {
       tasks.add(new AnnotateIsomersTask(storage, project, parameters, flist, moduleCallDate));
     }
 

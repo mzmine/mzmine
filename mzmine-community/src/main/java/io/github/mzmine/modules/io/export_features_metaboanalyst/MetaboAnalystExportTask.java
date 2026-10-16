@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -62,6 +63,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(MetaboAnalystExportTask.class.getName());
   private static final String fieldSeparator = ",";
 
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final @NotNull MetadataTable metadata;
   private final MetadataColumn<?> metadataColumn;
@@ -75,18 +77,20 @@ class MetaboAnalystExportTask extends AbstractTask {
   // parameter values
   private final File fileName;
 
-  MetaboAnalystExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  MetaboAnalystExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
 
     this.featureLists = parameters.getValue(MetaboAnalystExportParameters.featureLists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     fileName = parameters.getValue(MetaboAnalystExportParameters.filename);
     abundanceMeasure = parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
     rowSelection = parameters.getValue(MetaboAnalystExportParameters.compoundRowSelection);
 //    statsFormat = parameters.getValue(MetaboAnalystExportParameters.format);
     grouping = parameters.getValue(MetaboAnalystExportParameters.grouping);
-    metadata = MZmineCore.getProjectMetadata();
+    metadata = project.getProjectMetadata();
     metadataColumn = metadata.getColumnByName(grouping);
   }
 

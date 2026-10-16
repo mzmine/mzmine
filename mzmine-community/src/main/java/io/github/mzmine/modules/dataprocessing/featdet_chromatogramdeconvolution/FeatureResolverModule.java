@@ -60,7 +60,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     FeatureList[] peakLists = parameters.getParameter(GeneralResolverParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     for (final FeatureList peakList : peakLists) {
       tasks.add(new FeatureResolverTask(project, storage, peakList, parameters,
           FeatureDataUtils.DEFAULT_CENTER_FUNCTION, moduleCallDate));

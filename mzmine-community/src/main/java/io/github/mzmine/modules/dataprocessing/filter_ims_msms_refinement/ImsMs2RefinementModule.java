@@ -58,7 +58,7 @@ public class ImsMs2RefinementModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new ImsMs2RefinementTask(null, moduleCallDate, parameters));
+    tasks.add(new ImsMs2RefinementTask(project, null, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 

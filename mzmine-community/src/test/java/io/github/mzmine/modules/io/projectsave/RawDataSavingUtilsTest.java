@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -93,8 +94,8 @@ class RawDataSavingUtilsTest {
     final List<BatchQueue> batches = createAppliedMethodBatches(MS1_NOISE);
 
     // decision: file selections differ between imports and must be combined during the merge.
-    final BatchQueue merged = RawDataSavingUtils.mergeQueues(batches.getFirst(), batches.getLast(),
-        true);
+    final BatchQueue merged = RawDataSavingUtils.mergeQueues(ProjectService.getProject(),
+        batches.getFirst(), batches.getLast(), true);
 
     Assertions.assertNotNull(merged);
     Assertions.assertEquals(3, merged.size());
@@ -114,8 +115,8 @@ class RawDataSavingUtilsTest {
   void doesNotMergeAppliedMethodBatchesWithDifferentMs1Noise() {
     final List<BatchQueue> batches = createAppliedMethodBatches(MS1_NOISE + 1d);
 
-    final BatchQueue merged = RawDataSavingUtils.mergeQueues(batches.getFirst(), batches.getLast(),
-        true);
+    final BatchQueue merged = RawDataSavingUtils.mergeQueues(ProjectService.getProject(),
+        batches.getFirst(), batches.getLast(), true);
 
     Assertions.assertNull(merged);
   }
@@ -133,8 +134,9 @@ class RawDataSavingUtilsTest {
         Instant.parse("2026-01-01T11:00:00Z"), Instant.parse("2026-01-01T11:01:00Z"),
         Instant.parse("2026-01-01T11:02:00Z"), secondMs1Noise);
 
-    return List.of(RawDataSavingUtils.makeBatchQueue(List.of(raw1, raw2)),
-        RawDataSavingUtils.makeBatchQueue(List.of(raw3)));
+    final MZmineProject project = ProjectService.getProject();
+    return List.of(RawDataSavingUtils.makeBatchQueue(project, List.of(raw1, raw2)),
+        RawDataSavingUtils.makeBatchQueue(project, List.of(raw3)));
   }
 
   private void addAppliedMethods(final RawDataFile raw, final File[] importFiles,
@@ -171,7 +173,8 @@ class RawDataSavingUtilsTest {
   private void assertSelectedRawFiles(final ParameterSet parameters) {
     final Set<RawDataFile> expected = Set.of(raw1, raw2, raw3);
     final Set<RawDataFile> actual = Arrays.stream(
-            parameters.getValue(MassDetectionParameters.dataFiles).getMatchingRawDataFiles())
+            parameters.getValue(MassDetectionParameters.dataFiles)
+                .getMatchingRawDataFiles(ProjectService.getProject()))
         .collect(Collectors.toSet());
     Assertions.assertEquals(expected, actual);
   }

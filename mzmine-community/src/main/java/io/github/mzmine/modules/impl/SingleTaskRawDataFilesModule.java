@@ -77,7 +77,7 @@ public abstract class SingleTaskRawDataFilesModule extends AbstractProcessingMod
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
     try {
-      var dataFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(parameters);
+      var dataFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(project, parameters);
 
       MemoryMapStorage storage = MemoryMapStorage.forMassList();
 

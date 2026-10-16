@@ -24,11 +24,11 @@
 
 package io.github.mzmine.util.reporting.jasper.reporttypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.reporting.jasper.JRCountingBeanCollectionDataSource;
 import io.github.mzmine.util.reporting.jasper.ReportUtils;
@@ -54,7 +54,7 @@ public class AlignedFeatureReport implements ReportModule {
   private final AtomicLong totalItemsToPrepare = new AtomicLong(1);
   private final AtomicLong preparedItems = new AtomicLong();
   private final AtomicBoolean isCanceled = new AtomicBoolean(false);
-  @NotNull
+  @Nullable
   private final MetadataColumn<?> groupingCol;
   private JRCountingBeanCollectionDataSource detailSource = null;
   private JRCountingBeanCollectionDataSource summarySource = null;
@@ -62,19 +62,21 @@ public class AlignedFeatureReport implements ReportModule {
   public AlignedFeatureReport() {
     includeSummary = true;
     includeEvidence = true;
-    groupingCol = ProjectService.getMetadata().getSampleTypeColumn();
+    // decision: module instance used for registration only, see createInstance
+    groupingCol = null;
   }
 
-  public AlignedFeatureReport(ParameterSet parameters) {
+  public AlignedFeatureReport(@NotNull MZmineProject project, @NotNull ParameterSet parameters) {
     includeSummary = parameters.getValue(AlignedFeatureReportParameters.includeSummaryTable);
     includeEvidence = parameters.getValue(AlignedFeatureReportParameters.includeEvidencePages);
-    groupingCol = ProjectService.getMetadata()
+    groupingCol = project.getProjectMetadata()
         .getColumnByName(parameters.getValue(AlignedFeatureReportParameters.grouping));
   }
 
   @Override
-  public ReportModule createInstance(@NotNull ParameterSet parameters) {
-    return new AlignedFeatureReport(parameters);
+  public ReportModule createInstance(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters) {
+    return new AlignedFeatureReport(project, parameters);
   }
 
   @Override

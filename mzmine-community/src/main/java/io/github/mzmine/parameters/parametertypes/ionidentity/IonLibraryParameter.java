@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
@@ -39,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -48,8 +50,8 @@ import org.w3c.dom.Element;
  * <p>
  * Replaces the {@link LegacyIonLibraryParameterSet} that was typically used as a
  * {@link ParameterSetParameter} or {@link OptionalModuleParameter} or {@link SubModuleParameter}.
- * The {@link #loadValueFromXML(Element)} handles the loading of the old parameterset so this is a
- * drop in replacement.
+ * The {@link #loadValueFromXML(MZmineProject, Element)} handles the loading of the old
+ * parameterset so this is a drop in replacement.
  */
 public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibraryComponent> {
 
@@ -116,7 +118,8 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (library == null) {
       errorMessages.add(name + " is undefined");
       return false;
@@ -132,10 +135,10 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
    * or
    */
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final String version = xmlElement.getAttribute("libraryVersion");
     if (StringUtils.isBlank(version)) {
-      loadLegacyLibraryParameters(xmlElement);
+      loadLegacyLibraryParameters(project, xmlElement);
       return;
     }
 
@@ -143,9 +146,10 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
     setValue(loaded == null ? null : loaded.library());
   }
 
-  private void loadLegacyLibraryParameters(Element xmlElement) {
+  private void loadLegacyLibraryParameters(@NotNull MZmineProject project,
+      @NotNull Element xmlElement) {
     final LegacyIonLibraryParameterSet parameters = (LegacyIonLibraryParameterSet) new LegacyIonLibraryParameterSet().cloneParameterSet();
-    final Map<String, Parameter<?>> loaded = parameters.loadValuesFromXML(xmlElement);
+    final Map<String, Parameter<?>> loaded = parameters.loadValuesFromXML(project, xmlElement);
     if (!loaded.containsKey(LegacyIonLibraryParameterSet.ADDUCTS.getName())) {
       return; // nothing loaded
     }
@@ -156,7 +160,7 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // set libraryVersion to 2 so that we know to load a new {@link IonLibrary} or
     // via the old {@link LegacyIonLibraryParameterSet}
     // old libraries did not use libraryVersion so it is unset in this case

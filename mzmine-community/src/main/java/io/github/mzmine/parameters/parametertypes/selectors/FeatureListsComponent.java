@@ -86,7 +86,8 @@ public class FeatureListsComponent extends HBox {
         final MultiChoiceParameter<FeatureList> plsParameter = new MultiChoiceParameter<FeatureList>(
             "Select feature lists", "Select feature lists",
             ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists()
-                .toArray(FeatureList[]::new), currentValue.getSpecificFeatureLists());
+                .toArray(FeatureList[]::new),
+            currentValue.getSpecificFeatureLists(ProjectService.getProject()));
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{plsParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
@@ -149,7 +150,8 @@ public class FeatureListsComponent extends HBox {
       numPeakListsLabel.setTooltip(null);
       currentlySelected.set(null);
     } else {
-      List<FeatureList> pls = List.of(currentValue.getMatchingFeatureLists());
+      List<FeatureList> pls = List.of(
+          currentValue.getMatchingFeatureLists(ProjectService.getProject()));
 
       if (currentlySelected.get() == null || !currentlySelected.get().equals(pls)) {
         currentlySelected.set(pls);

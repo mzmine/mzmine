@@ -68,7 +68,7 @@ class ProjectMetadataReaderTest {
   @Test
   void readWithTypeMismatch() {
     // should read all as string as number and date also contains a string
-    ProjectMetadataReader reader = new ProjectMetadataReader(false, true);
+    ProjectMetadataReader reader = new ProjectMetadataReader(ProjectService.getProject(), false, true);
     File file = new File(
         getClass().getClassLoader().getResource("metadata/metadata_wide_type_mismatch.tsv")
             .getFile());
@@ -133,7 +133,7 @@ class ProjectMetadataReaderTest {
 
   @Test
   void readFileRemoveAttributePrefix() {
-    ProjectMetadataReader reader = new ProjectMetadataReader(false, true);
+    ProjectMetadataReader reader = new ProjectMetadataReader(ProjectService.getProject(), false, true);
 
     var files = List.of("metadata/metadata_wide.tsv", "metadata/metadata_wide_defined.tsv");
     for (String f : files) {
@@ -166,7 +166,7 @@ class ProjectMetadataReaderTest {
 
   @Test
   void readFileKeepAttributePrefix() {
-    ProjectMetadataReader reader = new ProjectMetadataReader(false, false);
+    ProjectMetadataReader reader = new ProjectMetadataReader(ProjectService.getProject(), false, false);
 
     var files = List.of("metadata/metadata_wide.tsv", "metadata/metadata_wide_defined.tsv");
     for (String f : files) {
@@ -202,12 +202,12 @@ class ProjectMetadataReaderTest {
   void testImportWideNumberFormatError() {
     File file = new File(getClass().getClassLoader()
         .getResource("metadata/metadata_wide_defined_numberparse_exception.tsv").getFile());
-    ProjectMetadataReader reader = new ProjectMetadataReader(true, true);
+    ProjectMetadataReader reader = new ProjectMetadataReader(ProjectService.getProject(), true, true);
     var meta = reader.readFile(file);
     assertNotNull(meta);
     assertEquals(1, reader.getErrors().size()); // warning on wrong column
 
-    reader = new ProjectMetadataReader(false, true);
+    reader = new ProjectMetadataReader(ProjectService.getProject(), false, true);
     meta = reader.readFile(file);
     assertNull(meta); // should be null
     assertEquals(1, reader.getErrors().size()); // warning on wrong column
@@ -218,7 +218,7 @@ class ProjectMetadataReaderTest {
     File file = new File(
         getClass().getClassLoader().getResource("metadata/metadata_wide_only_types_defined.tsv")
             .getFile());
-    var reader = new ProjectMetadataReader(false, true);
+    var reader = new ProjectMetadataReader(ProjectService.getProject(), false, true);
     var meta = reader.readFile(file);
     assertNotNull(meta);
     assertEquals(0, reader.getErrors().size()); // warning on wrong column

@@ -59,7 +59,8 @@ public class CompoundAnnotationsCSVExportModule implements MZmineProcessingModul
 
     @Override
     public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-        CompoundAnnotationsCSVExportTask task = new CompoundAnnotationsCSVExportTask(parameters, moduleCallDate);
+      CompoundAnnotationsCSVExportTask task = new CompoundAnnotationsCSVExportTask(project,
+          parameters, moduleCallDate);
         tasks.add(task);
         return ExitCode.OK;
     }

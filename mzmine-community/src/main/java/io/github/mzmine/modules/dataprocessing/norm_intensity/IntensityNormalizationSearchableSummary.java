@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,18 +69,19 @@ public record IntensityNormalizationSearchableSummary(
    * Adds a function for a file. If this file already has a function then these two functions are
    * merged.
    *
+   * @param metadata used to look up the run date of the file for interpolation
    * @return the new function either the input or a merged function from the input and previous
    */
   @NotNull
-  public RawFileNormalizationFunction addMergeFunction(@NotNull RawDataFile file,
-      @NotNull NormalizationFunction function) {
+  public RawFileNormalizationFunction addMergeFunction(@NotNull MetadataTable metadata,
+      @NotNull RawDataFile file, @NotNull NormalizationFunction function) {
     return functions.compute(file, (_, oldFunc) -> {
       if (oldFunc == null) {
-        return new RawFileNormalizationFunction(file, function);
+        return new RawFileNormalizationFunction(metadata, file, function);
       }
 
       NormalizationFunction merged = NormalizationFunction.merge(oldFunc.function(), function);
-      return new RawFileNormalizationFunction(file, merged);
+      return new RawFileNormalizationFunction(metadata, file, merged);
     });
   }
 

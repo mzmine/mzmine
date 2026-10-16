@@ -59,7 +59,7 @@ public class VennExportModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     ModularFeatureList[] matchingFeatureLists = parameters.getParameter(VennExportParameters.flists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     for (ModularFeatureList matchingFeatureList : matchingFeatureLists) {
       tasks.add(new VennExportTask(null, moduleCallDate, matchingFeatureList, parameters));

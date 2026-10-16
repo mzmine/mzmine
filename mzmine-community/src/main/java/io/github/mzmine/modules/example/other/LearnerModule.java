@@ -56,8 +56,8 @@ public class LearnerModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     // get parameters
-    FeatureList featureLists[] =
-        parameters.getParameter(LearnerParameters.featureLists).getValue().getMatchingFeatureLists();
+    FeatureList featureLists[] = parameters.getParameter(LearnerParameters.featureLists).getValue()
+        .getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     // create and start one task for each feature list

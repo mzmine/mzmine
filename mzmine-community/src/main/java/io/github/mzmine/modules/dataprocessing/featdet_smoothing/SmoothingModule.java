@@ -66,7 +66,7 @@ public class SmoothingModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final ModularFeatureList[] flists = parameters.getParameter(SmoothingParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList flist : flists) {

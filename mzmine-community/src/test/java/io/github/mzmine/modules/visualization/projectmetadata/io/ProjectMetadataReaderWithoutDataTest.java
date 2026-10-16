@@ -37,6 +37,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Date
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.io.File;
 import java.util.HashSet;
@@ -63,7 +64,7 @@ class ProjectMetadataReaderWithoutDataTest {
   @Test
   void readWithTypeMismatch() {
     // should read all as string as number and date also contains a string
-    ProjectMetadataReader reader = new ProjectMetadataReader(false, true, true);
+    ProjectMetadataReader reader = new ProjectMetadataReader(new MZmineProjectImpl(), false, true, true);
     File file = new File(
         getClass().getClassLoader().getResource("metadata/metadata_wide_type_mismatch.tsv")
             .getFile());
@@ -101,7 +102,7 @@ class ProjectMetadataReaderWithoutDataTest {
 
   @Test
   void readFileRemoveAttributePrefix() {
-    ProjectMetadataReader reader = new ProjectMetadataReader(false, true, true);
+    ProjectMetadataReader reader = new ProjectMetadataReader(new MZmineProjectImpl(), false, true, true);
 
     var files = List.of("metadata/metadata_wide.tsv", "metadata/metadata_wide_defined.tsv");
     for (String f : files) {
@@ -134,7 +135,7 @@ class ProjectMetadataReaderWithoutDataTest {
 
   @Test
   void readFileKeepAttributePrefix() {
-    ProjectMetadataReader reader = new ProjectMetadataReader(false, false, true);
+    ProjectMetadataReader reader = new ProjectMetadataReader(new MZmineProjectImpl(), false, false, true);
 
     var files = List.of("metadata/metadata_wide.tsv", "metadata/metadata_wide_defined.tsv");
     for (String f : files) {
@@ -170,12 +171,12 @@ class ProjectMetadataReaderWithoutDataTest {
   void testImportWideNumberFormatError() {
     File file = new File(getClass().getClassLoader()
         .getResource("metadata/metadata_wide_defined_numberparse_exception.tsv").getFile());
-    ProjectMetadataReader reader = new ProjectMetadataReader(true, true, true);
+    ProjectMetadataReader reader = new ProjectMetadataReader(new MZmineProjectImpl(), true, true, true);
     var meta = reader.readFile(file);
     assertNotNull(meta);
     assertEquals(1, reader.getErrors().size()); // warning on wrong column
 
-    reader = new ProjectMetadataReader(false, true, true);
+    reader = new ProjectMetadataReader(new MZmineProjectImpl(), false, true, true);
     meta = reader.readFile(file);
     assertNull(meta); // should be null
     assertEquals(1, reader.getErrors().size()); // warning on wrong column
@@ -186,7 +187,7 @@ class ProjectMetadataReaderWithoutDataTest {
     File file = new File(
         getClass().getClassLoader().getResource("metadata/metadata_wide_only_types_defined.tsv")
             .getFile());
-    var reader = new ProjectMetadataReader(false, true, true);
+    var reader = new ProjectMetadataReader(new MZmineProjectImpl(), false, true, true);
     var meta = reader.readFile(file);
     assertNotNull(meta);
     assertEquals(0, reader.getErrors().size()); // warning on wrong column

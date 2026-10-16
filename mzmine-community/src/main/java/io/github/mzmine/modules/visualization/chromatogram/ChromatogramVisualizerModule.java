@@ -252,7 +252,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final RawDataFile[] dataFiles = parameters.getParameter(TICVisualizerParameters.DATA_FILES)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     final Range<Double> mzRange = parameters.getParameter(TICVisualizerParameters.MZ_RANGE)
         .getValue();
     final ScanSelection scanSelection = parameters.getParameter(

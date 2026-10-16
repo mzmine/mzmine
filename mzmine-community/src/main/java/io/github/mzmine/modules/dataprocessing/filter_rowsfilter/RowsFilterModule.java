@@ -64,8 +64,8 @@ public class RowsFilterModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    final FeatureList[] featureLists =
-        parameters.getParameter(RowsFilterParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
+    final FeatureList[] featureLists = parameters.getParameter(RowsFilterParameters.FEATURE_LISTS)
+        .getValue().getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {

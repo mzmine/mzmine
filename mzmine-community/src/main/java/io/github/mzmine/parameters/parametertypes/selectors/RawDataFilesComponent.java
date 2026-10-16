@@ -89,7 +89,7 @@ public class RawDataFilesComponent extends GridPane {
         final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
             "Select files", "Select files",
             ProjectService.getProjectManager().getCurrentProject().getDataFiles(),
-            currentValue.getSpecificFiles());
+            currentValue.getSpecificFiles(ProjectService.getProject()));
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{filesParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
@@ -169,7 +169,8 @@ public class RawDataFilesComponent extends GridPane {
       numFilesLabel.setTooltip(null);
       currentlySelected.set(null);
     } else {
-      List<RawDataFile> files = List.of(currentValue.getMatchingRawDataFiles());
+      List<RawDataFile> files = List.of(
+          currentValue.getMatchingRawDataFiles(ProjectService.getProject()));
 
       if (currentlySelected.get() == null || !currentlySelected.get().equals(files)) {
         currentlySelected.set(files);

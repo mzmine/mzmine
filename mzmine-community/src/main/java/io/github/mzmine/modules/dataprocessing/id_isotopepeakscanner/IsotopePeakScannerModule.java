@@ -72,7 +72,7 @@ public class IsotopePeakScannerModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     FeatureList peakLists[] = parameters.getParameter(IsotopePeakScannerParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (FeatureList peakList : peakLists) {
       Task newTask = new IsotopePeakScannerTask(project, peakList, parameters, storage, moduleCallDate);

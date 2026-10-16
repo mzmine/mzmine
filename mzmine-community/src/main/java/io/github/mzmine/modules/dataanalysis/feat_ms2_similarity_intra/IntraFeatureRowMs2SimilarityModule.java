@@ -67,8 +67,8 @@ public class IntraFeatureRowMs2SimilarityModule implements MZmineProcessingModul
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    IntraFeatureRowMs2SimilarityTask task = new IntraFeatureRowMs2SimilarityTask(parameters,
-        moduleCallDate);
+    IntraFeatureRowMs2SimilarityTask task = new IntraFeatureRowMs2SimilarityTask(project,
+        parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }

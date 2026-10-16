@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.export_features_xml;
 
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -56,16 +57,16 @@ public class ExportFeaturesDataParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
-    if (getValue(flists).getMatchingFeatureLists().length > 1 && !getValue(file).getName()
+    if (getValue(flists).getMatchingFeatureLists(project).length > 1 && !getValue(file).getName()
         .contains(SiriusExportTask.MULTI_NAME_PATTERN)) {
       errorMessages.add(
           "Multiple feature lists (%d) were selected, but the file name does not contain the pattern %s.".formatted(
-              getValue(flists).getMatchingFeatureLists().length,
+              getValue(flists).getMatchingFeatureLists(project).length,
               inQuotes(SiriusExportTask.MULTI_NAME_PATTERN)));
     }
 

@@ -59,7 +59,7 @@ public class MassvoltammogramFromFileModule implements MZmineRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new MassvoltammogramTask(parameters, moduleCallDate));
+    tasks.add(new MassvoltammogramTask(project, parameters, moduleCallDate));
 
     return ExitCode.OK;
   }

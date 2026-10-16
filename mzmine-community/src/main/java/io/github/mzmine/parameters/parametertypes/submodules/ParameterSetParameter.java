@@ -24,6 +24,7 @@
  */
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -123,22 +125,23 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (this.value == null) {
       return;
     }
 
-    value.saveValuesToXML(xmlElement);
+    value.saveValuesToXML(project, xmlElement);
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    value.loadValuesFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    value.loadValuesFromXML(project, xmlElement);
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return checkEmbeddedValues(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    return checkEmbeddedValues(project, errorMessages);
   }
 
   @Override

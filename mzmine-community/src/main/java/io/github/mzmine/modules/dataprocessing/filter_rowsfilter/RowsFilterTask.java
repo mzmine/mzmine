@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
@@ -188,13 +189,15 @@ public class RowsFilterTask extends AbstractTask {
         .orElse(null);
 
     // create min samples filter based on all files and on groups in column
+    final MetadataTable metadata = project.getProjectMetadata();
     minSamples = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_COUNT)
-        .map(min -> new MinimumSamplesFilterConfig(min).createFilter(rawFiles)).orElse(null);
+        .map(min -> new MinimumSamplesFilterConfig(min).createFilter(rawFiles, metadata))
+        .orElse(null);
     minSamplesInGroup = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT)
-        .map(config -> config.createFilter(rawFiles)).orElse(null);
+        .map(config -> config.createFilter(rawFiles, metadata)).orElse(null);
     minSamplesInOneGroup = parameters.getOptionalValue(
             RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT)
-        .map(config -> config.createFilter(rawFiles)).orElse(null);
+        .map(config -> config.createFilter(rawFiles, metadata)).orElse(null);
 
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
     filterByMassDefect = parameters.getValue(RowsFilterParameters.massDefect);
@@ -309,12 +312,12 @@ public class RowsFilterTask extends AbstractTask {
     // prepare filters that require a prepared data table
     if (significanceFoldChangeFilterParameters != null) {
       significanceFoldChangeFilter = significanceFoldChangeFilterParameters.createFilter(
-          featureList.getRows(), featureList.getRawDataFiles());
+          project.getProjectMetadata(), featureList.getRows(), featureList.getRawDataFiles());
     }
 
     if (cvFilterParameters != null) {
-      cvFilter = cvFilterParameters.createFilter(featureList.getRows(),
-          featureList.getRawDataFiles());
+      cvFilter = cvFilterParameters.createFilter(project.getProjectMetadata(),
+          featureList.getRows(), featureList.getRawDataFiles());
     }
 
     // if keep is selected we remove rows on failed criteria

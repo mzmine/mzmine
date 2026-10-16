@@ -26,6 +26,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.UserParameter;
@@ -34,6 +35,7 @@ import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -84,7 +86,8 @@ public class FeatureSelectionParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if ((value == null) || (value.size() == 0)) {
       errorMessages.add("No peaks selected");
       return false;
@@ -93,7 +96,7 @@ public class FeatureSelectionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     List<FeatureSelection> newValue = Lists.newArrayList();
     NodeList selItems = xmlElement.getElementsByTagName("selection");
@@ -111,7 +114,7 @@ public class FeatureSelectionParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

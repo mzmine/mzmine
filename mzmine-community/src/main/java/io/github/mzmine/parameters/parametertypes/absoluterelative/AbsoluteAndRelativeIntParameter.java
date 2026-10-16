@@ -25,8 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.absoluterelative;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -104,7 +106,7 @@ public class AbsoluteAndRelativeIntParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // Set some default values
     int abs = 0;
     float rel = 0;
@@ -123,7 +125,7 @@ public class AbsoluteAndRelativeIntParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -137,7 +139,8 @@ public class AbsoluteAndRelativeIntParameter implements
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if ((value == null)) {
       errorMessages.add(name + " is not set properly");
       return false;

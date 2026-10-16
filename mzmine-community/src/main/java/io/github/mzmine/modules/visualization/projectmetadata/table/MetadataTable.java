@@ -38,7 +38,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -471,7 +470,7 @@ public class MetadataTable {
     }
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
     if (fileValueMap == null) {
-      throw new MetadataColumnDoesNotExistException(column.getTitle());
+      throw new MetadataColumnDoesNotExistException(column.getTitle(), this);
     }
     return groupFilesByColumn(fileValueMap.keySet(), column);
   }
@@ -493,28 +492,10 @@ public class MetadataTable {
     }
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
     if (fileValueMap == null) {
-      throw new MetadataColumnDoesNotExistException(column.getTitle());
+      throw new MetadataColumnDoesNotExistException(column.getTitle(), this);
     }
     return raws.stream().filter(raw -> fileValueMap.get(raw) != null)
         .collect(Collectors.groupingBy(raw -> (T) fileValueMap.get(raw)));
-  }
-
-  /**
-   * Groups the files by the value in the metadata column. If raw data files have no mapping (null)
-   * they will be put into a group at first index. Sorted by doubleValue ascending.
-   *
-   * @param <T>
-   * @return If the column is null, a list with the input files is returned. If the column is not in
-   * the table, an error is thrown. If values are null - the first entry will be a list for all null
-   * value entries. Each list has at least 1 element.
-   * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
-   *                                             column is null.
-   */
-  @NotNull
-  public <T> List<SamplesGroupedBy<T>> groupFilesByColumnIncludeNull(
-      @Nullable MetadataColumn<T> column) throws MetadataColumnDoesNotExistException {
-    final List<RawDataFile> files = ProjectService.getProject().getCurrentRawDataFiles();
-    return groupFilesByColumnIncludeNull(files, column);
   }
 
   /**
@@ -537,7 +518,7 @@ public class MetadataTable {
     }
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
     if (fileValueMap == null) {
-      throw new MetadataColumnDoesNotExistException(column.getTitle());
+      throw new MetadataColumnDoesNotExistException(column.getTitle(), this);
     }
 
     final Map<Object, @NotNull List<RawDataFile>> nonNullMap = new HashMap<>();
@@ -604,23 +585,6 @@ public class MetadataTable {
 
 
   /**
-   * Matches against all raw data files currently in the project, whereas
-   * {@link #getMatchingFiles(Collection, MetadataColumn, Object)} is limited to a given subset of
-   * files.
-   *
-   * @param column The column
-   * @param value  The column value to match to.
-   * @return A list of files associated to the column value or null, if the column value does not
-   * exist.
-   */
-  public <T> List<RawDataFile> getMatchingProjectFiles(@NotNull MetadataColumn<T> column,
-      @NotNull T value)
-      throws MetadataColumnDoesNotExistException, MetadataValueDoesNotExistException {
-    final List<RawDataFile> allFiles = ProjectService.getProject().getCurrentRawDataFiles();
-    return getMatchingFiles(allFiles, column, value);
-  }
-
-  /**
    * @param raws   The list of files to search in
    * @param column The column
    * @param value  The column value to match to.
@@ -655,7 +619,7 @@ public class MetadataTable {
   public <T> @NotNull List<T> getDistinctColumnValuesOrThrow(@NotNull MetadataColumn<T> column) {
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
     if (fileValueMap == null) {
-      throw new MetadataColumnDoesNotExistException(column.getTitle());
+      throw new MetadataColumnDoesNotExistException(column.getTitle(), this);
     }
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
   }
@@ -733,10 +697,11 @@ public class MetadataTable {
       return null;
     }
     // filename column is not in data so create it here
+    // assumption: all files of this table have at least one value, the project table assigns the
+    // sample type to each added file
     if (FILENAME_HEADER.equals(col.getTitle())) {
-      return Collections.unmodifiableMap(
-          ProjectService.getProject().getCurrentRawDataFiles().stream()
-              .collect(Collectors.toMap(Function.identity(), RawDataFile::getName)));
+      return Collections.unmodifiableMap(getRawDataFilesUnsorted().stream()
+          .collect(Collectors.toMap(Function.identity(), RawDataFile::getName)));
     }
 
     final Map<RawDataFile, Object> values = data.get(col);

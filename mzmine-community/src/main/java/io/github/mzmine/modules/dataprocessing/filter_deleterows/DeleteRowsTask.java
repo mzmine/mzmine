@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_deleterows;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -48,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class DeleteRowsTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final ModularFeatureList flist;
   private final String rowIdStr;
   private final String compoundIdStr;
@@ -60,10 +62,12 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected DeleteRowsTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
+  protected DeleteRowsTask(@NotNull MZmineProject project, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
+      @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
-    flist = parameters.getValue(DeleteRowsParameters.flist).getMatchingFeatureLists()[0];
+    this.project = project;
+    flist = parameters.getValue(DeleteRowsParameters.flist).getMatchingFeatureLists(project)[0];
     rowIdStr = parameters.getValue(DeleteRowsParameters.rowIds);
     compoundIdStr = parameters.getValue(DeleteRowsParameters.compoundIds);
   }

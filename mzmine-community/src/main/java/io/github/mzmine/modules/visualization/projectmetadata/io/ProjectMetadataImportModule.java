@@ -69,7 +69,7 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new ProjectMetadataImportTask(parameters, moduleCallDate));
+    tasks.add(new ProjectMetadataImportTask(project, parameters, moduleCallDate));
 
     return ExitCode.OK;
   }

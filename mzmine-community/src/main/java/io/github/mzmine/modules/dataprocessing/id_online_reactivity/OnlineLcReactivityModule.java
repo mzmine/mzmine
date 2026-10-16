@@ -62,8 +62,8 @@ public class OnlineLcReactivityModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     for (ModularFeatureList flist : parameters.getValue(OnlineLcReactivityParameters.flists)
-        .getMatchingFeatureLists()) {
-      tasks.add(new OnlineLcReactivityTask(parameters, flist, moduleCallDate));
+        .getMatchingFeatureLists(project)) {
+      tasks.add(new OnlineLcReactivityTask(project, parameters, flist, moduleCallDate));
     }
     return ExitCode.OK;
   }

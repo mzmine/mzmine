@@ -53,7 +53,7 @@ public class PCAModule extends AbstractRunnableModule {
 
     final PCATab tab = new PCATab();
     final ModularFeatureList flist = parameters.getParameter(PCAParameters.flist).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     tab.onFeatureListSelectionChanged(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);
     return ExitCode.OK;

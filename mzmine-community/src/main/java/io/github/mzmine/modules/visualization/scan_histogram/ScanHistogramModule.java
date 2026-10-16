@@ -57,7 +57,7 @@ public class ScanHistogramModule implements MZmineRunnableModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(ScanHistogramParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     Task newTask = new ScanHistogramTask(dataFiles, parameters.cloneParameterSet(), moduleCallDate);
     tasks.add(newTask);

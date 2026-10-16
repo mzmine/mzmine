@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import static io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection.NONE;
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -56,18 +57,18 @@ public class RawDataFilesByMetadataParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
     final MetadataListGroupsSelection in = getValue(included);
     final MetadataListGroupsSelection ex = getValue(excluded);
 
     if (NONE.equals(in) && NONE.equals(ex)) {
       errorMessages.add("Metadata selection requires at least one inclusion or exclusion.");
-      super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+      super.checkParameterValues(project, errorMessages, skipRawDataAndFeatureListParameters);
       return false;
     }
 
-    return super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+    return super.checkParameterValues(project, errorMessages, skipRawDataAndFeatureListParameters);
   }
 
   @Override

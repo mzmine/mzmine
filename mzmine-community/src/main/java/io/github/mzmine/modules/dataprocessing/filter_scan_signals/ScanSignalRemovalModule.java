@@ -60,7 +60,7 @@ public class ScanSignalRemovalModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getValue(ScanSignalRemovalParameters.dataFiles)
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forMassList();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new ScanSignalRemovalTask(dataFile, parameters, storage, moduleCallDate);

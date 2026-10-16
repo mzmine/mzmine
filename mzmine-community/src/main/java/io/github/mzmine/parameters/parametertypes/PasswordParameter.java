@@ -27,12 +27,14 @@ package io.github.mzmine.parameters.parametertypes;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.exceptions.DecryptionException;
 import io.github.mzmine.util.exceptions.EncryptionException;
 import java.util.Collection;
 import javafx.scene.control.PasswordField;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -95,7 +97,8 @@ public class PasswordParameter implements UserParameter<String, PasswordField> {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!valueRequired)
       return true;
     if ((value == null) || (value.trim().isEmpty())) {
@@ -106,7 +109,7 @@ public class PasswordParameter implements UserParameter<String, PasswordField> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     try {
       final String nuValue = xmlElement.getTextContent();
       if (nuValue == null || nuValue.trim().isEmpty())
@@ -119,7 +122,7 @@ public class PasswordParameter implements UserParameter<String, PasswordField> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null || value.isEmpty())
       return;
     try {

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
@@ -229,9 +230,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean state = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean state = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
     if (!(getValue(COMPOUND_ID_FILTER) || getValue(ROW_ID_FILTER))) {

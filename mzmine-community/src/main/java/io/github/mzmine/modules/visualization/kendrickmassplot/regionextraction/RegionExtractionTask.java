@@ -86,10 +86,10 @@ public class RegionExtractionTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     final ModularFeatureList flist = kendrickParameters.getValue(
-        KendrickMassPlotParameters.featureList).getMatchingFeatureLists()[0];
+        KendrickMassPlotParameters.featureList).getMatchingFeatureLists(project)[0];
 
-    final KendrickMassPlotXYZDataset dataset = new KendrickMassPlotXYZDataset(kendrickParameters,
-        xAxisDivisior, xAxisCharge, yAxisDivisor, yAxisCharge);
+    final KendrickMassPlotXYZDataset dataset = new KendrickMassPlotXYZDataset(project,
+        kendrickParameters, xAxisDivisior, xAxisCharge, yAxisDivisor, yAxisCharge);
     dataset.run();
 
     final List<FeatureListRow> rows = IntStream.range(0, dataset.getItemCount(0)).filter(

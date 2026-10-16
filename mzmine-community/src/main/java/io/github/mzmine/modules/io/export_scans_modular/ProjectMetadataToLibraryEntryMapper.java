@@ -27,8 +27,8 @@ package io.github.mzmine.modules.io.export_scans_modular;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -48,10 +48,13 @@ public class ProjectMetadataToLibraryEntryMapper {
   private final @NotNull Map<RawDataFile, Object> nameColumn;
   private final @NotNull Map<RawDataFile, Object> descriptionColumn;
 
-  public ProjectMetadataToLibraryEntryMapper(final @Nullable MetadataColumn<?> nameColumn,
+  /**
+   * @param metadata the column values are taken from this metadata table
+   */
+  public ProjectMetadataToLibraryEntryMapper(final @NotNull MetadataTable metadata,
+      final @Nullable MetadataColumn<?> nameColumn,
       final @Nullable MetadataColumn<?> descriptionColumn) {
 
-    final var metadata = ProjectService.getMetadata();
     this.nameColumn = nameColumn != null ? metadata.getColumnData(nameColumn) : Map.of();
     this.descriptionColumn =
         descriptionColumn != null ? metadata.getColumnData(descriptionColumn) : Map.of();

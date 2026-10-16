@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
@@ -85,9 +86,9 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
     return param;
   }
 
-  public PCAModel toPcaModel() {
+  public @NotNull PCAModel toPcaModel(@NotNull MZmineProject project) {
     PCAModel pcaModel = new PCAModel();
-    pcaModel.setFlists(List.of(getValue(flist).getMatchingFeatureLists()));
+    pcaModel.setFlists(List.of(getValue(flist).getMatchingFeatureLists(project)));
     pcaModel.setScalingFunction(getValue(scaling));
     pcaModel.setImputationFunction(getValue(imputations));
     pcaModel.setDomainPc(getValue(domainPc));

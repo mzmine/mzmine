@@ -28,6 +28,7 @@ package io.github.mzmine.util.scans;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -53,7 +54,7 @@ class IntegerModeTest {
       parameter.setValue(mode);
 
       final Element element = newElement();
-      parameter.saveValueToXML(element);
+      parameter.saveValueToXML(new MZmineProjectImpl(), element);
 
       assertEquals(mode.getUniqueID(), element.getTextContent());
     }
@@ -69,10 +70,10 @@ class IntegerModeTest {
       saved.setValue(mode);
 
       final Element element = newElement();
-      saved.saveValueToXML(element);
+      saved.saveValueToXML(new MZmineProjectImpl(), element);
 
       final ComboParameter<IntegerMode> loaded = newParameter();
-      loaded.loadValueFromXML(element);
+      loaded.loadValueFromXML(new MZmineProjectImpl(), element);
 
       assertEquals(mode, loaded.getValue());
     }
@@ -89,7 +90,7 @@ class IntegerModeTest {
       element.setTextContent(mode.toString());
 
       final ComboParameter<IntegerMode> loaded = newParameter();
-      loaded.loadValueFromXML(element);
+      loaded.loadValueFromXML(new MZmineProjectImpl(), element);
 
       assertEquals(mode, loaded.getValue(), "legacy label " + mode);
     }

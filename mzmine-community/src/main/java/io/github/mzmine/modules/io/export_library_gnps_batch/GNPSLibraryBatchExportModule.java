@@ -58,7 +58,7 @@ public class GNPSLibraryBatchExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    GNPSLibraryBatchExportTask task = new GNPSLibraryBatchExportTask(parameters,
+    GNPSLibraryBatchExportTask task = new GNPSLibraryBatchExportTask(project, parameters,
         moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;

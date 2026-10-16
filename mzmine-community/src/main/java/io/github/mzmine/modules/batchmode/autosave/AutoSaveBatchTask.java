@@ -124,7 +124,7 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
       document.appendChild(element);
 
       // Serialize batch queue.
-      queueCopy.saveToXml(element);
+      queueCopy.saveToXml(batchTask.getProject(), element);
 
       XMLUtils.saveToFile(savePath, document);
     } catch (ParserConfigurationException | IOException | TransformerException e) {

@@ -26,11 +26,11 @@
 package io.github.mzmine.modules.visualization.twod;
 
 import java.util.Collection;
-
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 
 public class FeatureThresholdParameter implements Parameter<Object> {
@@ -69,7 +69,7 @@ public class FeatureThresholdParameter implements Parameter<Object> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList nodes = xmlElement.getElementsByTagName("mode");
     if (nodes.getLength() != 1)
       return;
@@ -91,7 +91,7 @@ public class FeatureThresholdParameter implements Parameter<Object> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     Document parentDocument = xmlElement.getOwnerDocument();
 
@@ -115,7 +115,8 @@ public class FeatureThresholdParameter implements Parameter<Object> {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 

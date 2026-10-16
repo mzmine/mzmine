@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
 import java.util.Collections;
@@ -211,9 +210,7 @@ public final class SampleTypeFilter {
    * not exist, falls back to guessing the type from the file name - the same guess that would have
    * been written into the column on import.
    */
-  public boolean matches(RawDataFile file) {
-    final MetadataTable metadata = ProjectService.getProjectManager().getCurrentProject()
-        .getProjectMetadata();
+  public boolean matches(@NotNull final MetadataTable metadata, @NotNull final RawDataFile file) {
     final MetadataColumn<String> metadataColumn = (MetadataColumn<String>) metadata.getColumnByName(
         MetadataColumn.SAMPLE_TYPE_HEADER);
     if (metadataColumn != null) {
@@ -226,19 +223,23 @@ public final class SampleTypeFilter {
    * Filters a list of rows to contain only rows that contain at least one feature of the sample
    * types described by this filter.
    */
-  public List<FeatureListRow> filter(final List<FeatureListRow> rows) {
-    return rows.stream().filter(row -> row.streamFeatures().anyMatch(this::matches)).toList();
+  public @NotNull List<FeatureListRow> filter(@NotNull final MetadataTable metadata,
+      @NotNull final List<FeatureListRow> rows) {
+    return rows.stream()
+        .filter(row -> row.streamFeatures().anyMatch(feature -> matches(metadata, feature)))
+        .toList();
   }
 
   /**
    * Filters a list of raw data files to those described by this filter.
    */
-  public List<RawDataFile> filterFiles(final List<RawDataFile> raws) {
-    return raws.stream().filter(this::matches).toList();
+  public @NotNull List<RawDataFile> filterFiles(@NotNull final MetadataTable metadata,
+      @NotNull final List<RawDataFile> raws) {
+    return raws.stream().filter(raw -> matches(metadata, raw)).toList();
   }
 
-  public boolean matches(final Feature feature) {
-    return matches(feature.getRawDataFile());
+  public boolean matches(@NotNull final MetadataTable metadata, @NotNull final Feature feature) {
+    return matches(metadata, feature.getRawDataFile());
   }
 
   /**

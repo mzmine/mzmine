@@ -57,7 +57,7 @@ public class LegacyCSVExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    LegacyCSVExportTask task = new LegacyCSVExportTask(parameters, moduleCallDate);
+    LegacyCSVExportTask task = new LegacyCSVExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

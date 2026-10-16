@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter.Mode;
@@ -144,7 +145,8 @@ public class SampleTypeFilterParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!requiresSelection || !value.isEmpty()) {
       return true;
     }
@@ -153,7 +155,7 @@ public class SampleTypeFilterParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList itemElements = xmlElement.getElementsByTagName(XML_ITEM_TAG);
     final List<String> selected = new ArrayList<>();
     for (int i = 0; i < itemElements.getLength(); i++) {
@@ -178,7 +180,7 @@ public class SampleTypeFilterParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute(XML_MODE_ATTR, value.getMode().getUniqueID());
 
     final var document = xmlElement.getOwnerDocument();

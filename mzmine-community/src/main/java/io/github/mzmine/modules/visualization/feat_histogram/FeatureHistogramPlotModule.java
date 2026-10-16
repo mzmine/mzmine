@@ -49,7 +49,8 @@ public class FeatureHistogramPlotModule extends AbstractRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    var flist = parameters.getValue(FeatureHistogramPlotParameters.flist).getMatchingFeatureLists();
+    var flist = parameters.getValue(FeatureHistogramPlotParameters.flist)
+        .getMatchingFeatureLists(project);
     final FeatureHistogramPlotTab tab = new FeatureHistogramPlotTab(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);
 

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.UserParameter;
@@ -110,7 +111,8 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value.isEmpty()) {
       errorMessages.add("Add at least one regex column mapping.");
       return false;
@@ -147,7 +149,7 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final List<MetadataRegexMapping> loaded = new ArrayList<>();
     final NodeList mappingNodes = xmlElement.getElementsByTagName(MAPPING_ELEMENT);
     for (int i = 0; i < mappingNodes.getLength(); i++) {
@@ -185,7 +187,7 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
     for (final MetadataRegexMapping m : value) {
       final Element mappingEl = doc.createElement(MAPPING_ELEMENT);

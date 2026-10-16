@@ -29,6 +29,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -127,7 +128,8 @@ public class SpectralLibrarySelectionComponent extends GridPane {
   }
 
   private void updateNumFiles() {
-    final List<SpectralLibrary> matching = getValue().getMatchingLibraries();
+    final List<SpectralLibrary> matching = getValue().getMatchingLibraries(
+        ProjectService.getProject());
 
     if (currentlySelected.get() == null || !currentlySelected.get().equals(matching)) {
       currentlySelected.set(matching);

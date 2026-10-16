@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
@@ -106,9 +107,10 @@ public class DreaMSNetworkingParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages,
-      final boolean skipRawDataAndFeatureListParameters) {
-    boolean result = super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    boolean result = super.checkParameterValues(project, errorMessages,
+        skipRawDataAndFeatureListParameters);
 
     var modelFile = getValue(dreaMSModelFile);
     if (modelFile == null || !modelFile.exists()) {

@@ -25,8 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -143,7 +145,7 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final String numString = xmlElement.getTextContent();
     if (numString.length() > 0) {
@@ -153,7 +155,7 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     if (value != null) {
 
@@ -162,7 +164,8 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
 
     if (valueRequired && (value == null)) {
       errorMessages.add(name + " is not set properly");

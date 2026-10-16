@@ -57,10 +57,10 @@ public class AnovaModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList[] featureLists = parameters.getValue(AnovaParameters.featureLists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     for (FeatureList featureList : featureLists) {
-      tasks.add(new AnovaTask(featureList, parameters, moduleCallDate));
+      tasks.add(new AnovaTask(project, featureList, parameters, moduleCallDate));
     }
 
     return ExitCode.OK;

@@ -32,13 +32,13 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvide
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ZLegendCategoryProvider;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataResults;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.awt.Paint;
@@ -105,8 +105,9 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     // group and assign default color
     // already sorted by name
     // null may be first element if present
-    final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(groupingColumn,
-        result.files(), ColorByMetadataConfig.createDefault());
+    final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(
+        ProjectService.getMetadata(), groupingColumn, result.files(),
+        ColorByMetadataConfig.createDefault());
 
     assert result.files().size() == grouping.numFiles();
 
@@ -263,7 +264,7 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
 
   @Override
   public String getToolTipText(int itemIndex) {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final MetadataTable metadata = ProjectService.getMetadata();
     final RawDataFile file = getItemObject(itemIndex);
     final Object value = metadata.getValue(groupingColumn, file);
 

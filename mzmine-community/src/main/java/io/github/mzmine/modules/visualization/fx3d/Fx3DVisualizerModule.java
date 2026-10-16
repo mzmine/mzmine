@@ -121,7 +121,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
       @NotNull Instant moduleCallDate) {
 
     final RawDataFile[] currentDataFiles = parameters.getParameter(
-        Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles();
+        Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles(project);
 
     final ScanSelection scanSel = parameters.getParameter(Fx3DVisualizerParameters.scanSelection)
         .getValue();

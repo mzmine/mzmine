@@ -80,7 +80,7 @@ public class ExternalCCSCalibrationModule implements MZmineProcessingModule, CCS
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new ExternalCCSCalibrationTask(null, moduleCallDate, parameters));
+    tasks.add(new ExternalCCSCalibrationTask(project, null, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import java.io.File;
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // add all still existing files
     value = new ArrayList<>();
     NodeList nodes = xmlElement.getChildNodes();
@@ -104,7 +105,7 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // add new element for each file
     Document parentDocument = xmlElement.getOwnerDocument();
     for (File f : value) {
@@ -115,7 +116,8 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     // is no parameter to select values - is to create a list of last used
     // files
     return true;

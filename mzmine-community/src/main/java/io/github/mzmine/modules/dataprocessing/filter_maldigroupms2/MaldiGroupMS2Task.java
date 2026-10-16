@@ -115,7 +115,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
     this.list = (ModularFeatureList) list;
     files = Arrays.stream(parameterSet.getParameter(MaldiGroupMS2Parameters.files).getValue()
-            .getMatchingRawDataFiles()).filter(file -> file instanceof IMSImagingRawDataFile)
+            .getMatchingRawDataFiles(project)).filter(file -> file instanceof IMSImagingRawDataFile)
         .map(file -> (IMSImagingRawDataFile) file).toList();
     processedRows = 0;
     totalRows = 0;

@@ -58,7 +58,7 @@ public class SortSpectralMatchesModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList featureLists[] = parameters.getParameter(SortSpectralMatchesParameters.peakLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new SortSpectralMatchesTask(featureList, parameters, moduleCallDate);

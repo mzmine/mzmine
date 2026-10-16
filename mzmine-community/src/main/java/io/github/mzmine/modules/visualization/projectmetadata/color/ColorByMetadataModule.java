@@ -49,6 +49,7 @@ public class ColorByMetadataModule extends SingleTaskRawDataFilesModule {
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final RawDataFile[] raws) {
-    return new ColorByMetadataTask(moduleCallDate, parameters, ColorByMetadataModule.class, raws);
+    return new ColorByMetadataTask(project, moduleCallDate, parameters, ColorByMetadataModule.class,
+        raws);
   }
 }

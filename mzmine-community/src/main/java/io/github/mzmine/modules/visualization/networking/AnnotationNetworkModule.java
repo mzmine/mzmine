@@ -58,7 +58,7 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ModularFeatureList[] featureLists = parameters.getParameter(
-        AnnotationNetworkParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
+        AnnotationNetworkParameters.PEAK_LISTS).getValue().getMatchingFeatureLists(project);
     boolean connectByNetRelations = parameters.getParameter(
         AnnotationNetworkParameters.CONNECT_BY_NET_RELATIONS).getValue();
     boolean onlyBest = parameters.getParameter(AnnotationNetworkParameters.ONLY_BEST_NETWORKS)

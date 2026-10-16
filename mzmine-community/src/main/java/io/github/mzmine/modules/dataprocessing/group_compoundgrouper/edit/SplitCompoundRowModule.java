@@ -57,7 +57,7 @@ public class SplitCompoundRowModule extends AbstractProcessingModule {
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    tasks.add(new SplitCompoundRowTask(moduleCallDate, parameters));
+    tasks.add(new SplitCompoundRowTask(project, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 }

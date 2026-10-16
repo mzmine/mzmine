@@ -59,7 +59,7 @@ class PathAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
     peakLists = (ModularFeatureList[]) parameters.getParameter(PathAlignerParameters.peakLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     peakListName = parameters.getParameter(PathAlignerParameters.peakListName).getValue();
   }

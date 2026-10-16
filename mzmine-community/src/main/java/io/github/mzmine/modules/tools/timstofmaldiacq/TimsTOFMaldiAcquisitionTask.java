@@ -81,7 +81,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     this.parameters = parameters;
 
     flists = parameters.getValue(TimsTOFMaldiAcquisitionParameters.flists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     maxMobilityWidth = parameters.getValue(TimsTOFMaldiAcquisitionParameters.maxMobilityWidth);
     minMobilityWidth = parameters.getValue(TimsTOFMaldiAcquisitionParameters.minMobilityWidth);
     acqControl = parameters.getValue(TimsTOFMaldiAcquisitionParameters.acquisitionControl);

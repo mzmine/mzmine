@@ -116,7 +116,8 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
 
     advancedParam = parameters.getParameter(SimsefImagingSchedulerParameters.advancedParameters);
 
-    flists = parameters.getValue(SimsefImagingSchedulerParameters.flists).getMatchingFeatureLists();
+    flists = parameters.getValue(SimsefImagingSchedulerParameters.flists)
+        .getMatchingFeatureLists(project);
     maxMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.maxMobilityWidth,
         AdvancedImageMsMsParameters.MAX_MOBILITY_WIDTH);
     minMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.minMobilityWidth,

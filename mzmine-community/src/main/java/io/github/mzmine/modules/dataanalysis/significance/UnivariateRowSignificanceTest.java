@@ -29,9 +29,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.UnivariateRowSignificanceTestResult;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
-import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -48,16 +48,15 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
   private final FeaturesDataTable groupAData;
   private final FeaturesDataTable groupBData;
 
-  public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable dataTable,
-      @NotNull SignificanceTests test, MetadataColumn<T> column, T groupA, T groupB) {
+  public UnivariateRowSignificanceTest(@NotNull MetadataTable metadata,
+      @NotNull FeaturesDataTable dataTable, @NotNull SignificanceTests test,
+      MetadataColumn<T> column, T groupA, T groupB) {
     // limit to actual raw data files to not select files not in feature table
     final List<RawDataFile> actualRaws = dataTable.getRawDataFiles();
 
     // this might throw MetadataValueDoesNotExistException
-    List<RawDataFile> groupedFilesA = ProjectService.getMetadata()
-        .getMatchingFiles(actualRaws, column, groupA);
-    List<RawDataFile> groupedFilesB = ProjectService.getMetadata()
-        .getMatchingFiles(actualRaws, column, groupB);
+    List<RawDataFile> groupedFilesA = metadata.getMatchingFiles(actualRaws, column, groupA);
+    List<RawDataFile> groupedFilesB = metadata.getMatchingFiles(actualRaws, column, groupB);
     if (groupedFilesA.size() < 2 || groupedFilesB.size() < 2) {
       throw new IllegalArgumentException("""
           Not enough samples for group, at least two samples required per group. Column %s had %s n=%d and %s n=%d samples in the selected feature list (of %d samples).""".formatted(

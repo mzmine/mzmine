@@ -62,7 +62,7 @@ public class DiaMs2CorrModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate) {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList matchingFeatureList : parameters.getValue(DiaMs2CorrParameters.flists)
-        .getMatchingFeatureLists()) {
+        .getMatchingFeatureLists(project)) {
       tasks.add(new DiaMs2CorrTask(storage, moduleCallDate, matchingFeatureList, parameters));
     }
     return ExitCode.OK;

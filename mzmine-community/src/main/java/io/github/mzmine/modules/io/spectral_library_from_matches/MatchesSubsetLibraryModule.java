@@ -52,6 +52,6 @@ public class MatchesSubsetLibraryModule extends SingleTaskFeatureListsModule {
   public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList[] featureList) {
-    return new MatchesSubsetLibraryTask(parameters, moduleCallDate, featureList);
+    return new MatchesSubsetLibraryTask(project, parameters, moduleCallDate, featureList);
   }
 }

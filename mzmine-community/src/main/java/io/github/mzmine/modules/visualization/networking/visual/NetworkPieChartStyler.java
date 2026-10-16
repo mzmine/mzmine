@@ -37,6 +37,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetad
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataResults;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.GraphStreamUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
@@ -87,8 +88,8 @@ public class NetworkPieChartStyler {
       return false;
     }
     try {
-      final ColorByMetadataResults result = ColorByMetadataUtils.colorByColumn(column,
-          featureList.getRawDataFiles());
+      final ColorByMetadataResults result = ColorByMetadataUtils.colorByColumn(
+          ProjectService.getMetadata(), column, featureList.getRawDataFiles());
       groups = result.groups();
     } catch (Exception ex) {
       // e.g. column removed from metadata in the meantime

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.io.File;
 import java.nio.file.Files;
@@ -32,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -132,7 +134,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final String fileString = xmlElement.getTextContent();
     if (fileString.length() != 0) {
@@ -142,7 +144,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     if (value != null) {
 
@@ -151,7 +153,8 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
 
     boolean check = true;
     if (value == null) {

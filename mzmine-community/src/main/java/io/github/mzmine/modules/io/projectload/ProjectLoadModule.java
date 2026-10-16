@@ -65,7 +65,8 @@ public class ProjectLoadModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    ProjectOpeningTask newTask = new ProjectOpeningTask(parameters, moduleCallDate);
+    ProjectOpeningTask newTask = new ProjectOpeningTask(project, parameters,
+        moduleCallDate);
     tasks.add(newTask);
     return OK;
   }

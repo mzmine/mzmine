@@ -59,7 +59,7 @@ public class MassDetectionModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(MassDetectionParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     // create a single storage map for all mass lists that were created with the same parameters
     // i.e., in the same mass detection run

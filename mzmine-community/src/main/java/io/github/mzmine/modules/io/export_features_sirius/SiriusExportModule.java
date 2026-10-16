@@ -44,6 +44,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
@@ -73,13 +74,14 @@ public class SiriusExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
+    SiriusExportTask task = new SiriusExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 
   }
 
   public static void exportSingleFeatureList(FeatureListRow row, @NotNull Instant moduleCallDate) {
+    final MZmineProject project = ProjectService.getProject();
 
     ParameterSet parameters = MZmineCore.getConfiguration()
         .getModuleParameters(SiriusExportModule.class);
@@ -89,9 +91,9 @@ public class SiriusExportModule implements MZmineProcessingModule {
       return;
     }
 
-    final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
+    final SiriusExportTask task = new SiriusExportTask(project, parameters, moduleCallDate);
     final ModularFeatureList flist = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     final File fileForFeatureList = task.getFileForFeatureList(flist);
 
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileForFeatureList))) {
@@ -105,6 +107,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
   }
 
   public static void exportSingleRows(FeatureListRow[] rows, @NotNull Instant moduleCallDate) {
+    final MZmineProject project = ProjectService.getProject();
     try {
       ParameterSet parameters = MZmineCore.getConfiguration()
           .getModuleParameters(SiriusExportModule.class);
@@ -114,9 +117,9 @@ public class SiriusExportModule implements MZmineProcessingModule {
         return;
       }
       // Open file
-      final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
+      final SiriusExportTask task = new SiriusExportTask(project, parameters, moduleCallDate);
       final ModularFeatureList flist = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
-          .getMatchingFeatureLists()[0];
+          .getMatchingFeatureLists(project)[0];
       final File fileForFeatureList = task.getFileForFeatureList(flist);
 
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileForFeatureList))) {

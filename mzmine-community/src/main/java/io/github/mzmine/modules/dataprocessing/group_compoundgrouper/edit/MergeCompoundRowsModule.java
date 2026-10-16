@@ -57,7 +57,7 @@ public class MergeCompoundRowsModule extends AbstractProcessingModule {
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    tasks.add(new MergeCompoundRowsTask(moduleCallDate, parameters));
+    tasks.add(new MergeCompoundRowsTask(project, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 }

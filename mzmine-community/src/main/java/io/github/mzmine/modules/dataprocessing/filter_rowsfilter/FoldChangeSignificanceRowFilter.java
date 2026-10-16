@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import java.util.List;
@@ -57,6 +58,7 @@ public final class FoldChangeSignificanceRowFilter {
   private final FeaturesDataTable groupBData;
 
   /**
+   * @param metadata                 the groups are resolved in this metadata table
    * @param dataTable                a data table that is already zero value/missing value imputed
    *                                 etc.
    * @param grouping                 column and two groups
@@ -67,15 +69,16 @@ public final class FoldChangeSignificanceRowFilter {
    * @param foldChangeFilterSides    FC may be applied to Math.abs(value) to filter both up and down
    *                                 regulation or as a signed filter to only retain one side.
    */
-  public FoldChangeSignificanceRowFilter(FeaturesDataTable dataTable,
-      @NotNull Metadata2GroupsSelection grouping, boolean applySignificancePFilter,
+  public FoldChangeSignificanceRowFilter(@NotNull MetadataTable metadata,
+      FeaturesDataTable dataTable, @NotNull Metadata2GroupsSelection grouping,
+      boolean applySignificancePFilter,
       double maxValueP, double minLog2FoldChange, FoldChangeFilterSides foldChangeFilterSides,
       SignificanceTests test) {
 
     final List<RawDataFile> rawFiles = dataTable.getRawDataFiles();
     this.grouping = grouping;
-    List<RawDataFile> groupA = grouping.getMatchingFilesA(rawFiles);
-    List<RawDataFile> groupB = grouping.getMatchingFilesB(rawFiles);
+    List<RawDataFile> groupA = grouping.getMatchingFilesA(metadata, rawFiles);
+    List<RawDataFile> groupB = grouping.getMatchingFilesB(metadata, rawFiles);
 
     this.applyFoldChangeFilter = Double.compare(minLog2FoldChange, 0d) != 0;
     this.applySignificancePFilter = applySignificancePFilter && maxValueP > 0;
@@ -111,7 +114,7 @@ public final class FoldChangeSignificanceRowFilter {
     if (applySignificancePFilter) {
       try {
         rowTest = new UnivariateRowSignificanceTestConfig(test, grouping().columnName(),
-            grouping.groupA(), grouping.groupB()).toValidConfig(groupAData, groupBData);
+            grouping.groupA(), grouping.groupB()).toValidConfig(metadata, groupAData, groupBData);
         if (rowTest == null) {
           throw new IllegalArgumentException(
               "Invalid group selection for univariate test: " + grouping);

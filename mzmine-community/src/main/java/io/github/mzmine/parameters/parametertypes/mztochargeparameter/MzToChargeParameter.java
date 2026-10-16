@@ -28,9 +28,11 @@ package io.github.mzmine.parameters.parametertypes.mztochargeparameter;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.Map.Entry;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -73,7 +75,8 @@ public class MzToChargeParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     for (Range<Double> range1 : value.asMapOfRanges().keySet()) {
       for (Range<Double> range2 : value.asMapOfRanges().keySet()) {
         if (range1 == range2) {
@@ -90,7 +93,7 @@ public class MzToChargeParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList ranges = xmlElement.getElementsByTagName(RANGE_ELEMENT);
 
     RangeMap<Double, Integer> newValue = TreeRangeMap.create();
@@ -107,7 +110,7 @@ public class MzToChargeParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     for (Entry<Range<Double>, Integer> rangeCharge : value.asMapOfRanges().entrySet()) {

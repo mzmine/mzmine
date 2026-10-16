@@ -32,7 +32,6 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -72,7 +71,7 @@ public class MergeLibrariesTask extends AbstractTask {
     this.params = params;
     this.project = project;
 
-    libs = params.getValue(MergeLibrariesParameters.speclibs).getMatchingLibraries();
+    libs = params.getValue(MergeLibrariesParameters.speclibs).getMatchingLibraries(project);
     totalEntries = libs.stream().mapToLong(SpectralLibrary::getNumEntries).sum();
     removeAndImport = params.getValue(MergeLibrariesParameters.removeAndImport);
     idHandling = params.getValue(MergeLibrariesParameters.idHandling);
@@ -142,8 +141,7 @@ public class MergeLibrariesTask extends AbstractTask {
     }
 
     if (removeAndImport) {
-      FxThread.runLater(() -> ProjectService.getProject()
-          .removeSpectralLibrary(libs.toArray(SpectralLibrary[]::new)));
+      FxThread.runLater(() -> project.removeSpectralLibrary(libs.toArray(SpectralLibrary[]::new)));
       importTask = new SpectralLibraryImportTask(project, newFile, getModuleCallDate(), true);
       importTask.run();
     }

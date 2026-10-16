@@ -50,13 +50,13 @@ import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -149,6 +149,12 @@ public class ModularFeatureList implements FeatureList {
    * {@link FeatureListPreferences#createDefault()}
    */
   private volatile @NotNull FeatureListPreferences preferences = FeatureListPreferences.createDefault();
+
+  /**
+   * The project this list was added to. Weak so that a list still open in the GUI does not keep a
+   * replaced project alive.
+   */
+  private volatile @NotNull WeakReference<MZmineProject> projectRef = new WeakReference<>(null);
 
   private final AtomicLong structuralVersion = new AtomicLong(0);
   @Nullable
@@ -292,12 +298,13 @@ public class ModularFeatureList implements FeatureList {
       return this.nameProperty;
     }
 
-    final MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
+    final MZmineProject project = getProject();
 
     if (project != null) {
       // project finds the name and calls the setNameNoChecks method
       project.setUniqueFeatureListName(this, name);
     } else {
+      // assumption: the project makes the name unique once this list is added
       setNameNoChecks(FileAndPathUtil.safePathEncode(name));
     }
     return this.nameProperty;
@@ -307,11 +314,21 @@ public class ModularFeatureList implements FeatureList {
   public String setNameNoChecks(@NotNull String name) {
     this.nameProperty = name;
 
-    final MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
+    final MZmineProject project = getProject();
     if (project != null) {
       project.fireFeatureListsChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
     }
     return nameProperty;
+  }
+
+  @Override
+  public @Nullable MZmineProject getProject() {
+    return projectRef.get();
+  }
+
+  @Override
+  public void setProject(@Nullable MZmineProject project) {
+    projectRef = new WeakReference<>(project);
   }
 
   @Override

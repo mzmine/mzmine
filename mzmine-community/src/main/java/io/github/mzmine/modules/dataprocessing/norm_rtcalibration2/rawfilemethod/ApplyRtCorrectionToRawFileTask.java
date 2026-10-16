@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -41,13 +42,16 @@ import org.jetbrains.annotations.Nullable;
 
 class ApplyRtCorrectionToRawFileTask extends AbstractRawDataFileTask {
 
+  private final @NotNull MZmineProject project;
   private final List<RawDataFile> files = new ArrayList<>();
   private final List<AbstractRtCorrectionFunction> calis;
 
-  protected ApplyRtCorrectionToRawFileTask(@Nullable MemoryMapStorage storage,
+  protected ApplyRtCorrectionToRawFileTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
     calis = parameters.getValue(ApplyRtCorrectionToRawFileParameters.calis);
   }
 
@@ -59,7 +63,7 @@ class ApplyRtCorrectionToRawFileTask extends AbstractRawDataFileTask {
   @Override
   protected void process() {
     for (AbstractRtCorrectionFunction cali : calis) {
-      final RawDataFile file = cali.getRawDataFile();
+      final RawDataFile file = cali.getRawDataFile(project);
       if (file == null) {
         continue;
       }

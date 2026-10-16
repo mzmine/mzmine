@@ -25,10 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * embedds another parameter and uses the name and description
@@ -63,8 +65,9 @@ public abstract class EmbeddedParameter<ValueType, PARAMETER extends UserParamet
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return embeddedParameter.checkValue(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    return embeddedParameter.checkValue(project, errorMessages);
   }
 
   @Override

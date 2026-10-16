@@ -64,8 +64,8 @@ public class FormulaPredictionFeatureListModule implements MZmineProcessingModul
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     ModularFeatureList featureLists[] = parameters
-        .getParameter(FormulaPredictionFeatureListParameters.FEATURE_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getParameter(FormulaPredictionFeatureListParameters.FEATURE_LISTS).getValue()
+        .getMatchingFeatureLists(project);
 
     for (ModularFeatureList featureList : featureLists) {
       Task newTask = new FormulaPredictionFeatureListTask(featureList, parameters, moduleCallDate);

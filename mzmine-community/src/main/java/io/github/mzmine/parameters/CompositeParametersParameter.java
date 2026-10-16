@@ -25,8 +25,10 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import java.util.Map;
 import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -48,11 +50,11 @@ public abstract class CompositeParametersParameter<ValueType, EditorComponent ex
   protected abstract Parameter<?>[] getInternalParameters();
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Map<String, Parameter<?>> nameParameterMap = ParameterUtils.getNameParameterMap(
         getInternalParameters());
 
-    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(
+    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(project, 
         this.getClass(), xmlElement, nameParameterMap);
     // currently this does nothing but just in case loaded parameters need to be handled
     // e.g. after changes to structure
@@ -68,8 +70,8 @@ public abstract class CompositeParametersParameter<ValueType, EditorComponent ex
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
-    ParameterUtils.saveValuesToXML(xmlElement, true, getInternalParameters());
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    ParameterUtils.saveValuesToXML(project, xmlElement, true, getInternalParameters());
   }
 
 }

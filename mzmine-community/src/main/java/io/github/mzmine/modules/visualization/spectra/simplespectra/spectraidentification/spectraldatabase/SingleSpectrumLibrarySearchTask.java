@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -34,7 +35,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.RowsSpe
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanAlignment;
@@ -59,9 +59,10 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
   private final SpectraPlot spectraPlot;
   private SpectraIdentificationResultsWindowFX resultWindow;
 
-  SingleSpectrumLibrarySearchTask(SingleSpectrumLibrarySearchParameters parameters,
-      Scan currentScan, SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
-    super(parameters, currentScan,
+  SingleSpectrumLibrarySearchTask(@NotNull MZmineProject project,
+      SingleSpectrumLibrarySearchParameters parameters, Scan currentScan, SpectraPlot spectraPlot,
+      @NotNull Instant moduleCallDate) {
+    super(project, parameters, currentScan,
         moduleCallDate); // no new data stored -> null
 
     this.spectraPlot = spectraPlot;

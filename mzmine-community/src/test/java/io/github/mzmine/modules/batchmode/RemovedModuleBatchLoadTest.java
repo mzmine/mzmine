@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -109,6 +110,6 @@ class RemovedModuleBatchLoadTest {
     final Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         .parse(new ByteArrayInputStream(xml.toString().getBytes(StandardCharsets.UTF_8)))
         .getDocumentElement();
-    return BatchQueue.loadFromXml(root, errorMessages, false);
+    return BatchQueue.loadFromXml(new MZmineProjectImpl(), root, errorMessages, false);
   }
 }

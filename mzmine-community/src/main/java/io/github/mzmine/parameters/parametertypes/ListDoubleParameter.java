@@ -25,11 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -100,7 +102,7 @@ public class ListDoubleParameter implements UserParameter<List<Double>, ListDoub
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     String values = xmlElement.getTextContent().replaceAll("\\s", "");
     String[] strValues = values.split(",");
@@ -118,7 +120,7 @@ public class ListDoubleParameter implements UserParameter<List<Double>, ListDoub
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
 
@@ -133,7 +135,8 @@ public class ListDoubleParameter implements UserParameter<List<Double>, ListDoub
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (valueRequired && value == null) {
       errorMessages.add(name + " is not set properly");
       return false;

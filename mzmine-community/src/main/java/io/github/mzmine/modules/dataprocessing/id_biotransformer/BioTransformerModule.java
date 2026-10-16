@@ -62,7 +62,7 @@ public class BioTransformerModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     for (ModularFeatureList flist : parameters.getValue(BioTransformerParameters.flists)
-        .getMatchingFeatureLists()) {
+        .getMatchingFeatureLists(project)) {
       tasks.add(new BioTransformerTask(project, parameters, flist, moduleCallDate));
     }
     return ExitCode.OK;

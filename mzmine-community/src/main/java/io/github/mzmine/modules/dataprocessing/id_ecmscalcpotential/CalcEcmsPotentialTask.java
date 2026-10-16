@@ -60,7 +60,8 @@ public class CalcEcmsPotentialTask extends AbstractTask {
     this.parameters = parameters;
     this.project = project;
 
-    flists = parameters.getValue(CalcEcmsPotentialParameters.flists).getMatchingFeatureLists();
+    flists = parameters.getValue(CalcEcmsPotentialParameters.flists)
+        .getMatchingFeatureLists(project);
     delayTimeSeconds = parameters.getValue(CalcEcmsPotentialParameters.delayTime);
     potentialRampSpeed = parameters.getValue(CalcEcmsPotentialParameters.potentialRampSpeed);
     potentialAssignmentPercentage = parameters.getValue(

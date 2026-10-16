@@ -29,6 +29,7 @@ import static io.github.mzmine.parameters.parametertypes.IntensityNormalizerOpti
 import static io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions.forUniqueID;
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;
@@ -151,7 +152,7 @@ public class IntensityNormalizerComboParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String elementString = xmlElement.getTextContent();
     if (elementString.isEmpty()) {
       value = IntensityNormalizer.createDefault();
@@ -165,7 +166,7 @@ public class IntensityNormalizerComboParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setTextContent(value.option().getUniqueID());
     xmlElement.setAttribute("scientific", String.valueOf(value.scientificFormat()));
   }
@@ -181,7 +182,8 @@ public class IntensityNormalizerComboParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 

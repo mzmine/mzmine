@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -161,7 +162,7 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // Set some default values
     double mzTolerance = 0.001;
     double ppmTolerance = 5;
@@ -179,7 +180,7 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -193,7 +194,8 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(name + " is not set properly");
       return false;

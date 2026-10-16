@@ -54,8 +54,8 @@ public class MaldiGroupMS2Module implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    final FeatureList[] peakLists =
-        parameters.getParameter(GroupMS2Parameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
+    final FeatureList[] peakLists = parameters.getParameter(GroupMS2Parameters.PEAK_LISTS)
+        .getValue().getMatchingFeatureLists(project);
 
     for (FeatureList peakList : peakLists) {
       Task newTask = new MaldiGroupMS2Task(project, peakList, parameters, moduleCallDate);

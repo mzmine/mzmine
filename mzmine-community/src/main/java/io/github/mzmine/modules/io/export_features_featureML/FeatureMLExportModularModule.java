@@ -56,7 +56,8 @@ public class FeatureMLExportModularModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    FeatureMLExportModularTask task = new FeatureMLExportModularTask(parameters, moduleCallDate);
+    FeatureMLExportModularTask task = new FeatureMLExportModularTask(project, parameters,
+        moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }

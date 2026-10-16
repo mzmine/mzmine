@@ -28,7 +28,6 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.collections.CollectionUtils;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -43,12 +42,20 @@ public class FeatureListPlaceholder {
   private final String name;
 
   public FeatureListPlaceholder() {
-    this(null);
+    this((ModularFeatureList) null);
   }
 
   public FeatureListPlaceholder(@Nullable final ModularFeatureList flist) {
     name = flist == null ? null : flist.getName();
     featureList = new WeakReference<>(flist);
+  }
+
+  /**
+   * Placeholder that is only resolved by name, e.g., after loading from XML.
+   */
+  public FeatureListPlaceholder(@NotNull final String name) {
+    this.name = name;
+    featureList = new WeakReference<>(null);
   }
 
   public static FeatureListPlaceholder[] of(
@@ -69,76 +76,82 @@ public class FeatureListPlaceholder {
   }
 
   /**
-   * Same length as input but may contain null if featureLists are not in memory anymore
+   * Same length as input but may contain null if feature lists are not in the project
    *
-   * @return array of matching feature lists. If the feature list was removed from the project and
-   * already garbage collected this list may contain null values
+   * @param project the feature lists are searched in this project
+   * @return array of matching feature lists. Contains null values for feature lists that are not in
+   * the project
    */
   public static @Nullable ModularFeatureList @NotNull [] getMatchingFeatureListOrNull(
-      @NotNull FeatureListPlaceholder @Nullable [] flists) {
+      @NotNull final MZmineProject project, @NotNull FeatureListPlaceholder @Nullable [] flists) {
     if (flists == null) {
       return new ModularFeatureList[0];
     }
-    return Arrays.stream(flists).map(FeatureListPlaceholder::getMatchingFeatureList)
+    return Arrays.stream(flists).map(flist -> flist.getMatchingFeatureList(project))
         .toArray(ModularFeatureList[]::new);
   }
 
   /**
-   * Same length as input but may contain null if featureLists are not in memory anymore
+   * Same length as input but may contain null if feature lists are not in the project
    *
-   * @return list of matching feature lists. If the feature list was removed from the project and
-   * already garbage collected this list may contain null values
+   * @param project the feature lists are searched in this project
+   * @return list of matching feature lists. Contains null values for feature lists that are not in
+   * the project
    */
   public static @NotNull List<@Nullable ModularFeatureList> getMatchingFeatureListOrNull(
+      @NotNull final MZmineProject project,
       @Nullable List<@NotNull FeatureListPlaceholder> flists) {
     if (flists == null) {
       return List.of();
     }
     // need to allow null values
-    return flists.stream().map(FeatureListPlaceholder::getMatchingFeatureList)
+    return flists.stream().map(flist -> flist.getMatchingFeatureList(project))
         .collect(CollectionUtils.toArrayList());
   }
 
   /**
-   * Non null matching feature lists. This may be an empty array if no feature list is in memory
+   * Non null matching feature lists. This may be an empty array if no feature list is in the
+   * project
    *
+   * @param project the feature lists are searched in this project
    * @return array of matching feature lists. null filtered
    */
   public static @NotNull ModularFeatureList @NotNull [] getMatchingFeatureListFilterNull(
-      @NotNull FeatureListPlaceholder @Nullable [] flists) {
+      @NotNull final MZmineProject project, @NotNull FeatureListPlaceholder @Nullable [] flists) {
     if (flists == null) {
       return new ModularFeatureList[0];
     }
-    return Arrays.stream(flists).map(FeatureListPlaceholder::getMatchingFeatureList)
+    return Arrays.stream(flists).map(flist -> flist.getMatchingFeatureList(project))
         .filter(Objects::nonNull).toArray(ModularFeatureList[]::new);
   }
 
   /**
-   * Non null matching feature lists. This may be an empty array if no feature list is in memory
+   * Non null matching feature lists. This may be an empty list if no feature list is in the
+   * project
    *
+   * @param project the feature lists are searched in this project
    * @return list of matching feature lists. null filtered
    */
   public static @NotNull List<@NotNull ModularFeatureList> getMatchingFeatureListFilterNull(
-      List<FeatureListPlaceholder> flists) {
-    // need to allow null values
-    return flists.stream().map(FeatureListPlaceholder::getMatchingFeatureList)
+      @NotNull final MZmineProject project, @NotNull List<FeatureListPlaceholder> flists) {
+    return flists.stream().map(flist -> flist.getMatchingFeatureList(project))
         .filter(Objects::nonNull).toList();
   }
 
   /**
-   * @return The first matching raw data file of the current project.
+   * @param project the feature list is searched in this project
+   * @return The first matching feature list of the project.
    */
   @Nullable
-  public ModularFeatureList getMatchingFeatureList() {
+  public ModularFeatureList getMatchingFeatureList(@NotNull final MZmineProject project) {
+    final List<FeatureList> projectLists = project.getCurrentFeatureLists();
     final ModularFeatureList flist = featureList.get();
-    if (flist != null) {
+    // decision: a referenced feature list of another project, e.g., a replaced project, does not
+    // match. Identity check as feature lists may be equal by name
+    if (flist != null && projectLists.stream().anyMatch(pl -> pl == flist)) {
       return flist;
     }
-    final MZmineProject proj = ProjectService.getProject();
-    if (proj == null) {
-      return null;
-    }
-    return proj.getCurrentFeatureLists().stream().filter(ModularFeatureList.class::isInstance)
+    return projectLists.stream().filter(ModularFeatureList.class::isInstance)
         .map(ModularFeatureList.class::cast).filter(this::matches).findFirst().orElse(null);
   }
 

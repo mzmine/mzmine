@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
@@ -78,9 +79,10 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   private Integer yDivisor;
   private int yCharge;
 
-  public KendrickMassPlotXYZDataset(ParameterSet parameters, int xCharge, int yCharge) {
+  public KendrickMassPlotXYZDataset(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, int xCharge, int yCharge) {
     FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
-        .getValue().getMatchingFeatureLists()[0];
+        .getValue().getMatchingFeatureLists(project)[0];
     this.parameters = parameters.cloneParameterSet();
     this.selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
     this.xCharge = xCharge;
@@ -94,10 +96,11 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     MZmineCore.getTaskController().addTask(this);
   }
 
-  public KendrickMassPlotXYZDataset(ParameterSet parameters, int xDivisor, int xCharge,
+  public KendrickMassPlotXYZDataset(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, int xDivisor, int xCharge,
       int yDivisor, int yCharge) {
     FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
-        .getValue().getMatchingFeatureLists()[0];
+        .getValue().getMatchingFeatureLists(project)[0];
     this.parameters = parameters.cloneParameterSet();
     this.selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
     this.xDivisor = xDivisor;

@@ -57,7 +57,7 @@ public class IsotopeFinderModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final ModularFeatureList[] featureLists = parameters.getParameter(
-        IsotopeFinderParameters.featureLists).getValue().getMatchingFeatureLists();
+        IsotopeFinderParameters.featureLists).getValue().getMatchingFeatureLists(project);
 
     // the selected algorithm owns the processing: it decides how many tasks are needed and what they do
     tasks.addAll(IsotopeFinderModeOptions.createTasks(

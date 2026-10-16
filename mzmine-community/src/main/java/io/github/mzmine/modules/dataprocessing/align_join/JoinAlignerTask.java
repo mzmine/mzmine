@@ -73,7 +73,7 @@ public class JoinAlignerTask extends AbstractFeatureListTask {
     featureListName = parameters.getValue(JoinAlignerParameters.peakListName);
 
     featureLists = Arrays.stream(
-            parameters.getValue(JoinAlignerParameters.peakLists).getMatchingFeatureLists())
+            parameters.getValue(JoinAlignerParameters.peakLists).getMatchingFeatureLists(project))
         .map(flist -> (FeatureList) flist).toList();
 
     this.parameters = parameters;
@@ -90,7 +90,7 @@ public class JoinAlignerTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
     List<String> errors = new ArrayList<>();
-    if (!parameters.checkParameterValues(errors)) {
+    if (!parameters.checkParameterValues(project, errors)) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(String.join("\n", errors));
       return;

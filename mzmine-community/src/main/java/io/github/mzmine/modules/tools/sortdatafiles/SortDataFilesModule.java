@@ -63,8 +63,8 @@ public class SortDataFilesModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    List<RawDataFile> dataFiles = Arrays.asList(parameters
-        .getParameter(SortDataFilesParameters.dataFiles).getValue().getMatchingRawDataFiles());
+    List<RawDataFile> dataFiles = Arrays.asList(parameters.getParameter(
+        SortDataFilesParameters.dataFiles).getValue().getMatchingRawDataFiles(project));
 
     /*
      * RawDataTreeModel model = null; if (project instanceof MZmineProjectImpl) { model =

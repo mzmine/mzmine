@@ -99,17 +99,6 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
-    return projectParametersAndValues;
-  }
-
-  @Override
-  public void setProjectParametersAndValues(
-      Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
-    this.projectParametersAndValues = projectParametersAndValues;
-  }
-
-  @Override
   public @NotNull MetadataTable getProjectMetadata() {
     return projectMetadata;
   }
@@ -200,6 +189,8 @@ public class MZmineProjectImpl implements MZmineProject {
     try {
       featureLock.writeLock().lock();
 
+      // set before renaming so that the rename uses this project
+      featureList.setProject(this);
       // avoid duplicate file names
       final List<String> names = featureLists.stream().map(FeatureList::getName).toList();
       if (names.contains(featureList.getName())) {
@@ -216,12 +207,25 @@ public class MZmineProjectImpl implements MZmineProject {
     }
   }
 
+  /**
+   * Only clears the reference if the feature list points to this project, it may already be added
+   * to another project.
+   */
+  private void clearProjectReference(@NotNull final List<FeatureList> removed) {
+    for (final FeatureList flist : removed) {
+      if (flist.getProject() == this) {
+        flist.setProject(null);
+      }
+    }
+  }
+
   @Override
   public void removeFeatureList(@NotNull final FeatureList... featureList) {
     try {
       featureLock.writeLock().lock();
 
       featureLists.removeAll(featureList);
+      clearProjectReference(List.of(featureList));
       fireFeatureListsChangeEvent(List.of(featureList), Type.REMOVED);
     } finally {
       featureLock.writeLock().unlock();
@@ -281,6 +285,7 @@ public class MZmineProjectImpl implements MZmineProject {
       featureLock.writeLock().lock();
 
       this.featureLists.removeAll(featureLists);
+      clearProjectReference(featureLists);
       fireFeatureListsChangeEvent(List.copyOf(featureLists), Type.REMOVED);
     } finally {
       featureLock.writeLock().unlock();
@@ -507,6 +512,7 @@ public class MZmineProjectImpl implements MZmineProject {
       featureLock.writeLock().lock();
       final List<FeatureList> current = getCurrentFeatureLists();
       featureLists.clear();
+      clearProjectReference(current);
       fireFeatureListsChangeEvent(current, Type.REMOVED);
     } finally {
       featureLock.writeLock().unlock();

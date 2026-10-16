@@ -62,7 +62,7 @@ public class LipidAnnotationModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate) {
     FeatureList[] featureLists = parameters.getParameter(
             parameters.getParameter(LipidAnnotationParameters.featureLists)).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     for (FeatureList featureList : featureLists) {
       tasks.add(new LipidAnnotationTask(parameters, featureList, moduleCallDate));
     }

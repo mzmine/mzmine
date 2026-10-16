@@ -51,7 +51,7 @@ public class ClearProjectModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new ClearProjectTask(moduleCallDate));
+    tasks.add(new ClearProjectTask(project, moduleCallDate));
     return ExitCode.OK;
   }
 

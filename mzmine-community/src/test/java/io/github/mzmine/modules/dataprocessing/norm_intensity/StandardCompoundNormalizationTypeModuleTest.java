@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoun
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
 import java.io.IOException;
@@ -253,8 +254,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundSelection selection = module.selectStandards(summary, featureList,
         referenceFiles, mainParameters, moduleParameters);
 
-    return module.createReferenceFunctions(summary, referenceFiles, mainParameters,
-        moduleParameters, selection);
+    return module.createReferenceFunctions(summary, referenceFiles, new MetadataTable(false),
+        mainParameters, moduleParameters, selection);
   }
 
   private @NotNull StandardCompoundNormalizationTypeParameters createModuleParameters(
@@ -546,7 +547,7 @@ class StandardCompoundNormalizationTypeModuleTest {
   @Test
   void loadValuesFromXmlKeepsDefaultModeWithoutLegacyParameter() throws Exception {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
-    parameters.loadValuesFromXML(createParametersElement(null, null));
+    parameters.loadValuesFromXML(new MZmineProjectImpl(), createParametersElement(null, null));
 
     assertEquals(StandardCompoundNormalizationRequirement.DEFAULT,
         parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement));
@@ -559,7 +560,7 @@ class StandardCompoundNormalizationTypeModuleTest {
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.requirement,
         new StandardCompoundNormalizationRequirement(
             StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES, 1));
-    parameters.loadValuesFromXML(createParametersElement("true",
+    parameters.loadValuesFromXML(new MZmineProjectImpl(), createParametersElement("true",
         StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD.getUniqueID()));
 
     assertEquals(new StandardCompoundNormalizationRequirement(
@@ -570,7 +571,8 @@ class StandardCompoundNormalizationTypeModuleTest {
   private static @NotNull StandardCompoundNormalizationRequirement loadModeFromLegacyXml(
       final @NotNull String legacyValue) throws Exception {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
-    parameters.loadValuesFromXML(createParametersElement(legacyValue, null));
+    parameters.loadValuesFromXML(new MZmineProjectImpl(),
+        createParametersElement(legacyValue, null));
     return parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement);
   }
 
@@ -615,7 +617,7 @@ class StandardCompoundNormalizationTypeModuleTest {
 
     final List<String> errors = new ArrayList<>();
 
-    assertFalse(moduleParameters.checkParameterValues(errors, false));
+    assertFalse(moduleParameters.checkParameterValues(new MZmineProjectImpl(), errors, false));
     assertTrue(errors.stream().anyMatch(error -> error.contains("RT")));
   }
 
@@ -675,8 +677,8 @@ class StandardCompoundNormalizationTypeModuleTest {
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
-    summary.addMergeFunction(prevFile, prevFunction);
-    summary.addMergeFunction(nextFile, nextFunction);
+    summary.addMergeFunction(new MetadataTable(false), prevFile, prevFunction);
+    summary.addMergeFunction(new MetadataTable(false), nextFile, nextFunction);
 
     // internally we never use summary.functions for interpolation because
     // interpolation should be based on a single steps functions not on the merged composite function

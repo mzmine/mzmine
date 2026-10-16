@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_extractscans;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -48,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 
 class ExtractScansTask extends AbstractTask {
 
+  private final @NotNull MZmineProject project;
   private double perc = 0;
   private int scans, scanMaxTIC = -1;
   private double centerTime;
@@ -59,11 +61,13 @@ class ExtractScansTask extends AbstractTask {
   private double minTime, maxTime;
   private boolean useCenterTime;
 
-  ExtractScansTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  ExtractScansTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
 
     dataFiles = Arrays.asList(parameters.getParameter(ExtractScansParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles());
+        .getMatchingRawDataFiles(project));
     scans = parameters.getParameter(ExtractScansParameters.scans).getValue().intValue();
     centerTime = parameters.getParameter(ExtractScansParameters.centerTime).getValue();
     file = parameters.getParameter(ExtractScansParameters.file).getValue();

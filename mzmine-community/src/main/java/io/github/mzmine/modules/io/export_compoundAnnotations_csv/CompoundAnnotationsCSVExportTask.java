@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -79,6 +80,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(
       CompoundAnnotationsCSVExportTask.class.getName());
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final File fileName;
   private final int topNMatches;
@@ -88,11 +90,12 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
 
   private int processedRows = 0, totalRows = 0;
 
-  public CompoundAnnotationsCSVExportTask(ParameterSet parameters,
+  public CompoundAnnotationsCSVExportTask(@NotNull MZmineProject project, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     this.featureLists = parameters.getParameter(CompoundAnnotationsCSVExportParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     fileName = parameters.getValue(CompoundAnnotationsCSVExportParameters.filename);
     topNMatches = parameters.getValue(CompoundAnnotationsCSVExportParameters.topNMatches);
   }

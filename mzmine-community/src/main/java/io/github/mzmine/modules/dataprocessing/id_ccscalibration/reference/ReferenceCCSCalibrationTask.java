@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -47,6 +48,7 @@ public class ReferenceCCSCalibrationTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(
       ReferenceCCSCalibrationTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final CCSCalculator ccsCalculator;
   private final ParameterSet ccsCalculatorParameters;
   private final RawDataFile[] files;
@@ -54,16 +56,18 @@ public class ReferenceCCSCalibrationTask extends AbstractTask {
   private double progress = 0;
   private int processed = 0;
 
-  public ReferenceCCSCalibrationTask(@Nullable MemoryMapStorage storage,
+  public ReferenceCCSCalibrationTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet ccsCalculatorParameters) {
     super(storage, moduleCallDate);
+    this.project = project;
     this.ccsCalculator = MZmineCore.getModuleInstance(ReferenceCCSCalibrationModule.class);
     this.ccsCalculatorParameters = ccsCalculatorParameters;
     files = ccsCalculatorParameters.getValue(ReferenceCCSCalibrationParameters.files)
         ? ccsCalculatorParameters.getParameter(ReferenceCCSCalibrationParameters.files)
-        .getEmbeddedParameter().getValue().getMatchingRawDataFiles() : new RawDataFile[0];
+        .getEmbeddedParameter().getValue().getMatchingRawDataFiles(project) : new RawDataFile[0];
     flists = ccsCalculatorParameters.getValue(ReferenceCCSCalibrationParameters.flists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
   }
 
   @Override

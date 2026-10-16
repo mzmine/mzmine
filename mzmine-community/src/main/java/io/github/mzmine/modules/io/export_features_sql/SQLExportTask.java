@@ -34,6 +34,7 @@ import java.sql.Types;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -50,6 +51,7 @@ import org.jetbrains.annotations.NotNull;
 
 class SQLExportTask extends AbstractTask {
 
+  private final @NotNull MZmineProject project;
   private final FeatureList featureList;
   private final String connectionString;
   private final String tableName;
@@ -60,11 +62,13 @@ class SQLExportTask extends AbstractTask {
 
   private Connection dbConnection;
 
-  SQLExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  SQLExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
 
     this.featureList = parameters.getParameter(SQLExportParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     this.connectionString =
         parameters.getParameter(SQLExportParameters.connectionString).getValue();
 

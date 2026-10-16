@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -91,7 +92,8 @@ public class ParameterUtils {
    */
   @NotNull
   public static FeatureList[] getMatchingFeatureListsFromParameter(
-      final @NotNull ParameterSet parameters) throws IllegalStateException {
+      final @NotNull MZmineProject project, final @NotNull ParameterSet parameters)
+      throws IllegalStateException {
     // get parameters here only needed to run one task per featureList
     var featureListParameters = parameters.streamForClass(FeatureListsParameter.class).toList();
     int nFlistParams = featureListParameters.size();
@@ -106,7 +108,7 @@ public class ParameterUtils {
               + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for feature lists found
-    return parameters.getValue(featureListParameters.getFirst()).getMatchingFeatureLists();
+    return parameters.getValue(featureListParameters.getFirst()).getMatchingFeatureLists(project);
   }
 
   /**
@@ -118,7 +120,8 @@ public class ParameterUtils {
    */
   @NotNull
   public static RawDataFile[] getMatchingRawDataFilesFromParameter(
-      final @NotNull ParameterSet parameters) throws IllegalStateException {
+      final @NotNull MZmineProject project, final @NotNull ParameterSet parameters)
+      throws IllegalStateException {
     // get parameters here only needed to run one task per RawDataFile
     var rawFilesParameter = parameters.streamForClass(RawDataFilesParameter.class).toList();
     int nRawFiles = rawFilesParameter.size();
@@ -133,7 +136,7 @@ public class ParameterUtils {
               + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for RawDataFiles found
-    return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles();
+    return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles(project);
   }
 
   /**
@@ -562,14 +565,16 @@ public class ParameterUtils {
   /**
    * Load all parameters in name map from xmlElement.
    *
+   * @param project          relative file paths are resolved against the file of this project
    * @param callerClass      for logging
    * @param nameParameterMap parameter name -> parameter; make sure to use the correct parameters
    *                         here and not the static instance
    * @return A map of loaded parameters with name, parameter
    */
   @NotNull
-  public static Map<String, Parameter<?>> loadValuesFromXML(@NotNull Class<?> callerClass,
-      @NotNull Element xmlElement, @NotNull Map<String, Parameter<?>> nameParameterMap) {
+  public static Map<String, Parameter<?>> loadValuesFromXML(@NotNull MZmineProject project,
+      @NotNull Class<?> callerClass, @NotNull Element xmlElement,
+      @NotNull Map<String, Parameter<?>> nameParameterMap) {
     // cannot use getElementsByTagName, this goes recursively through all levels
     // finding nested ParameterSets
 //    NodeList list = xmlElement.getElementsByTagName(parameterElement);
@@ -587,7 +592,7 @@ public class ParameterUtils {
       Parameter<?> param = nameParameterMap.get(paramName);
       if (param != null) {
         try {
-          param.loadValueFromXML(nextElement);
+          param.loadValueFromXML(project, nextElement);
           // keep track of all parameters that were actually loaded - this means that some may be missing
           loadedParameters.put(param.getName(), param);
         } catch (Exception e) {
@@ -607,8 +612,11 @@ public class ParameterUtils {
     return loadedParameters;
   }
 
-  public static void saveValuesToXML(Element xmlElement, boolean skipSensitiveParameters,
-      Parameter<?>... parameters) {
+  /**
+   * @param project file paths are also saved relative to the file of this project
+   */
+  public static void saveValuesToXML(@NotNull MZmineProject project, @NotNull Element xmlElement,
+      boolean skipSensitiveParameters, Parameter<?>... parameters) {
     Document parentDocument = xmlElement.getOwnerDocument();
     for (Parameter<?> param : parameters) {
       if (skipSensitiveParameters && param.isSensitive()) {
@@ -617,7 +625,7 @@ public class ParameterUtils {
       Element paramElement = parentDocument.createElement(SimpleParameterSet.parameterElement);
       paramElement.setAttribute(SimpleParameterSet.nameAttribute, param.getName());
       xmlElement.appendChild(paramElement);
-      param.saveValueToXML(paramElement);
+      param.saveValueToXML(project, paramElement);
 
     }
   }
@@ -625,10 +633,10 @@ public class ParameterUtils {
   /**
    * Creates XML string from parameters
    *
-   * @param parameterSet
-   * @return
+   * @param project file paths are also saved relative to the file of this project
    */
-  public static String saveValuesToXMLString(ParameterSet parameterSet) {
+  public static String saveValuesToXMLString(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameterSet) {
     try {
       final Document document = XMLUtils.newDocument();
       final Element element = document.createElement("parameterset");
@@ -638,7 +646,7 @@ public class ParameterUtils {
       element.setAttribute(BatchQueue.MODULE_VERSION_ATTR,
           String.valueOf(parameterSet.getVersion()));
 
-      parameterSet.saveValuesToXML(element);
+      parameterSet.saveValuesToXML(project, element);
       return XMLUtils.saveToString(document);
     } catch (Exception exception) {
       logger.log(Level.SEVERE,
@@ -651,16 +659,17 @@ public class ParameterUtils {
   /**
    * Creates XML string from single parameter. Useful in test scenarios
    *
-   * @return
+   * @param project file paths are also saved relative to the file of this project
    */
-  public static String saveParameterToXMLString(Parameter<?> parameter) {
+  public static String saveParameterToXMLString(@NotNull MZmineProject project,
+      @NotNull Parameter<?> parameter) {
     try {
       final Document document = XMLUtils.newDocument();
 
       Element paramElement = document.createElement(SimpleParameterSet.parameterElement);
       paramElement.setAttribute(SimpleParameterSet.nameAttribute, parameter.getName());
       document.appendChild(paramElement);
-      parameter.saveValueToXML(paramElement);
+      parameter.saveValueToXML(project, paramElement);
       return XMLUtils.saveToString(document);
     } catch (Exception exception) {
       logger.log(Level.SEVERE,
@@ -673,16 +682,17 @@ public class ParameterUtils {
   /**
    * Loads paramter value from xml into the same instance input parameter. Useful in test scenarios
    *
+   * @param project relative file paths are resolved against the file of this project
    * @return the input parameter
    */
   @Nullable
-  public static <T extends Parameter<?>> T loadParameterFromString(@NotNull T parameter,
-      String xml) {
+  public static <T extends Parameter<?>> T loadParameterFromString(@NotNull MZmineProject project,
+      @NotNull T parameter, String xml) {
     try {
       final Document document = XMLUtils.load(xml);
       final Element paramElement = (Element) document.getElementsByTagName(
           SimpleParameterSet.parameterElement).item(0);
-      parameter.loadValueFromXML(paramElement);
+      parameter.loadValueFromXML(project, paramElement);
     } catch (Exception exception) {
       logger.log(Level.SEVERE,
           "Error while creating XML string for single parameter " + parameter.getClass().getName(),
@@ -692,7 +702,11 @@ public class ParameterUtils {
     return parameter;
   }
 
-  public static void loadValuesFromXMLString(ParameterSet parameterSet, String xml)
+  /**
+   * @param project relative file paths are resolved against the file of this project
+   */
+  public static void loadValuesFromXMLString(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameterSet, String xml)
       throws ParserConfigurationException, IOException, SAXException {
     final Document document = XMLUtils.load(xml);
     final NodeList stepParameters = document.getElementsByTagName("parameterset");
@@ -700,7 +714,7 @@ public class ParameterUtils {
       throw new IllegalArgumentException("No step_parameters element found in xml string.");
     }
     final org.w3c.dom.Node element = stepParameters.item(0);
-    parameterSet.loadValuesFromXML((Element) element);
+    parameterSet.loadValuesFromXML(project, (Element) element);
   }
 
   /**

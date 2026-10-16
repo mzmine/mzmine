@@ -60,7 +60,7 @@ public class PeakFinderModule implements MZmineProcessingModule {
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     FeatureList[] peakLists = parameters.getParameter(PeakFinderParameters.peakLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     for (FeatureList peakList : peakLists) {
       Task newTask = new PeakFinderTask(project, peakList, parameters, storage, moduleCallDate);

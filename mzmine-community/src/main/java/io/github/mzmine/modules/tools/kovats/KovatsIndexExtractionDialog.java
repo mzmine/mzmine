@@ -329,7 +329,7 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
    */
   private void initRawDataFileSelection() {
     RawDataFile[] selectedFiles = parameterSet.getValue(KovatsIndexExtractionParameters.dataFiles)
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(ProjectService.getProject());
 
     if (selectedFiles == null) {
       // find kovats or dro file

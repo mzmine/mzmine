@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
@@ -88,7 +89,8 @@ public class MetadataListGroupsSelectionParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!requireValue) {
       return true;
     }
@@ -102,7 +104,7 @@ public class MetadataListGroupsSelectionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final String column = xmlElement.getAttribute(XML_COLUMN_ATTR);
 
     List<String> groups = new ArrayList<>();
@@ -121,7 +123,7 @@ public class MetadataListGroupsSelectionParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute(XML_COLUMN_ATTR, value != null ? value.columnName() : "");
 
     final List<@NotNull String> grps = List.copyOf(value.groups());

@@ -59,8 +59,8 @@ public class GridMassModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    RawDataFile[] dataFiles =
-        parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
+    RawDataFile[] dataFiles = parameters.getParameter(new RawDataFilesParameter()).getValue()
+        .getMatchingRawDataFiles(project);
 
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (int i = 0; i < dataFiles.length; i++) {

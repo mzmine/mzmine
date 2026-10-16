@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.massvoltammogram;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -41,6 +42,8 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 
 public class MassvoltammogramTask extends AbstractTask {
+
+  private final @NotNull MZmineProject project;
 
   //Parameter.
   private final ReactionMode reactionMode;
@@ -58,21 +61,23 @@ public class MassvoltammogramTask extends AbstractTask {
   //The massvoltammogram.
   private Massvoltammogram massvoltammogram;
 
-  public MassvoltammogramTask(@NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public MassvoltammogramTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
 
     //Setting up the parameter that depend on a raw data file or a feature list being chosen.
     if (parameters instanceof MassvoltammogramFromFileParameters) {
 
       file = parameters.getValue(MassvoltammogramFromFileParameters.files)
-          .getMatchingRawDataFiles()[0];
+          .getMatchingRawDataFiles(project)[0];
       scanSelection = parameters.getValue(MassvoltammogramFromFileParameters.scanSelection);
       featureList = null;
 
     } else if (parameters instanceof MassvoltammogramFromFeatureListParameters) {
 
       featureList = parameters.getValue(MassvoltammogramFromFeatureListParameters.featureLists)
-          .getMatchingFeatureLists()[0];
+          .getMatchingFeatureLists(project)[0];
       file = null;
       scanSelection = null;
     }

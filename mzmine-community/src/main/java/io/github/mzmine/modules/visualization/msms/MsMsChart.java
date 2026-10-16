@@ -35,6 +35,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import javafx.beans.property.Property;
@@ -56,7 +57,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     MsMsXYAxisType xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
     MsMsXYAxisType yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
     RawDataFile[] dataFiles = parameters.getParameter(MsMsParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(ProjectService.getProject());
 
     setDomainAxisLabel(xAxisType.toString());
     setRangeAxisLabel(yAxisType.toString());

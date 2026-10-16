@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -107,7 +108,8 @@ public class RsdFilterParameters extends SimpleParameterSet {
    * Create a filter for a specific data table. Will automatically select only the grouped data
    * files
    */
-  RsdFilter createFilter(List<FeatureListRow> rows, List<RawDataFile> rawFiles) {
+  @NotNull RsdFilter createFilter(@NotNull MetadataTable metadata,
+      @NotNull List<FeatureListRow> rows, @NotNull List<RawDataFile> rawFiles) {
     // prepare data
     final AbundanceMeasure measure = getValue(abundanceMeasure);
     final ImputationFunctions missingImputation = getValue(missingValueImputation);
@@ -123,7 +125,8 @@ public class RsdFilterParameters extends SimpleParameterSet {
     final boolean keepUndedected = getValue(RsdFilterParameters.keepUndetected);
 
     // subset data table to the grouped data files
-    final List<RawDataFile> groupFiles = group.getMatchingFiles(dataTable.getRawDataFiles());
+    final List<RawDataFile> groupFiles = group.getMatchingFiles(metadata,
+        dataTable.getRawDataFiles());
     final FeaturesDataTable subsetTable = dataTable.subsetBySamples(groupFiles);
 
     return new RsdFilter(group, subsetTable, maxMissing, maxCV, keepUndedected);

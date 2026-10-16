@@ -72,13 +72,13 @@ public class RawFileMergeModule implements MZmineProcessingModule {
     if (parameters.getParameter(RawFileMergeParameters.mode).getValue()
         .equals(MODE.MERGE_SELECTED)) {
       RawDataFile[] raw = parameters.getParameter(RawFileMergeParameters.dataFiles).getValue()
-          .getMatchingRawDataFiles();
+          .getMatchingRawDataFiles(project);
       RawFileMergeTask task = new RawFileMergeTask(project, parameters, raw, storage, moduleCallDate);
       tasks.add(task);
     } else {
       // sort files into merge groups
       RawDataFile[] raw = parameters.getParameter(RawFileMergeParameters.dataFiles).getValue()
-          .getMatchingRawDataFiles();
+          .getMatchingRawDataFiles(project);
 
       POSITION pos = parameters.getParameter(RawFileMergeParameters.position).getValue();
       String posMarker = parameters.getParameter(RawFileMergeParameters.posMarker).getValue();

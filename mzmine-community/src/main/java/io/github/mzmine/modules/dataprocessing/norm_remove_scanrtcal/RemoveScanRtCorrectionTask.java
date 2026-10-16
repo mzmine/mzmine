@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -52,12 +53,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
 
+  private final @NotNull MZmineProject project;
   private final RawDataFile[] files;
   @Nullable
   private final String callerDescription;
   private final Set<RawDataFile> clearedFiles = new LinkedHashSet<>();
 
   /**
+   * @param project           the project to resolve the raw data files from
    * @param storage           The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                          RawDataFiles, MassLists, FeatureLists). May be null if results shall
    *                          be stored in ram. For now, one storage should be created per module
@@ -65,12 +68,15 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
    * @param moduleCallDate    the call date of module to order execution order
    * @param callerDescription
    */
-  public RemoveScanRtCorrectionTask(@Nullable MemoryMapStorage storage,
+  public RemoveScanRtCorrectionTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass, @Nullable String callerDescription) {
     super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
 
-    files = parameters.getValue(RemoveScanRtCorrectionParameters.files).getMatchingRawDataFiles();
+    files = parameters.getValue(RemoveScanRtCorrectionParameters.files)
+        .getMatchingRawDataFiles(project);
     this.callerDescription = callerDescription;
   }
 
@@ -94,7 +100,7 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
     // Also compact an existing Apply -> Clear suffix. This matters when individual chromatogram
     // builder tasks already cleared all scans and a later manual clear is therefore a physical
     // no-op.
-    removeRevertedRtCorrectionsIfAllFilesCleared(getProcessedDataFiles());
+    removeRevertedRtCorrectionsIfAllFilesCleared(project, getProcessedDataFiles());
   }
 
   @Override
@@ -122,7 +128,7 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
    *
    * @return {@code true} if at least one correction application was safely removed
    */
-  static boolean removeRevertedRtCorrectionsIfAllFilesCleared(
+  static boolean removeRevertedRtCorrectionsIfAllFilesCleared(@NotNull MZmineProject project,
       @NotNull Collection<RawDataFile> selectedFiles) {
     if (selectedFiles.isEmpty()) {
       return false;
@@ -143,7 +149,7 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
       final List<CorrectionCall> fileCorrectionCalls = new ArrayList<>();
       index--;
       while (index >= 0 && isRtCorrection(methods.get(index))) {
-        final CorrectionCall correctionCall = getCorrectionCall(methods.get(index));
+        final CorrectionCall correctionCall = getCorrectionCall(project, methods.get(index));
         if (correctionCall == null) {
           return false;
         }
@@ -199,7 +205,7 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
     return method != null && method.getModule() instanceof RemoveScanRtCorrectionModule;
   }
 
-  private static @Nullable CorrectionCall getCorrectionCall(
+  private static @Nullable CorrectionCall getCorrectionCall(@NotNull MZmineProject project,
       FeatureListAppliedMethod appliedMethod) {
     final List<AbstractRtCorrectionFunction> corrections;
     try {
@@ -215,7 +221,7 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
 
     final Set<RawDataFile> correctionFiles = new LinkedHashSet<>();
     for (AbstractRtCorrectionFunction correction : corrections) {
-      final RawDataFile file = correction.getRawDataFile();
+      final RawDataFile file = correction.getRawDataFile(project);
       if (file == null) {
         return null;
       }

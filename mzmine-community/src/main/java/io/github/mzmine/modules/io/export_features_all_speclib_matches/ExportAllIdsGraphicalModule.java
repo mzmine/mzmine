@@ -58,7 +58,7 @@ public class ExportAllIdsGraphicalModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    var task = new ExportAllIdsGraphicalTask(parameters, null, moduleCallDate);
+    var task = new ExportAllIdsGraphicalTask(project, parameters, null, moduleCallDate);
     tasks.add(task);
 
     return ExitCode.OK;

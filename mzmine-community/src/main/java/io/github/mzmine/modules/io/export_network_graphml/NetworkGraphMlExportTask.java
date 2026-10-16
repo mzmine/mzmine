@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.export_network_graphml;
 
 import static io.github.mzmine.util.files.FileAndPathUtil.getRealFilePathWithSuffix;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -48,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 public class NetworkGraphMlExportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(NetworkGraphMlExportTask.class.getName());
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final File fileName;
   private final ParameterSet parameters;
@@ -55,10 +57,12 @@ public class NetworkGraphMlExportTask extends AbstractTask {
 
   private double progress;
 
-  public NetworkGraphMlExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public NetworkGraphMlExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     this.featureLists = parameters.getValue(NetworkGraphMlExportParameters.featureLists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     fileName = parameters.getValue(NetworkGraphMlExportParameters.filename);
     this.parameters = parameters;
     // four steps each

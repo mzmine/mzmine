@@ -51,7 +51,7 @@ public class StatsDasboardModule extends AbstractRunnableModule {
       @NotNull Instant moduleCallDate) {
 
     final ModularFeatureList flist = parameters.getValue(StatsDashboardParameters.flists)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     final StatsDashboardTab tab = new StatsDashboardTab();
     tab.onFeatureListSelectionChanged(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);

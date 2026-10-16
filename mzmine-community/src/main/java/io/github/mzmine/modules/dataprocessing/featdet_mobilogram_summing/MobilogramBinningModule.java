@@ -68,7 +68,7 @@ public class MobilogramBinningModule implements MZmineProcessingModule {
 
     final ModularFeatureList[] flists = parameters
         .getParameter(MobilogramBinningParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList flist : flists) {

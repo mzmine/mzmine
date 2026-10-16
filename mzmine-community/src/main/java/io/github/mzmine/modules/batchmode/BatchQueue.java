@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import com.vdurmont.semver4j.Semver;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -82,13 +83,15 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   /**
    * De-serialize from XML.
    *
+   * @param project           relative file paths are resolved against the file of this project
    * @param xmlElement        the element that holds the XML.
    * @param skipUnkownModules skipping unknown modules is discouraged in batch mode. In GUI mode
    *                          errors can be seen.
    * @return the de-serialized value.
    */
-  public static BatchQueue loadFromXml(final Element xmlElement,
-      @NotNull final List<String> errorMessages, boolean skipUnkownModules) {
+  public static BatchQueue loadFromXml(@NotNull final MZmineProject project,
+      final Element xmlElement, @NotNull final List<String> errorMessages,
+      boolean skipUnkownModules) {
     Semver batchMzmineVersion = null;
     final String mzmineVersionError;
     Semver mzmineVersion = SemverVersionReader.getMZmineVersion();
@@ -213,7 +216,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
               moduleFound.getName()));
         }
 
-        methodParams.loadValuesFromXML(stepElement);
+        methodParams.loadValuesFromXML(project, stepElement);
         queue.add(
             new MZmineProcessingStepImpl<>((MZmineProcessingModule) moduleFound, methodParams));
       }
@@ -230,19 +233,22 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   /**
    * Load from file
    *
+   * @param project relative file paths are resolved against the file of this project
    * @return {@link BatchQueue} and error messages from loading
    * @throws ParserConfigurationException
    * @throws IOException
    * @throws SAXException
    */
-  public static @NonNull LoadedBatchQueue loadFromFile(File batchFile)
+  public static @NonNull LoadedBatchQueue loadFromFile(@NotNull MZmineProject project,
+      File batchFile)
       throws ParserConfigurationException, IOException, SAXException {
     logger.info("Loading batch from file " + batchFile);
     final Document parsedBatchXML = XMLUtils.load(batchFile);
 
     List<String> errorMessages = new ArrayList<>();
     // fail on missing modules - here its usually run from the command line - fail it
-    BatchQueue newQueue = loadFromXml(parsedBatchXML.getDocumentElement(), errorMessages, false);
+    BatchQueue newQueue = loadFromXml(project, parsedBatchXML.getDocumentElement(), errorMessages,
+        false);
     return new LoadedBatchQueue(errorMessages, newQueue);
   }
 
@@ -262,9 +268,10 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   /**
    * Serialize to XML.
    *
+   * @param project    file paths are also saved relative to the file of this project
    * @param xmlElement the XML element to append to.
    */
-  public void saveToXml(final Element xmlElement) {
+  public void saveToXml(@NotNull final MZmineProject project, final Element xmlElement) {
     // set MZmine version always to the latest
     xmlElement.setAttribute(XML_MZMINE_VERSION_ATTR,
         SemverVersionReader.getMZmineVersion().toString());
@@ -285,7 +292,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         // save version, since MZmine 3.4.0
         stepElement.setAttribute(MODULE_VERSION_ATTR, String.valueOf(parameters.getVersion()));
         stepElement.setAttribute(MODULE_NAME_ATTR, step.getModule().getName());
-        parameters.saveValuesToXML(stepElement);
+        parameters.saveValuesToXML(project, stepElement);
       }
     }
   }

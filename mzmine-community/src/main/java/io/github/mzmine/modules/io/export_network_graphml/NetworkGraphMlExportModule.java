@@ -60,7 +60,8 @@ public class NetworkGraphMlExportModule implements MZmineProcessingModule {
     public @NotNull ExitCode runModule(@NotNull MZmineProject project,
         @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
         @NotNull Instant moduleCallDate) {
-        NetworkGraphMlExportTask task = new NetworkGraphMlExportTask(parameters, moduleCallDate);
+      NetworkGraphMlExportTask task = new NetworkGraphMlExportTask(project, parameters,
+          moduleCallDate);
         tasks.add(task);
         return ExitCode.OK;
     }

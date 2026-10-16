@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -119,7 +120,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
    * @param element The xml element for this {@link FeatureListAppliedMethod}.
    */
   @Override
-  public void saveValueToXML(Element element) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element element) {
     final Document doc = element.getOwnerDocument();
 
     final Element descriptionElement = doc.createElement("description");
@@ -132,11 +133,12 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     element.appendChild(moduleElement);
 
     final Element parametersElement = doc.createElement("parameters");
-    parameters.saveValuesToXML(parametersElement);
+    parameters.saveValuesToXML(project, parametersElement);
     element.appendChild(parametersElement);
   }
 
-  public static SimpleFeatureListAppliedMethod loadValueFromXML(Element element) {
+  public static SimpleFeatureListAppliedMethod loadValueFromXML(@NotNull MZmineProject project,
+      @NotNull Element element) {
     final Element moduleElement = (Element) element.getElementsByTagName("module").item(0);
     String moduleClassName = moduleElement.getAttribute("class");
     final Element parametersElement = (Element) element.getElementsByTagName("parameters").item(0);
@@ -150,7 +152,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
       moduleClass = (Class<? extends MZmineModule>) Class.forName(moduleClassName);
       moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
           .cloneParameterSet(true);
-      moduleParameters.loadValuesFromXML(parametersElement);
+      moduleParameters.loadValuesFromXML(project, parametersElement);
     } catch (Exception | NoClassDefFoundError e) {
       logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));
       moduleClass = PlaceholderModule.class;

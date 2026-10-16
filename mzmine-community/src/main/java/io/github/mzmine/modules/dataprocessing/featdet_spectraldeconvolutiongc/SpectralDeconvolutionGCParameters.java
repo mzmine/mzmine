@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumCo
 import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
@@ -69,8 +71,9 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
-    return super.loadValuesFromXML(xmlElement);
+  public Map<String, Parameter<?>> loadValuesFromXML(@NotNull MZmineProject project,
+      @NotNull Element xmlElement) {
+    return super.loadValuesFromXML(project, xmlElement);
   }
 
   @Override

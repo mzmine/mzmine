@@ -25,7 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class FormulaParameter extends StringParameter {
 
@@ -36,8 +38,9 @@ public class FormulaParameter extends StringParameter {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    boolean superCheck = super.checkValue(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    boolean superCheck = super.checkValue(project, errorMessages);
 
     String value = getValue();
 

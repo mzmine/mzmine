@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -342,7 +343,8 @@ public class EmptyParameterSetupDialogBase extends Stage {
     if (isValueCheckRequired()) {
       ArrayList<String> messages = new ArrayList<>();
       boolean allParametersOK = paramPane.getParameterSet()
-          .checkParameterValues(messages, skipRawDataAndFeatureListParameters);
+          .checkParameterValues(ProjectService.getProject(), messages,
+              skipRawDataAndFeatureListParameters);
 
       if (!allParametersOK) {
         StringBuilder message = new StringBuilder("Please check the parameter settings:\n");

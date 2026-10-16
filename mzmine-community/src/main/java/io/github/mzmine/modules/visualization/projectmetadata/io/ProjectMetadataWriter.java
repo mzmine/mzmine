@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import com.opencsv.ICSVWriter;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
@@ -47,12 +47,17 @@ public class ProjectMetadataWriter {
 
   private static final Logger logger = Logger.getLogger(ProjectMetadataWriter.class.getName());
 
-  private final MetadataTable metadataTable;
-  private final MetadataFileFormat format;
+  private final @NotNull MZmineProject project;
+  private final @NotNull MetadataTable metadataTable;
+  private final @NotNull MetadataFileFormat format;
 
-  public ProjectMetadataWriter(@NotNull final MetadataTable metadata,
+  /**
+   * @param project the project metadata and data files of this project are exported
+   */
+  public ProjectMetadataWriter(@NotNull final MZmineProject project,
       @NotNull final MetadataFileFormat format) {
-    this.metadataTable = metadata;
+    this.project = project;
+    this.metadataTable = project.getProjectMetadata();
     this.format = format;
   }
 
@@ -95,7 +100,7 @@ public class ProjectMetadataWriter {
       logger.info("Header was successfully written");
 
       // write the parameters value down
-      RawDataFile[] files = ProjectService.getProject().getDataFiles();
+      RawDataFile[] files = project.getDataFiles();
       for (var rawDataFile : files) {
         List<String> lineFieldsValues = new ArrayList<>(List.of(rawDataFile.getName()));
         for (var column : columns) {

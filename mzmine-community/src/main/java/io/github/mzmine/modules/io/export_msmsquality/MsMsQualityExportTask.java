@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -84,6 +85,7 @@ public class MsMsQualityExportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(MsMsQualityExportTask.class.getName());
   final int numRows;
   final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final File exportFile;
   private final String separator = ";";
@@ -95,13 +97,15 @@ public class MsMsQualityExportTask extends AbstractTask {
   private final boolean matchCompoundToFlist;
   private int processedRows;
 
-  protected MsMsQualityExportTask(@NotNull Instant moduleCallDate, ParameterSet parameterSet) {
+  protected MsMsQualityExportTask(@NotNull MZmineProject project, @NotNull Instant moduleCallDate,
+      ParameterSet parameterSet) {
     super(null, moduleCallDate);
+    this.project = project;
     this.parameterSet = parameterSet;
 
     msmsFormulaTolerance = parameterSet.getValue(MsMsQualityExportParameters.formulaTolerance);
     featureLists = parameterSet.getValue(MsMsQualityExportParameters.flists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     exportFile = parameterSet.getValue(MsMsQualityExportParameters.file);
     matchCompoundToFlist = parameterSet.getValue(
         MsMsQualityExportParameters.matchCompoundNameToFlist);

@@ -59,7 +59,7 @@ public class SpectralLibraryToFeatureListModule implements MZmineProcessingModul
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
     var libraries = parameters.getValue(SpectralLibraryToFeatureListParameters.libraries)
-        .getMatchingLibraries();
+        .getMatchingLibraries(project);
     for (final SpectralLibrary library : libraries) {
       tasks.add(new SpectralLibraryToFeatureListTask(parameters, project, library, moduleCallDate));
     }

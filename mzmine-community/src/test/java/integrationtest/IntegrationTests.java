@@ -251,6 +251,18 @@ public class IntegrationTests {
                 "rawdatafiles/integration_tests/thermo_import/test_msconvert.csv").size());
   }
 
+  @Test
+  void testProjectLoadInBatch(@TempDir File tempDir) {
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
+                "workshop_dataset_integration_test_project_keep_processing.mzbatch").tempDir(tempDir)
+            .rawFiles("171103_PMA_TK_QC_05-4to5min.mzML")
+            .specLibsFullPath("spectral_libraries/integration_tests/massbank_nist_for_tests.msp")
+            .checkImportedFilesAndLibraries(false).build().runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/workshop_dataset/expected_results_project_merging.csv")
+            .size());
+  }
+
   /**
    * Allows dropping of errors from integration tests. Smiles and inchi should be stable now. The
    * cache might still sometimes hit different harmonized structure for inchi but is less likely.

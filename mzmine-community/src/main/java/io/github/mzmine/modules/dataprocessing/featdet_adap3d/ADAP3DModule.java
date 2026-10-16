@@ -59,7 +59,7 @@ public class ADAP3DModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(new RawDataFilesParameter()).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask = new ADAP3DTask(project, dataFiles[i], parameters.cloneParameterSet(),

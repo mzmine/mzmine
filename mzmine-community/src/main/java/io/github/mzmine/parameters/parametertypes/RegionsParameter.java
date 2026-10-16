@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -79,7 +80,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList pathElements = xmlElement.getElementsByTagName(PATH_ELEMENT);
 
     value.clear();
@@ -98,7 +99,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     for (List<Point2D> path : value) {
@@ -114,7 +115,8 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add("Regions list is null");
       return false;

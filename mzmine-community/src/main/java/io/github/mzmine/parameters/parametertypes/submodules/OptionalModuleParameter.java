@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
@@ -157,22 +158,23 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    embeddedParameters.loadValuesFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameters.loadValuesFromXML(project, xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
     this.value = Objects.requireNonNullElse(Boolean.valueOf(selectedAttr), false);
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute("selected", String.valueOf(value));
-    embeddedParameters.saveValuesToXML(xmlElement);
+    embeddedParameters.saveValuesToXML(project, xmlElement);
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value) {
-      return checkEmbeddedValues(errorMessages);
+      return checkEmbeddedValues(project, errorMessages);
     }
     return true;
   }
