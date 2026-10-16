@@ -28,6 +28,8 @@ package io.github.mzmine.modules.visualization.intensitymap.plot;
 import static io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh.DEPTH;
 import static io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh.WIDTH;
 
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapAxisKind;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapPicker;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapScreenGeometry;
@@ -114,8 +116,9 @@ final class IntensityMapTileLayout {
   }
 
   /**
-   * Side by side, all m/z overlays of a raw file share one tile, so its traces can be compared in
-   * place. Images get a tile each, overlaid images would hide each other.
+   * Side by side, all m/z overlays of a raw file share one tile if m/z is an axis, so its traces
+   * can be compared in place. Images and maps without m/z axis, e.g. retention time against
+   * mobility, get a tile per overlay, overlaid m/z windows would hide each other.
    *
    * @param visible overlays in their order
    * @return the overlays of each tile, in the order of their first overlay
@@ -124,8 +127,12 @@ final class IntensityMapTileLayout {
       @NotNull final List<IntensityMapSeries> visible) {
     final Map<String, List<IntensityMapSeries>> groups = new LinkedHashMap<>();
     for (final IntensityMapSeries value : visible) {
+      final IntensityMapGrid data = value.data();
+      final boolean mzAxis =
+          data.xKind() == IntensityMapAxisKind.MZ || data.yKind() == IntensityMapAxisKind.MZ;
       // assumption: raw file names are unique within a project
-      final String key = value.data().pixels() ? "image " + value.id() : "file " + value.name();
+      final String key =
+          !data.pixels() && mzAxis ? "file " + value.name() : "overlay " + value.id();
       groups.computeIfAbsent(key, _ -> new ArrayList<>()).add(value);
     }
     return groups.values().stream().map(List::copyOf).toList();

@@ -172,6 +172,46 @@ final class IntensityMapPeakProjector {
   }
 
   /**
+   * @param xRange extent along x, e.g. a retention time range
+   * @param yRange extent along y, e.g. an m/z range
+   * @return screen corners of the floor below the ranges in the tile of the overlay, in the layer;
+   * null if the overlay is not shown or the ranges lie outside its data
+   */
+  @Nullable List<Point2D> outline(@NotNull final String id, @NotNull final Range<Double> xRange,
+      @NotNull final Range<Double> yRange) {
+    final IntensityMapSeries value = shown.get(id);
+    final IntensityMapTile tile = value == null ? null : tileLayout.tileOf(id);
+    if (tile == null) {
+      return null;
+    }
+    final IntensityMapBounds range = scale.bounds();
+    final double[] ys = displayed(yRange, (yRange.lowerEndpoint() + yRange.upperEndpoint()) / 2);
+    if (Double.isNaN(ys[0]) || Double.isNaN(ys[1]) || xRange.upperEndpoint() < range.xMin()
+        || xRange.lowerEndpoint() > range.xMax() || Math.max(ys[0], ys[1]) < range.yMin()
+        || Math.min(ys[0], ys[1]) > range.yMax()) {
+      return null;
+    }
+    final double x0 = IntensityMapMesh.localX(range,
+        Math.clamp(xRange.lowerEndpoint(), range.xMin(), range.xMax()));
+    final double x1 = IntensityMapMesh.localX(range,
+        Math.clamp(xRange.upperEndpoint(), range.xMin(), range.xMax()));
+    final double z0 = IntensityMapMesh.localZ(range, Math.clamp(ys[0], range.yMin(), range.yMax()));
+    final double z1 = IntensityMapMesh.localZ(range, Math.clamp(ys[1], range.yMin(), range.yMax()));
+    final List<Point2D> corners = new ArrayList<>(4);
+    for (final double[] corner : new double[][]{{x0, z0}, {x1, z0}, {x1, z1}, {x0, z1}}) {
+      final Point3D modelPoint = tile.toModel(new Point3D(corner[0], 0, corner[1]));
+      final Point2D point =
+          camera.isInFront(model.localToParent(modelPoint)) ? IntensityMapScreenGeometry.project(
+              model, modelPoint, layer) : null;
+      if (point == null) {
+        return null;
+      }
+      corners.add(point);
+    }
+    return corners;
+  }
+
+  /**
    * @return tile of the labeled overlay, null if it is not shown
    */
   @Nullable IntensityMapTile tile(@NotNull final IntensityMapLabel label) {

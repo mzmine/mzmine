@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.intensitymap.plot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapAxisKind;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import java.util.List;
@@ -39,6 +40,7 @@ class IntensityMapTileLayoutTest {
   @Test
   void mzWindowsOfOneFileShareATile() {
     final IntensityMapGrid chromatogram = new IntensityMapGrid(2, 2, "x", "y", 0, 1, 0, 1);
+    chromatogram.setAxisKinds(IntensityMapAxisKind.RETENTION_TIME, IntensityMapAxisKind.MZ);
     final List<IntensityMapSeries> overlays = List.of(overlay("a1", "A", chromatogram),
         overlay("b1", "B", chromatogram), overlay("a2", "A", chromatogram),
         overlay("b2", "B", chromatogram));
@@ -48,6 +50,17 @@ class IntensityMapTileLayoutTest {
     assertEquals(2, groups.size());
     assertEquals(List.of("a1", "a2"), groups.get(0).stream().map(IntensityMapSeries::id).toList());
     assertEquals(List.of("b1", "b2"), groups.get(1).stream().map(IntensityMapSeries::id).toList());
+  }
+
+  @Test
+  void mapsWithoutMzAxisKeepATileEach() {
+    // retention time against mobility: m/z windows of one file would cover each other
+    final IntensityMapGrid map = new IntensityMapGrid(2, 2, "x", "y", 0, 1, 0, 1);
+    map.setAxisKinds(IntensityMapAxisKind.RETENTION_TIME, IntensityMapAxisKind.MOBILITY);
+    final List<IntensityMapSeries> overlays = List.of(overlay("a1", "A", map),
+        overlay("a2", "A", map));
+
+    assertEquals(2, IntensityMapTileLayout.groups(overlays).size());
   }
 
   @Test

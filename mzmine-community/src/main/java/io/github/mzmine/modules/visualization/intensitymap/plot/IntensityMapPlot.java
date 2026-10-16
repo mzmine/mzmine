@@ -38,6 +38,7 @@ import io.github.mzmine.javafx.util.FxFileChooser;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapDetail;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapFeatureTrace;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapLabel;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPosition;
@@ -142,6 +143,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private final IntensityMapZoomBox zoomBox = new IntensityMapZoomBox(model);
   private final IntensityMapHover hover = new IntensityMapHover();
   private final IntensityMapFeatureLabels featureLabels = new IntensityMapFeatureLabels();
+  // stored data of the features opened from the feature table
+  private final IntensityMapTraceLayer featureTraces = new IntensityMapTraceLayer();
   private final IntensityMapVisibleAreas visibleAreas;
   private final IntensityMapMaterials materials = new IntensityMapMaterials();
   private final IntensityMapControls controls;
@@ -277,8 +280,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     // peak labels are text as well, the labels switch hides them too
     featureLabels.layer().visibleProperty().bind(labelLayer.visibleProperty());
     viewport.getChildren()
-        .addAll(scene, scaleBarLayer, labelLayer, featureLabels.layer(), overlay, loadingBox,
-            placeholder, warning);
+        .addAll(scene, scaleBarLayer, featureTraces.layer(), labelLayer, featureLabels.layer(),
+            overlay, loadingBox, placeholder, warning);
     // labels near the border must not paint over the toolbar or the side panel
     final Rectangle clip = new Rectangle();
     clip.widthProperty().bind(viewport.widthProperty());
@@ -377,6 +380,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       featureLabels.setFilter(controls.labelSearch().getText());
       projectAxes();
     }, Duration.millis(250), controls.labelSearch().textProperty());
+    controls.showFeatureTraces().selectedProperty().addListener((_, _, _) -> projectAxes());
     controls.annotatedOnly().selectedProperty().addListener((_, _, value) -> {
       featureLabels.setAnnotatedOnly(value);
       projectAxes();
@@ -1675,15 +1679,18 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    */
   private void placeFeatureLabels(@NotNull final List<Bounds> occupied) {
     final IntensityMapScale current = scale;
-    if (featureLabels.isEmpty() || current == null || model.getScene() == null) {
-      featureLabels.clear();
-      return;
-    }
-    final List<IntensityMapSeries> visible = visibleSeries();
     final Rectangle2D plot = plotArea.area(plotTile());
     final Bounds area =
         plot != null ? new BoundingBox(plot.getMinX(), plot.getMinY(), plot.getWidth(),
             plot.getHeight()) : new BoundingBox(0, 0, viewport.getWidth(), viewport.getHeight());
+    final boolean inScene = current != null && model.getScene() != null;
+    featureTraces.update(inScene && !featureTraces.isEmpty() ? peakProjector() : null, area,
+        controls.showFeatureTraces().isSelected());
+    if (featureLabels.isEmpty() || !inScene) {
+      featureLabels.clear();
+      return;
+    }
+    final List<IntensityMapSeries> visible = visibleSeries();
     // the placement only changes with the view
     final List<Object> view = new ArrayList<>(
         List.of(camera.state(), tileLayout.tiles(), current, lineScale, area, visible));
@@ -1696,6 +1703,18 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private @NotNull IntensityMapPeakProjector peakProjector() {
     return new IntensityMapPeakProjector(projection, model, camera, tileLayout,
         featureLabels.layer(), Objects.requireNonNull(scale), visibleSeries(), lineScale, lanes);
+  }
+
+  /**
+   * @param traces stored data of features opened from the feature table, drawn over the raw data of
+   *               the 3D view; empty removes them
+   */
+  public void setFeatureTraces(@NotNull final List<IntensityMapFeatureTrace> traces) {
+    // decision: only the 3D view, where the trace follows the peak shape; in 2D trace and outline
+    // would cover the signal they belong to
+    featureTraces.setTraces(projection.heights() ? traces : List.of());
+    controls.setFeatureTracesAvailable(!featureTraces.isEmpty());
+    projectAxes();
   }
 
   /**

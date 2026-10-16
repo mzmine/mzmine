@@ -29,6 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -70,7 +72,7 @@ public final class IntensityMapSpectrumLookup {
   public @NotNull IntensityMapSliceMode sliceMode() {
     return switch (mode) {
       case AUTOMATIC, LC_MS -> IntensityMapSliceMode.X;
-      case IMAGING -> IntensityMapSliceMode.POINT;
+      case RT_MOBILITY, IMAGING -> IntensityMapSliceMode.POINT;
       case MOBILITY_FRAME -> throw unsupported();
     };
   }
@@ -96,6 +98,10 @@ public final class IntensityMapSpectrumLookup {
     return switch (mode) {
       case AUTOMATIC, LC_MS ->
           "RT " + formats.rt(scan.getRetentionTime()) + " min · scan #" + scan.getScanNumber();
+      case RT_MOBILITY ->
+          scan instanceof MobilityScan mobilityScan ? "RT " + formats.rt(scan.getRetentionTime())
+              + " min · mobility " + formats.mobility(mobilityScan.getMobility())
+              : "Scan #" + scan.getScanNumber();
       case MOBILITY_FRAME -> throw unsupported();
       case IMAGING -> scan instanceof ImagingScan pixel && pixel.getCoordinates() != null ? "Pixel "
           + pixel.getCoordinates().getX() + ", " + pixel.getCoordinates().getY()
@@ -124,6 +130,17 @@ public final class IntensityMapSpectrumLookup {
         final double[] times = Arrays.stream(sorted).mapToDouble(Scan::getRetentionTime).toArray();
         yield (x, _) -> nearest(sorted, times, x);
       }
+      case RT_MOBILITY -> {
+        // the mobility scan of the frame closest in retention time
+        final Frame[] sorted = IntensityMapSampler.lowestMsLevel(scans).stream()
+            .filter(scan -> scan instanceof Frame && Float.isFinite(scan.getRetentionTime()))
+            .sorted(Comparator.comparingDouble(Scan::getRetentionTime)).toArray(Frame[]::new);
+        final double[] times = Arrays.stream(sorted).mapToDouble(Scan::getRetentionTime).toArray();
+        yield (x, y) -> {
+          final Scan frame = nearest(sorted, times, x);
+          return frame == null ? null : closestMobilityScan((Frame) frame, y);
+        };
+      }
       case MOBILITY_FRAME -> throw unsupported();
       case IMAGING -> {
         if (!(file instanceof ImagingRawDataFile imaging)) {
@@ -141,6 +158,18 @@ public final class IntensityMapSpectrumLookup {
             key((int) Math.round(x / step[0]), (int) Math.round(y / step[1])));
       }
     };
+  }
+
+  private static @Nullable MobilityScan closestMobilityScan(@NotNull final Frame frame,
+      final double mobility) {
+    MobilityScan closest = null;
+    for (final MobilityScan scan : frame.getMobilityScans()) {
+      if (closest == null || Math.abs(scan.getMobility() - mobility) < Math.abs(
+          closest.getMobility() - mobility)) {
+        closest = scan;
+      }
+    }
+    return closest;
   }
 
   private static @NotNull IllegalStateException unsupported() {

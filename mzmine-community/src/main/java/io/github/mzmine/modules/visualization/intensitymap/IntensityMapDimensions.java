@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * Coordinates shown by the 3D visualizer.
  */
 public enum IntensityMapDimensions implements UniqueIdSupplier {
-  AUTOMATIC, LC_MS, MOBILITY_FRAME, IMAGING;
+  AUTOMATIC, LC_MS, RT_MOBILITY, MOBILITY_FRAME, IMAGING;
 
   @Override
   public @NotNull String getUniqueID() {
@@ -40,6 +40,7 @@ public enum IntensityMapDimensions implements UniqueIdSupplier {
     return switch (this) {
       case AUTOMATIC -> "AUTOMATIC";
       case LC_MS -> "LC_MS";
+      case RT_MOBILITY -> "RT_MOBILITY";
       case MOBILITY_FRAME -> "MOBILITY_FRAME";
       case IMAGING -> "IMAGING";
     };
@@ -50,6 +51,7 @@ public enum IntensityMapDimensions implements UniqueIdSupplier {
     return switch (this) {
       case AUTOMATIC -> "Automatic";
       case LC_MS -> "LC-MS (retention time, m/z)";
+      case RT_MOBILITY -> "Ion mobility (retention time, mobility)";
       case MOBILITY_FRAME -> "Ion mobility frame (m/z, mobility)";
       case IMAGING -> "Imaging (x, y)";
     };

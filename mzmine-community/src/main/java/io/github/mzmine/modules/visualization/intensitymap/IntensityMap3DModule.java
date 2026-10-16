@@ -28,6 +28,10 @@ package io.github.mzmine.modules.visualization.intensitymap;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -110,6 +114,16 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
   static @NotNull ExitCode open(@NotNull final ParameterSet parameters,
       @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapProjection projection,
       @Nullable final FeatureList labelList) {
+    return open(parameters, mzRanges, projection, labelList, List.of());
+  }
+
+  /**
+   * @param features features opened from the feature table, their stored data are drawn over the
+   *                 raw data
+   */
+  private static @NotNull ExitCode open(@NotNull final ParameterSet parameters,
+      @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapProjection projection,
+      @Nullable final FeatureList labelList, @NotNull final List<? extends Feature> features) {
     if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
       MZmineCore.getDesktop().displayErrorMessage("The platform does not provide 3D support.");
       return ExitCode.ERROR;
@@ -143,7 +157,7 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
       return ExitCode.ERROR;
     }
     MZmineCore.getDesktop()
-        .addTab(new IntensityMapTab(files, parameters, mzRanges, projection, labelList));
+        .addTab(new IntensityMapTab(files, parameters, mzRanges, projection, labelList, features));
     return ExitCode.OK;
   }
 
@@ -223,7 +237,9 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
    * file of their feature list, side by side, restricted to their retention time range and
    * polarity. The ranges include the features of the same rows in all files, so shifts between
    * samples stay in view. Overlapping m/z ranges are merged; imaging data ignore the retention
-   * time. The feature list of the features labels the peaks.
+   * time. Features resolved in mobility keep that dimension: LC-IMS-MS features show retention time
+   * against mobility, and images of IMS imaging features sum only the mobility scans in the
+   * mobility range of the features. The feature list of the features labels the peaks.
    *
    * @param projection the 3D view, or the 2D view of {@link IntensityMap2DModule}
    */
@@ -251,6 +267,10 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
         .map(Feature::getRepresentativePolarity).distinct().toList();
     // decision: features of different polarities show all scans
     final PolarityType polarity = polarities.size() == 1 ? polarities.getFirst() : PolarityType.ANY;
+    final boolean mobilityData = Arrays.stream(files).allMatch(IMSRawDataFile.class::isInstance);
+    final Range<Double> mobilityRange = !mobilityData ? null
+        : rowFeatures.stream().map(Feature::getMobilityRange).filter(Objects::nonNull)
+            .map(RangeUtils::toDoubleRange).reduce(Range::span).orElse(null);
     // decision: a copy of the settings of the module of this view, so feature ranges do not
     // become the defaults of the module dialog
     final Class<? extends MZmineRunnableModule> module = switch (projection) {
@@ -261,18 +281,25 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
         .cloneParameterSet();
     parameters.getParameter(IntensityMapParameters.dataFile)
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files);
-    // imaging features show images, all others retention time
-    parameters.getParameter(IntensityMapParameters.mode).setValue(IntensityMapDimensions.AUTOMATIC);
     final boolean imaging = Arrays.stream(files).anyMatch(ImagingRawDataFile.class::isInstance);
+    // imaging features show images, mobility resolved LC features retention time and mobility,
+    // all others retention time and m/z
+    parameters.getParameter(IntensityMapParameters.mode).setValue(
+        !imaging && mobilityRange != null ? IntensityMapDimensions.RT_MOBILITY
+            : IntensityMapDimensions.AUTOMATIC);
+    // decision: the view uses the bounds of the features: retention time, m/z, and mobility; IMS
+    // images sum only the mobility scans in the mobility range of the features
     parameters.getParameter(IntensityMapParameters.scanSelection).setValue(
-        new ScanSelection(1, imaging ? null : rtRange,
-            Objects.requireNonNullElse(polarity, PolarityType.ANY)));
+        new ScanSelection(null, null,
+            imaging || rtRange == null ? null : RangeUtils.toDoubleRange(rtRange), mobilityRange,
+            Objects.requireNonNullElse(polarity, PolarityType.ANY), MassSpectrumType.ANY,
+            MsLevelFilter.of(1), null));
     final List<Range<Double>> merged = IntensityMapLayer.mergeOverlapping(mzRanges);
     merged.stream().reduce(Range::span)
         .ifPresent(span -> parameters.getParameter(IntensityMapParameters.mzRange).setValue(span));
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
       // decision: label peaks with the feature list the features were opened from
-      open(parameters, merged, projection, featureList);
+      open(parameters, merged, projection, featureList, rowFeatures);
     }
   }
 }

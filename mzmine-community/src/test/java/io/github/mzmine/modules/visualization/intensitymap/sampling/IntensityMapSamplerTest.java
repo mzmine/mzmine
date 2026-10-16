@@ -29,6 +29,7 @@ import static io.github.mzmine.modules.visualization.intensitymap.IntensityMapDi
 import static io.github.mzmine.modules.visualization.intensitymap.IntensityMapDimensions.IMAGING;
 import static io.github.mzmine.modules.visualization.intensitymap.IntensityMapDimensions.LC_MS;
 import static io.github.mzmine.modules.visualization.intensitymap.IntensityMapDimensions.MOBILITY_FRAME;
+import static io.github.mzmine.modules.visualization.intensitymap.IntensityMapDimensions.RT_MOBILITY;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -297,6 +298,60 @@ public class IntensityMapSamplerTest {
     assertEquals(9, data[0].maximum());
     assertTrue(data[0].yMin() >= 120);
     assertNull(data[1]);
+  }
+
+  @Test
+  void samplesRetentionTimeAgainstMobility() {
+    final RawDataFile file = mock(io.github.mzmine.datamodel.IMSRawDataFile.class);
+    final Frame first = frame(1, mobilityScan(0.8, new double[]{150}, new double[]{5}),
+        mobilityScan(1.2, new double[]{150}, new double[]{7}));
+    // two signals of the window in one mobility scan add up
+    final Frame second = frame(2, mobilityScan(0.8, new double[]{150}, new double[]{3}),
+        mobilityScan(1.2, new double[]{150, 160}, new double[]{4, 5}));
+
+    final IntensityMapGrid data = IntensityMapSampler.sample(file,
+        parameters(file, RT_MOBILITY, new Scan[]{first, second}), PROGRESS);
+
+    assertEquals(IntensityMapSampler.axisLabel("Retention time", "min"), data.xLabel());
+    assertTrue(data.yLabel().startsWith("Mobility"));
+    assertEquals(5, data.intensity(data.binX(1), data.binY(0.8)));
+    assertEquals(7, data.intensity(data.binX(1), data.binY(1.2)));
+    assertEquals(3, data.intensity(data.binX(2), data.binY(0.8)));
+    assertEquals(9, data.intensity(data.binX(2), data.binY(1.2)));
+  }
+
+  @Test
+  void mobilityRangeReadsOnlyItsMobilityScans() {
+    final RawDataFile file = mock(io.github.mzmine.datamodel.IMSRawDataFile.class);
+    final Frame frame = spectrum(frame(1, mobilityScan(0.8, new double[]{150}, new double[]{5}),
+            mobilityScan(1.2, new double[]{150}, new double[]{7})), new double[]{150},
+        new double[]{12});
+    final ParameterSet all = parameters(file, LC_MS, new Scan[]{frame});
+    final ParameterSet resolved = parameters(file, LC_MS, new Scan[]{frame});
+    when(resolved.getValue(IntensityMapParameters.scanSelection).getScanMobilityRange()).thenReturn(
+        Range.closed(1d, 1.5));
+
+    final IntensityMapGrid summed = IntensityMapSampler.sample(file, all, PROGRESS);
+    final IntensityMapGrid inRange = IntensityMapSampler.sample(file, resolved, PROGRESS);
+
+    assertEquals(12, summed.intensity(0, summed.binY(150)));
+    assertEquals(7, inRange.intensity(0, inRange.binY(150)));
+  }
+
+  private static @NotNull Frame frame(final float retentionTime,
+      @NotNull final MobilityScan... scans) {
+    final Frame frame = mock(Frame.class);
+    when(frame.getRetentionTime()).thenReturn(retentionTime);
+    when(frame.getMobilityScans()).thenReturn(List.of(scans));
+    when(frame.getMobilityRange()).thenReturn(Range.closed(0.5, 1.5));
+    return frame;
+  }
+
+  private static @NotNull MobilityScan mobilityScan(final double mobility,
+      final double @NotNull [] mz, final double @NotNull [] intensity) {
+    final MobilityScan scan = spectrum(mock(MobilityScan.class), mz, intensity);
+    when(scan.getMobility()).thenReturn(mobility);
+    return scan;
   }
 
   @Test

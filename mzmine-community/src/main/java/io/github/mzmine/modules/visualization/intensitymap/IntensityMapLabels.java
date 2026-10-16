@@ -99,7 +99,7 @@ final class IntensityMapLabels {
       @Nullable final Range<Float> frameTimes, @NotNull final NumberFormats formats) {
     return switch (mode) {
       case IMAGING -> List.of();
-      case LC_MS, AUTOMATIC, MOBILITY_FRAME ->
+      case LC_MS, AUTOMATIC, RT_MOBILITY, MOBILITY_FRAME ->
           new IntensityMapLabels(layers, mode, frameTimes, formats).build(list);
     };
   }
@@ -386,6 +386,18 @@ final class IntensityMapLabels {
               annotated, secondary, group, isotopes(feature, row, layer).stream()
               .map(isotope -> new IntensityMapPeak(rt, isotope[0], isotope[1])).toList(),
               deconvoluted.stream().map(ion -> new IntensityMapPeak(rt, ion[0], ion[1])).toList()));
+        }
+        case RT_MOBILITY -> {
+          final Float mobility = feature.getMobility();
+          // decision: no isotope rings, the isotopes of a feature share its retention time and
+          // mobility
+          if (mobility != null) {
+            labels.add(new IntensityMapLabel(layer.id(), rt, mobility,
+                range(feature.getRawDataPointsRTRange(), rt),
+                range(feature.getMobilityRange(), mobility), feature.getHeight(), name, text,
+                details + " · mobility " + formats.mobility(mobility), annotated, secondary, group,
+                List.of(), List.of()));
+          }
         }
         case MOBILITY_FRAME -> {
           final Float mobility = feature.getMobility();

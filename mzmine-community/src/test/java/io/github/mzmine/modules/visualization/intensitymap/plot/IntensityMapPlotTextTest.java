@@ -35,7 +35,10 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
+import java.util.Locale;
 import javafx.scene.paint.Color;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,6 +47,22 @@ import org.junit.jupiter.api.Test;
 class IntensityMapPlotTextTest {
 
   private static final MZTolerance PPM_10 = new MZTolerance(0, 10);
+  private static Locale defaultLocale;
+
+  /**
+   * The number formats of the tests use the default locale, which would write decimal commas in
+   * many countries.
+   */
+  @BeforeAll
+  static void useUsLocale() {
+    defaultLocale = Locale.getDefault();
+    Locale.setDefault(Locale.US);
+  }
+
+  @AfterAll
+  static void restoreLocale() {
+    Locale.setDefault(defaultLocale);
+  }
 
   @Test
   void parsesMzValuesAndRanges() {

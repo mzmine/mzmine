@@ -134,7 +134,14 @@ public final class IntensityMapSampler {
       case LC_MS ->
           spectra(lowestMsLevel(scans), Scan::getRetentionTime, axisLabel("Retention time", "min"),
               IntensityMapAxisKind.RETENTION_TIME, false, mzRanges, region, normalization, source,
-              detail, progress);
+              selection.getScanMobilityRange(), detail, progress);
+      case RT_MOBILITY -> {
+        if (!(file instanceof IMSRawDataFile)) {
+          throw new IllegalArgumentException("The selected file has no ion mobility frames");
+        }
+        yield retentionMobility(lowestMsLevel(scans), mzRanges, region, normalization, source,
+            selection.getScanMobilityRange(), detail, progress);
+      }
       case MOBILITY_FRAME -> {
         if (!(file instanceof IMSRawDataFile)) {
           throw new IllegalArgumentException("The selected file has no ion mobility frames");
@@ -145,13 +152,14 @@ public final class IntensityMapSampler {
         // decision: m/z horizontal and mobility in depth, like the usual IMS heatmaps
         yield spectra(frame.getSortedMobilityScans(), scan -> ((MobilityScan) scan).getMobility(),
             axisLabel("Mobility", unit), IntensityMapAxisKind.MOBILITY, true, mzRanges, region,
-            normalization, source, detail, progress);
+            normalization, source, null, detail, progress);
       }
       case IMAGING -> {
         if (!(file instanceof ImagingRawDataFile imaging)) {
           throw new IllegalArgumentException("The selected file is not imaging data");
         }
-        yield image(imaging, scans, mzRanges, region, normalization, source, detail, progress);
+        yield image(imaging, scans, mzRanges, region, normalization, source,
+            selection.getScanMobilityRange(), detail, progress);
       }
     };
   }
@@ -179,9 +187,11 @@ public final class IntensityMapSampler {
       return requested == IntensityMapDimensions.MOBILITY_FRAME && file instanceof IMSRawDataFile
           ? IntensityMapDimensions.MOBILITY_FRAME : IntensityMapDimensions.IMAGING;
     }
+    // retention time against mobility needs mobility scans, other files show LC-MS
     return
         requested == IntensityMapDimensions.AUTOMATIC || requested == IntensityMapDimensions.IMAGING
-            ? IntensityMapDimensions.LC_MS : requested;
+            || (requested == IntensityMapDimensions.RT_MOBILITY
+            && !(file instanceof IMSRawDataFile)) ? IntensityMapDimensions.LC_MS : requested;
   }
 
   /**
@@ -209,7 +219,9 @@ public final class IntensityMapSampler {
   }
 
   /**
-   * @param transposed show m/z on x and the scan coordinate on y
+   * @param transposed    show m/z on x and the scan coordinate on y
+   * @param mobilityRange for ion mobility frames, only their mobility scans in this range are read;
+   *                      null reads the summed frame spectra
    */
   private static @Nullable IntensityMapGrid @NotNull [] spectra(
       @NotNull final List<? extends Scan> allScans,
@@ -217,7 +229,8 @@ public final class IntensityMapSampler {
       @NotNull final IntensityMapAxisKind coordinateKind, final boolean transposed,
       @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapRegion region,
       @NotNull final ImageNormalization normalization, @NotNull final IntensityMapDataSource source,
-      @NotNull final IntensityMapDetail detail, @NotNull final Progress progress) {
+      @Nullable final Range<Double> mobilityRange, @NotNull final IntensityMapDetail detail,
+      @NotNull final Progress progress) {
     requireMassLists(allScans, source);
     final ToDoubleFunction<Scan> factors = normalization.scanFactors(allScans);
     final Range<Double> coordinateWindow = transposed ? region.y() : region.x();
@@ -261,28 +274,39 @@ public final class IntensityMapSampler {
       final Scan scan = scans.get(s);
       final double position = coordinate.applyAsDouble(scan);
       final double factor = factors.applyAsDouble(scan);
-      boolean read = false;
+      final int[] columns = new int[result.length];
+      boolean inView = false;
       for (int i = 0; i < result.length; i++) {
-        final IntensityMapGrid data = result[i];
-        if (data == null) {
-          continue;
-        }
-        final int x = data.binX(position);
-        if (x < 0) {
-          continue;
-        }
-        data.markColumn(x);
-        if (!read) {
-          buffers.read(scan);
-          read = true;
-        }
-        final double max = upper[i];
-        // spectra are sorted by m/z, so only the extraction window is visited
-        for (int p = lowerBound(buffers.mz, buffers.count, lower[i]);
-            p < buffers.count && buffers.mz[p] <= max; p++) {
-          data.addMaximum(x, data.binY(buffers.mz[p]), buffers.intensity[p] * factor);
+        columns[i] = result[i] == null ? -1 : result[i].binX(position);
+        if (columns[i] >= 0) {
+          result[i].markColumn(columns[i]);
+          inView = true;
         }
       }
+      if (!inView) {
+        progress.advance(s + 1, scans.size());
+        continue;
+      }
+      // the mobility scans of a frame add up to its spectrum
+      final boolean summed = mobilityRange != null && scan instanceof Frame;
+      forEachSpectrum(scan, mobilityRange, buffers, () -> {
+        for (int i = 0; i < result.length; i++) {
+          if (columns[i] < 0) {
+            continue;
+          }
+          final IntensityMapGrid data = result[i];
+          final double max = upper[i];
+          // spectra are sorted by m/z, so only the extraction window is visited
+          for (int p = lowerBound(buffers.mz, buffers.count, lower[i]);
+              p < buffers.count && buffers.mz[p] <= max; p++) {
+            if (summed) {
+              data.addSum(columns[i], data.binY(buffers.mz[p]), buffers.intensity[p] * factor);
+            } else {
+              data.addMaximum(columns[i], data.binY(buffers.mz[p]), buffers.intensity[p] * factor);
+            }
+          }
+        }
+      });
       progress.advance(s + 1, scans.size());
     }
     if (transposed) {
@@ -333,7 +357,8 @@ public final class IntensityMapSampler {
       @NotNull final ImagingRawDataFile file, final Scan @NotNull [] scans,
       @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapRegion region,
       @NotNull final ImageNormalization normalization, @NotNull final IntensityMapDataSource source,
-      @NotNull final IntensityMapDetail detail, @NotNull final Progress progress) {
+      @Nullable final Range<Double> mobilityRange, @NotNull final IntensityMapDetail detail,
+      @NotNull final Progress progress) {
     requireMassLists(Arrays.asList(scans), source);
     final ToDoubleFunction<Scan> factors = normalization.scanFactors(
         Arrays.stream(scans).filter(scan -> scan instanceof ImagingScan).toList());
@@ -378,20 +403,17 @@ public final class IntensityMapSampler {
     for (int s = 0; s < pixels.size(); s++) {
       checkCanceled(progress);
       final ImagingScan scan = pixels.get(s);
-      buffers.read(scan);
       final int column = result[0].binX(scan.getCoordinates().getX() * stepX);
       final int row = result[0].binY(scan.getCoordinates().getY() * stepY);
-      for (int i = 0; i < result.length; i++) {
-        final double max = mzRanges.get(i).upperEndpoint();
-        double intensity = 0;
-        for (int p = lowerBound(buffers.mz, buffers.count, mzRanges.get(i).lowerEndpoint());
-            p < buffers.count && buffers.mz[p] <= max; p++) {
-          if (Double.isFinite(buffers.intensity[p]) && buffers.intensity[p] > 0) {
-            intensity += buffers.intensity[p];
-          }
+      final double[] sums = new double[result.length];
+      forEachSpectrum(scan, mobilityRange, buffers, () -> {
+        for (int i = 0; i < result.length; i++) {
+          sums[i] += windowSum(buffers, mzRanges.get(i));
         }
+      });
+      for (int i = 0; i < result.length; i++) {
         // maximum across spatial bins keeps intensities independent of the level of detail
-        result[i].addMaximum(column, row, intensity * factors.applyAsDouble(scan));
+        result[i].addMaximum(column, row, sums[i] * factors.applyAsDouble(scan));
       }
       progress.advance(s + 1, pixels.size());
     }
@@ -423,6 +445,119 @@ public final class IntensityMapSampler {
     final int index = BinarySearch.binarySearch(values, target, DefaultTo.GREATER_EQUALS, 0, count);
     // count ends the scan loops when no value is large enough
     return index < 0 ? count : index;
+  }
+
+  /**
+   * Retention time against mobility, the intensity of every m/z range summed per mobility scan.
+   *
+   * @param allFrames     frames of the lowest MS level
+   * @param mobilityRange only mobility scans in this range, null for all
+   */
+  private static @Nullable IntensityMapGrid @NotNull [] retentionMobility(
+      @NotNull final List<Scan> allFrames, @NotNull final List<Range<Double>> mzRanges,
+      @NotNull final IntensityMapRegion region, @NotNull final ImageNormalization normalization,
+      @NotNull final IntensityMapDataSource source, @Nullable final Range<Double> mobilityRange,
+      @NotNull final IntensityMapDetail detail, @NotNull final Progress progress) {
+    final List<Frame> frames = allFrames.stream().filter(Frame.class::isInstance)
+        .map(Frame.class::cast).filter(
+            frame -> Float.isFinite(frame.getRetentionTime()) && IntensityMapRegion.contains(
+                region.x(), frame.getRetentionTime())).toList();
+    final IntensityMapGrid[] result = new IntensityMapGrid[mzRanges.size()];
+    if (frames.isEmpty()) {
+      if (region.isFull()) {
+        throw new IllegalArgumentException("No ion mobility frames with valid retention times");
+      }
+      return result;
+    }
+    requireMassLists(frames.getFirst().getMobilityScans(), source);
+    // assumption: the frames of one file share their mobility scans, as in TIMS and drift tubes
+    final double[] mobilities = frames.getFirst().getMobilityScans().stream()
+        .mapToDouble(MobilityScan::getMobility).filter(
+            mobility -> IntensityMapRegion.contains(region.y(), mobility) && (mobilityRange == null
+                || mobilityRange.contains(mobility))).distinct().sorted().toArray();
+    if (mobilities.length == 0) {
+      return result;
+    }
+    final double[] times = frames.stream().mapToDouble(Scan::getRetentionTime).distinct().sorted()
+        .toArray();
+    final var size = detail.grid(times.length, mobilities.length, false);
+    final double[] x = IntensityMapGrid.reduceCoordinates(times, size.x());
+    final double[] y = IntensityMapGrid.reduceCoordinates(mobilities, size.y());
+    final String unit = frames.getFirst().getMobilityType() == null ? ""
+        : frames.getFirst().getMobilityType().getUnit();
+    for (int i = 0; i < result.length; i++) {
+      result[i] = new IntensityMapGrid(x, y, axisLabel("Retention time", "min"),
+          axisLabel("Mobility", unit), false);
+      result[i].setAxisKinds(IntensityMapAxisKind.RETENTION_TIME, IntensityMapAxisKind.MOBILITY);
+    }
+    final ToDoubleFunction<Scan> factors = normalization.scanFactors(frames);
+    final SpectrumBuffers buffers = new SpectrumBuffers(source);
+    for (int f = 0; f < frames.size(); f++) {
+      checkCanceled(progress);
+      final Frame frame = frames.get(f);
+      final int column = result[0].binX(frame.getRetentionTime());
+      final double factor = factors.applyAsDouble(frame);
+      for (final IntensityMapGrid data : result) {
+        data.markColumn(column);
+      }
+      for (final MobilityScan scan : frame.getMobilityScans()) {
+        final double mobility = scan.getMobility();
+        if (!IntensityMapRegion.contains(region.y(), mobility) || (mobilityRange != null
+            && !mobilityRange.contains(mobility))) {
+          continue;
+        }
+        final int row = result[0].binY(mobility);
+        if (row < 0) {
+          continue;
+        }
+        buffers.read(scan);
+        for (int i = 0; i < result.length; i++) {
+          // maximum across merged bins keeps intensities independent of the level of detail
+          result[i].addMaximum(column, row, windowSum(buffers, mzRanges.get(i)) * factor);
+        }
+      }
+      progress.advance(f + 1, frames.size());
+    }
+    return result;
+  }
+
+  /**
+   * Reads the spectra of a scan one after the other: the scan itself, or for an ion mobility frame
+   * with a mobility range only its mobility scans in that range. Mobility resolved features are
+   * then not mixed with other ions of the same m/z.
+   *
+   * @param action runs once per read spectrum
+   */
+  private static void forEachSpectrum(@NotNull final Scan scan,
+      @Nullable final Range<Double> mobilityRange, @NotNull final SpectrumBuffers buffers,
+      @NotNull final Runnable action) {
+    if (mobilityRange != null && scan instanceof Frame frame) {
+      for (final MobilityScan mobilityScan : frame.getMobilityScans()) {
+        if (mobilityRange.contains(mobilityScan.getMobility())) {
+          buffers.read(mobilityScan);
+          action.run();
+        }
+      }
+      return;
+    }
+    buffers.read(scan);
+    action.run();
+  }
+
+  /**
+   * @return sum of the positive intensities of the read spectrum in the m/z range
+   */
+  private static double windowSum(@NotNull final SpectrumBuffers buffers,
+      @NotNull final Range<Double> mzRange) {
+    final double max = mzRange.upperEndpoint();
+    double sum = 0;
+    for (int p = lowerBound(buffers.mz, buffers.count, mzRange.lowerEndpoint());
+        p < buffers.count && buffers.mz[p] <= max; p++) {
+      if (Double.isFinite(buffers.intensity[p]) && buffers.intensity[p] > 0) {
+        sum += buffers.intensity[p];
+      }
+    }
+    return sum;
   }
 
   /**

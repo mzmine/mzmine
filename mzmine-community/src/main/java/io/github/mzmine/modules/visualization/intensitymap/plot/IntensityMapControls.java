@@ -135,6 +135,9 @@ final class IntensityMapControls {
       TextFields.createClearableTextField(), 14, null, "Search labels",
       "Only show peak labels that contain the text, e.g. a compound name, ion, or m/z");
   private final CheckMenuItem annotatedOnly = new CheckMenuItem("Annotated only");
+  private final CheckMenuItem showFeatureTraces = new CheckMenuItem("Feature outlines and traces");
+  // true if features opened from the feature table are drawn, which offers the toggle
+  private boolean featureTraces;
   private @Nullable Supplier<List<String>> labelSources;
   private @Nullable Consumer<@Nullable String> labelListener;
   // name of the source of the shown labels, null for none
@@ -215,6 +218,8 @@ final class IntensityMapControls {
     gridColumns.setTooltip(new Tooltip("Images per row in side by side, Auto for a square grid"));
     gridRows.setTooltip(new Tooltip("Rows in side by side, Auto to fit all images"));
     showLabels.setSelected(true);
+    showFeatureTraces.setSelected(true);
+    showFeatureTraces.setGraphic(FxIconUtil.getFontIcon("bi-graph-up", 14));
     labelSearch.setVisible(false);
     FxLayout.bindManagedToVisible(labelSearch);
     showGrid.setSelected(true);
@@ -313,6 +318,9 @@ final class IntensityMapControls {
   private void updateLabelItems() {
     final List<MenuItem> items = new ArrayList<>();
     items.add(showLabels);
+    if (featureTraces) {
+      items.add(showFeatureTraces);
+    }
     if (labelSources == null) {
       labelsButton.getItems().setAll(items);
       return;
@@ -382,6 +390,18 @@ final class IntensityMapControls {
 
   @NotNull CheckMenuItem annotatedOnly() {
     return annotatedOnly;
+  }
+
+  @NotNull CheckMenuItem showFeatureTraces() {
+    return showFeatureTraces;
+  }
+
+  /**
+   * @param available offers the toggle of the features opened from the feature table
+   */
+  void setFeatureTracesAvailable(final boolean available) {
+    featureTraces = available;
+    updateLabelItems();
   }
 
   /**

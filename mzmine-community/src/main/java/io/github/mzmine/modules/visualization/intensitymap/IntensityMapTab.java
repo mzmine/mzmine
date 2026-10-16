@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
@@ -113,8 +114,9 @@ class IntensityMapTab extends MZmineTab {
   private boolean closed;
   // feature list of the peak labels, null for none
   private @Nullable FeatureList labelList;
-  // list, layers, and frames of the shown labels; the labels are only built again on changes
-  private @Nullable List<Object> labelState;
+  private @Nullable IntensityMapLabelState labelState;
+  // features opened from the feature table
+  private final @NotNull List<? extends Feature> features;
   // images: known annotations of the extracted ions by layer id, appended to the overlay titles
   private @NotNull Map<String, String> titles = Map.of();
 
@@ -124,10 +126,12 @@ class IntensityMapTab extends MZmineTab {
    *                   the complete m/z range of the parameters.
    * @param projection the 3D view, or the 2D view: a fixed top view without heights
    * @param labelList  feature list of the initial peak labels, null for none
+   * @param features   features opened from the feature table, their stored data are drawn over the
+   *                   raw data of their overlays
    */
   IntensityMapTab(final RawDataFile @NotNull [] files, @NotNull final ParameterSet parameters,
       @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapProjection projection,
-      @Nullable final FeatureList labelList) {
+      @Nullable final FeatureList labelList, @NotNull final List<? extends Feature> features) {
     super(title(files, projection), false, false);
     this.projection = projection;
     this.parameters = parameters.cloneParameterSet();
@@ -176,6 +180,7 @@ class IntensityMapTab extends MZmineTab {
       plot.setOnSelectionChanged(this::showSpectra);
     }
     this.labelList = labelList;
+    this.features = List.copyOf(features);
     plot.setLabelSources(this::labelListNames, this::setLabelList);
     plot.setLabelSource(labelList == null ? null : labelList.getName());
     // decision: images get no peak labels, annotations extend the overlay titles instead
@@ -686,14 +691,13 @@ class IntensityMapTab extends MZmineTab {
   private boolean updateLabels() {
     final FeatureList list = labelList;
     final Range<Float> times = frames.retentionTimes();
-    final List<Object> state = new ArrayList<>();
-    state.add(list);
-    state.add(List.copyOf(layers));
-    state.add(times);
+    final IntensityMapLabelState state = new IntensityMapLabelState(list, layers, times);
     if (state.equals(labelState)) {
       return false;
     }
     labelState = state;
+    // decision: the stored data of opened features over the raw data, which stay the context
+    plot.setFeatureTraces(IntensityMapFeatureTraces.of(features, layers, mode));
     return switch (mode) {
       case IMAGING -> {
         final Map<String, String> next =
@@ -702,7 +706,7 @@ class IntensityMapTab extends MZmineTab {
         titles = next;
         yield changed;
       }
-      case LC_MS, AUTOMATIC, MOBILITY_FRAME -> {
+      case LC_MS, AUTOMATIC, RT_MOBILITY, MOBILITY_FRAME -> {
         plot.setLabels(list == null ? List.of()
             : IntensityMapLabels.of(list, List.copyOf(layers), mode, times,
                 ConfigService.getGuiFormats()));
