@@ -313,7 +313,6 @@ public class DialogLoggerUtil {
 
     // inner method will automatically wrap TextFlow in ScrollPane
     final TextFlow node = FxTextFlows.newTextFlow(FxTexts.text(message));
-    node.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
 
     return createAlert(type, owner, title, node, buttons);
   }
@@ -324,9 +323,14 @@ public class DialogLoggerUtil {
    * This method will wrap TextFlow and TextArea content nodes into a scroll pane to ensure it fits
    * the maximum sizes
    */
-  public static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
-      final String title, final Node content, @Nullable final ButtonType... buttons) {
-    Alert alert = new Alert(type, "", buttons);
+  public static @NotNull Alert createAlert(final @NotNull AlertType type,
+      final @Nullable Window owner, final @NotNull String title, final @NotNull Node content,
+      @Nullable final ButtonType... buttons) {
+    if (content instanceof TextFlow textFlow && Insets.EMPTY.equals(textFlow.getPadding())) {
+      textFlow.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+    }
+
+    final Alert alert = new Alert(type, "", buttons);
     if (owner == null) {
       applyFocusedWindowStyle(alert);
     } else {
