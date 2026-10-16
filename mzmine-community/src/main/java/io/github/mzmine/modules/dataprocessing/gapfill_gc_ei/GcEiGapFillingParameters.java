@@ -44,20 +44,21 @@ public class GcEiGapFillingParameters extends SimpleParameterSet {
 
   public static final IntegerParameter NUMBER_OF_TOP_SIGNALS = new IntegerParameter(
       "Number of top signals", """
-      Number of most intense signals in the pseudo spectra of a row (merged over all samples).
-      All of these m/z values need to be re-detected as features in a sample before the row is gap-filled in that sample.
-      The quantifier m/z of the row always needs to be re-detected as well.""", 3, true, 1, null);
+      Number of signals of the pseudo spectra of a row (merged over all samples) that need to be found as co-eluting peaks
+      in a sample before the row is gap-filled in that sample. Signals found in the pseudo spectra of most samples come first,
+      then the most intense. The quantifier m/z of the row always needs to be found as well.""", 3, true, 1,
+      null);
 
-  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter(
-      "Retention time tolerance", """
-      Maximum allowed difference between the row retention time and the apex of the re-detected quantifier feature.
+  public static final RTToleranceParameter SAMPLE_TO_SAMPLE_RT_TOLERANCE = new RTToleranceParameter(
+      "Retention time tolerance (sample-to-sample)", """
+      Maximum allowed difference between the row retention time and the apex of the quantifier peak in a sample with a gap.
       Usually the same tolerance as used for the alignment.""",
       new RTTolerance(0.1f, Unit.MINUTES));
 
-  public static final RTToleranceParameter COELUTION_RT_TOLERANCE = new RTToleranceParameter(
-      "Co-elution tolerance", """
-      Maximum allowed difference between the apex of the quantifier feature and the apices of the features of the other top signals.
-      Usually the same tolerance as used for the GC-EI spectral deconvolution.""",
+  public static final RTToleranceParameter INTRA_SAMPLE_COELUTION_TOLERANCE = new RTToleranceParameter(
+      "Co-elution tolerance (intra-sample)", """
+      Maximum allowed difference between the apex of the quantifier peak and the apices of the peaks of the other top signals
+      in the same sample. Usually the same tolerance as used for the GC-EI spectral deconvolution.""",
       new RTTolerance(0.04f, Unit.MINUTES));
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
@@ -67,8 +68,8 @@ public class GcEiGapFillingParameters extends SimpleParameterSet {
       true);
 
   public GcEiGapFillingParameters() {
-    super(new Parameter[]{FEATURE_LISTS, NUMBER_OF_TOP_SIGNALS, RT_TOLERANCE,
-            COELUTION_RT_TOLERANCE, SUFFIX, HANDLE_ORIGINAL},
+    super(new Parameter[]{FEATURE_LISTS, NUMBER_OF_TOP_SIGNALS, SAMPLE_TO_SAMPLE_RT_TOLERANCE,
+            INTRA_SAMPLE_COELUTION_TOLERANCE, SUFFIX, HANDLE_ORIGINAL},
         "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_gc_ei/gc-ei-gap-filling.html");
   }
 
@@ -77,13 +78,14 @@ public class GcEiGapFillingParameters extends SimpleParameterSet {
    */
   public static @NotNull GcEiGapFillingParameters create(
       @NotNull final FeatureListsSelection flists, final int numberOfTopSignals,
-      @NotNull final RTTolerance rtTolerance, @NotNull final RTTolerance coelutionTolerance,
+      @NotNull final RTTolerance sampleToSampleRtTolerance,
+      @NotNull final RTTolerance intraSampleCoelutionTolerance,
       @NotNull final String suffix, @NotNull final OriginalFeatureListOption handleOriginal) {
     final GcEiGapFillingParameters params = (GcEiGapFillingParameters) new GcEiGapFillingParameters().cloneParameterSet();
     params.setParameter(FEATURE_LISTS, flists);
     params.setParameter(NUMBER_OF_TOP_SIGNALS, numberOfTopSignals);
-    params.setParameter(RT_TOLERANCE, rtTolerance);
-    params.setParameter(COELUTION_RT_TOLERANCE, coelutionTolerance);
+    params.setParameter(SAMPLE_TO_SAMPLE_RT_TOLERANCE, sampleToSampleRtTolerance);
+    params.setParameter(INTRA_SAMPLE_COELUTION_TOLERANCE, intraSampleCoelutionTolerance);
     params.setParameter(SUFFIX, suffix);
     params.setParameter(HANDLE_ORIGINAL, handleOriginal);
     return params;

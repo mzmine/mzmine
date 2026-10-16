@@ -32,12 +32,15 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
@@ -45,14 +48,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Gap filling for GC-EI feature lists. Re-detects the top signals of the pseudo spectrum of each
- * row in samples without a feature, using the original chromatogram builder and resolver settings.
- * See {@link GcEiRawFileGapFiller}.
+ * Gap filling for GC-EI feature lists. Searches the top signals of the pseudo spectra of each row
+ * in samples without a feature, in the retention time window of the row. Each raw data file is
+ * processed in a {@link GcEiRawFileGapFillingTask}.
  */
 public class GcEiGapFillingTask extends AbstractFeatureListTask {
 
@@ -63,8 +68,8 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
   private final @NotNull OriginalFeatureListOption handleOriginal;
   private final @NotNull String suffix;
   private final int numTopSignals;
-  private final @NotNull RTTolerance rtTolerance;
-  private final @NotNull RTTolerance coelutionTolerance;
+  private final @NotNull RTTolerance sampleToSampleRtTolerance;
+  private final @NotNull RTTolerance intraSampleCoelutionTolerance;
   private @Nullable ModularFeatureList processedList;
 
   public GcEiGapFillingTask(@NotNull final MZmineProject project,
@@ -77,8 +82,10 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
     handleOriginal = parameters.getValue(GcEiGapFillingParameters.HANDLE_ORIGINAL);
     suffix = parameters.getValue(GcEiGapFillingParameters.SUFFIX);
     numTopSignals = parameters.getValue(GcEiGapFillingParameters.NUMBER_OF_TOP_SIGNALS);
-    rtTolerance = parameters.getValue(GcEiGapFillingParameters.RT_TOLERANCE);
-    coelutionTolerance = parameters.getValue(GcEiGapFillingParameters.COELUTION_RT_TOLERANCE);
+    sampleToSampleRtTolerance = parameters.getValue(
+        GcEiGapFillingParameters.SAMPLE_TO_SAMPLE_RT_TOLERANCE);
+    intraSampleCoelutionTolerance = parameters.getValue(
+        GcEiGapFillingParameters.INTRA_SAMPLE_COELUTION_TOLERANCE);
   }
 
   @Override
@@ -111,20 +118,28 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
     logger.info(() -> "Started GC-EI gap filling of %d gaps in %d raw data files of %s".formatted(
         totalGaps, gapsPerFile.size(), originalList.getName()));
 
-    final long filled = gapsPerFile.entrySet().parallelStream().mapToLong(entry -> {
-      if (isCanceled()) {
-        return 0;
-      }
-      final GcEiRawFileGapFiller filler = new GcEiRawFileGapFiller(targetList, entry.getKey(),
-          settings, rtTolerance, coelutionTolerance);
-      final int filledInFile = filler.fillGaps(entry.getValue(), this);
-      incrementFinishedItems();
-      return filledInFile;
-    }).sum();
+    final List<GcEiRawFileGapFillingTask> subTasks = new ArrayList<>(gapsPerFile.size());
+    for (final Map.Entry<RawDataFile, List<GcEiGapFillTarget>> entry : gapsPerFile.entrySet()) {
+      subTasks.add(new GcEiRawFileGapFillingTask(targetList, entry.getKey(), entry.getValue(),
+          settings, sampleToSampleRtTolerance, intraSampleCoelutionTolerance,
+          this::incrementFinishedItems, getModuleCallDate()));
+    }
 
+    // the task manager pool respects the maximum number of threads set by the user
+    final ThreadPoolTask poolTask = ThreadPoolTask.createDefaultTaskManagerPool(
+        getTaskDescription(), subTasks);
+    final var wrappedTask = MZmineCore.getTaskController().runTaskOnThisThreadBlocking(poolTask);
+    if (wrappedTask == null || poolTask.isCanceled()) {
+      final String errors = subTasks.stream().map(AbstractTask::getErrorMessage)
+          .filter(Objects::nonNull).distinct().collect(Collectors.joining(", "));
+      error("GC-EI gap filling failed or was canceled: " + errors);
+      return;
+    }
     if (isCanceled()) {
       return;
     }
+    final long filled = subTasks.stream().mapToLong(GcEiRawFileGapFillingTask::getFilledGaps)
+        .sum();
 
     // features were added without updating the row bindings
     targetList.applyRowBindings();

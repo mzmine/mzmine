@@ -25,47 +25,87 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_gc_ei;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.PseudoSpectrumConsensusSignal;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.Comparator;
-import java.util.stream.IntStream;
+import io.github.mzmine.util.MathUtils;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The signals of a feature list row that need to be re-detected in a raw data file with a gap.
+ * The signals of a feature list row that need to be found in a raw data file with a gap.
  *
- * @param row          the row to gap-fill
- * @param quantifierMz the m/z of the row. The feature of this m/z is added to the row
- * @param rt           the retention time of the row
- * @param topMzs       the most intense signals of the pseudo spectra of the row, sorted by
- *                     decreasing intensity
+ * @param row           the row to gap-fill
+ * @param quantifierMz  the m/z of the row. The feature of this m/z is added to the row
+ * @param rt            the retention time of the row
+ * @param topMzs        the most common signals of the pseudo spectra of the row, see
+ *                      {@link SpectralDeconvolutionUtils#getConsensusSignals}
+ * @param detectedRange the retention time range of all detected features of the row
+ * @param leftWidth     median distance from the start of the detected features to their apex
+ * @param rightWidth    median distance from the apex of the detected features to their end
  */
 public record GcEiGapFillTarget(@NotNull FeatureListRow row, double quantifierMz, float rt,
-                                double @NotNull [] topMzs) {
+                                double @NotNull [] topMzs, @NotNull Range<Float> detectedRange,
+                                float leftWidth, float rightWidth) {
 
   /**
-   * @param numTopSignals number of most intense signals to extract from the pseudo spectra
-   * @param mzTolerance   tolerance to merge the pseudo spectra of all features of the row
+   * @param numTopSignals number of signals to extract from the pseudo spectra
+   * @param mzTolerance   tolerance to merge and match the pseudo spectra of all features
    * @return the target or null if the row has no pseudo spectrum
    */
   public static @Nullable GcEiGapFillTarget fromRow(@NotNull final FeatureListRow row,
       final int numTopSignals, @NotNull final MZTolerance mzTolerance) {
-    if (!row.hasMs2Fragmentation()) {
+    final List<PseudoSpectrumConsensusSignal> signals = SpectralDeconvolutionUtils.getConsensusSignals(
+        row, mzTolerance);
+    if (signals.isEmpty()) {
       return null;
     }
+    final double[] topMzs = signals.stream().limit(numTopSignals)
+        .mapToDouble(PseudoSpectrumConsensusSignal::mz).toArray();
 
-    // decision: merge the pseudo spectra of all samples, so that the top signals represent the
-    // consensus spectrum of the row and not a single (potentially co-eluting) sample
-    final double[][] merged = SpectralDeconvolutionUtils.mergePseudoSpectra(row, mzTolerance);
-    final double[] mzs = merged[0];
-    final double[] intensities = merged[1];
+    // decision: peak shape from detected features, gap-filled features may be distorted
+    List<? extends Feature> features = row.getFeatures().stream()
+        .filter(f -> f.getFeatureStatus() == FeatureStatus.DETECTED).toList();
+    if (features.isEmpty()) {
+      features = row.getFeatures();
+    }
 
-    final double[] topMzs = IntStream.range(0, mzs.length).boxed()
-        .sorted(Comparator.comparingDouble((Integer i) -> intensities[i]).reversed())
-        .limit(numTopSignals).mapToDouble(i -> mzs[i]).toArray();
+    Range<Float> detectedRange = null;
+    final double[] leftWidths = new double[features.size()];
+    final double[] rightWidths = new double[features.size()];
+    for (int i = 0; i < features.size(); i++) {
+      final Feature feature = features.get(i);
+      final Range<Float> range = feature.getRawDataPointsRTRange();
+      detectedRange = detectedRange == null ? range : detectedRange.span(range);
+      leftWidths[i] = feature.getRT() - range.lowerEndpoint();
+      rightWidths[i] = range.upperEndpoint() - feature.getRT();
+    }
 
-    return new GcEiGapFillTarget(row, row.getAverageMZ(), row.getAverageRT(), topMzs);
+    return new GcEiGapFillTarget(row, row.getAverageMZ(), row.getAverageRT(), topMzs,
+        detectedRange, (float) MathUtils.calcMedian(leftWidths),
+        (float) MathUtils.calcMedian(rightWidths));
+  }
+
+  /**
+   * @return the quantifier followed by all top signals that are not within the m/z tolerance of
+   * the quantifier
+   */
+  public double @NotNull [] signalsToConfirm(@NotNull final MZTolerance mzTolerance) {
+    final double[] signals = new double[topMzs.length + 1];
+    signals[0] = quantifierMz;
+    int n = 1;
+    for (final double mz : topMzs) {
+      // a top signal at the quantifier m/z is confirmed by the quantifier
+      if (!mzTolerance.checkWithinTolerance(mz, quantifierMz)) {
+        signals[n++] = mz;
+      }
+    }
+    return Arrays.copyOf(signals, n);
   }
 }

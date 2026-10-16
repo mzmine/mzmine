@@ -73,7 +73,6 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -177,6 +176,20 @@ class GcEiGapFillingTaskTest {
   }
 
   @Test
+  void fillsGapOfCompoundBelowDetectionThresholds() {
+    // apex of 2E3 is below the minimum heights of the chromatogram builder and resolver (5E3)
+    final RawDataFile sample = createFile("sample",
+        Map.of(QUANTIFIER_MZ, ROW_RT, SECOND_MZ, ROW_RT, THIRD_MZ, ROW_RT), 0.02);
+    final ModularFeatureList flist = createAlignedList(false, reference, sample);
+
+    runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
+
+    final Feature filled = flist.getRow(0).getFeature(sample);
+    assertNotNull(filled, "gap filling must not depend on the detection thresholds");
+    assertEquals(HEIGHT * 0.02, filled.getHeight(), HEIGHT * 0.001);
+  }
+
+  @Test
   void fillsGapsWithSmoothingInNewFeatureList() {
     final RawDataFile filledSample = createFile("filled",
         Map.of(QUANTIFIER_MZ, ROW_RT, SECOND_MZ, ROW_RT, THIRD_MZ, ROW_RT));
@@ -199,31 +212,31 @@ class GcEiGapFillingTaskTest {
   }
 
   @Test
-  void settingsRequireChromatogramBuilderAndResolver() {
+  void settingsRequireChromatogramBuilder() {
     final ModularFeatureList flist = new ModularFeatureList("no history", null, reference);
     assertThrows(IllegalStateException.class,
         () -> GcEiFeatureFindingSettings.fromAppliedMethods(flist.getAppliedMethods()));
 
+    // no resolver needed
     flist.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class,
             createChromatogramParameters(), Instant.now()));
-    assertThrows(IllegalStateException.class,
-        () -> GcEiFeatureFindingSettings.fromAppliedMethods(flist.getAppliedMethods()));
+    final GcEiFeatureFindingSettings settings = GcEiFeatureFindingSettings.fromAppliedMethods(
+        flist.getAppliedMethods());
+    assertEquals(4, settings.minConsecutiveScans());
+    assertNull(settings.smoothingParameters());
   }
 
   @Test
-  void settingsOnlyUseSmoothingBeforeResolving() {
-    final ModularFeatureList flist = new ModularFeatureList("history", null, reference);
-    addFeatureFindingHistory(flist, false);
-    // smoothing after resolving is not part of the feature detection
-    flist.addDescriptionOfAppliedTask(
+  void settingsUseSmoothingAfterChromatogramBuilder() {
+    // smoothing of an earlier processing before the chromatogram builder is ignored
+    final ModularFeatureList earlier = new ModularFeatureList("earlier", null, reference);
+    earlier.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(SmoothingModule.class, createSmoothingParameters(),
             Instant.now()));
-
-    final GcEiFeatureFindingSettings settings = GcEiFeatureFindingSettings.fromAppliedMethods(
-        flist.getAppliedMethods());
-    assertNull(settings.smoothingParameters());
-    assertEquals(4, settings.minConsecutiveScans());
+    addFeatureFindingHistory(earlier, false);
+    assertNull(GcEiFeatureFindingSettings.fromAppliedMethods(earlier.getAppliedMethods())
+        .smoothingParameters());
 
     final ModularFeatureList smoothed = new ModularFeatureList("smoothed", null, reference);
     addFeatureFindingHistory(smoothed, true);
@@ -257,8 +270,10 @@ class GcEiGapFillingTaskTest {
     }
     addFeatureFindingHistory(flist, withSmoothing);
 
+    // the detected feature only spans the scans with signal
     final RawDataFile detectedIn = files[0];
-    final List<Scan> scans = new ArrayList<>(detectedIn.getScans());
+    final List<Scan> scans = detectedIn.getScans().stream()
+        .filter(scan -> gaussian(scan.getRetentionTime(), ROW_RT) > 10).toList();
     final double[] mzs = new double[scans.size()];
     final double[] intensities = new double[scans.size()];
     for (int i = 0; i < scans.size(); i++) {
@@ -322,6 +337,14 @@ class GcEiGapFillingTaskTest {
    */
   private static @NotNull RawDataFile createFile(@NotNull final String name,
       @NotNull final Map<Double, Float> apexRtPerMz) {
+    return createFile(name, apexRtPerMz, 1d);
+  }
+
+  /**
+   * @param scale factor for all intensities
+   */
+  private static @NotNull RawDataFile createFile(@NotNull final String name,
+      @NotNull final Map<Double, Float> apexRtPerMz, final double scale) {
     final Map<Double, Double> relativeHeights = Map.of(QUANTIFIER_MZ, 1d, SECOND_MZ, 0.8d, THIRD_MZ,
         0.6d, MINOR_MZ, 0.1d);
     final RawDataFile file = new RawDataFileImpl(name, null, null);
@@ -331,7 +354,7 @@ class GcEiGapFillingTaskTest {
       final TreeMap<Double, Double> signals = new TreeMap<>();
       for (final Map.Entry<Double, Float> entry : apexRtPerMz.entrySet()) {
         final double intensity =
-            gaussian(rt, entry.getValue()) * relativeHeights.get(entry.getKey());
+            gaussian(rt, entry.getValue()) * relativeHeights.get(entry.getKey()) * scale;
         if (intensity > 10) {
           signals.put(entry.getKey(), intensity);
         }

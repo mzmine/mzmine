@@ -67,10 +67,10 @@ record GcEiDuplicateCandidate(@NotNull FeatureListRow row, double quantifierMz, 
    */
   static @Nullable GcEiDuplicateCandidate fromRow(@NotNull final FeatureListRow row,
       @NotNull final MZTolerance mzTolerance) {
-    if (!row.hasMs2Fragmentation()) {
+    final double[][] merged = SpectralDeconvolutionUtils.mergePseudoSpectra(row, mzTolerance);
+    if (merged[0].length == 0) {
       return null;
     }
-    final double[][] merged = SpectralDeconvolutionUtils.mergePseudoSpectra(row, mzTolerance);
     final DataPoint[] spectrum = new DataPoint[merged[0].length];
     for (int i = 0; i < spectrum.length; i++) {
       spectrum[i] = new SimpleDataPoint(merged[0][i], merged[1][i]);

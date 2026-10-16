@@ -25,15 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_gc_ei;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -43,67 +38,48 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The feature detection steps that originally created the features of a feature list, extracted
- * from its applied methods. Used to re-detect features with exactly the same settings during GC-EI
- * gap filling.
+ * The feature detection settings that created the features of a feature list, extracted from its
+ * applied methods. GC-EI gap filling extracts chromatograms with the same m/z tolerance and scans
+ * and applies the same smoothing, so that gap-filled features are comparable to detected
+ * features.
  *
  * @param chromatogramParameters parameters of the ADAP chromatogram builder
- * @param smoothingParameters    parameters of the smoothing step that was applied between
- *                               chromatogram building and resolving, or null if there was none
- * @param resolverParameters     parameters of the feature resolver
+ * @param smoothingParameters    parameters of the last smoothing step after the chromatogram
+ *                               builder, or null if there was none
  */
 public record GcEiFeatureFindingSettings(@NotNull ParameterSet chromatogramParameters,
-                                         @Nullable ParameterSet smoothingParameters,
-                                         @NotNull GeneralResolverParameters resolverParameters) {
+                                         @Nullable ParameterSet smoothingParameters) {
 
   /**
-   * Extracts the latest chromatogram builder call, the latest resolver call after it, and the
-   * latest smoothing call in between.
+   * Extracts the latest chromatogram builder call and the latest smoothing call after it.
    *
    * @param methods applied methods of a feature list, oldest first
-   * @throws IllegalStateException if the chromatogram builder or resolver step is missing
+   * @throws IllegalStateException if the chromatogram builder step is missing
    */
   public static @NotNull GcEiFeatureFindingSettings fromAppliedMethods(
       @NotNull final List<FeatureListAppliedMethod> methods) {
-    final int chromIndex = lastIndexOf(methods, ModularADAPChromatogramBuilderModule.class, 0,
-        methods.size());
+    final int chromIndex = lastIndexOf(methods, ModularADAPChromatogramBuilderModule.class, 0);
     if (chromIndex < 0) {
       throw new IllegalStateException("""
-          GC-EI gap filling re-runs the chromatogram building and resolving of the original processing, \
+          GC-EI gap filling uses the m/z tolerance of the original chromatogram building, \
           but no "Chromatogram builder" step was found in the processing history of the feature list.""");
     }
 
-    final int resolverIndex = lastIndexOf(methods, FeatureResolverModule.class, chromIndex + 1,
-        methods.size());
-    if (resolverIndex < 0 || !(methods.get(
-        resolverIndex).getParameters() instanceof GeneralResolverParameters resolverParameters)) {
-      throw new IllegalStateException("""
-          GC-EI gap filling re-runs the chromatogram building and resolving of the original processing, \
-          but no feature resolver step was found after the "Chromatogram builder" step in the processing history of the feature list.""");
-    }
-    if (resolverParameters.getValue(GeneralResolverParameters.dimension)
-        != ResolvingDimension.RETENTION_TIME) {
-      throw new IllegalStateException(
-          "GC-EI gap filling requires a feature resolver in the retention time dimension.");
-    }
-
-    // decision: only smoothing between chromatogram building and resolving is replicated, as the
-    // resolver was tuned on smoothed data. Smoothing after resolving is not part of feature detection.
-    final int smoothingIndex = lastIndexOf(methods, SmoothingModule.class, chromIndex + 1,
-        resolverIndex);
+    // assumption: GC-EI workflows smooth at most once, usually before resolving
+    final int smoothingIndex = lastIndexOf(methods, SmoothingModule.class, chromIndex + 1);
     final ParameterSet smoothingParameters =
         smoothingIndex >= 0 ? methods.get(smoothingIndex).getParameters() : null;
 
     return new GcEiFeatureFindingSettings(methods.get(chromIndex).getParameters(),
-        smoothingParameters, resolverParameters);
+        smoothingParameters);
   }
 
   /**
-   * @return index of the last method of the module class in [from, toExclusive) or -1
+   * @return index of the last method of the module class at or after from, or -1
    */
   private static int lastIndexOf(@NotNull final List<FeatureListAppliedMethod> methods,
-      @NotNull final Class<? extends MZmineModule> module, final int from, final int toExclusive) {
-    for (int i = toExclusive - 1; i >= from; i--) {
+      @NotNull final Class<? extends MZmineModule> module, final int from) {
+    for (int i = methods.size() - 1; i >= from; i--) {
       final FeatureListAppliedMethod method = methods.get(i);
       if (method != null && module.isInstance(method.getModule())) {
         return i;
@@ -120,18 +96,11 @@ public record GcEiFeatureFindingSettings(@NotNull ParameterSet chromatogramParam
     return chromatogramParameters.getValue(ADAPChromatogramBuilderParameters.scanSelection);
   }
 
+  /**
+   * Re-detected signals need at least this number of consecutive data points around their apex
+   */
   public int minConsecutiveScans() {
     return chromatogramParameters.getValue(
         ADAPChromatogramBuilderParameters.minimumConsecutiveScans);
-  }
-
-  public double minGroupIntensity() {
-    return requireNonNullElse(
-        chromatogramParameters.getValue(ADAPChromatogramBuilderParameters.minGroupIntensity), 0d);
-  }
-
-  public double minHighestPoint() {
-    return requireNonNullElse(
-        chromatogramParameters.getValue(ADAPChromatogramBuilderParameters.minHighestPoint), 0d);
   }
 }
