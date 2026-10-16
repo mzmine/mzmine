@@ -244,6 +244,14 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // The renderer maps are updated in the task's updateGuiModel before the dataset list setAll,
     // so by the time these listeners fire the maps already reflect the new datasets.
     model.selectedAdductRowProperty().subscribe(_ -> applySelectionHighlight());
+    // large compounds only draw the most intense rows, redraw to include a newly selected row
+    model.selectedAdductRowProperty().subscribe(_ -> {
+      if (interactor.isSelectedRowHidden()) {
+        scheduleEic();
+        scheduleMobilogram();
+        scheduleSpectra();
+      }
+    });
     model.getEicDatasets()
         .addListener((ListChangeListener<XYDatasetAndRenderer>) _ -> applySelectionHighlight());
     model.getMobilogramDatasets()

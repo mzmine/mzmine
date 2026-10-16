@@ -463,6 +463,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   public static void makeAndAddCsvModularExportStep(final BatchQueue q, final File exportPath) {
+    makeAndAddCsvModularExportStep(q, exportPath, CompoundRowSelection.ALL_MAJOR_IONS,
+        "_full_feature_table.csv");
+  }
+
+  /**
+   * @param rowSelection   export compounds, their major ions or all feature rows
+   * @param fileNameSuffix appended to the export base file name
+   */
+  public static void makeAndAddCsvModularExportStep(@NotNull final BatchQueue q,
+      @NotNull final File exportPath, @NotNull final CompoundRowSelection rowSelection,
+      @NotNull final String fileNameSuffix) {
     final ParameterSet param = new CSVExportModularParameters().cloneParameterSet();
 
     param.setParameter(CSVExportModularParameters.featureLists,
@@ -471,11 +482,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(CSVExportModularParameters.idSeparator, ";");
     param.setParameter(CSVExportModularParameters.omitEmptyColumns, true);
     param.setParameter(CSVExportModularParameters.filter, FeatureListRowsFilter.ALL);
-    param.setParameter(CSVExportModularParameters.compoundRowSelection,
-        CompoundRowSelection.ALL_MAJOR_IONS);
+    param.setParameter(CSVExportModularParameters.compoundRowSelection, rowSelection);
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
-    fileName = new File(fileName.getParentFile(), fileName.getName() + "_full_feature_table.csv");
+    fileName = new File(fileName.getParentFile(), fileName.getName() + fileNameSuffix);
     param.setParameter(CSVExportModularParameters.filename, fileName);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),

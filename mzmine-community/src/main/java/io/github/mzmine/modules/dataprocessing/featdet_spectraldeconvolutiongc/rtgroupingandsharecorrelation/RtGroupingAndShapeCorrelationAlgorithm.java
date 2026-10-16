@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionAlgorithm;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
@@ -135,56 +135,7 @@ public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolu
   }
 
   private double calculateCorrelation(ModularFeature feature1, ModularFeature feature2) {
-    //find data points with shared rt
-    Range<Float> overlappingRtRange = getOverlap(feature1.getRawDataPointsRTRange(),
-        feature2.getRawDataPointsRTRange());
-    if (overlappingRtRange == null) {
-      return 0.0;
-    }
-    int numberOfDpsFeature1 = feature1.getNumberOfDataPoints();
-    List<Double> feature1Profile = new ArrayList<>();
-    for (int i = 0; i < numberOfDpsFeature1; i++) {
-      if (overlappingRtRange.contains(feature1.getFeatureData().getRetentionTime(i))) {
-        feature1Profile.add(feature1.getFeatureData().getIntensity(i));
-      }
-    }
-
-    List<Double> feature2Profile = new ArrayList<>();
-    int numberOfDpsFeature2 = feature2.getNumberOfDataPoints();
-    for (int i = 0; i < numberOfDpsFeature2; i++) {
-      if (overlappingRtRange.contains(feature2.getFeatureData().getRetentionTime(i))) {
-        feature2Profile.add(feature2.getFeatureData().getIntensity(i));
-      }
-    }
-
-    if (feature1Profile.size() != feature2Profile.size()) {
-      throw new IllegalArgumentException("Profiles must have the same length");
-    }
-
-    double mean1 = feature1Profile.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-    double mean2 = feature2Profile.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-
-    double numerator = 0.0;
-    double denominator1 = 0.0;
-    double denominator2 = 0.0;
-
-    for (int i = 0; i < feature1Profile.size(); i++) {
-      double diff1 = feature1Profile.get(i) - mean1;
-      double diff2 = feature2Profile.get(i) - mean2;
-      numerator += diff1 * diff2;
-      denominator1 += diff1 * diff1;
-      denominator2 += diff2 * diff2;
-    }
-
-    double denominator = Math.sqrt(denominator1) * Math.sqrt(denominator2);
-    return denominator == 0 ? 0 : numerator / denominator;
-  }
-
-  private Range<Float> getOverlap(Range<Float> range1, Range<Float> range2) {
-    if (range1 != null && range2 != null && range1.isConnected(range2)) {
-      return range1.intersection(range2);
-    } else {
-      return null; // Indicating no overlap
-    }
+    // shared with the compound member scores of the deconvolution
+    return SpectralDeconvolutionUtils.calculateShapeCorrelation(feature1, feature2);
   }
 }

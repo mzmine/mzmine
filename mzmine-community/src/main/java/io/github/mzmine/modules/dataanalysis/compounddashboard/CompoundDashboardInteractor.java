@@ -155,7 +155,8 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       return null;
     }
     return new CompoundDashboardSpectraTask(model, compound, model.getCurrentRawDataFile(),
-        model.getSelectedMs2Row(), model.getSelectedMs2Scan(), palette.clone(true));
+        model.getSelectedMs2Row(), model.getSelectedMs2Scan(), palette.clone(true),
+        selectDisplayedRows(compound));
   }
 
   /**
@@ -204,7 +205,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       return null;
     }
     return new CompoundDashboardEicTask(model, compound, model.getCurrentRawDataFile(),
-        palette.clone(true));
+        palette.clone(true), selectDisplayedRows(compound));
   }
 
   /**
@@ -217,6 +218,23 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       return null;
     }
     return new CompoundDashboardMobilogramTask(model, compound, model.getCurrentRawDataFile(),
-        palette.clone(true));
+        palette.clone(true), selectDisplayedRows(compound));
+  }
+
+  private @NotNull Set<FeatureListRow> selectDisplayedRows(@NotNull final CompoundRow compound) {
+    return CompoundDashboardDisplayedRows.select(compound, model.getCurrentRawDataFile(),
+        model.getSelectedAdductRow());
+  }
+
+  /**
+   * @return true if the selected member row is not drawn because of the row limit of large
+   * compounds
+   */
+  public boolean isSelectedRowHidden() {
+    final CompoundRow compound = model.getSelectedCompoundRow();
+    final FeatureListRow selected = model.getSelectedAdductRow();
+    return compound != null && selected != null && CompoundDashboardDisplayedRows.isLimited(
+        compound) && !model.getMs1RenderersByRow().containsKey(selected)
+        && !model.getEicDatasetsByRow().containsKey(selected);
   }
 }

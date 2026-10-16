@@ -26,6 +26,7 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -187,6 +188,10 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeAndAddIonNotationStep(q);
 
     if (isExportActive) {
+      // decision: one row per deconvoluted compound like the previous GC-EI feature table, the
+      // compound list holds all EI ion rows
+      makeAndAddCsvModularExportStep(q, exportPath, CompoundRowSelection.COMPOUNDS,
+          "_compound_table.csv");
       if (exportGnps) {
         makeAndAddGnpsExportStep(q);
       }

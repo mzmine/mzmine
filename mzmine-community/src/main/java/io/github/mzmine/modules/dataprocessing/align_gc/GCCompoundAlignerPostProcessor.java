@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
@@ -43,6 +44,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.GcAlignMissingNumFeaturesType;
 import io.github.mzmine.datamodel.features.types.numbers.GcAlignShiftedNumFeaturesType;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureAlignmentPostProcessor;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -83,7 +85,7 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
   // links a pseudo spectrum back to its source compound. Features copied during alignment keep the
   // same pseudo spectrum instance
   private final Map<Scan, CompoundRow> compoundBySpectrum;
-  private final List<List<FeatureListRow>> alignedCompounds = new ArrayList<>();
+  private final List<List<CompoundFeatureMember>> alignedCompounds = new ArrayList<>();
   private final AtomicInteger extractedFeatures = new AtomicInteger(0);
   private final AtomicInteger shiftedFeatures = new AtomicInteger(0);
 
@@ -145,14 +147,14 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
 
     final AtomicInteger nextRowId = new AtomicInteger(
         flist.stream().mapToInt(FeatureListRow::getID).max().orElse(0) + 1);
-    final List<List<FeatureListRow>> compounds = flist.getRowsCopy().parallelStream()
+    final List<List<CompoundFeatureMember>> compounds = flist.getRowsCopy().parallelStream()
         .map(row -> expandAlignedRow(flist, (ModularFeatureListRow) row, nextRowId)).toList();
 
     alignedCompounds.clear();
     alignedCompounds.addAll(compounds);
     // new member rows are added here, this also applies the row bindings to all rows
     flist.setRowsApplySort(compounds.stream().flatMap(Collection::stream)
-        .toArray(FeatureListRow[]::new));
+        .map(CompoundFeatureMember::row).toArray(FeatureListRow[]::new));
 
     logger.fine("""
         GC-EI compound alignment created %d compounds with %d rows. \
@@ -163,10 +165,11 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
   }
 
   /**
-   * @return the rows of each aligned compound, the representative row first. Available after
+   * @return the members of each aligned compound, the representative first. Member scores are the
+   * mean scores of the source members. Available after
    * {@link #handlePostAlignment(ModularFeatureList)}.
    */
-  public @NotNull List<List<FeatureListRow>> getAlignedCompounds() {
+  public @NotNull List<List<CompoundFeatureMember>> getAlignedCompounds() {
     return alignedCompounds;
   }
 
@@ -175,9 +178,9 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
    * compounds.
    *
    * @param alignedRow the aligned row, will become the representative row
-   * @return all rows of this compound, the representative first
+   * @return all members of this compound, the representative first
    */
-  private @NotNull List<FeatureListRow> expandAlignedRow(@NotNull final ModularFeatureList flist,
+  private @NotNull List<CompoundFeatureMember> expandAlignedRow(@NotNull final ModularFeatureList flist,
       @NotNull final ModularFeatureListRow alignedRow, @NotNull final AtomicInteger nextRowId) {
     final List<ModularFeature> alignedFeatures = List.copyOf(alignedRow.getFeatures());
 
@@ -188,8 +191,8 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
         Comparator.comparingInt(MemberCluster::numDetections)
             .thenComparingDouble(MemberCluster::sumHeight)).orElseThrow();
 
-    final List<FeatureListRow> rows = new ArrayList<>(clusters.size());
-    rows.add(alignedRow);
+    final List<CompoundFeatureMember> members = new ArrayList<>(clusters.size());
+    members.add(SpectralDeconvolutionUtils.representativeMember(alignedRow));
     setRepresentativeFeatures(flist, alignedRow, alignedFeatures, consensus);
 
     for (final MemberCluster cluster : clusters) {
@@ -204,9 +207,9 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
         copy.setAllMS2FragmentScans(null);
         memberRow.addFeature(copy.getRawDataFile(), copy, false);
       }
-      rows.add(memberRow);
+      members.add(SpectralDeconvolutionUtils.correlatedMember(memberRow, cluster.meanScore()));
     }
-    return rows;
+    return members;
   }
 
   /**
@@ -277,6 +280,8 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
   private @NotNull List<MemberCluster> clusterMemberFeatures(
       @NotNull final List<ModularFeature> alignedFeatures) {
     final List<ModularFeature> memberFeatures = new ArrayList<>();
+    // score of each feature in its source compound
+    final Map<ModularFeature, Float> scores = new IdentityHashMap<>();
     for (final ModularFeature alignedFeature : alignedFeatures) {
       final RawDataFile raw = alignedFeature.getRawDataFile();
       final Scan spectrum = alignedFeature.getMostIntenseFragmentScan();
@@ -284,16 +289,20 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
       if (source == null) {
         // assumption: should not happen as only representatives with pseudo spectra are aligned
         memberFeatures.add(alignedFeature);
+        scores.put(alignedFeature, 1f);
         continue;
       }
-      for (final FeatureListRow memberRow : source.getMemberRows()) {
+      for (final CompoundFeatureMember sourceMember : source.getCompoundMembers()) {
+        final FeatureListRow memberRow = sourceMember.row();
         final Feature member = memberRow.getFeature(raw);
         if (member == null) {
           continue;
         }
         // use the aligned copy for the representative to keep its row values
         final boolean isRepresentative = memberRow == source.getPreferredRow();
-        memberFeatures.add(isRepresentative ? alignedFeature : (ModularFeature) member);
+        final ModularFeature feature = isRepresentative ? alignedFeature : (ModularFeature) member;
+        memberFeatures.add(feature);
+        scores.put(feature, sourceMember.score());
       }
     }
 
@@ -304,7 +313,9 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
       final MemberCluster cluster = clusters.get(mz);
       if (cluster != null) {
         // decision: a lower feature of the same sample at the same m/z is dropped
-        cluster.features().putIfAbsent(feature.getRawDataFile(), feature);
+        if (cluster.features().putIfAbsent(feature.getRawDataFile(), feature) == null) {
+          cluster.scores().put(feature.getRawDataFile(), scores.get(feature));
+        }
       } else {
         // use smaller range in case of overlaps
         final Range<Double> mzRange = SpectraMerging.createNewNonOverlappingRange(clusters,
@@ -312,7 +323,9 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
         final Map<RawDataFile, ModularFeature> features = HashMap.newHashMap(
             alignedFeatures.size());
         features.put(feature.getRawDataFile(), feature);
-        clusters.put(mzRange, new MemberCluster(features));
+        final Map<RawDataFile, Float> clusterScores = HashMap.newHashMap(alignedFeatures.size());
+        clusterScores.put(feature.getRawDataFile(), scores.get(feature));
+        clusters.put(mzRange, new MemberCluster(features, clusterScores));
       }
     }
     return new ArrayList<>(clusters.asMapOfRanges().values());
@@ -322,8 +335,15 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
    * Features of one m/z within an aligned compound
    *
    * @param features one feature per sample
+   * @param scores   score of each feature in its source compound
    */
-  private record MemberCluster(@NotNull Map<RawDataFile, ModularFeature> features) {
+  private record MemberCluster(@NotNull Map<RawDataFile, ModularFeature> features,
+                               @NotNull Map<RawDataFile, Float> scores) {
+
+    float meanScore() {
+      return (float) scores.values().stream().mapToDouble(Float::doubleValue).average()
+          .orElse(0d);
+    }
 
     int numDetections() {
       return features.size();

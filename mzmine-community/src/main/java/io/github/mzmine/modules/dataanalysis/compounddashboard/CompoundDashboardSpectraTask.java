@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,6 +64,7 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
   private final @Nullable FeatureListRow ms2Row;
   private final @Nullable Scan ms2Scan;
   private final @NotNull SimpleColorPalette palette;
+  private final @NotNull Set<FeatureListRow> displayedRows;
 
   private List<DatasetAndRenderer> ms1Out = List.of();
   private List<DatasetAndRenderer> ms2Out = List.of();
@@ -72,13 +74,15 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
   public CompoundDashboardSpectraTask(@NotNull CompoundDashboardModel model,
       @NotNull CompoundRow compound, @Nullable RawDataFile file, @Nullable FeatureListRow ms2Row,
-      @Nullable Scan ms2Scan, @NotNull SimpleColorPalette palette) {
+      @Nullable Scan ms2Scan, @NotNull SimpleColorPalette palette,
+      @NotNull Set<FeatureListRow> displayedRows) {
     super("Compound dashboard spectra", model);
     this.compound = compound;
     this.file = file;
     this.ms2Row = ms2Row;
     this.ms2Scan = ms2Scan;
     this.palette = palette;
+    this.displayedRows = displayedRows;
   }
 
   @Override
@@ -140,6 +144,9 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
     // compound first level is all ions
     for (final FeatureListRow row : compound.getMemberRows()) {
+      if (!isDisplayed(row)) {
+        continue;
+      }
       final DoubleArrayList mzs = new DoubleArrayList();
       final DoubleArrayList intensities = new DoubleArrayList();
 
@@ -174,6 +181,17 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
               longLabel, shortLabel, awt), renderer));
     }
     return out;
+  }
+
+  /**
+   * @return true if the ion row or one of its isotope rows is displayed
+   */
+  private boolean isDisplayed(@NotNull final FeatureListRow row) {
+    if (displayedRows.contains(row)) {
+      return true;
+    }
+    return row instanceof CompoundRow ionRow && ionRow.getMemberRows().stream()
+        .anyMatch(displayedRows::contains);
   }
 
   private @Nullable Scan pickRepresentativeScan(@NotNull final FeatureListRow row) {

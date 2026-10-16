@@ -29,6 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -42,6 +44,7 @@ import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
@@ -51,12 +54,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SpectralDeconvolutionUtils {
-
-  /**
-   * Score of correlated EI fragment rows in a compound, same as correlated members of the compound
-   * grouper.
-   */
-  private static final float CORRELATED_MEMBER_SCORE = 0.5f;
 
   /**
    * Generates pseudo spectra for a list of grouped features and sets them as fragment scans of the
@@ -131,23 +128,27 @@ public class SpectralDeconvolutionUtils {
     final List<Range<Double>> adjustedRanges = getAdjustedRanges(mzValuesToIgnore);
 
     // representative row first, then all other rows in descending height
-    final List<List<FeatureListRow>> sourceGroups = new ArrayList<>(groupedFeatures.size());
+    final List<List<CompoundFeatureMember>> sourceGroups = new ArrayList<>(
+        groupedFeatures.size());
     final Map<FeatureListRow, PseudoSpectrum> spectra = new IdentityHashMap<>(
         groupedFeatures.size());
     for (final List<ModularFeature> group : groupedFeatures) {
       final ModularFeature mainFeature = getMainFeature(group, adjustedRanges);
-      final List<FeatureListRow> rows = new ArrayList<>(group.size());
-      rows.add(mainFeature.getRow());
+      final List<CompoundFeatureMember> members = new ArrayList<>(group.size());
+      members.add(representativeMember(mainFeature.getRow()));
       for (final ModularFeature feature : group) {
         if (feature != mainFeature) {
-          rows.add(feature.getRow());
+          // the score is the shape correlation the grouping is based on
+          final double r = calculateShapeCorrelation(mainFeature, feature);
+          members.add(correlatedMember(feature.getRow(), (float) Math.clamp(r, 0d, 1d)));
         }
       }
-      sourceGroups.add(rows);
+      sourceGroups.add(members);
       spectra.put(mainFeature.getRow(), createPseudoSpectrum(group, mainFeature));
     }
 
-    final List<FeatureListRow> allRows = sourceGroups.stream().flatMap(List::stream).toList();
+    final List<FeatureListRow> allRows = sourceGroups.stream().flatMap(List::stream)
+        .map(CompoundFeatureMember::row).toList();
     // single sample: one feature per row
     final ModularFeatureList deconvolutedList = FeatureListUtils.createCopyWithoutRows(source,
         suffix, storage, allRows.size(), allRows.size());
@@ -164,60 +165,127 @@ public class SpectralDeconvolutionUtils {
       }
     });
 
-    final List<List<ModularFeatureListRow>> groups = sourceGroups.stream()
-        .map(group -> group.stream().map(rowMapping::get).toList()).toList();
+    final List<List<CompoundFeatureMember>> groups = sourceGroups.stream().map(
+        group -> group.stream().map(
+            m -> new CompoundFeatureMember(rowMapping.get(m.row()), m.role(), m.score())).toList())
+        .toList();
     // set the compound list after all rows were added, adding rows invalidates the compound list
     deconvolutedList.setCompoundList(createCompoundList(deconvolutedList, groups, storage));
     return deconvolutedList;
   }
 
   /**
-   * Groups rows of a GC-EI feature list into compounds. The first row of each group is the
-   * representative row that holds the pseudo spectrum. All other rows are correlated members. Must
-   * be called after all rows were added to the feature list, because structural changes to the
-   * rows invalidate the compound list.
+   * @return the representative member of a GC-EI compound, the row that holds the pseudo spectrum
+   */
+  public static @NotNull CompoundFeatureMember representativeMember(
+      @NotNull FeatureListRow row) {
+    return new CompoundFeatureMember(row, CompoundMemberRole.REPRESENTATIVE, 1f);
+  }
+
+  /**
+   * @param score shape correlation to the representative, 0-1
+   * @return a correlated EI ion member of a GC-EI compound
+   */
+  public static @NotNull CompoundFeatureMember correlatedMember(@NotNull FeatureListRow row,
+      float score) {
+    return new CompoundFeatureMember(row, CompoundMemberRole.CORRELATED, score);
+  }
+
+  /**
+   * Groups rows of a GC-EI feature list into compounds. The first member of each group is the
+   * representative that holds the pseudo spectrum. The compound confidence is the mean score of
+   * all other members. Must be called after all rows were added to the feature list, because
+   * structural changes to the rows invalidate the compound list.
    *
    * @param featureList the feature list that contains all rows of the groups
-   * @param groups      rows of each compound, the representative row first
+   * @param groups      members of each compound, the representative first
    * @param storage     storage for the compound list
    * @return the compound list or null if there are no groups
    */
   public static @Nullable CompoundList createCompoundList(@NotNull ModularFeatureList featureList,
-      @NotNull List<? extends List<? extends FeatureListRow>> groups,
+      @NotNull List<? extends List<CompoundFeatureMember>> groups,
       @Nullable MemoryMapStorage storage) {
-    if (groups.isEmpty()) {
-      return null;
-    }
     // compound IDs follow the representative rows in default row order
     final Comparator<FeatureListRow> rowSorter = FeatureListUtils.getDefaultRowSorter(
         featureList);
-    final List<List<? extends FeatureListRow>> sortedGroups = new ArrayList<>(groups.size());
-    for (final List<? extends FeatureListRow> group : groups) {
+    final List<List<CompoundFeatureMember>> sortedGroups = new ArrayList<>(groups.size());
+    for (final List<CompoundFeatureMember> group : groups) {
       if (!group.isEmpty()) {
         sortedGroups.add(group);
       }
     }
-    sortedGroups.sort((a, b) -> rowSorter.compare(a.getFirst(), b.getFirst()));
+    if (sortedGroups.isEmpty()) {
+      return null;
+    }
+    sortedGroups.sort((a, b) -> rowSorter.compare(a.getFirst().row(), b.getFirst().row()));
 
     final CompoundList compoundList = new CompoundList(featureList, storage, sortedGroups.size());
     final List<ModularCompoundRow> compounds = new ArrayList<>(sortedGroups.size());
     int compoundId = 1;
-    for (final List<? extends FeatureListRow> group : sortedGroups) {
-      final List<CompoundFeatureMember> members = new ArrayList<>(group.size());
-      for (final FeatureListRow row : group) {
-        final boolean representative = members.isEmpty();
-        members.add(new CompoundFeatureMember(row,
-            representative ? CompoundMemberRole.REPRESENTATIVE : CompoundMemberRole.CORRELATED,
-            representative ? 1f : CORRELATED_MEMBER_SCORE));
-      }
-      // decision: no independent confidence estimate exists for EI deconvolution, groups already
-      // passed the correlation and minimum signal criteria of the deconvolution algorithm
+    for (final List<CompoundFeatureMember> members : sortedGroups) {
+      // a compound of only the representative is fully consistent
+      final float confidence = (float) members.stream().skip(1)
+          .mapToDouble(CompoundFeatureMember::score).average().orElse(1d);
       compounds.add(
-          new ModularCompoundRow(compoundList, compoundId++, group.getFirst(), members, 1f,
-              null));
+          new ModularCompoundRow(compoundList, compoundId++, members.getFirst().row(), members,
+              confidence, null));
     }
     compoundList.setRows(compounds);
     return compoundList;
+  }
+
+  /**
+   * Pearson correlation of two feature shapes of the same raw data file. Only the scans that both
+   * features share are compared, so gaps in either feature do not shift the profiles.
+   *
+   * @return the Pearson correlation or 0 if fewer than 2 scans are shared or a profile is flat
+   */
+  public static double calculateShapeCorrelation(@NotNull Feature feature1,
+      @NotNull Feature feature2) {
+    final IonTimeSeries<? extends Scan> data1 = feature1.getFeatureData();
+    final IonTimeSeries<? extends Scan> data2 = feature2.getFeatureData();
+    if (data1 == null || data2 == null) {
+      return 0d;
+    }
+    final Map<Scan, Double> intensities1 = new IdentityHashMap<>(data1.getNumberOfValues());
+    for (int i = 0; i < data1.getNumberOfValues(); i++) {
+      intensities1.put(data1.getSpectrum(i), data1.getIntensity(i));
+    }
+    final DoubleArrayList profile1 = new DoubleArrayList();
+    final DoubleArrayList profile2 = new DoubleArrayList();
+    for (int i = 0; i < data2.getNumberOfValues(); i++) {
+      final Double intensity1 = intensities1.get(data2.getSpectrum(i));
+      if (intensity1 != null) {
+        profile1.add(intensity1.doubleValue());
+        profile2.add(data2.getIntensity(i));
+      }
+    }
+    final int n = profile1.size();
+    if (n < 2) {
+      return 0d;
+    }
+
+    double mean1 = 0;
+    double mean2 = 0;
+    for (int i = 0; i < n; i++) {
+      mean1 += profile1.getDouble(i);
+      mean2 += profile2.getDouble(i);
+    }
+    mean1 /= n;
+    mean2 /= n;
+
+    double numerator = 0;
+    double denominator1 = 0;
+    double denominator2 = 0;
+    for (int i = 0; i < n; i++) {
+      final double diff1 = profile1.getDouble(i) - mean1;
+      final double diff2 = profile2.getDouble(i) - mean2;
+      numerator += diff1 * diff2;
+      denominator1 += diff1 * diff1;
+      denominator2 += diff2 * diff2;
+    }
+    final double denominator = Math.sqrt(denominator1) * Math.sqrt(denominator2);
+    return denominator == 0 ? 0 : numerator / denominator;
   }
 
   /**
