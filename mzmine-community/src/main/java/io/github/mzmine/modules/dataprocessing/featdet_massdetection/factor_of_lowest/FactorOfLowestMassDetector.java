@@ -118,7 +118,8 @@ public class FactorOfLowestMassDetector implements MassDetector {
     }
     double minIntensity = Double.MAX_VALUE;
     for (double v : rawIntensities) {
-      if (v < minIntensity) {
+      // same as for spectra: zero intensities do not define the noise level
+      if (v < minIntensity && v > 0) {
         minIntensity = v;
       }
     }
