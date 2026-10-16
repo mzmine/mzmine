@@ -97,16 +97,14 @@
                                 text="Show raw data summary"/>
                               <MenuItem onAction="#handleShowIMSDataOverview"
                                 text="Show ion mobility raw data overview"/>
-                              <MenuItem onAction="#handleShowImageViewer"
-                                text="Show image viewer"/>
 
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleShowChromatogram"
                                 text="Show chromatogram"/>
                               <MenuItem onAction="#handleShowMsSpectrum"
                                 text="Show mass spectrum"/>
-                              <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
-                              <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
+                              <MenuItem onAction="#handleShow2DPlot" text="Show 2D visualizer"/>
+                              <MenuItem onAction="#handleShow3DPlot" text="Show 3D visualizer"/>
                               <MenuItem onAction="#handleShowMsMsPlot"
                                 text="Show MS/MS scatter plot"/>
 
