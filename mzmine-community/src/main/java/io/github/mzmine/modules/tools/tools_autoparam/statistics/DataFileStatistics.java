@@ -46,10 +46,31 @@ import org.jetbrains.annotations.Nullable;
  *                               see
  *                               {@link RawDataParameterEstimation#estimateReferenceInjectionTime}.
  *                               Null if there is no injection time or it is ion mobility data
+ * @param rejectedStatistics isotope-supported peaks rejected only by the chromatographic width
+ *                           filter, with an injection time reference for the full run. Null when
+ *                           no alternative pool was collected
  */
 public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featureStatistics,
                                  @Nullable SimpleFloatRange effectiveRtRange,
-                                 @Nullable Double referenceInjectionTime) {
+                                 @Nullable Double referenceInjectionTime,
+                                 @Nullable DataFileStatistics rejectedStatistics) {
+
+  public DataFileStatistics(RawDataFile file, List<FeatureStatistics> featureStatistics,
+      @Nullable SimpleFloatRange effectiveRtRange, @Nullable Double referenceInjectionTime) {
+    this(file, featureStatistics, effectiveRtRange, referenceInjectionTime, null);
+  }
+
+  /**
+   * Reuses the originally rejected peaks for DI/FI. Existing statistics without a retained pool, or
+   * files containing only narrow peaks, keep their current features.
+   */
+  public @NotNull DataFileStatistics forDirectInfusion() {
+    if (rejectedStatistics == null) {
+      return this;
+    }
+    return rejectedStatistics.featureStatistics().isEmpty() ? new DataFileStatistics(file,
+        featureStatistics, null, rejectedStatistics.referenceInjectionTime()) : rejectedStatistics;
+  }
 
   public double[] getEdgeIntensities() {
     return featureStatistics.stream()

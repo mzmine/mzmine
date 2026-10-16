@@ -74,9 +74,16 @@ public record WizardParameterEstimationResult(@NotNull ParameterEstimationContex
         .toScanPolaritySelection();
     final List<DataFileStatistics> statistics = RawDataPreparation.computeFileStatistics(
         importedFiles, benchmarkFeatures, storage, polarity);
-    RawDataPreparation.requireIsotopeSignals(statistics);
     if (canceled.getAsBoolean()) {
       return null;
+    }
+
+    // There is nothing to rescue if neither pool contains isotope evidence. Avoid offering
+    // unrelated preset changes for data that cannot be estimated at all.
+    if (statistics.stream().allMatch(
+        stat -> stat.featureStatistics().isEmpty() && (stat.rejectedStatistics() == null
+            || stat.rejectedStatistics().featureStatistics().isEmpty()))) {
+      RawDataPreparation.requireIsotopeSignals(statistics);
     }
 
     final RawDataAnalysis analysis = RawDataAnalysis.analyze(statistics);
@@ -88,6 +95,8 @@ public record WizardParameterEstimationResult(@NotNull ParameterEstimationContex
     if (canceled.getAsBoolean()) {
       return null;
     }
+    // Preset confirmation may select the isotope-supported peaks rejected as too broad for LC.
+    RawDataPreparation.requireIsotopeSignals(context.analysis().files());
     return new WizardParameterEstimationResult(context, PreparedParameterSet.prepare(context));
   }
 
