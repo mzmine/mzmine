@@ -37,6 +37,9 @@ import org.jetbrains.annotations.Nullable;
  * @param name             module name of the step
  * @param secondsToFinish  wall-clock seconds the step took
  * @param usedHeapGB        used heap (GB) after the step, or null if not tracked
+ * @param peakHeapGB        peak used heap (GB) during the step, see {@link HeapPeak#peakHeapGB()}
+ * @param peakHeapAfterGcGB peak used heap (GB) after garbage collections during the step, null if
+ *                          no collection happened, see {@link HeapPeak#peakHeapAfterGcGB()}
  * @param tempFilesCreated number of mapped temp files created during this step
  * @param reservedTempFileGB       nominal reserved space of files created during this step (GB)
  * @param usedTempFileGB           logical bytes written during this step (GB)
@@ -45,14 +48,16 @@ import org.jetbrains.annotations.Nullable;
  *                         best-effort)
  */
 public record StepMeasurement(int step, String name, double secondsToFinish,
-                              @Nullable String usedHeapGB, long tempFilesCreated, double reservedTempFileGB,
-                              double usedTempFileGB, long liveTempFiles, double liveTempFileUsedGB) {
+                              @Nullable String usedHeapGB, double peakHeapGB,
+                              @Nullable Double peakHeapAfterGcGB, long tempFilesCreated,
+                              double reservedTempFileGB, double usedTempFileGB, long liveTempFiles,
+                              double liveTempFileUsedGB) {
 
   public StepMeasurement(@NotNull final StepTimeMeasurement time,
       @NotNull final StepStorageMeasurement storage) {
-    this(time.step(), time.name(), time.secondsToFinish(), time.usedHeapGB(),
-        storage.filesCreatedInStep(), storage.reservedGBInStep(), storage.usedGBInStep(),
-        storage.liveFiles(), storage.liveUsedGB());
+    this(time.step(), time.name(), time.secondsToFinish(), time.usedHeapGB(), time.peakHeapGB(),
+        time.peakHeapAfterGcGB(), storage.filesCreatedInStep(), storage.reservedGBInStep(),
+        storage.usedGBInStep(), storage.liveFiles(), storage.liveUsedGB());
   }
 
   /**
@@ -62,8 +67,10 @@ public record StepMeasurement(int step, String name, double secondsToFinish,
   @Override
   public String toString() {
     final String heap = usedHeapGB == null ? "" : ", used heap: %s GB".formatted(usedHeapGB);
-    return "Step %d: %s took %.3f seconds%s; temp files created: %d (reserved %.3f GB, used %.3f GB); live: %d files / %.3f GB".formatted(
-        step, name, secondsToFinish, heap, tempFilesCreated, reservedTempFileGB, usedTempFileGB,
-        liveTempFiles, liveTempFileUsedGB);
+    final String peakAfterGc = peakHeapAfterGcGB == null ? ""
+        : ", peak heap after GC: %.3f GB".formatted(peakHeapAfterGcGB);
+    return "Step %d: %s took %.3f seconds%s, peak heap: %.3f GB%s; temp files created: %d (reserved %.3f GB, used %.3f GB); live: %d files / %.3f GB".formatted(
+        step, name, secondsToFinish, heap, peakHeapGB, peakAfterGc, tempFilesCreated,
+        reservedTempFileGB, usedTempFileGB, liveTempFiles, liveTempFileUsedGB);
   }
 }

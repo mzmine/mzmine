@@ -133,6 +133,8 @@ public class SpeedReportMain {
         (int) parseDouble(values.get("iteration"), 0), values.getOrDefault("runId", "").trim(),
         values.getOrDefault("status", "").trim(), (int) parseDouble(values.get("files"), 0),
         seconds, parseNullableDouble(values.get("gbRamUsed")),
+        parseNullableDouble(values.get("stepPeakHeapGB")),
+        parseNullableDouble(values.get("stepPeakHeapAfterGcGB")),
         parseNullableDouble(values.get("tempFilesCreated")),
         parseNullableDouble(values.get("reservedTempFileGB")),
         parseNullableDouble(values.get("usedTempFileGB")),
@@ -351,6 +353,8 @@ public class SpeedReportMain {
         const METRICS = [
           { key: 'timeSeconds', label: 'time (seconds)' },
           { key: 'gbRamUsed', label: 'used heap (GB)' },
+          { key: 'stepPeakHeapGB', label: 'step peak heap (GB)' },
+          { key: 'stepPeakHeapAfterGcGB', label: 'step peak heap after GC (GB)' },
           { key: 'tempFilesCreated', label: 'temp files created' },
           { key: 'reservedTempFileGB', label: 'temp files reserved (GB)' },
           { key: 'usedTempFileGB', label: 'temp files used (GB)' },

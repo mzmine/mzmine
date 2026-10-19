@@ -28,6 +28,7 @@ package io.github.mzmine.util.io;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.mzmine.modules.batchmode.timing.HeapPeak;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import java.time.Duration;
 import java.util.List;
@@ -39,8 +40,9 @@ class CsvWriterTest {
   @Test
   void writeToString() throws JsonProcessingException {
     List<StepTimeMeasurement> steps = List.of( //
-        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5), false), //
-        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2), false) //
+        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5), false, new HeapPeak(1.5, 0.5)), //
+        // null peak after GC must be written as an empty cell
+        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2), false, new HeapPeak(1.2, null)) //
     );
     String csv = CsvWriter.writeToString(steps, StepTimeMeasurement.class, '\t', true);
     Assertions.assertNotNull(csv);

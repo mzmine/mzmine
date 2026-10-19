@@ -39,6 +39,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
+import io.github.mzmine.modules.batchmode.timing.HeapPeak;
+import io.github.mzmine.modules.batchmode.timing.HeapPeakTracker;
 import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
@@ -258,10 +260,13 @@ public class BatchTask extends AbstractTask {
     summaryPrinted = true;
 
     final Duration duration = Duration.between(batchStart, Instant.now());
+    // the steps cover the whole batch, so the batch peak is the highest step peak
+    final HeapPeak batchHeapPeak = maxHeapPeak(stepTimes);
     if (runGCafterBatchStep) {
       System.gc();
     }
-    stepTimes.add(new StepTimeMeasurement(0, WHOLE_BATCH_NAME, duration, runGCafterBatchStep));
+    stepTimes.add(new StepTimeMeasurement(0, WHOLE_BATCH_NAME, duration, runGCafterBatchStep,
+        batchHeapPeak));
     printBatchMeasurements(finishedSuccess);
   }
 
@@ -331,19 +336,22 @@ public class BatchTask extends AbstractTask {
       currentStepNumber = stepNumber + 1;
       Instant start = Instant.now();
       final MemoryMapSnapshot storageBefore = MemoryMapStorageStats.snapshot();
+      final HeapPeakTracker heapTracker = HeapPeakTracker.start();
 
       // the heavy lifting
       processQueueStep(stepNumber);
       processedSteps++;
 
       Duration duration = Duration.between(start, Instant.now());
+      // stop before the explicit GC so that it is not part of the step peak
+      final HeapPeak heapPeak = heapTracker.stop();
       if (runGCafterBatchStep) {
         System.gc();
       }
       final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
       final String stepName = queue.get(stepNumber).getModule().getName();
       final StepTimeMeasurement stepTime = new StepTimeMeasurement(stepNumber + 1, stepName,
-          duration, runGCafterBatchStep);
+          duration, runGCafterBatchStep, heapPeak);
       final StepStorageMeasurement stepStorage = new StepStorageMeasurement(stepNumber + 1,
           stepName, storageBefore, storageAfter);
       stepTimes.add(stepTime);
@@ -404,12 +412,23 @@ public class BatchTask extends AbstractTask {
 
     final StepStorageMeasurement last = stepStorageStats.getLast();
     final String heap = wholeBatch != null ? wholeBatch.usedHeapGB() : null;
-    measurements.add(
-        new StepMeasurement(new StepTimeMeasurement(0, totalSeconds, WHOLE_BATCH_NAME, heap),
-            new StepStorageMeasurement(0, WHOLE_BATCH_NAME, totalFiles, totalReservedGB,
-                totalUsedGB, last.liveFiles(), last.liveUsedGB())));
+    final HeapPeak heapPeak = maxHeapPeak(stepTimes.subList(0, steps));
+    measurements.add(new StepMeasurement(
+        new StepTimeMeasurement(0, totalSeconds, WHOLE_BATCH_NAME, heap, heapPeak.peakHeapGB(),
+            heapPeak.peakHeapAfterGcGB()),
+        new StepStorageMeasurement(0, WHOLE_BATCH_NAME, totalFiles, totalReservedGB, totalUsedGB,
+            last.liveFiles(), last.liveUsedGB())));
 
     return List.copyOf(measurements);
+  }
+
+  /**
+   * @return the highest heap peaks of all steps, 0 GB peak heap if there are no steps
+   */
+  private static @NotNull HeapPeak maxHeapPeak(@NotNull final List<StepTimeMeasurement> steps) {
+    return steps.stream()
+        .map(step -> new HeapPeak(step.peakHeapGB(), step.peakHeapAfterGcGB()))
+        .reduce(new HeapPeak(0, null), HeapPeak::max);
   }
 
   /**

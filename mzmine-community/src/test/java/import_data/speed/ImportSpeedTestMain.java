@@ -33,6 +33,8 @@ import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.timing.HeapPeak;
+import io.github.mzmine.modules.batchmode.timing.HeapPeakTracker;
 import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
@@ -121,13 +123,16 @@ public class ImportSpeedTestMain {
     // same measurements as the batch speed test, see BatchTask
     final MemoryMapSnapshot storageBefore = MemoryMapStorageStats.snapshot();
     final double tempDirFreeGB = SpeedIterationStats.tempDirFreeGB();
+    final HeapPeakTracker heapTracker = HeapPeakTracker.start();
     TaskResult finished = importFiles(files, 5 * 60, advanced);
+    final HeapPeak heapPeak = heapTracker.stop();
 
     if (finished instanceof FINISHED f) {
       System.gc(); // better memory tracking
       final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
       final var time = new StepTimeMeasurement(1, f.getSeconds(), name,
-          "%.2f".formatted(ConfigService.getConfiguration().getUsedMemoryGB()));
+          "%.2f".formatted(ConfigService.getConfiguration().getUsedMemoryGB()),
+          heapPeak.peakHeapGB(), heapPeak.peakHeapAfterGcGB());
       final var storage = new StepStorageMeasurement(1, name, storageBefore, storageAfter);
 
       var sm = new SpeedMeasurement(Instant.now().toString(), RUN_ID, description, "",
