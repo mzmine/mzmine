@@ -114,6 +114,7 @@ import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPrevie
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
+import io.github.mzmine.modules.tools.tools_autoparam.AutoParamDashboardModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
@@ -375,8 +376,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Tools");
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
-    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class,
-        QualityParametersModule.class);
+    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class, QualityParametersModule.class,
+        AutoParamDashboardModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
         MsMsQualityExportModule.class, MatchesSubsetLibraryModule.class,
         MergeLibrariesModule.class);

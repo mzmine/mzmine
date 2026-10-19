@@ -212,10 +212,10 @@ public class BatchTask extends AbstractTask {
       // BatchTask is often run directly without WrappedTask, so handling of error message is important
       runBatchQueue();
     } catch (Throwable e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
+      error(e.getMessage(), e instanceof Exception ? (Exception) e : null);
       // in case of an exception
       // regular errors are already handled in the runBatchQueue methods
-      if (getErrorMessage() != null) {
+      if (getErrorMessage() != null && !getErrorMessage().isBlank()) {
         if (DesktopService.isGUI()) {
           FxThread.runLater(
               () -> DialogLoggerUtil.showErrorDialog("EXCEPTION Batch had errors and stopped",
@@ -735,5 +735,13 @@ public class BatchTask extends AbstractTask {
     // uses the current project as the project may change, e.g., by loading a project in the batch
     // potentially make a supplier in the future. will need to update the project opening task in that case.
     return ProjectService.getProject();
+  }
+
+  @Nullable
+  public List<FeatureList> getLatestCreatedFeatureLists() {
+    if(createdFeatureLists != null && !createdFeatureLists.isEmpty()) {
+      return createdFeatureLists;
+    }
+    return previousCreatedFeatureLists;
   }
 }

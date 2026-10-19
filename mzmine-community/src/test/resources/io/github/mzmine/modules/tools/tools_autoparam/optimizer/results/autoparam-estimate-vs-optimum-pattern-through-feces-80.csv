@@ -1,0 +1,49 @@
+dataset,seed,kind,name,estimate,bestPerturbed,front
+thermo-20y-qc,42,metric,Yasin isotope score,3014.3277211944846,,5765.986504454195
+thermo-20y-qc,42,diagnostic,Total features,28866.0,,60168.0
+thermo-20y-qc,42,diagnostic,Shape filter would remove / %,,,
+thermo-20y-qc,42,parameter,FWHM,0.030181679874658585,,0.023016127417717403
+thermo-20y-qc,42,parameter,Inter sample RT tolerance,0.04613828659057617,,0.04613828659057617
+thermo-20y-qc,42,parameter,MS1 noise level,5.0,,3.0
+thermo-20y-qc,42,parameter,MZ tolerance / m/z,0.003,,0.008
+thermo-20y-qc,42,parameter,MZ tolerance / ppm,7.0,,15.0
+thermo-20y-qc,42,parameter,Min consecutive,5.0,,4.0
+thermo-20y-qc,42,parameter,Min height,434925.40625,,176204.80976763522
+thermo-20y-qc,42,parameter,Chrom. Threshold,0.85,,0.897
+thermo-20y-qc,42,parameter,Top-to-edge ratio,1.7,,1.5
+zenotof-plasma-pos,42,metric,Yasin isotope score,7029.570309878062,,10973.812396006655
+zenotof-plasma-pos,42,diagnostic,Total features,8939.0,,12020.0
+zenotof-plasma-pos,42,diagnostic,Shape filter would remove / %,,,
+zenotof-plasma-pos,42,parameter,FWHM,0.05137692205607891,,0.31251162488688294
+zenotof-plasma-pos,42,parameter,Inter sample RT tolerance,0.01608562469482422,,0.11530824057970586
+zenotof-plasma-pos,42,parameter,MS1 noise level,8.0,,7.0
+zenotof-plasma-pos,42,parameter,MZ tolerance / m/z,0.003,,0.005
+zenotof-plasma-pos,42,parameter,MZ tolerance / ppm,7.0,,15.0
+zenotof-plasma-pos,42,parameter,Min consecutive,7.0,,10.0
+zenotof-plasma-pos,42,parameter,Min height,593.5,,198.96949637319906
+zenotof-plasma-pos,42,parameter,Chrom. Threshold,0.85,,0.95825
+zenotof-plasma-pos,42,parameter,Top-to-edge ratio,1.7,,1.5
+zenotof-plasma-neg,42,metric,Yasin isotope score,3194.586602979643,,5006.570496676438
+zenotof-plasma-neg,42,diagnostic,Total features,8793.0,,24221.0
+zenotof-plasma-neg,42,diagnostic,Shape filter would remove / %,,,
+zenotof-plasma-neg,42,parameter,FWHM,0.04898723214864731,,0.08799541651420248
+zenotof-plasma-neg,42,parameter,Inter sample RT tolerance,0.02289903163909912,,0.1851732506469697
+zenotof-plasma-neg,42,parameter,MS1 noise level,6.0,,6.0
+zenotof-plasma-neg,42,parameter,MZ tolerance / m/z,0.015,,0.01
+zenotof-plasma-neg,42,parameter,MZ tolerance / ppm,25.0,,20.0
+zenotof-plasma-neg,42,parameter,Min consecutive,6.0,,6.0
+zenotof-plasma-neg,42,parameter,Min height,266.0,,55.48358352647387
+zenotof-plasma-neg,42,parameter,Chrom. Threshold,0.85,,0.944
+zenotof-plasma-neg,42,parameter,Top-to-edge ratio,1.7,,1.55
+zenotof-feces-pos,42,metric,Yasin isotope score,15420.158015124638,,41329.83678634
+zenotof-feces-pos,42,diagnostic,Total features,21422.0,,35959.0
+zenotof-feces-pos,42,diagnostic,Shape filter would remove / %,,,
+zenotof-feces-pos,42,parameter,FWHM,0.04732702486217022,,0.1997233367283255
+zenotof-feces-pos,42,parameter,Inter sample RT tolerance,0.02121567726135254,,0.14455442635406007
+zenotof-feces-pos,42,parameter,MS1 noise level,7.0,,7.0
+zenotof-feces-pos,42,parameter,MZ tolerance / m/z,0.003,,0.01
+zenotof-feces-pos,42,parameter,MZ tolerance / ppm,7.0,,20.0
+zenotof-feces-pos,42,parameter,Min consecutive,6.0,,8.0
+zenotof-feces-pos,42,parameter,Min height,198.0,,85.53618090643074
+zenotof-feces-pos,42,parameter,Chrom. Threshold,0.85,,0.944
+zenotof-feces-pos,42,parameter,Top-to-edge ratio,1.7,,1.55

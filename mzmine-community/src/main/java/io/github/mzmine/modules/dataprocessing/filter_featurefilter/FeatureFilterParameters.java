@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class FeatureFilterParameters extends SimpleParameterSet {
 
+  /**
+   * The R² threshold {@code BaseWizardBatchBuilder} applies when strict shape filtering is enabled.
+   * Kept here as a constant so the diagnostic reports against the same bar the filter uses.
+   */
+  public static final double DEFAULT_SHAPE_SCORE = 0.94;
+
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
@@ -89,12 +95,12 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   public static final OptionalParameter<DoubleParameter> minRtShapeScore = new OptionalParameter<>(
       new DoubleParameter("Minimum RT shape score",
           "Define how well the chromatographic shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
-          ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
+          ConfigService.getGuiFormats().scoreFormat(), DEFAULT_SHAPE_SCORE, 0d, 1d), false);
 
   public static final OptionalParameter<DoubleParameter> minMobilityShapeScore = new OptionalParameter<>(
       new DoubleParameter("Minimum mobilogram shape score",
           "Define how well the mobilogram shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
-          ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
+          ConfigService.getGuiFormats().scoreFormat(), DEFAULT_SHAPE_SCORE, 0d, 1d), false);
 
   public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
       new DoubleParameter("Top-to-edge ratio",
@@ -102,8 +108,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           new DecimalFormat("0.###"), 2.0, 0d, Double.MAX_VALUE), false);
 
   public static final ComboParameter<FeatureFilterChoices> keepMatching = new ComboParameter<>(
-      "Keep/Remove matching",
-      "Keep or remove features that match all criteria.",
+      "Keep/Remove matching", "Keep or remove features that match all criteria.",
       FeatureFilterChoices.values(), FeatureFilterChoices.KEEP_MATCHING);
 
   public static final OriginalFeatureListHandlingParameter AUTO_REMOVE = new OriginalFeatureListHandlingParameter(
@@ -112,6 +117,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   public static final BooleanParameter KEEP_MS2_ONLY = new BooleanParameter(
       "Keep only features with MS/MS scan",
       "If checked, the feature that don't contain MS2 scan will be removed.");
+
 
   public FeatureFilterParameters() {
     super(
@@ -140,15 +146,16 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, final int loadedVersion) {
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     super.handleLoadedParameters(loadedParams, loadedVersion);
-    if(!loadedParams.containsKey(keepMatching.getName())) {
+    if (!loadedParams.containsKey(keepMatching.getName())) {
       setParameter(keepMatching, FeatureFilterChoices.KEEP_MATCHING);
     }
-    if(!loadedParams.containsKey(minRtShapeScore.getName())) {
+    if (!loadedParams.containsKey(minRtShapeScore.getName())) {
       setParameter(minRtShapeScore, false);
     }
-    if(!loadedParams.containsKey(minMobilityShapeScore.getName())) {
+    if (!loadedParams.containsKey(minMobilityShapeScore.getName())) {
       setParameter(minMobilityShapeScore, false);
     }
   }
