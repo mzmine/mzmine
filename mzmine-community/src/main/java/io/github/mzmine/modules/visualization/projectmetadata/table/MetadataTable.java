@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_NAME_HEADER;
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,6 +41,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -237,7 +239,7 @@ public class MetadataTable {
    *
    * @param newFile file to be added
    */
-  public void addFile(@NotNull RawDataFile newFile) {
+  public void addFile(@NotNull final RawDataFile newFile) {
     if (!enableAutoDetection) {
       return;
     }
@@ -252,9 +254,10 @@ public class MetadataTable {
         setValue(dateCol, newFile, newFile.getStartTimeStamp());
 
         assignSampleType(newFile);
+        assignSampleName(newFile);
       });
     } catch (Exception ignored) {
-      logger.warning("Cannot set date " + newFile.getStartTimeStamp());
+      logger.warning("Cannot auto-detect metadata for " + newFile.getName());
     }
   }
 
@@ -263,9 +266,18 @@ public class MetadataTable {
    * group name afterwards - from then on the column value is authoritative, see
    * {@link SampleTypeFilter}.
    */
-  private void assignSampleType(@NotNull RawDataFile newFile) {
+  private void assignSampleType(@NotNull final RawDataFile newFile) {
     final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
+  }
+
+  private void assignSampleName(@NotNull final RawDataFile newFile) {
+    final MetadataColumn<String> sampleNameColumn = getSampleNameColumn();
+    setValue(sampleNameColumn, newFile, defaultSampleName(newFile));
+  }
+
+  private static @NotNull String defaultSampleName(@NotNull final RawDataFile file) {
+    return FileAndPathUtil.eraseFormat(file.getName());
   }
 
   /**
@@ -290,6 +302,29 @@ public class MetadataTable {
       setValues(sampleType, defaults);
     });
     return sampleType;
+  }
+
+  /**
+   * The sample name column. Creates the column and fills it with the file names without extension
+   * if it does not exist yet.
+   */
+  @SuppressWarnings("unchecked")
+  public @NotNull MetadataColumn<String> getSampleNameColumn() {
+    final MetadataColumn<?> col = getColumnByName(SAMPLE_NAME_HEADER);
+    if (col != null) {
+      return (MetadataColumn<String>) col;
+    }
+
+    final StringMetadataColumn sampleName = new StringMetadataColumn(SAMPLE_NAME_HEADER,
+        "Sample name without raw data file extension");
+    batchUpdate(() -> {
+      addColumn(sampleName);
+      // collect the files first because assigning the values changes the data that is read here
+      final Map<RawDataFile, String> defaults = getRawDataFilesUnsorted().stream()
+          .collect(Collectors.toMap(Function.identity(), MetadataTable::defaultSampleName));
+      setValues(sampleName, defaults);
+    });
+    return sampleName;
   }
 
   /**
@@ -343,6 +378,16 @@ public class MetadataTable {
    */
   public @NotNull Set<MetadataColumn<?>> getColumns() {
     return columnsView;
+  }
+
+  /**
+   * The columns in the order used for display and export, see
+   * {@link MetadataColumn#compareTo(MetadataColumn)}. {@link #getColumns()} has no defined order.
+   *
+   * @return sorted snapshot of the parameters columns
+   */
+  public @NotNull List<MetadataColumn<?>> getColumnsSorted() {
+    return getColumns().stream().sorted().toList();
   }
 
   /**
@@ -451,7 +496,7 @@ public class MetadataTable {
    * @return array of column titles
    */
   public String[] getColumnTitles() {
-    return getColumns().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
+    return getColumnsSorted().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
   }
 
   /**
