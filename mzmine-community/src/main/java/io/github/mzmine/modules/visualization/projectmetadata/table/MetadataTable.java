@@ -381,6 +381,16 @@ public class MetadataTable {
   }
 
   /**
+   * The columns in the order used for display and export, see
+   * {@link MetadataColumn#compareTo(MetadataColumn)}. {@link #getColumns()} has no defined order.
+   *
+   * @return sorted snapshot of the parameters columns
+   */
+  public @NotNull List<MetadataColumn<?>> getColumnsSorted() {
+    return getColumns().stream().sorted().toList();
+  }
+
+  /**
    * Return parameter column with the corresponding parameter name.
    *
    * @param name name of the parameter
@@ -486,7 +496,7 @@ public class MetadataTable {
    * @return array of column titles
    */
   public String[] getColumnTitles() {
-    return getColumns().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
+    return getColumnsSorted().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
   }
 
   /**

@@ -39,9 +39,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,10 +54,6 @@ public class ProjectMetadataWriter {
   private final MetadataTable metadataTable;
   private final MetadataFileFormat format;
   private final List<ProjectMetadataColumnMapping> columnMappings;
-  private List<MetadataColumn<?>> columns;
-  private StringMetadataColumn dataFileCol;
-  private List<String> exportTitles;
-  private Map<String, ProjectMetadataColumnMapping> mappingsByTarget;
 
   public ProjectMetadataWriter(@NotNull final MetadataTable metadata,
       @NotNull final MetadataFileFormat format) {
@@ -86,40 +82,31 @@ public class ProjectMetadataWriter {
    */
   public boolean exportTo(@NotNull final File file,
       @NotNull final List<? extends RawDataFile> rawDataFiles) {
-    // copy to pin the column order used for the header and all rows
-    columns = List.copyOf(metadataTable.getColumns());
-    if (columns.isEmpty() && columnMappings.isEmpty()) {
+    // resolved once so that the type descriptions, the header and all rows use the same columns
+    final List<ExportColumn> columns = createExportColumns();
+    // the data file column is always there
+    if (columns.size() <= 1) {
       logger.info("Project metadata is empty, nothing to export");
       return true;
     }
 
     try (final ICSVWriter csvWriter = CSVParsingUtils.createDefaultWriterAutoDetect(file, "tsv",
         WriterOptions.REPLACE)) {
-      // create the file header
-      dataFileCol = metadataTable.createDataFileColumn();
-      exportTitles = createExportTitles();
-      mappingsByTarget = createMappingsByTarget();
-
       // write the header down
       if (format == MetadataFileFormat.MZMINE_INTERNAL) {
-        writeTypeDescriptions(csvWriter);
+        writeTypeDescriptions(csvWriter, columns);
       }
 
-      final List<String> parametersTitles = new ArrayList<>();
-      for (final String title : exportTitles) {
-        parametersTitles.add(formatHeaderTitle(title));
-      }
-      csvWriter.writeNext(parametersTitles.toArray(String[]::new));
+      final String[] parametersTitles = columns.stream().map(this::formatHeaderTitle)
+          .toArray(String[]::new);
+      csvWriter.writeNext(parametersTitles);
       logger.info("Header was successfully written");
 
       // write the parameters value down
       for (final RawDataFile rawDataFile : rawDataFiles) {
-        final List<String> lineFieldsValues = new ArrayList<>(exportTitles.size());
-        for (final String title : exportTitles) {
-          lineFieldsValues.add(resolveExportValue(title, rawDataFile));
-        }
-
-        csvWriter.writeNext(lineFieldsValues.toArray(String[]::new));
+        final String[] lineFieldsValues = columns.stream()
+            .map(column -> column.values().apply(rawDataFile)).toArray(String[]::new);
+        csvWriter.writeNext(lineFieldsValues);
       }
 
       logger.info("The metadata table was successfully exported");
@@ -135,94 +122,95 @@ public class ProjectMetadataWriter {
     return true;
   }
 
-  private @NotNull List<String> createExportTitles() {
-    final LinkedHashSet<String> titles = new LinkedHashSet<>();
-    titles.add(dataFileCol.getTitle());
-    columns.stream().map(MetadataColumn::getTitle).forEach(titles::add);
-    columnMappings.stream().map(ProjectMetadataColumnMapping::targetColumn)
-        .filter(title -> !title.equals(dataFileCol.getTitle())).forEach(titles::add);
-    return List.copyOf(titles);
-  }
+  /**
+   * The data file column first, then the metadata columns in the order of
+   * {@link MetadataTable#getColumnsSorted()} and finally the mapped columns in the order of the
+   * mappings. A mapping replaces the metadata column with the same title at its position.
+   */
+  private @NotNull List<ExportColumn> createExportColumns() {
+    final StringMetadataColumn dataFileCol = metadataTable.createDataFileColumn();
+    final List<MetadataColumn<?>> metadataColumns = metadataTable.getColumnsSorted();
 
-  private @NotNull Map<String, ProjectMetadataColumnMapping> createMappingsByTarget() {
+    // later mappings to the same target win
     final Map<String, ProjectMetadataColumnMapping> mappingsByTarget = new LinkedHashMap<>();
     for (final ProjectMetadataColumnMapping mapping : columnMappings) {
-      mappingsByTarget.put(mapping.targetColumn(), mapping);
+      if (!mapping.targetColumn().equals(dataFileCol.getTitle())) {
+        mappingsByTarget.put(mapping.targetColumn(), mapping);
+      }
     }
-    return mappingsByTarget;
+
+    final List<ExportColumn> columns = new ArrayList<>();
+    columns.add(new ExportColumn(dataFileCol, RawDataFile::getName));
+    for (final MetadataColumn<?> column : metadataColumns) {
+      if (column.getTitle().equals(dataFileCol.getTitle())) {
+        continue;
+      }
+      final ProjectMetadataColumnMapping mapping = mappingsByTarget.remove(column.getTitle());
+      columns.add(mapping != null ? createMappedColumn(mapping, dataFileCol, metadataColumns)
+          : new ExportColumn(column, raw -> metadataValueAsString(column, raw)));
+    }
+    for (final ProjectMetadataColumnMapping mapping : mappingsByTarget.values()) {
+      columns.add(createMappedColumn(mapping, dataFileCol, metadataColumns));
+    }
+    return columns;
   }
 
-  private @NotNull String formatHeaderTitle(@NotNull final String title) {
-    if (format == MetadataFileFormat.GNPS && !title.equals(dataFileCol.getTitle())
+  private @NotNull ExportColumn createMappedColumn(
+      @NotNull final ProjectMetadataColumnMapping mapping,
+      @NotNull final StringMetadataColumn dataFileCol,
+      @NotNull final List<MetadataColumn<?>> metadataColumns) {
+    final StringMetadataColumn target = new StringMetadataColumn(mapping.targetColumn(),
+        "Mapped from metadata column " + mapping.sourceColumn());
+
+    if (mapping.sourceColumn().equals(dataFileCol.getTitle())) {
+      return new ExportColumn(target, raw -> orDefault(raw.getName(), mapping));
+    }
+
+    final MetadataColumn<?> source = metadataColumns.stream()
+        .filter(column -> column.getTitle().equals(mapping.sourceColumn())).findFirst()
+        .orElse(null);
+    return new ExportColumn(target,
+        raw -> orDefault(source == null ? "" : metadataValueAsString(source, raw), mapping));
+  }
+
+  private static @NotNull String orDefault(@Nullable final String text,
+      @NotNull final ProjectMetadataColumnMapping mapping) {
+    return text == null || text.isBlank() ? mapping.defaultValue() : text;
+  }
+
+  private @NotNull String formatHeaderTitle(@NotNull final ExportColumn column) {
+    final String title = column.definition().getTitle();
+    if (format == MetadataFileFormat.GNPS && !title.equals(MetadataColumn.FILENAME_HEADER)
         && !title.toLowerCase().endsWith(GNPS_PREFIX.toLowerCase())) {
       return GNPS_PREFIX + title;
     }
     return title;
   }
 
-  /**
-   * @return ma
-   */
-  private @NotNull String resolveExportValue(@NotNull final String title,
-      @NotNull final RawDataFile rawDataFile) {
-    if (title.equals(dataFileCol.getTitle())) {
-      return rawDataFile.getName();
-    }
-
-    final ProjectMetadataColumnMapping mapping = mappingsByTarget.get(title);
-    if (mapping != null) {
-      return resolveMappedValue(mapping, rawDataFile);
-    }
-
-    final MetadataColumn<?> column = findMetadataColumn(title);
-    return column == null ? "" : metadataValueAsString(column, rawDataFile);
-  }
-
-  private @NotNull String resolveMappedValue(@NotNull final ProjectMetadataColumnMapping mapping,
-      @NotNull final RawDataFile rawDataFile) {
-    if (mapping.sourceColumn().equals(dataFileCol.getTitle())) {
-      final String text = rawDataFile.getName();
-      return text == null || text.isBlank() ? mapping.defaultValue() : text;
-    }
-
-    final MetadataColumn<?> sourceColumn = metadataTable.getColumnByName(mapping.sourceColumn());
-    final String text =
-        sourceColumn == null ? "" : metadataValueAsString(sourceColumn, rawDataFile);
-    return text.isBlank() ? mapping.defaultValue() : text;
-  }
-
-  private <T> @Nullable T getMetadataValue(@NotNull final MetadataColumn<T> column,
-      @NotNull final RawDataFile rawDataFile) {
-    return metadataTable.getValue(column, rawDataFile);
-  }
-
   private @NotNull String metadataValueAsString(@NotNull final MetadataColumn<?> column,
       @NotNull final RawDataFile rawDataFile) {
-    final Object value = getMetadataValue(column, rawDataFile);
+    // [IMPORTANT] "" will be returned in case if it's unset
+    final Object value = metadataTable.getValue(column, rawDataFile);
     return value == null ? "" : value.toString();
   }
 
-  private void writeTypeDescriptions(final @NotNull ICSVWriter writer) {
-
-    final List<String> parametersDescriptions = new ArrayList<>();
-    final List<String> parametersTypes = new ArrayList<>();
-    for (final String title : exportTitles) {
-      final MetadataColumn<?> column =
-          title.equals(dataFileCol.getTitle()) ? dataFileCol : findMetadataColumn(title);
-      final ProjectMetadataColumnMapping mapping = mappingsByTarget.get(title);
-      parametersDescriptions.add(column != null ? column.getDescription()
-          : "Mapped from metadata column " + (mapping == null ? "" : mapping.sourceColumn()));
-      parametersTypes.add(column != null ? column.getType().toString()
-          : new StringMetadataColumn(title).getType().toString());
-    }
-
-    writer.writeNext(parametersDescriptions.toArray(String[]::new));
-    writer.writeNext(parametersTypes.toArray(String[]::new));
+  private void writeTypeDescriptions(final @NotNull ICSVWriter writer,
+      final @NotNull List<ExportColumn> columns) {
+    writer.writeNext(columns.stream().map(column -> column.definition().getDescription())
+        .toArray(String[]::new));
+    writer.writeNext(columns.stream().map(column -> column.definition().getType().toString())
+        .toArray(String[]::new));
   }
 
-  private @Nullable MetadataColumn<?> findMetadataColumn(@NotNull final String title) {
-    return columns.stream().filter(column -> column.getTitle().equals(title)).findFirst()
-        .orElse(null);
+  /**
+   * A column of the exported file.
+   *
+   * @param definition title, description and type of the column
+   * @param values     the exported text for a raw data file, empty if unset
+   */
+  private record ExportColumn(@NotNull MetadataColumn<?> definition,
+                              @NotNull Function<RawDataFile, String> values) {
+
   }
 
 }

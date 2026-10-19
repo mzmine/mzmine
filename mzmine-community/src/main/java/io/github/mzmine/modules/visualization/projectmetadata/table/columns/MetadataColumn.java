@@ -180,46 +180,44 @@ public abstract sealed class MetadataColumn<T> implements Comparable<MetadataCol
     return getTitle();
   }
 
+  /**
+   * The display and export order of columns: filename, sample name, run date, sample type, then
+   * alphabetical. A total order consistent with {@link #equals(Object)} so that sorting always
+   * gives the same order, also for titles that only differ in case.
+   */
   @Override
   public int compareTo(@NotNull MetadataColumn<T> o) {
     if (o == this) {
       return 0;
     }
 
-    // filename first
-    if (this.getTitle().equals(FILENAME_HEADER)) {
-      return -1;
-    }
-    if (o.getTitle().equals(FILENAME_HEADER)) {
-      return 1;
+    final int rankCompare = Integer.compare(orderRank(), o.orderRank());
+    if (rankCompare != 0) {
+      return rankCompare;
     }
 
-    // then sample name
-    if (this.getTitle().equalsIgnoreCase(SAMPLE_NAME_HEADER)) {
-      return -1;
+    // then alphabetical order, case-sensitive only to break ties
+    final int titleCompare = this.getTitle().toLowerCase().compareTo(o.getTitle().toLowerCase());
+    return titleCompare != 0 ? titleCompare : this.getTitle().compareTo(o.getTitle());
+  }
+
+  /**
+   * @return rank of the default columns that are sorted first, all others share the last rank
+   */
+  private int orderRank() {
+    if (title.equals(FILENAME_HEADER)) {
+      return 0;
     }
-    if (o.getTitle().equalsIgnoreCase(SAMPLE_NAME_HEADER)) {
+    if (title.equalsIgnoreCase(SAMPLE_NAME_HEADER)) {
       return 1;
     }
-
-    // then run data
-    if (this.getTitle().equalsIgnoreCase(DATE_HEADER)) {
-      return -1;
+    if (title.equalsIgnoreCase(DATE_HEADER)) {
+      return 2;
     }
-    if (o.getTitle().equalsIgnoreCase(DATE_HEADER)) {
-      return 1;
+    if (title.equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
+      return 3;
     }
-
-    // then sample type
-    if (this.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
-      return -1;
-    }
-    if (o.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
-      return 1;
-    }
-
-    // then alphabetical order
-    return this.getTitle().toLowerCase().compareTo(o.getTitle().toLowerCase());
+    return 4;
   }
 
   /**
