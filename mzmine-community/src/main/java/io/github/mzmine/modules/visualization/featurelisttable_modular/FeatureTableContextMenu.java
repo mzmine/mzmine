@@ -64,7 +64,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
@@ -94,14 +93,11 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
-import io.github.mzmine.modules.visualization.image.ColocatedImageVisualizerTab;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
 import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
@@ -114,7 +110,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectr
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
@@ -669,15 +664,9 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null
             && selectedOrBestFeature.getRawDataFile() instanceof ImagingRawDataFile);
     showImageFeatureItem.visibleProperty().bind(hasImagingData);
-    showImageFeatureItem.setOnAction(_ -> {
-      ImageVisualizerParameters params = (ImageVisualizerParameters) ConfigService.getConfiguration()
-          .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
-      params.setParameter(ImageVisualizerParameters.imageNormalization,
-          ConfigService.getConfiguration().getImageNormalization());
-      params.setParameter(ImageVisualizerParameters.imageTransformation,
-          ConfigService.getConfiguration().getImageTransformation());// same as in feature table.
-      MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedOrBestFeature, params));
-    });
+    showImageFeatureItem.setOnAction(
+        _ -> IntensityMap3DModule.showFeatures(List.of(selectedOrBestFeature),
+            IntensityMapProjection.TOP_VIEW));
 
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
@@ -689,13 +678,10 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null);
-    show2DItem.setOnAction(_ -> TwoDVisualizerModule.show2DVisualizerSetupDialog(
-        selectedOrBestFeature.getRawDataFile(), selectedOrBestFeature.getRawDataPointsMZRange(),
-        selectedOrBestFeature.getRawDataPointsRTRange(),
-        selectedOrBestFeature.getRepresentativePolarity()));
+    show2DItem.setOnAction(openFeatureVisualizer(IntensityMapProjection.TOP_VIEW));
 
     final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D", () -> selectedRow != null);
-    show3DItem.setOnAction(open3DFeaturePlot());
+    show3DItem.setOnAction(openFeatureVisualizer(IntensityMapProjection.PERSPECTIVE));
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
         "Plot using Intensity plot module", () -> !selectedRows.isEmpty() && selectedRow != null);
@@ -856,22 +842,18 @@ public class FeatureTableContextMenu extends ContextMenu {
             showCorrelatedImageFeaturesItem);
   }
 
-  private @NotNull EventHandler<ActionEvent> open3DFeaturePlot() {
+  /**
+   * @param projection the 2D or the 3D visualizer
+   */
+  private @NotNull EventHandler<ActionEvent> openFeatureVisualizer(
+      @NotNull final IntensityMapProjection projection) {
     return _ -> {
       final List<Feature> features = getSelectedOrBestFeatures();
       if (features.isEmpty()) {
         return;
       }
 
-      final RawDataFile[] dataFiles = features.stream().map(Feature::getRawDataFile)
-          .toArray(RawDataFile[]::new);
-
-      final Range<Double> mzRange = features.stream().map(Feature::getRawDataPointsMZRange)
-          .reduce(Range::span).orElse(null);
-      final Range<Float> rtRange = features.stream().map(Feature::getRawDataPointsRTRange)
-          .reduce(Range::span).orElse(null);
-
-      Fx3DVisualizerModule.setupNew3DVisualizer(dataFiles, mzRange, rtRange, features);
+      IntensityMap3DModule.showFeatures(features, projection);
     };
   }
 
@@ -1104,13 +1086,20 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void showCorrelatedImageFeatures() {
-    if (!selectedRowHasCorrelationData()) {
+    final ModularFeature selected = selectedRow == null ? null : selectedRow.streamFeatures()
+        .filter(f -> f.getRawDataFile() instanceof ImagingRawDataFile)
+        .max(Comparator.comparingDouble(Feature::getHeight)).orElse(null);
+    final R2RMap<RowsRelationship> correlations = selectedRow == null ? null
+        : selectedRow.getFeatureList().getRowMap(Type.MS1_FEATURE_CORR).orElse(null);
+    if (selected == null || correlations == null) {
       return;
     }
-
-    ColocatedImageVisualizerTab tab = new ColocatedImageVisualizerTab(
-        "Correlated Images in %s".formatted(table.getFeatureList().getName()), table);
-    MZmineCore.getDesktop().addTab(tab);
+    final List<Feature> colocated = correlations.streamAllCorrelatedRows(selectedRow,
+            selectedRow.getFeatureList().getRows())
+        .sorted(Comparator.comparingDouble(RowsRelationship::getScore).reversed())
+        .map(relationship -> (Feature) relationship.getOtherRow(selectedRow)
+            .getFeature(selected.getRawDataFile())).filter(Objects::nonNull).toList();
+    IntensityMap3DModule.showColocatedImages(selected, colocated);
   }
 
   private void showDiaMirror() {
