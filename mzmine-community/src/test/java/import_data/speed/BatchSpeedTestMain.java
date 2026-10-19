@@ -41,6 +41,7 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -205,7 +206,12 @@ public class BatchSpeedTestMain {
       final boolean dataImportOnce, final String runId, final SpeedTestEnvironment env,
       final SpeedMeasurementWriter writer)
       throws ParserConfigurationException, IOException, SAXException {
-    final LoadedBatchQueue fullBatch = BatchQueue.loadFromFile(getFileOrResource(job.batchFile()));
+    final File batchFile = getFileOrResource(job.batchFile());
+    if (!batchFile.isFile() || !batchFile.canRead()) {
+      logger.severe("Cannot read batch file " + batchFile.getAbsolutePath());
+      System.exit(1);
+    }
+    final LoadedBatchQueue fullBatch = BatchQueue.loadFromFile(batchFile);
 
     // versions might have changed
     if (!fullBatch.errorMessages().isEmpty()) {
@@ -355,7 +361,13 @@ public class BatchSpeedTestMain {
     if (file.exists()) {
       return file;
     }
-    return new File(BatchSpeedTestMain.class.getClassLoader().getResource(name).getFile());
+    final URL resource = BatchSpeedTestMain.class.getClassLoader().getResource(name);
+    if (resource == null) {
+      logger.severe("Cannot find " + name + " as local file or as resource");
+      System.exit(1);
+      return file; // unreachable, keeps the compiler happy about the null check
+    }
+    return new File(resource.getFile());
   }
 
 }
