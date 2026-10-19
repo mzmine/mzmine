@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,11 +30,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import java.util.Map;
 
 public class ExportScansParameters extends SimpleParameterSet {
 
   public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter("File",
       "file destination", "scans");
+
   public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
       "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
       ScanFormats.values(), ScanFormats.mgf);
@@ -42,8 +44,28 @@ public class ExportScansParameters extends SimpleParameterSet {
   public static final BooleanParameter export_masslist = new BooleanParameter(
       "Export centroid mass list", "Exports the centroid mass list instead of raw data", true);
 
+  /**
+   * Controls append vs. overwrite behaviour. Default is {@link FileWriterOption#APPEND} so that
+   * batch files saved before this parameter was introduced continue to work unchanged --
+   * {@link #handleLoadedParameters} restores the default when the key is absent.
+   */
+  public static final ComboParameter<FileWriterOption> writerOption = new ComboParameter<>(
+      "File write mode",
+      "Append new scans to an existing file, or overwrite it on each run.",
+      FileWriterOption.values(), FileWriterOption.APPEND);
+
   public ExportScansParameters() {
-    super(new Parameter[]{file, formats, export_masslist});
+    super(new Parameter[]{file, formats, export_masslist, writerOption});
   }
 
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    // writerOption did not exist before it was introduced; old batches must keep APPEND
+    // so behaviour is preserved exactly as it was.
+    if (!loadedParams.containsKey(writerOption.getName())) {
+      setParameter(writerOption, FileWriterOption.APPEND);
+    }
+  }
 }

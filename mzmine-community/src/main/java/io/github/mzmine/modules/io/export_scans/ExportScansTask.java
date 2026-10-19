@@ -66,6 +66,7 @@ public class ExportScansTask extends AbstractTask {
   private int progressMax;
 
   private boolean useMassList;
+  private FileWriterOption writerOption;
   private MzMLFileExportMethod method;
 
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
@@ -73,11 +74,26 @@ public class ExportScansTask extends AbstractTask {
     progress = 0;
     progressMax = 0;
     this.scans = scans;
-    useMassList = parameters.getParameter(ExportScansParameters.export_masslist).getValue();
-    extension = parameters.getParameter(ExportScansParameters.formats).getValue().toString();
 
-    this.exportFile = FileAndPathUtil
-        .getRealFilePath(parameters.getParameter(ExportScansParameters.file).getValue(), extension);
+    // Both ExportScansParameters and ExportScansFromRawFilesParameters declare the same parameter
+    // names -- resolve whichever set is actually in use.
+    if (parameters instanceof ExportScansFromRawFilesParameters) {
+      useMassList = parameters.getParameter(ExportScansFromRawFilesParameters.export_masslist)
+          .getValue();
+      extension = parameters.getParameter(ExportScansFromRawFilesParameters.formats).getValue()
+          .toString();
+      this.exportFile = FileAndPathUtil.getRealFilePath(
+          parameters.getParameter(ExportScansFromRawFilesParameters.file).getValue(), extension);
+      writerOption = parameters.getParameter(ExportScansFromRawFilesParameters.writerOption)
+          .getValue();
+    } else {
+      useMassList = parameters.getParameter(ExportScansParameters.export_masslist).getValue();
+      extension = parameters.getParameter(ExportScansParameters.formats).getValue().toString();
+      this.exportFile = FileAndPathUtil
+          .getRealFilePath(parameters.getParameter(ExportScansParameters.file).getValue(),
+              extension);
+      writerOption = parameters.getParameter(ExportScansParameters.writerOption).getValue();
+    }
   }
 
   @Override
@@ -139,8 +155,9 @@ public class ExportScansTask extends AbstractTask {
    */
   public void exportText() throws IOException {
 
-    // Open the writer - append data if file already exists
-    final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
+    // Open the writer - mode controlled by the writerOption parameter
+    final BufferedWriter writer = new BufferedWriter(
+        new FileWriter(exportFile, writerOption.isAppend()));
     try {
       for (Scan scan : scans) {
         logger.info("Exporting scan #" + scan.getScanNumber() + " of raw file: "
