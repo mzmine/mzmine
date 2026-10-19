@@ -45,6 +45,8 @@ public final class HeapPeakTracker {
   private final AtomicLong peakUsedBytes = new AtomicLong(0);
   // -1 while no collection was observed
   private final AtomicLong peakUsedAfterGcBytes = new AtomicLong(-1);
+  // after full collections only, which free all garbage. -1 while no full collection was observed
+  private final AtomicLong peakUsedAfterFullGcBytes = new AtomicLong(-1);
 
   private HeapPeakTracker() {
     startUptimeMillis = ManagementFactory.getRuntimeMXBean().getUptime();
@@ -69,12 +71,15 @@ public final class HeapPeakTracker {
     activeTrackers.remove(this);
     peakUsedBytes.accumulateAndGet(currentUsedHeapBytes(), Math::max);
 
-    final long afterGc = peakUsedAfterGcBytes.get();
+    // decision: the heap after a full collection is the live data, a young collection keeps the
+    // garbage in the old generation, so full collections are preferred if there were any
+    final long afterFullGc = peakUsedAfterFullGcBytes.get();
+    final long afterGc = afterFullGc >= 0 ? afterFullGc : peakUsedAfterGcBytes.get();
     return new HeapPeak(toGB(peakUsedBytes.get()), afterGc < 0 ? null : toGB(afterGc));
   }
 
   private void onGc(final long gcStartUptimeMillis, final long usedBeforeBytes,
-      final long usedAfterBytes) {
+      final long usedAfterBytes, final boolean fullGc) {
     // decision: attribute a collection by its start time so that the explicit System.gc() at the
     // end of the previous step is not added to the next step when its notification arrives late
     if (gcStartUptimeMillis < startUptimeMillis) {
@@ -82,6 +87,9 @@ public final class HeapPeakTracker {
     }
     peakUsedBytes.accumulateAndGet(usedBeforeBytes, Math::max);
     peakUsedAfterGcBytes.accumulateAndGet(usedAfterBytes, Math::max);
+    if (fullGc) {
+      peakUsedAfterFullGcBytes.accumulateAndGet(usedAfterBytes, Math::max);
+    }
   }
 
   private static long currentUsedHeapBytes() {
@@ -126,12 +134,15 @@ public final class HeapPeakTracker {
         .equals(notification.getType())) {
       return;
     }
-    final var gcInfo = GarbageCollectionNotificationInfo.from(
-        (CompositeData) notification.getUserData()).getGcInfo();
+    final GarbageCollectionNotificationInfo info = GarbageCollectionNotificationInfo.from(
+        (CompositeData) notification.getUserData());
+    final var gcInfo = info.getGcInfo();
+    // e.g. "end of major GC" for full collections like System.gc()
+    final boolean fullGc = info.getGcAction().contains("major");
     final long before = sumHeapPools(gcInfo.getMemoryUsageBeforeGc(), heapPools);
     final long after = sumHeapPools(gcInfo.getMemoryUsageAfterGc(), heapPools);
     for (final HeapPeakTracker tracker : activeTrackers) {
-      tracker.onGc(gcInfo.getStartTime(), before, after);
+      tracker.onGc(gcInfo.getStartTime(), before, after, fullGc);
     }
   }
 

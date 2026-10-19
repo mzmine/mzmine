@@ -32,14 +32,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.labels.StandardXYZToolTipGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StackedXYAreaRenderer2;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
@@ -50,6 +55,7 @@ import org.jfree.chart.urls.StandardXYURLGenerator;
 import org.jfree.chart.urls.StandardXYZURLGenerator;
 import org.jfree.chart.urls.XYURLGenerator;
 import org.jfree.chart.util.Args;
+import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import org.jfree.data.xy.TableXYDataset;
 import org.jfree.data.xy.XYDataset;
@@ -477,6 +483,43 @@ public class FxChartFactory {
 
     FxJFreeChart chart = new FxJFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, legend);
     ConfigService.getConfiguration().getDefaultChartTheme().apply(chart);
+    return chart;
+  }
+
+  /**
+   * Creates a bar chart of a {@link CategoryDataset} with flat bars. Multiple series are drawn as
+   * grouped bars per category.
+   *
+   * @param title             the chart title ({@code null} permitted).
+   * @param categoryAxisLabel a label for the category axis ({@code null} permitted).
+   * @param valueAxisLabel    a label for the value axis ({@code null} permitted).
+   * @param dataset           the dataset for the chart ({@code null} permitted).
+   * @param orientation       the plot orientation (horizontal or vertical).
+   * @param legend            a flag specifying whether or not a legend is required.
+   * @param tooltips          configure chart to generate tool tips?
+   * @return A bar chart with a {@link CategoryPlot} and a {@link BarRenderer}.
+   */
+  public static @NotNull FxJFreeChart createBarChart(@Nullable String title,
+      @Nullable String categoryAxisLabel, @Nullable String valueAxisLabel,
+      @Nullable CategoryDataset dataset, @NotNull PlotOrientation orientation, boolean legend,
+      boolean tooltips) {
+    final BarRenderer renderer = new BarRenderer();
+    if (tooltips) {
+      renderer.setDefaultToolTipGenerator(new StandardCategoryToolTipGenerator());
+    }
+    final CategoryPlot plot = new CategoryPlot(dataset, new CategoryAxis(categoryAxisLabel),
+        new NumberAxis(valueAxisLabel), renderer);
+    plot.setOrientation(orientation);
+
+    final FxJFreeChart chart = new FxJFreeChart(plot);
+    chart.setTitle(title);
+    if (!legend) {
+      chart.removeLegend();
+    }
+    ConfigService.getConfiguration().getDefaultChartTheme().apply(chart);
+    // after the theme, which sets a gradient bar painter
+    renderer.setBarPainter(new StandardBarPainter());
+    renderer.setShadowVisible(false);
     return chart;
   }
 

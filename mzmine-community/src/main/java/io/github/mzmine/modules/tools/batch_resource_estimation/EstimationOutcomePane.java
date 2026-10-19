@@ -1,0 +1,97 @@
+package io.github.mzmine.modules.tools.batch_resource_estimation;
+
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.util.color.ColorsFX;
+import io.github.mzmine.main.ConfigService;
+import java.util.function.IntConsumer;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Banner with the verdict of the resource estimation: a colored box with an icon, the verdict and
+ * its reasons. Offers the larger run if one is needed.
+ */
+public final class EstimationOutcomePane extends HBox {
+
+  private static final int ICON_SIZE = 40;
+
+  private final @NotNull IntConsumer onStartLargerRun;
+  private final Label title = FxLabels.newLabel(Styles.BOLD_TITLE, "");
+  private final VBox details = new VBox(2);
+  private final HBox actions = FxLayout.newHBox(Pos.CENTER_LEFT);
+
+  /**
+   * @param onStartLargerRun starts a larger run with the given number of files
+   */
+  public EstimationOutcomePane(@NotNull final IntConsumer onStartLargerRun) {
+    this.onStartLargerRun = onStartLargerRun;
+    setSpacing(14);
+    setAlignment(Pos.CENTER_LEFT);
+    setPadding(new Insets(10, 14, 10, 14));
+    title.setTextAlignment(TextAlignment.LEFT);
+  }
+
+  public void setOutcome(@NotNull final EstimationOutcome outcome) {
+    final EstimationVerdict verdict = outcome.verdict();
+    final Color color = color(verdict);
+    final FxIcons icon = switch (verdict) {
+      case ENOUGH_RESOURCES -> FxIcons.CHECK_CIRCLE_FILL;
+      case ENOUGH_RESOURCES_UNCERTAIN -> FxIcons.CHECK_CIRCLE;
+      case LARGER_RUN_NEEDED -> FxIcons.RELOAD;
+      case NOT_ENOUGH_RESOURCES -> FxIcons.X_CIRCLE_FILL;
+    };
+
+    title.setText(verdict.title());
+    details.getChildren().setAll(outcome.details().stream().map(text -> {
+      final Label label = FxLabels.newLabel(Styles.REGULAR, text);
+      label.setTextAlignment(TextAlignment.LEFT);
+      return label;
+    }).toList());
+    final Integer nextRunFiles = outcome.nextRunFiles();
+    if (nextRunFiles != null) {
+      actions.getChildren().setAll(FxButtons.createButton(
+          "Add a run with %d files".formatted(nextRunFiles), FxIcons.RELOAD,
+          "Runs the batch on %d files and adds the run to this result".formatted(nextRunFiles),
+          () -> onStartLargerRun.accept(nextRunFiles)));
+    } else {
+      actions.getChildren().clear();
+    }
+
+    final VBox text = new VBox(6, title, details, actions);
+    HBox.setHgrow(text, Priority.ALWAYS);
+    getChildren().setAll(FxIconUtil.getFontIcon(icon, ICON_SIZE, color), text);
+    // tinted background with a strong left border in the color of the verdict
+    setStyle("""
+        -fx-background-color: #%s;
+        -fx-border-color: %s;
+        -fx-border-width: 0 0 0 6;
+        -fx-background-radius: 6;
+        -fx-border-radius: 6;""".formatted(
+        ColorsFX.toHexOpacityString(Color.color(color.getRed(), color.getGreen(), color.getBlue(),
+            0.15)), ColorsFX.toHexString(color)));
+  }
+
+  /**
+   * Uses the positive and negative colors of the palette that respect the color vision setting.
+   */
+  private static @NotNull Color color(@NotNull final EstimationVerdict verdict) {
+    return switch (verdict) {
+      case ENOUGH_RESOURCES, ENOUGH_RESOURCES_UNCERTAIN ->
+          ConfigService.getDefaultColorPalette().getPositiveColor();
+      case LARGER_RUN_NEEDED -> ColorsFX.YELLOW_WARN;
+      case NOT_ENOUGH_RESOURCES -> ConfigService.getDefaultColorPalette().getNegativeColor();
+    };
+  }
+}

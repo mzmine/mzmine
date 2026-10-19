@@ -12,10 +12,12 @@ import org.jetbrains.annotations.Nullable;
  *                          the end of the window. This depends on -Xmx as the garbage collector lets
  *                          the heap fill up before it collects, so it is an upper bound of what the
  *                          window needs.
- * @param peakHeapAfterGcGB highest used heap right after a garbage collection. This approximates
- *                          the peak of live data and is the better basis to estimate the required
- *                          heap. Null if no garbage collection happened during the window or GC
- *                          notifications are not available.
+ * @param peakHeapAfterGcGB highest used heap right after a full garbage collection, which is the
+ *                          peak of live data, or after any collection if there was no full one. A
+ *                          young collection keeps the garbage of the old generation, so this is an
+ *                          upper bound without full collections. The better basis to estimate the
+ *                          required heap. Null if no garbage collection happened during the window
+ *                          or GC notifications are not available.
  */
 public record HeapPeak(double peakHeapGB, @Nullable Double peakHeapAfterGcGB) {
 

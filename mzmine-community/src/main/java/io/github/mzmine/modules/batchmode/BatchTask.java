@@ -104,7 +104,7 @@ public class BatchTask extends AbstractTask {
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
   // collected in parallel to stepTimes - temp file (MemoryMapStorage) statistics per step
   private final List<StepStorageMeasurement> stepStorageStats = new ArrayList<>();
-  private final boolean runGCafterBatchStep;
+  private boolean runGCafterBatchStep;
   // guards against logging the final summary twice, as run() has multiple exit paths
   private boolean summaryPrinted = false;
   private int processedSteps;
@@ -510,6 +510,15 @@ public class BatchTask extends AbstractTask {
 
   public List<StepTimeMeasurement> getStepTimes() {
     return stepTimes;
+  }
+
+  /**
+   * Overrides the {@link MZminePreferences#runGCafterBatchStep} preference for this batch. A GC
+   * after each step makes {@link StepTimeMeasurement#usedHeapGB()} the heap that the step retains.
+   * Call before {@link #run()}.
+   */
+  public void setRunGCafterBatchStep(final boolean runGCafterBatchStep) {
+    this.runGCafterBatchStep = runGCafterBatchStep;
   }
 
   public int currentStep() {

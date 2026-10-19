@@ -111,6 +111,7 @@ import io.github.mzmine.modules.io.spectral_library_from_matches.MatchesSubsetLi
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
+import io.github.mzmine.modules.tools.batch_resource_estimation.BatchResourceEstimationModule;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
@@ -376,7 +377,7 @@ public abstract class AbstractWorkspace implements Workspace {
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class,
-        QualityParametersModule.class);
+        QualityParametersModule.class, BatchResourceEstimationModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
         MsMsQualityExportModule.class, MatchesSubsetLibraryModule.class,
         MergeLibrariesModule.class);
