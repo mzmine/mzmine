@@ -54,7 +54,7 @@ public class ProjectMetadataWriter {
   private final MetadataTable metadataTable;
   private final MetadataFileFormat format;
   private final List<ProjectMetadataColumnMapping> columnMappings;
-  private Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
+  private List<MetadataColumn<?>> columns;
   private StringMetadataColumn dataFileCol;
   private List<String> exportTitles;
   private Map<String, ProjectMetadataColumnMapping> mappingsByTarget;
@@ -86,15 +86,15 @@ public class ProjectMetadataWriter {
    */
   public boolean exportTo(@NotNull final File file,
       @NotNull final List<? extends RawDataFile> rawDataFiles) {
-    if (metadataTable.getData().isEmpty() && columnMappings.isEmpty()) {
+    // copy to pin the column order used for the header and all rows
+    columns = List.copyOf(metadataTable.getColumns());
+    if (columns.isEmpty() && columnMappings.isEmpty()) {
       logger.info("Project metadata is empty, nothing to export");
       return true;
     }
 
     try (final ICSVWriter csvWriter = CSVParsingUtils.createDefaultWriterAutoDetect(file, "tsv",
         WriterOptions.REPLACE)) {
-      data = metadataTable.getData();
-
       // create the file header
       dataFileCol = metadataTable.createDataFileColumn();
       exportTitles = createExportTitles();
@@ -138,7 +138,7 @@ public class ProjectMetadataWriter {
   private @NotNull List<String> createExportTitles() {
     final LinkedHashSet<String> titles = new LinkedHashSet<>();
     titles.add(dataFileCol.getTitle());
-    data.keySet().stream().map(MetadataColumn::getTitle).forEach(titles::add);
+    columns.stream().map(MetadataColumn::getTitle).forEach(titles::add);
     columnMappings.stream().map(ProjectMetadataColumnMapping::targetColumn)
         .filter(title -> !title.equals(dataFileCol.getTitle())).forEach(titles::add);
     return List.copyOf(titles);
@@ -221,7 +221,7 @@ public class ProjectMetadataWriter {
   }
 
   private @Nullable MetadataColumn<?> findMetadataColumn(@NotNull final String title) {
-    return data.keySet().stream().filter(column -> column.getTitle().equals(title)).findFirst()
+    return columns.stream().filter(column -> column.getTitle().equals(title)).findFirst()
         .orElse(null);
   }
 

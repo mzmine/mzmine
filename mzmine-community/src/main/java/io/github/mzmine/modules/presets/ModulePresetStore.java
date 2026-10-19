@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.util.presets.PresetCategory;
 import io.github.mzmine.util.presets.PresetGroup;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ModulePresetStore extends AbstractJsonPresetStore<ModulePreset> {
 
@@ -74,7 +75,7 @@ public class ModulePresetStore extends AbstractJsonPresetStore<ModulePreset> {
   }
 
   @Override
-  public FxPresetEditor createPresetEditor() {
+  public @Nullable FxPresetEditor createPresetEditor() {
     // currently no editor. user should just save same name in the batch dialog
     return null;
   }

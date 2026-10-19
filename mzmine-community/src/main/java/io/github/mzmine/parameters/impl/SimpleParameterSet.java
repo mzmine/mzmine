@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -77,6 +78,13 @@ public class SimpleParameterSet implements ParameterSet {
   protected String helpUrl = null;
   private String moduleNameAttribute;
   private boolean skipSensitiveParameters = false;
+
+  /**
+   * false as long as this set is a scratch copy, like the one of the module configuration that
+   * every setup dialog reuses. Not copied by {@link #cloneParameterSet()}, a clone is a scratch
+   * copy again until it becomes the configuration of a batch step.
+   */
+  private boolean batchStepParameters = false;
 
   /**
    * Error messages populated during loading from xml. This value is not cloned. Do not include in
@@ -115,6 +123,16 @@ public class SimpleParameterSet implements ParameterSet {
         ((ParameterContainer) parameter).setSkipSensitiveParameters(skipSensitiveParameters);
       }
     }
+  }
+
+  @Override
+  public void setAsBatchStepParameters() {
+    batchStepParameters = true;
+  }
+
+  @Override
+  public boolean isBatchStepParameters() {
+    return batchStepParameters;
   }
 
   @Override
@@ -210,13 +228,13 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends Parameter<?>> T getParameter(T parameter) {
+  public @NotNull <T extends Parameter<?>> Optional<T> tryGetParameter(T parameter) {
     for (Parameter<?> p : parameters) {
       if (p.getName().equals(parameter.getName())) {
-        return (T) p;
+        return Optional.of((T) p);
       }
     }
-    throw new IllegalArgumentException("Parameter " + parameter.getName() + " does not exist");
+    return Optional.empty();
   }
 
   @Override
@@ -238,8 +256,7 @@ public class SimpleParameterSet implements ParameterSet {
     boolean allParametersOK = true;
     for (Parameter<?> p : parameters) {
       // this is done in batch mode where no data is loaded when the parameters are checked
-      if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
-          || p instanceof FeatureListsParameter)) {
+      if (skipRawDataAndFeatureListParameters && ParameterUtils.skipForBatchModeValidation(p)) {
         continue;
       }
 

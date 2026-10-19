@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 
@@ -34,5 +36,15 @@ public class MultilinearRawFileRtCalibrationParameters extends SimpleParameterSe
 
   public MultilinearRawFileRtCalibrationParameters() {
     super(correctionBandwidth);
+  }
+
+  public static MultilinearRawFileRtCalibrationParameters create(double bandwidth) {
+    ParameterSet parameterSet = new MultilinearRawFileRtCalibrationParameters().cloneParameterSet();
+    if (bandwidth < 0.01d || bandwidth > 1d) {
+      throw new IllegalArgumentException("Bandwidth must be between 0.01 and 1");
+    }
+
+    parameterSet.setParameter(correctionBandwidth, bandwidth);
+    return (MultilinearRawFileRtCalibrationParameters) parameterSet;
   }
 }

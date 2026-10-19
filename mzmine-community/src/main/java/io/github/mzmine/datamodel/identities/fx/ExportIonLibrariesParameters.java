@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 
@@ -36,6 +37,6 @@ public class ExportIonLibrariesParameters extends SimpleParameterSet {
       "Choose directory to save ion libraries to", "List of files to import.");
 
   public ExportIonLibrariesParameters() {
-    super(directory);
+    super(IonsDocumentation.DEFINE_LIBRARIES, directory);
   }
 }

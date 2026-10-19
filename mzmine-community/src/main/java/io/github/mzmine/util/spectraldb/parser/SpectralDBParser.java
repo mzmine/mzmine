@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +51,17 @@ public abstract class SpectralDBParser {
   protected final Object LOCK = new Object();
   private List<SpectralLibraryEntry> list;
   private int processedEntries = 0;
+
+  /**
+   * Size of the parsed file, set by {@link #initByteProgress(File)}. Reporting progress in bytes
+   * needs nothing but the file size, unlike a line count which costs a full extra pass over the
+   * file.
+   */
+  private long totalBytes = 0L;
+  /**
+   * Bytes consumed so far, kept up to date by the parser while it reads.
+   */
+  protected final AtomicLong processedBytes = new AtomicLong(0L);
 
   public SpectralDBParser(int bufferEntries, LibraryEntryProcessor processor) {
     list = new ArrayList<>();
@@ -136,6 +148,30 @@ public abstract class SpectralDBParser {
 
   public int getProcessedEntries() {
     return processedEntries + list.size();
+  }
+
+  /**
+   * Report progress from the bytes consumed instead of counting entries or lines up front.
+   */
+  protected void initByteProgress(@NotNull final File dataBaseFile) {
+    totalBytes = dataBaseFile.length();
+    processedBytes.set(0L);
+  }
+
+  /**
+   * Marks the file as read to the end. The last entry usually stops a few bytes short of the file
+   * size, for example before a trailing newline, and progress should still end at 1.
+   */
+  protected void finishByteProgress() {
+    processedBytes.set(totalBytes);
+  }
+
+  /**
+   * @return progress in [0, 1] or -1 if {@link #initByteProgress(File)} was not used
+   */
+  protected double getByteProgress() {
+    final long total = totalBytes;
+    return total > 0L ? Math.min(1d, processedBytes.get() / (double) total) : -1d;
   }
 
   public abstract double getProgress();

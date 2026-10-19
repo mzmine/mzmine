@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package util;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.types.abstr.StringListType;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -99,4 +100,34 @@ public class ParsingUtilsTest {
         () -> ParsingUtils.stringToFloatRange("2A3;2E5"));
   }
 
+  @Test
+  void testStringListWithSeparator() {
+    final List<String> values = List.of("Hi;A", "Hello");
+    final String str = ParsingUtils.stringListToString(values);
+    Assertions.assertEquals("\"Hi;A\";Hello", str);
+    Assertions.assertEquals(values, ParsingUtils.stringToStringList(str));
+  }
+
+  @Test
+  void testStringListRoundTrip() {
+    final List<List<String>> lists = List.of(List.of(), List.of("single"),
+        List.of("Hello", "World"), List.of(" leading", "trailing ", " "),
+        List.of("say \"hi\"", "\"quoted\"", "a\"b;c"), List.of("line\nbreak", "x"),
+        List.of("[M+H]+", "{json: 1}", "a,b"), List.of(";", ";;", "\""));
+
+    for (List<String> values : lists) {
+      final String str = ParsingUtils.stringListToString(values);
+      Assertions.assertEquals(values, ParsingUtils.stringToStringList(str), str);
+    }
+  }
+
+  @Test
+  void testStringListTypeParse() {
+    Assertions.assertEquals(List.of("Hi;A", "Hello"), StringListType.parse("\"Hi;A\"; Hello"));
+    Assertions.assertEquals(List.of("a", "b"), StringListType.parse("a; ;b;"));
+    // brackets are regular text, no JSON
+    Assertions.assertEquals(List.of("[M+H]+", "[M+Na]+"), StringListType.parse("[M+H]+;[M+Na]+"));
+    final List<String> values = List.of("Hi;A", "say \"hi\"", "Hello");
+    Assertions.assertEquals(values, StringListType.parse(ParsingUtils.stringListToString(values)));
+  }
 }

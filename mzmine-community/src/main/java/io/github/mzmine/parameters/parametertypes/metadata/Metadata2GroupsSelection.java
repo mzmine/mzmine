@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,7 @@ public record Metadata2GroupsSelection(@NotNull String columnName, @NotNull Stri
 
   /**
    * @return Checks if the current metadata table contains the specified column and the specified
-   * value. Case sensitive.
+   * value. Case insensitive, see {@link #matchesValue(Object)}.
    */
   @Override
   public boolean isValid() {
@@ -76,21 +77,21 @@ public record Metadata2GroupsSelection(@NotNull String columnName, @NotNull Stri
     return false;
   }
 
+  /**
+   * Matches ignoring case and surrounding whitespace, so that a metadata column holding {@code QC}
+   * and a selection of {@code qc} refer to the same group.
+   */
   @Override
   public boolean matchesValue(@Nullable Object value) {
-    if (value == null) {
-      return false;
-    }
-    final String valueStr = value.toString();
-    return groupA.equals(valueStr) || groupB.equals(valueStr);
+    return matchesA(value) || matchesB(value);
   }
 
   public boolean matchesA(@Nullable Object value) {
-    return value != null && groupA.equals(value.toString());
+    return value != null && StringUtils.equalStrippedIgnoreCase(value, groupA);
   }
 
   public boolean matchesB(@Nullable Object value) {
-    return value != null && groupB.equals(value.toString());
+    return value != null && StringUtils.equalStrippedIgnoreCase(value, groupB);
   }
 
   /**

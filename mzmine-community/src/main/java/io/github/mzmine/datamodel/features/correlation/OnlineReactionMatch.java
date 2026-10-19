@@ -130,4 +130,13 @@ public final class OnlineReactionMatch extends InternalTypedRowsRelationship {
   public int getPartnerRowId() {
     return getRowB().getID();
   }
+
+  @Override
+  public @NotNull OnlineReactionMatch withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    // the reaction is directed, so map educt and product instead of a and b. The constructor
+    // determines isSwappedAB again from the order of the new rows.
+    return new OnlineReactionMatch(isSwappedAB ? b : a, isSwappedAB ? a : b, reaction,
+        typeOfThisRow);
+  }
 }

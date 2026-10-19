@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataProjectIO;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -208,17 +209,22 @@ public class ProjectSavingTask extends AbstractTask {
         return;
       }
 
-      // Stage 3 - save PeakList objects
+      // Stage 3 - save project metadata
       currentStage++;
-      savePeakLists(zipStream);
+      currentSavedObjectName = "project metadata";
+      ProjectMetadataProjectIO.saveToZip(zipStream);
+      currentSavedObjectName = "raw file metadata";
+      RawFileMetadataProjectIO.saveToZip(zipStream, savedProject);
+
       if (isCanceled()) {
         zipStream.close();
         tempFile.delete();
         return;
       }
 
-      // Stage 4 - save user parameters
+      // Stage 4 - save PeakList objects
       currentStage++;
+      savePeakLists(zipStream);
       if (isCanceled()) {
         zipStream.close();
         tempFile.delete();

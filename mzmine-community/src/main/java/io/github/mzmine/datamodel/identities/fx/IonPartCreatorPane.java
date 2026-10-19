@@ -29,6 +29,7 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonPartSorting;
@@ -74,8 +75,7 @@ class IonPartCreatorPane extends BorderPane {
             """
                 Define ion building blocks by molecular formula, charge state, neutral mass difference, and a name.
                 Either the formula or the name+mass needs to be defined.
-                Click to open the documentation.""",
-            "https://mzmine.github.io/mzmine_documentation/ions/ions.html#define-parts"),
+                Click to open the documentation.""", IonsDocumentation.DEFINE_PARTS),
         newBoldTitle("List of ion building blocks"));
 
     IonPartDefinitionPane ionPartDefinitionPane = new IonPartDefinitionPane(this::addPart, true);

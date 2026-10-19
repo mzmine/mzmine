@@ -27,12 +27,20 @@ package io.github.mzmine.javafx.components.factories;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Tooltip;
 
 public class FxCheckBox {
 
   public static CheckBox newCheckBox(String text, BooleanProperty selectedProperty) {
     var box = new CheckBox(text);
     box.selectedProperty().bindBidirectional(selectedProperty);
+    return box;
+  }
+
+  public static CheckBox newCheckBox(String text, BooleanProperty selectedProperty,
+      String tooltip) {
+    var box = FxCheckBox.newCheckBox(text, selectedProperty);
+    box.setTooltip(new Tooltip(tooltip));
     return box;
   }
 }

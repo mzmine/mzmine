@@ -113,6 +113,11 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> implem
   }
 
   private void computeDataset() {
+    // the old plot does not match the new configuration anymore - clear it right away so that stale
+    // data is never shown while the new task is pending
+    model.setDatasets(List.of());
+    model.setUserWarning(null);
+
     // wait and update
     onTaskThreadDelayed(new VolcanoPlotUpdateTask(model));
   }

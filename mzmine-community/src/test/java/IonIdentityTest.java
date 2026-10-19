@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.BuildingIonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -98,13 +99,14 @@ public class IonIdentityTest {
     flist.addRow(rowSodiated);
 
     // add ions to rows - not really done much as the tasks handle this
-    final IonNetwork network = new IonNetwork(1);
+    final BuildingIonNetwork building = new BuildingIonNetwork(1);
     final IonIdentity ionH = new IonIdentity(hAdduct);
     rowProtonated.addIonIdentity(ionH);
     final IonIdentity ionNa = new IonIdentity(naAdduct);
     rowSodiated.addIonIdentity(ionNa);
-    network.put(rowProtonated, ionH);
-    network.put(rowSodiated, ionNa);
+    building.put(rowProtonated, ionH);
+    building.put(rowSodiated, ionNa);
+    building.setNetworkToAllRows();
 
     assertNotNull(rowProtonated.get(new IonIdentityListType()));
     assertNotNull(rowProtonated.get(IonIdentityListType.class));

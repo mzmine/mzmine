@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -36,6 +37,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -75,7 +77,7 @@ final class NormIntensityTestUtils {
   }
   static @NotNull FeatureIntensityNormalizationParameters createFeatureIntensityParametersAllSamples(
       FeatureIntensityNormalizationMode mode) {
-    return FeatureIntensityNormalizationParameters.create(List.of(SampleType.values()), mode);
+    return FeatureIntensityNormalizationParameters.create(SampleTypeFilter.all(), mode);
   }
 
   static @NotNull List<FeatureSelection> toFeatureSelections(

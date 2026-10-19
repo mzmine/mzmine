@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.statistics;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
@@ -45,6 +46,8 @@ public record UnivariateRowSignificanceTestConfig(@NotNull SignificanceTests sam
       UnivariateRowSignificanceTestConfig.class.getName());
 
   /**
+   * Might throw {@link MetadataValueDoesNotExistException}
+   *
    * @return A {@link UnivariateRowSignificanceTest} or null. The configuration is only returned if
    * the column exists and the respective values exist in that column.
    */
@@ -54,6 +57,8 @@ public record UnivariateRowSignificanceTestConfig(@NotNull SignificanceTests sam
   }
 
   /**
+   * Might throw {@link MetadataValueDoesNotExistException}
+   *
    * @param fullOrTableA the full data table with all samples or already split into table A
    * @param dataTableB   might be null if only a full feature table is provided
    */

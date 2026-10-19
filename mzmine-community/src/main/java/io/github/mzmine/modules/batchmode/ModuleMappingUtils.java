@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +44,26 @@ public class ModuleMappingUtils {
         "io.mzio.mzminepro.modules.otherdata.filt_shifttraces.ShiftTrimAndBinTracesModule");
 
     return oldNames;
+  }
+
+  /**
+   * Modules that were removed from mzmine. A batch step referencing one of these is dropped with a
+   * warning instead of failing the whole batch file, because the step cannot be recreated.
+   *
+   * @return removed processing modules, keyed by the class name written to batch files
+   */
+  public static Map<String, RemovedModule> getRemovedModules() {
+    final List<RemovedModule> removed = List.of(//
+        new RemovedModule(
+            "io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule",
+            "Relations between ion identity networks",
+            "Removed as it was rarely used and made load/save of ions impossible. All other ion identity networking steps are unaffected."));
+
+    final Map<String, RemovedModule> map = HashMap.newHashMap(removed.size());
+    for (final RemovedModule module : removed) {
+      map.put(module.className(), module);
+    }
+    return map;
   }
 
 }

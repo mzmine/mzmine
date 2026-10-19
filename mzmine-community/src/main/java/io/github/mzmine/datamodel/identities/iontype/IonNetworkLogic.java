@@ -28,28 +28,48 @@ package io.github.mzmine.datamodel.identities.iontype;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.CollectionUtils;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IonNetworkLogic {
 
   /**
-   * Compare for likelyhood comparison and sorting
+   * Orders ion identities so that the most likely explanation comes first. This is a total order:
+   * two ion identities only compare equal when their {@link IonType} is equal, so sorting is
+   * reproducible and independent of the order in which the ion identities were added to a row.
    *
-   * @param a ion a
-   * @param b ion b
+   * @param ranking the user defined ranking, read from {@link FeatureList#getPreferences()}
+   */
+  public static @NotNull Comparator<IonIdentity> bestFirstSorter(
+      @NotNull final IonTypeRanking ranking) {
+    return ((Comparator<IonIdentity>) (a, b) -> compareIonIdentitiesLikelyhood(ranking, a,
+        b)).reversed();
+  }
+
+  /**
+   * Compare for likelyhood comparison and sorting. The criteria are applied in this order:
+   * undefined adduct, network size (score), the {@link IonTypeRanking#score(IonType)} which covers
+   * the frequency of all ion parts as well as the multimer and charge penalties, and finally mass
+   * and name to make the order total.
+   *
+   * @param ranking the user defined ion type ranking
+   * @param a       ion a
+   * @param b       ion b
    * @return same as comparable: -1 0 1 if the first argument is less, equal or better
    */
-  public static int compareIonIdentitiesLikelyhood(IonIdentity a, IonIdentity b) {
+  public static int compareIonIdentitiesLikelyhood(@NotNull final IonTypeRanking ranking,
+      final IonIdentity a, final IonIdentity b) {
     if (a == null && b == null) {
       return 0;
     } else if (a == null) {
@@ -57,9 +77,12 @@ public class IonNetworkLogic {
     } else if (b == null) {
       return 1;
     }
+    final IonType typeA = a.getIonType();
+    final IonType typeB = b.getIonType();
+
     // M-H2O+? (one is? undefined
-    final boolean undefinedA = a.getIonType().isUndefinedAdduct();
-    final boolean undefinedB = b.getIonType().isUndefinedAdduct();
+    final boolean undefinedA = typeA.isUndefinedAdduct();
+    final boolean undefinedB = typeB.isUndefinedAdduct();
     if (undefinedA && !undefinedB) {
       return -1;
     } else if (!undefinedA && undefinedB) {
@@ -71,22 +94,23 @@ public class IonNetworkLogic {
     if (result != 0) {
       return result;
     }
-    // if a has less nM molecules in cluster
-    result = Integer.compare(b.getIonType().molecules(), a.getIonType().molecules());
+
+    // the ranking covers ion part frequency, in-source modifications and multimers
+    result = Double.compare(ranking.score(typeA), ranking.score(typeB));
     if (result != 0) {
       return result;
     }
 
-    // lower charge is better
-    return Integer.compare(b.getIonType().absTotalCharge(), a.getIonType().absTotalCharge());
-  }
-
-
-  public static void resetNetworkIDs(List<IonNetwork> nets) {
-    for (int i = 0; i < nets.size(); i++) {
-      nets.get(i).setID(i);
+    // decision: the remaining criteria only make the order total so that equally likely ions are
+    // always sorted the same way, independent of insertion order. Smaller mass difference first,
+    // then alphabetically by name.
+    result = Double.compare(typeB.absTotalMass(), typeA.absTotalMass());
+    if (result != 0) {
+      return result;
     }
+    return typeB.name().compareTo(typeA.name());
   }
+
 
   /**
    * All annotation networks of all annotations of row
@@ -102,43 +126,45 @@ public class IonNetworkLogic {
   }
 
   /**
-   * Set the network to all its children rows
+   * Sort all ion identities of a row by the likelyhood of being true. Uses the ranking defined in
+   * the preferences of the row's feature list.
    *
-   * @param nets
+   * @param row the row to sort
+   * @return list of annotations or null
    */
-  public static void setNetworksToAllAnnotations(Collection<IonNetwork> nets) {
-    nets.stream().forEach(n -> n.setNetworkToAllRows());
+  public static List<IonIdentity> sortIonIdentities(FeatureListRow row) {
+    return sortIonIdentities(row, row.getFeatureList().getPreferences().getIonTypeRanking());
   }
 
   /**
    * Sort all ion identities of a row by the likelyhood of being true.
    *
-   * @param row
+   * @param row     the row to sort
+   * @param ranking the user defined ion type ranking
    * @return list of annotations or null
    */
-  public static List<IonIdentity> sortIonIdentities(FeatureListRow row) {
+  public static List<IonIdentity> sortIonIdentities(FeatureListRow row,
+      @NotNull final IonTypeRanking ranking) {
     List<IonIdentity> ident = row.getIonIdentities();
     if (ident == null || ident.isEmpty()) {
       return null;
     }
 
     // best is first
-    final List<IonIdentity> sorted = ident.stream().sorted(
-            ((Comparator<IonIdentity>) (a, b) -> compareIonIdentitiesLikelyhood(a, b)).reversed())
-        .toList();
+    final List<IonIdentity> sorted = ident.stream().sorted(bestFirstSorter(ranking)).toList();
     row.setIonIdentities(sorted);
     return ident;
   }
 
   /**
-   * Sort all ion identities of all rows
+   * Sort all ion identities of all rows with the ranking defined in the feature list preferences
    *
-   * @param pkl
-   * @return
+   * @param pkl the feature list
    */
   public static void sortIonIdentities(FeatureList pkl) {
+    final IonTypeRanking ranking = pkl.getPreferences().getIonTypeRanking();
     for (FeatureListRow r : pkl.getRows()) {
-      sortIonIdentities(r);
+      sortIonIdentities(r, ranking);
     }
   }
 
@@ -282,14 +308,125 @@ public class IonNetworkLogic {
   }
 
   /**
-   * Renumber all networks in a feature list in ascending order of the retention time (0-based)
+   * Renumber all networks of a feature list in ascending order of the retention time (0-based). The
+   * ion identities of all rows are re-pointed to the renumbered networks.
    *
-   * @param featureList
+   * @return the renumbered networks in ascending retention time order
    */
-  public static void renumberNetworks(ModularFeatureList featureList) {
-    AtomicInteger netID = new AtomicInteger(0);
-    IonNetworkLogic.streamNetworks(featureList,
-            new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false)
-        .forEach(n -> n.setID(netID.getAndIncrement()));
+  public static @NotNull List<IonNetwork> renumberNetworks(
+      @NotNull ModularFeatureList featureList) {
+    final List<IonNetwork> nets = getAllNetworksList(featureList.getRows(),
+        new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false);
+    final List<IonNetwork> renumbered = new ArrayList<>(nets.size());
+    for (int i = 0; i < nets.size(); i++) {
+      renumbered.add(nets.get(i).withID(i));
+    }
+    return renumbered;
+  }
+
+  /**
+   * Recreates the ion identity networks of {@code sourceRows} on their copied rows and replaces the
+   * ion identities of those copies.
+   * <p>
+   * A copied row initially still holds the {@link IonIdentity} instances of its source row, and
+   * those point through {@link IonIdentity#getNetwork()} at the rows of the original feature list.
+   * Left alone, the copy would describe networks of foreign rows, which is why every copy of a
+   * feature list that copies rows has to call this.
+   * <p>
+   * A network shrinks to the rows that were copied and is only dropped once it is empty, when all
+   * of its rows were filtered out. A network of a single row is kept on purpose: filtering away the
+   * other members must not take the ion annotation of the surviving row with it.
+   * <p>
+   * {@code sourceRows} may be the rows of the target itself, for a module that filters in place.
+   * Networks that lost no row are then left untouched, ion identities and all, so that anything
+   * holding on to them stays valid.
+   *
+   * @param sourceRows the rows of the original feature list
+   * @param rowMapping maps a source row to its copy, or to null if that row was not copied
+   */
+  public static void remapIonNetworks(@NotNull final List<FeatureListRow> sourceRows,
+      @NotNull final Function<FeatureListRow, ? extends FeatureListRow> rowMapping) {
+    // keyed by identity on purpose: rows of one network often share an ion type, and those ion
+    // identities compare equal by IonIdentity#compareTo. Each one still has to map to its own copy.
+    final Map<IonIdentity, IonIdentity> ionMapping = new IdentityHashMap<>();
+
+    for (final IonNetwork net : getAllNetworksList(sourceRows, null, false)) {
+      // a network whose every row maps to itself needs no work, which is the case when a feature
+      // list is processed in place. Keep it and its ion identities, so anything holding on to them
+      // stays valid. A row mapped to null was filtered and counts as a change.
+      boolean unchanged = true;
+      for (final IonNetworkNode node : net.getNodes()) {
+        if (rowMapping.apply(node.row()) != node.row()) {
+          unchanged = false;
+          break;
+        }
+      }
+      if (unchanged) {
+        continue;
+      }
+
+      final List<IonNetworkNode> newNodes = new ArrayList<>(net.size());
+      final List<IonIdentity> sourceIons = new ArrayList<>(net.size());
+      for (final IonNetworkNode node : net.getNodes()) {
+        final FeatureListRow newRow = rowMapping.apply(node.row());
+        if (newRow == null) {
+          // the row was filtered out, the remaining members keep their annotation
+          continue;
+        }
+        newNodes.add(new IonNetworkNode(newRow, copyIon(node.ion())));
+        sourceIons.add(node.ion());
+      }
+      if (newNodes.isEmpty()) {
+        // all member rows are gone, so the network disappears with them
+        continue;
+      }
+      // re-points the copied ions at the new network
+      new SimpleIonNetwork(net.getID(), newNodes, net.getMolFormulas()).setNetworkToAllRows();
+      for (int i = 0; i < newNodes.size(); i++) {
+        ionMapping.put(sourceIons.get(i), newNodes.get(i).ion());
+      }
+    }
+
+    for (final FeatureListRow sourceRow : sourceRows) {
+      final FeatureListRow newRow = rowMapping.apply(sourceRow);
+      if (newRow == null) {
+        continue;
+      }
+      final List<IonIdentity> sourceIons = sourceRow.getIonIdentities();
+      if (sourceIons.isEmpty()) {
+        continue;
+      }
+      // keep the order, the first ion identity is the preferred one
+      final List<IonIdentity> newIons = new ArrayList<>(sourceIons.size());
+      for (final IonIdentity sourceIon : sourceIons) {
+        final IonIdentity mapped = ionMapping.get(sourceIon);
+        if (mapped != null) {
+          newIons.add(mapped);
+        } else if (newRow == sourceRow) {
+          // processed in place and this network was left untouched above, so the ion identity
+          // already points at the right rows
+          newIons.add(sourceIon);
+        } else if (sourceIon.getNetwork() == null) {
+          // not part of any network, so there is nothing to remap - still copy it so that the
+          // copied row does not share a mutable ion identity with its source
+          newIons.add(copyIon(sourceIon));
+        }
+        // otherwise every row of its network is gone and the ion identity is dropped with it
+      }
+      if (newRow == sourceRow && newIons.equals(sourceIons)) {
+        // nothing changed for this row, do not replace its list
+        continue;
+      }
+      newRow.setIonIdentities(newIons.isEmpty() ? null : List.copyOf(newIons));
+    }
+  }
+
+  /**
+   * A copy without the network back reference, which is set once the new network exists.
+   */
+  private static @NotNull IonIdentity copyIon(@NotNull final IonIdentity ion) {
+    final IonIdentity copy = new IonIdentity(ion.getIonType());
+    copy.addMolFormulas(ion.getMolFormulas());
+    return copy;
   }
 }

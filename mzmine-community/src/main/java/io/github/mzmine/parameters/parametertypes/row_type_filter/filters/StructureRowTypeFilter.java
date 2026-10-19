@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.structures.HarmonizationOptions;
 import io.github.mzmine.datamodel.structures.StructureInputType;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.datamodel.structures.SubstructureMatcher;
@@ -54,8 +55,10 @@ final class StructureRowTypeFilter extends AbstractRowTypeFilter {
 
     final boolean isSmiles = selectedType == RowTypeFilterOption.SMILES;
     if (isSmiles || selectedType == RowTypeFilterOption.INCHI) {
+      // query options keep every fragment and charge, see HarmonizationOptions.QUERY
       var structure = StructureParser.silent()
-          .parseStructure(query, isSmiles ? StructureInputType.SMILES : StructureInputType.INCHI);
+          .parseStructure(query, isSmiles ? StructureInputType.SMILES : StructureInputType.INCHI,
+              HarmonizationOptions.QUERY);
       if (structure == null) {
         throw new QueryFormatException(query);
       }

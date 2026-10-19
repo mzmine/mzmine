@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,10 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.javafx.validation.DecorationTargetProvider;
 import javafx.scene.Node;
 import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -55,6 +57,19 @@ public interface UserParameter<ValueType, EditorComponent extends Node> extends
    */
   default Priority getComponentVgrowPriority() {
     return Priority.NEVER;
+  }
+
+  /**
+   * The node that decorations (validation icons, checkmarks for changed values, ...) are attached
+   * to. Override if the target depends on the parameter, otherwise/alternatively implement
+   * {@link DecorationTargetProvider} in the component.
+   *
+   * @param component the component created by {@link #createEditingComponent()}
+   * @return the node to decorate, by default found by
+   * {@link DecorationTargetProvider#findDecorationTarget(Node)}
+   */
+  default @NotNull Node getDecorationTarget(@NotNull EditorComponent component) {
+    return DecorationTargetProvider.findDecorationTarget(component);
   }
 
 }

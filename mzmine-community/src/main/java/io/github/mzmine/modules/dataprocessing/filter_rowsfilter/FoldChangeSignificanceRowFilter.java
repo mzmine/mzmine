@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -109,11 +109,16 @@ public final class FoldChangeSignificanceRowFilter {
     this.test = test;
 
     if (applySignificancePFilter) {
-      rowTest = new UnivariateRowSignificanceTestConfig(test, grouping().columnName(),
-          grouping.groupA(), grouping.groupB()).toValidConfig(groupAData, groupBData);
-      if (rowTest == null) {
+      try {
+        rowTest = new UnivariateRowSignificanceTestConfig(test, grouping().columnName(),
+            grouping.groupA(), grouping.groupB()).toValidConfig(groupAData, groupBData);
+        if (rowTest == null) {
+          throw new IllegalArgumentException(
+              "Invalid group selection for univariate test: " + grouping);
+        }
+      } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException(
-            "Invalid group selection for univariate test: " + grouping);
+            "Invalid group selection for univariate test: " + grouping, e);
       }
     } else {
       rowTest = null;

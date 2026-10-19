@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -31,6 +32,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.project.ProjectService;
@@ -394,6 +396,12 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public @NotNull ModularDataModel getFileMetadata() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }

@@ -27,6 +27,7 @@ package io.github.mzmine.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -471,8 +472,30 @@ public class StringUtils {
     return a.equalsIgnoreCase(b);
   }
 
+  /**
+   * @return true if equal (ignoring case, trim whitespace), null and empty strings are both handled
+   * as empty strings and are equal
+   */
+  public static boolean equalStrippedIgnoreCase(@Nullable Object oa, @Nullable Object ob) {
+    String a = normalizeStripLowerCase(oa);
+    String b = normalizeStripLowerCase(ob);
+    return a.equalsIgnoreCase(b);
+  }
+
   public static String nullToEmpty(@Nullable Object obj) {
     return obj == null ? "" : String.valueOf(obj);
+  }
+
+  /**
+   * Canonical form used whenever user provided values are compared case insensitively, e.g., the
+   * values of the mzmine_sample_type metadata column. Leading and trailing whitespace is removed
+   * and the value is lower cased with {@link Locale#ENGLISH} so that the result never depends on
+   * the machine locale.
+   *
+   * @return the stripped whitespace, lower cased value or an empty string for null
+   */
+  public static @NotNull String normalizeStripLowerCase(@Nullable final Object value) {
+    return value == null ? "" : value.toString().strip().toLowerCase();
   }
 
   /**

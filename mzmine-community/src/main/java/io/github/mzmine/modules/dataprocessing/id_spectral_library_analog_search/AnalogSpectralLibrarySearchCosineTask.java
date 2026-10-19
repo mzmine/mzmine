@@ -194,16 +194,19 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
 
   private void processCosine(final ModularFeatureList flist,
       final List<SpectralLibraryEntry> sortedEntries, final SpectralNetworkingOptions algorithm) {
-    flist.getRows().parallelStream().forEach(row -> {
+
+    // parallelstream with map instead of forEach to block the calling thread until finished
+    final int ignored = flist.getRows().parallelStream().mapToInt(row -> {
       if (isCanceled()) {
-        return;
+        return 0;
       }
       try {
         processCosineRow(row, sortedEntries, algorithm);
       } finally {
         finishedItems.incrementAndGet();
       }
-    });
+      return 1;
+    }).sum();
   }
 
   private void processCosineRow(final FeatureListRow row,

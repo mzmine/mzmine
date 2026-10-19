@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -35,17 +36,13 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityFwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.AreaPercentType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
@@ -405,16 +402,10 @@ public class FeatureDataUtils {
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
       feature.setMobilityUnit(((IMSRawDataFile) feature.getRawDataFile()).getMobilityType());
-
-      // since version 4.10
-      float fwhm = QualityParameters.calculateFWHM(summedMobilogram);
-      if (!Float.isNaN(fwhm)) {
-        feature.set(MobilityFwhmType.class, fwhm);
-      }
     }
 
     if (calcQuality) {
-      calculateQualityParameters(feature);
+      QualityParameters.calculateAndSetQualityParameters(feature);
     }
 
     // auto-apply normalization if present
@@ -488,21 +479,6 @@ public class FeatureDataUtils {
     }
 
     return smallestDelta;
-  }
-
-  private static void calculateQualityParameters(@NotNull ModularFeature feature) {
-    float fwhm = QualityParameters.calculateFWHM(feature);
-    if (!Float.isNaN(fwhm)) {
-      feature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(feature);
-    if (!Float.isNaN(tf)) {
-      feature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(feature);
-    if (!Float.isNaN(af)) {
-      feature.set(AsymmetryFactorType.class, af);
-    }
   }
 
   public static void normalizeAbundances(@NotNull ModularFeature feature,

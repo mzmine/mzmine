@@ -193,8 +193,7 @@ public enum NodeAtt implements GraphElementAttr {
           .map(match -> match.getSimilarity().getExplainedLibraryIntensity()).findFirst()
           .orElse(null);
       case MATCHED_SIGNALS -> row.getSpectralLibraryMatches().stream()
-          .map(match -> match.getSimilarity().getAlignedDataPoints().length).findFirst()
-          .orElse(null);
+          .map(match -> match.getSimilarity().getOverlap()).findFirst().orElse(null);
     };
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.io.import_feature_networks;
 
 import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -36,6 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.SimpleRowsRelationship;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
@@ -44,8 +43,6 @@ import io.github.mzmine.util.exceptions.MissingColumnException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +61,7 @@ public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
   private final String[] cols = SimpleExternalNetworkEdge.getColumnHeadersLowerCase();
   private final File inputFile;
   private final ModularFeatureList featureList;
-  private char separator;
+  private final FieldSeparator fieldSeparator;
   private @NotNull Int2ObjectMap<FeatureListRow> rowIdMap;
 
   public ImportFeatureNetworksSimpleTask(final File inputFile, final ModularFeatureList featureList,
@@ -72,6 +69,7 @@ public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
     super(null, callDate, parameters, ImportFeatureNetworksSimpleModule.class);
     this.inputFile = inputFile;
     this.featureList = featureList;
+    this.fieldSeparator = parameters.getValue(ImportFeatureNetworksSimpleParameters.fieldSeparator);
   }
 
   private boolean loadEdges(final CSVReader csvReader)
@@ -151,18 +149,13 @@ public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
   protected void process() {
     rowIdMap = FeatureListUtils.getRowIdMap(featureList);
 
-    try (Reader reader = Files.newBufferedReader(inputFile.toPath())) {
-      separator = ',';
-      try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
-          new RFC4180ParserBuilder().withSeparator(separator).build()).build()) {
-        loadEdges(csvReader);
+    try (CSVReader csvReader = CSVParsingUtils.createDefaultReader(inputFile, fieldSeparator)) {
+      loadEdges(csvReader);
 
-        if (isCanceled()) {
-          return;
-        }
-        featureList.addRowMaps(maps);
-
+      if (isCanceled()) {
+        return;
       }
+      featureList.addRowMaps(maps);
     } catch (MissingColumnException e) {
       setErrorMessage("CSV missing columns error: " + e.getMessage());
       logger.log(Level.WARNING, "CSV missing columns error: " + e.getMessage(), e);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,6 +27,16 @@ package import_data;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.SimpleModularDataModel;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
+import io.github.mzmine.datamodel.features.rawfiletypes.LcMethodNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleDescriptionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.TuneMethodNameType;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
@@ -42,6 +53,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -60,7 +72,8 @@ public class MassLynxImportTest {
   public AllSpectralDataImportParameters generateWatersCentroidingParam(File file) {
     VendorImportParameters vendorParam = VendorImportParameters.create(true,
         MassLynxImportOptions.NATIVE_WATERS_CENTROIDING, true,
-        WatersLockmassParameters.createDefault(), true);
+        WatersLockmassParameters.createDefault(), true,
+        VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
     return (AllSpectralDataImportParameters) AllSpectralDataImportParameters.create(vendorParam,
         new File[]{file}, null, null);
   }
@@ -68,7 +81,8 @@ public class MassLynxImportTest {
   public AllSpectralDataImportParameters generateMzmineCentroidingParam(File file) {
     VendorImportParameters vendorParam = VendorImportParameters.create(true,
         MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING, true,
-        WatersLockmassParameters.createDefault(), true);
+        WatersLockmassParameters.createDefault(), true,
+        VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
     return (AllSpectralDataImportParameters) AllSpectralDataImportParameters.create(vendorParam,
         new File[]{file}, null, null);
   }
@@ -76,7 +90,8 @@ public class MassLynxImportTest {
   public AllSpectralDataImportParameters generateProfileImportParamMzmine(File file) {
     VendorImportParameters vendorParam = VendorImportParameters.create(false,
         MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING, true,
-        WatersLockmassParameters.createDefault(), true);
+        WatersLockmassParameters.createDefault(), true,
+        VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
     return (AllSpectralDataImportParameters) AllSpectralDataImportParameters.create(vendorParam,
         new File[]{file}, null, null);
   }
@@ -84,7 +99,8 @@ public class MassLynxImportTest {
   public AllSpectralDataImportParameters generateProfileImportParamWaters(File file) {
     VendorImportParameters vendorParam = VendorImportParameters.create(false,
         MassLynxImportOptions.NATIVE_WATERS_CENTROIDING, true,
-        WatersLockmassParameters.createDefault(), true);
+        WatersLockmassParameters.createDefault(), true,
+        VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
     return (AllSpectralDataImportParameters) AllSpectralDataImportParameters.create(vendorParam,
         new File[]{file}, null, null);
   }
@@ -92,7 +108,8 @@ public class MassLynxImportTest {
   public AllSpectralDataImportParameters generateProfileImportAdvancedExactMass(File file) {
     VendorImportParameters vendorParam = VendorImportParameters.create(false,
         MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING, true,
-        WatersLockmassParameters.createDefault(), true);
+        WatersLockmassParameters.createDefault(), true,
+        VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
 
     final var param = (ExactMassDetectorParameters) new ExactMassDetectorParameters().cloneParameterSet();
     param.setParameter(ExactMassDetectorParameters.noiseLevel, 0d);
@@ -371,5 +388,42 @@ public class MassLynxImportTest {
     }
 
     Assertions.assertEquals(rawMz, mzmineMz);
+  }
+
+  @Test
+  public void testFileMetadata() throws Exception {
+    final File raw = new File(
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-MS DDA\\pos\\050325_029.raw");
+    if (!raw.exists()) {
+      return;
+    }
+    final AllSpectralDataImportParameters param = generateProfileImportParamMzmine(raw);
+    final ScanImportProcessorConfig processor = AllSpectralDataImportModule.createSpectralProcessors(
+        param.getEmbeddedParametersIfSelectedOrElse(AllSpectralDataImportParameters.advancedImport,
+            null));
+
+    final ModularDataModel metadata = new SimpleModularDataModel();
+    final LocalDateTime acquisitionDate;
+    try (final var access = new MassLynxDataAccess(raw,
+        (VendorImportParameters) param.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions), null, processor)) {
+      access.applyToFileMetadata(metadata);
+      acquisitionDate = access.getAcqDate();
+    }
+
+    // values from _header.txt of the file
+    Assertions.assertEquals(LocalDateTime.of(2025, 3, 5, 15, 43, 52), acquisitionDate);
+    Assertions.assertEquals("Cyclic-IMS", metadata.get(InstrumentModelType.class));
+    Assertions.assertEquals("MassLynx", metadata.get(AcquisitionSoftwareType.class));
+    Assertions.assertEquals("04.20", metadata.get(AcquisitionSoftwareVersionType.class));
+    Assertions.assertEquals("Raw output", metadata.get(SampleDescriptionType.class));
+    // HPLC method is empty, the inlet method is used as LC method
+    Assertions.assertEquals(
+        "D:\\Projects\\CJH Feb25.PRO\\ACQUDB\\small_mols_prem_5min_13total_10_50pc_55",
+        metadata.get(LcMethodNameType.class));
+    // empty in the header
+    Assertions.assertNull(metadata.get(OperatorNameType.class));
+    Assertions.assertNull(metadata.get(SampleNameType.class));
+    Assertions.assertNull(metadata.get(TuneMethodNameType.class));
   }
 }

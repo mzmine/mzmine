@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -258,15 +257,15 @@ class RTCorrectionTask extends AbstractTask {
           normalizedStdRTs);
     }
 
-    for (RawDataFile file : originalRow.getRawDataFiles()) {
-      ModularFeature originalFeature = originalRow.getFeature(file);
-      if (originalFeature != null) {
-        ModularFeature normalizedFeature = new ModularFeature(targetFeatureList, originalFeature);
-        normalizedFeature.setRT((float) normalizedRT);
-        float correctedRt = (float) (normalizedRT - originalRT);
-        normalizedFeature.set(RtAbsoluteCorrectionType.class, correctedRt);
-        normalizedRow.addFeature(file, normalizedFeature);
-      }
+    // only iterate the features that are present instead of all raw data files
+    for (ModularFeature originalFeature : originalRow.getFeatures()) {
+      ModularFeature normalizedFeature = new ModularFeature(targetFeatureList, originalFeature);
+      normalizedFeature.setRT((float) normalizedRT);
+      float correctedRt = (float) (normalizedRT - originalRT);
+      normalizedFeature.set(RtAbsoluteCorrectionType.class, correctedRt);
+      // row bindings aggregate over all features, so applying them per feature is O(features^2).
+      // the caller adds the row to the feature list, which applies the bindings once
+      normalizedRow.addFeature(originalFeature.getRawDataFile(), normalizedFeature, false);
     }
 
     return normalizedRow;

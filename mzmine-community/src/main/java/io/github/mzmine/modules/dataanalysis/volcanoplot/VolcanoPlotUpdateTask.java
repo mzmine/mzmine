@@ -35,11 +35,13 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
@@ -50,6 +52,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -58,33 +62,44 @@ import org.jetbrains.annotations.Nullable;
  */
 class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
-  private final FeaturesDataTable dataTable;
-  private final RowSignificanceTest test;
+  private static final Logger logger = Logger.getLogger(VolcanoPlotUpdateTask.class.getName());
+
+  private final @Nullable FeaturesDataTable dataTable;
+  private final @Nullable UnivariateRowSignificanceTestConfig testConfig;
   private final double pValue;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
   private @Nullable List<DatasetAndRenderer> temporaryDatasets;
-
+  /**
+   * Set if the plot cannot be computed or is incomplete. Reported to the user in
+   * {@link #updateGuiModel()}
+   */
+  private @Nullable String userWarning;
 
   VolcanoPlotUpdateTask(VolcanoPlotModel model) {
     super("volcanoplot_update", model);
 
+    // only capture the inputs here. this constructor runs on the FX thread, so neither the
+    // significance test (which copies the whole data table per group) nor its validation may happen
+    // here. Exceptions would escape into the JavaFX listener dispatch and kill all further updates.
     dataTable = model.getFeatureDataTable();
-    final UnivariateRowSignificanceTestConfig testConfig = model.getTest();
-    if (testConfig != null && dataTable != null) {
-      test = testConfig.toValidConfig(dataTable);
-    } else {
-      test = null;
-    }
-
+    testConfig = model.getTest();
     pValue = model.getpValue();
-    // decision: iterate the prepared data table rather than the source feature list so the
-    // CompoundRowSelection filtering applied in VolcanoPlotController.prepareDataTable is respected
     progress.setTotal(dataTable != null ? dataTable.getNumberOfFeatures() : 0);
   }
 
   @Override
   public boolean checkPreConditions() {
-    return dataTable != null && test != null;
+    return dataTable != null && testConfig != null;
+  }
+
+  @Override
+  public void onFailedPreCondition() {
+    // clear the plot and explain why, otherwise an empty chart is indistinguishable from a failure
+    FxThread.runLater(() -> {
+      model.setDatasets(List.of());
+      model.setUserWarning(
+          "Select a feature list, a metadata column, and two groups to compute a volcano plot.");
+    });
   }
 
   @Override
@@ -92,8 +107,23 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     if (!checkPreConditions()) {
       return;
     }
-    List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>();
-    for (final FeatureListRow row : dataTable.getFeatureListRows()) {
+
+    // creating the test resolves the metadata groups and splits the data table - may fail
+    final RowSignificanceTest test = createTest();
+    if (test == null) {
+      return;
+    }
+    if (!(test instanceof UnivariateRowSignificanceTest<?> ttest)) {
+      userWarning = "The volcano plot requires a univariate significance test.";
+      return;
+    }
+
+    // decision: iterate the prepared data table rather than the source feature list so the
+    // CompoundRowSelection filtering applied in VolcanoPlotController.prepareDataTable is respected.
+    // The test operates on subsets of this table, so only these rows resolve to an abundance index.
+    final List<FeatureListRow> rows = dataTable.getFeatureListRows();
+    List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>(rows.size());
+    for (final FeatureListRow row : rows) {
       if (isCanceled()) {
         return;
       }
@@ -108,13 +138,13 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
         rowSignificanceTestResults, RowSignificanceTestResult::row, true,
         CompoundAnnotationUtils.annotationTypePriority.toArray(DataType[]::new));
 
-    if (!(test instanceof UnivariateRowSignificanceTest<?> ttest)) {
-      return;
-    }
-
     final SimpleColorPalette colors = ConfigService.getConfiguration().getDefaultColorPalette()
         .clone(true);
     temporaryDatasets = new ArrayList<>();
+    // rows without a computable p value (e.g. constant abundances in both groups) have no
+    // -log10(p) to plot. Count them instead of dropping them silently.
+    // this is expected if the row actually has no features in all samples in both groups
+    int missingPValues = 0;
 
     for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
 
@@ -125,6 +155,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
           .filter(result -> result.pValue() < pValue).toList();
       final List<RowSignificanceTestResult> insignificantRows = testResults.stream()
           .filter(result -> result.pValue() >= pValue).toList();
+      missingPValues += testResults.size() - significantRows.size() - insignificantRows.size();
 
       final Color color = colors.getNextColorAWT();
       if (!significantRows.isEmpty()) {
@@ -145,14 +176,52 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
                 new ColoredXYShapeRenderer(true, ColoredXYShapeRenderer.defaultShape, true)));
       }
     }
+
+    // expected if no features in row in group data files -> no data for row
+    if (missingPValues > 0) {
+      final String msg = """
+          %d of %d features have no p-value and are not shown. This usually means the abundances are constant within both groups, for example if there were no detections in the groups and all values are imputed.""".formatted(
+          missingPValues, rows.size());
+      logger.fine(msg);
+    }
+  }
+
+  /**
+   * Creates the significance test and translates any failure into a message for the user.
+   *
+   * @return the test or null if it cannot be created, then {@link #userWarning} explains why
+   */
+  private @Nullable RowSignificanceTest createTest() {
+    try {
+      final RowSignificanceTest test = testConfig.toValidConfig(dataTable);
+      if (test == null) {
+        // toValidConfig only logs the actual reason
+        userWarning = """
+            Cannot compute volcano plot. Metadata column "%s" with groups "%s" and "%s" is not a valid selection. See the log for details.""".formatted(
+            testConfig.column(), testConfig.groupA(), testConfig.groupB());
+      }
+      return test;
+    } catch (MetadataValueDoesNotExistException e) {
+      userWarning = "Metadata value does not exist for feature list raw data files.";
+    } catch (IllegalArgumentException e) {
+      userWarning = e.getMessage();
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Volcano plot update error: " + e.getMessage(), e);
+      userWarning = "Cannot compute volcano plot: " + e.getMessage();
+    }
+    logger.finer(userWarning);
+    return null;
   }
 
   @Override
   protected void updateGuiModel() {
     if (temporaryDatasets == null && !isFinished()) {
+      // cancelled before any result was produced - keep the current plot
       return;
     }
-    model.setDatasets(temporaryDatasets);
+    // process may have aborted with a reason, then temporaryDatasets is null and the plot is cleared
+    model.setDatasets(temporaryDatasets != null ? temporaryDatasets : List.of());
+    model.setUserWarning(userWarning);
   }
 
   @Override

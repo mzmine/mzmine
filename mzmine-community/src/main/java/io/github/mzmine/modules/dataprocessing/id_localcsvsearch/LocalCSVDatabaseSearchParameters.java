@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SynonymsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -73,6 +74,7 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
@@ -115,9 +117,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Name of file that contains information for peak identification",
       ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
-      ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forReading(
+      "Character used to separate fields in the database file. Auto detect determines the separator from the file itself.");
 
   public static final OptionalParameter<StringParameter> filterSamples = new OptionalParameter<>(
       new StringParameter("Filter filename header",
@@ -188,7 +189,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType<>(false, new Q3QuantMzType().getUniqueID(), new Q3QuantMzType()),//
       new ImportType<>(false, new IupacNameType()), //
       new ImportType<>(false, new CASType()), //
-      new ImportType<>(false, new InternalIdType()));
+      new ImportType<>(false, new InternalIdType()), //
+      new ImportType<>(false, new SynonymsType()) //
+  );
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
@@ -302,6 +305,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
     map.put(commentFields.getName(), commentFields);
+    // IonLibraryParameter#cloneParameter used to drop the custom name, old xml uses default name
+    map.put(IonLibraryParameter.DEFAULT_NAME, getParameter(ionLibrary));
     return map;
   }
 

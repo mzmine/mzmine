@@ -75,14 +75,13 @@ public class LipidChainFactory {
   public List<ILipidChain> buildLipidChainsInRange(LipidChainType chainType, int minChainLength,
       int maxChainLength, int minDBEs, int maxDBEs, boolean onlySearchForEvenChainLengths) {
     List<ILipidChain> lipidChains = new ArrayList<>();
-    for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-      if (onlySearchForEvenChainLengths && chainLength % 2 != 0) {
-        continue;
-      }
+    int increment = onlySearchForEvenChainLengths ? 2 : 1;
+    for (int chainLength = minChainLength; chainLength <= maxChainLength;
+        chainLength += increment) {
       for (int numberOfDBEs = minDBEs; numberOfDBEs <= maxDBEs; numberOfDBEs++) {
 
         if (chainLength / 2 < numberOfDBEs) {
-          continue;
+          break; // early break DBEs loop
         }
         ILipidChain chain = buildLipidChain(chainType, chainLength, numberOfDBEs);
         lipidChains.add(chain);
@@ -92,6 +91,9 @@ public class LipidChainFactory {
   }
 
 
+  /**
+   * @return full neutral formula of FA chain with RCOOH
+   */
   private IMolecularFormula calculateMolecularFormulaAcylChain(int chainLength,
       int numberOfDoubleBonds) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2;
@@ -215,8 +217,10 @@ public class LipidChainFactory {
       if (!chainsAreEqual) {
         boolean isSphingolipid = chains.stream().anyMatch(chain ->
             chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN
-            || chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN
-            || chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
+                || chain.getLipidChainType()
+                == LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN
+                || chain.getLipidChainType()
+                == LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
         if (isSphingolipid) {
           chainsAreEqual = true;
         }

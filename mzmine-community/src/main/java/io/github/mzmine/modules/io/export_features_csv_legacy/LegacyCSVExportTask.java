@@ -92,7 +92,9 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
 
-  private final NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
+  // clone to avoid contention on synchronized block
+  private final NumberFormats formats = MZmineCore.getConfiguration().getExportFormats()
+      .createCopy();
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
 
@@ -101,7 +103,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     this.featureLists = parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
         .getMatchingFeatureLists();
     fileName = parameters.getParameter(LegacyCSVExportParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(LegacyCSVExportParameters.fieldSeparator).getValue();
+    fieldSeparator = parameters.getValue(LegacyCSVExportParameters.fieldSeparator).separator();
     commonElements = parameters.getParameter(LegacyCSVExportParameters.exportCommonItems)
         .getValue();
     dataFileElements = parameters.getParameter(LegacyCSVExportParameters.exportDataFileItems)
@@ -543,7 +545,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           if (ion2 == null || ion2.getNetwork() == null) {
             line.append(fieldSeparator);
           } else {
-            line.append(mzForm.format(ion2.getNetwork().calcNeutralMass())).append(fieldSeparator);
+            line.append(mzForm.format(ion2.getNetwork().getNeutralMass())).append(fieldSeparator);
           }
           break;
       }

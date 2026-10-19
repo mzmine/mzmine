@@ -327,8 +327,7 @@ public class RowsFilterTask extends AbstractTask {
     final CompoundList srcCompoundList = featureList.getCompoundList();
     final List<ModularCompoundRow> srcCompoundRows =
         srcCompoundList != null ? srcCompoundList.getRowsCopy() : List.of();
-    final Map<FeatureListRow, ModularFeatureListRow> oldToNew =
-        srcCompoundList != null ? new IdentityHashMap<>() : null;
+    final Map<FeatureListRow, ModularFeatureListRow> oldToNew = new IdentityHashMap<>();
 
     // check if min samples filter is valid
     final List<String> errors = prechecks(featureList);
@@ -414,12 +413,10 @@ public class RowsFilterTask extends AbstractTask {
           newFeatureList.getRow(i).set(IDType.class, i + 1);
         }
       }
-      if (oldToNew != null) {
         // rows are reused in place — map each surviving row to itself
         for (final FeatureListRow row : rowsToAdd) {
           oldToNew.put(row, (ModularFeatureListRow) row);
         }
-      }
     } else {
       final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
       // exact number of needed features and rows
@@ -434,13 +431,17 @@ public class RowsFilterTask extends AbstractTask {
         index++;
         ModularFeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
             renumber ? index : row.getID(), (ModularFeatureListRow) row, true);
-        newFeatureList.addRow(resetRow);
-        if (oldToNew != null) {
           oldToNew.put(row, resetRow);
-        }
       }
-      newFeatureList.setRowsApplySort(rowsToAdd.toArray(FeatureListRow[]::new));
+      // set all new rows at once
+      newFeatureList.setRowsApplySort(oldToNew.values().toArray(FeatureListRow[]::new));
     }
+
+    // The relationship maps and the ion identity networks reference rows directly and are keyed by
+    // row ID, so they have to be rebuilt against the rows of the result: relations of filtered rows
+    // are dropped, and renumbering changes the keys. Also needed when filtering in place, where the
+    // rows are reused but may have been renumbered.
+    FeatureListUtils.transferRowRelationsAndIIN(featureList, newFeatureList, oldToNew);
 
     // transfer a remapped copy of the compound list (if any) to the filtered feature list. Members
     // removed from the feature list are stripped and empty compounds dropped. The compound-ID
