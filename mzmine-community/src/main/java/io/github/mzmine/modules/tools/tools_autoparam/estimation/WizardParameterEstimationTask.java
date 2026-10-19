@@ -112,6 +112,7 @@ public final class WizardParameterEstimationTask extends AbstractTask {
       return;
     }
     try {
+      WizardParameterEstimationResult.requireSupportedWorkflow(sequence);
       final List<RawDataFile> importedFiles = RawDataPreparation.importFilesBlocking(files,
           metadataFile);
       progress = 0.35;

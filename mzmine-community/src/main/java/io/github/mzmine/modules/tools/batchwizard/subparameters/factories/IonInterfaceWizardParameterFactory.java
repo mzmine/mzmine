@@ -126,6 +126,16 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
   }
 
   /**
+   * Whether this interface provides chromatographic peaks for parameter estimation and optimization.
+   */
+  public boolean isChromatography() {
+    return switch (group()) {
+      case CHROMATOGRAPHY_SOFT, CHROMATOGRAPHY_HARD -> true;
+      case SPATIAL_IMAGING, DIRECT_AND_FLOW -> false;
+    };
+  }
+
+  /**
    * Group values for easier decisions
    */
   public IonIterfaceGroup group() {

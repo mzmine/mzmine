@@ -294,6 +294,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected File csvLibraryFile;
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
+  private @Nullable IonLibrary csvIonLibrary;
   private List<ImportType<?>> csvColumns;
 
   protected BaseWizardBatchBuilder(final WizardSequence steps) {
@@ -360,6 +361,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // mass spectrometer
     params = steps.get(WizardPart.MS);
     polarity = getValue(params, MassSpectrometerWizardParameters.polarity);
+    if (checkLocalCsvDatabase) {
+      // Keep the configured library detached from the wizard parameter set used to build this batch.
+      csvIonLibrary = csvParams.getEffectiveIonLibrary(polarity).copy();
+    }
     massDetectorOption = getValue(params, MassSpectrometerWizardParameters.massDetectorOption);
     minFeatureHeight = getValue(params, MassSpectrometerWizardParameters.minimumFeatureHeight);
     mzTolScans = getValue(params, MassSpectrometerWizardParameters.scanToScanMzTolerance);
@@ -1496,14 +1501,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         ImportType.isDataTypeSelectedInImportTypes(csvColumns, CCSType.class), 0.05);
     param.setParameter(LocalCSVDatabaseSearchParameters.chargeFilter, ChargeFilterType.NO_FILTER);
 
-    // define ions
-    IonLibrary library = switch (polarity) {
-      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_MAIN;
-      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_MAIN;
-      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN;
-    };
     param.setParameter(LocalCSVDatabaseSearchParameters.ionLibrary,
-        csvMassOptions == MassOptions.MASS_AND_IONS, library);
+        csvMassOptions == MassOptions.MASS_AND_IONS, Objects.requireNonNull(csvIonLibrary));
 
     param.setParameter(LocalCSVDatabaseSearchParameters.isotopePatternMatcher, false);
 
