@@ -42,12 +42,18 @@ public enum EstimationVerdict {
    */
   ENOUGH_RESOURCES_UNCERTAIN,
   /**
-   * The estimate exceeds the heap or temp space but is not reliable. A larger test run improves
-   * it.
+   * Only unreliable steps exceed the available RAM, or no step has a reliable measurement.
+   * The missing live RAM requirements prevent a conclusion about the whole batch.
+   */
+  RAM_REQUIREMENT_UNCERTAIN,
+  /**
+   * The estimate exceeds the heap or temp space but is not reliable. A larger test run may
+   * improve it.
    */
   LARGER_RUN_NEEDED,
   /**
-   * The heap or temp space is not enough, the estimate is reliable or all files were used.
+   * A reliable RAM or temp space estimate exceeds the available resources, or the uncertain
+   * extrapolation cannot be extended further. Missing RAM measurements alone do not imply this.
    */
   NOT_ENOUGH_RESOURCES;
 
@@ -55,6 +61,7 @@ public enum EstimationVerdict {
     return switch (this) {
       case ENOUGH_RESOURCES -> "The batch fits within the available RAM and temporary storage";
       case ENOUGH_RESOURCES_UNCERTAIN -> "The batch should fit, but the estimate is uncertain";
+      case RAM_REQUIREMENT_UNCERTAIN -> "The RAM requirement is uncertain";
       case LARGER_RUN_NEEDED -> "A larger test run is needed for a reliable estimate";
       case NOT_ENOUGH_RESOURCES -> "The batch needs more RAM or temporary storage";
     };
@@ -66,7 +73,7 @@ public enum EstimationVerdict {
   public boolean isSufficient() {
     return switch (this) {
       case ENOUGH_RESOURCES, ENOUGH_RESOURCES_UNCERTAIN -> true;
-      case LARGER_RUN_NEEDED, NOT_ENOUGH_RESOURCES -> false;
+      case RAM_REQUIREMENT_UNCERTAIN, LARGER_RUN_NEEDED, NOT_ENOUGH_RESOURCES -> false;
     };
   }
 }

@@ -53,8 +53,14 @@ public final class BatchResourceReport {
       @NotNull final BatchResourcePrediction prediction, final double maxHeapGB,
       final double tempDirFreeGB) {
     final List<String> lines = new ArrayList<>();
-    lines.add("Peak RAM: %.1f GB (%s)\nHighest use: %s".formatted(prediction.heapGB(),
-        xmxRecommendation(prediction, maxHeapGB), prediction.heapBottleneckStep()));
+    final StepResourcePrediction reliablePeak = prediction.reliableHeapPeak();
+    if (reliablePeak == null) {
+      lines.add("Peak RAM: unknown (no reliable step measurements)");
+    } else {
+      lines.add("%s: %.1f GB (%s)\nHighest use: %s".formatted(
+          prediction.heapReliable() ? "Peak RAM" : "Peak RAM from reliable steps",
+          reliablePeak.heapGB(), xmxRecommendation(prediction, maxHeapGB), reliablePeak.name()));
+    }
     lines.add(
         "RAM kept between steps: %.1f GB\nHighest use: %s".formatted(prediction.retainedHeapGB(),
         prediction.retainedBottleneckStep()));
@@ -103,9 +109,15 @@ public final class BatchResourceReport {
    */
   static @NotNull String xmxRecommendation(@NotNull final BatchResourcePrediction prediction,
       final double maxHeapGB) {
-    if (prediction.recommendedXmxGB() > maxHeapGB) {
+    final StepResourcePrediction reliablePeak = prediction.reliableHeapPeak();
+    if (reliablePeak == null) {
+      return "RAM requirement uncertain, %.1f GB available to MZmine".formatted(maxHeapGB);
+    }
+    final int recommendedXmxGB = (int) Math.ceil(
+        reliablePeak.heapGB() * BatchResourceModel.GC_HEADROOM_FACTOR);
+    if (recommendedXmxGB > maxHeapGB) {
       return "increase MZmine's RAM limit to at least %d GB, currently %.1f GB".formatted(
-          prediction.recommendedXmxGB(), maxHeapGB);
+          recommendedXmxGB, maxHeapGB);
     }
     return "%.1f GB available to MZmine".formatted(maxHeapGB);
   }

@@ -286,12 +286,83 @@ class BatchResourceModelTest {
 
       assertFalse(model.validation().measured().heapReliable());
       assertFalse(model.predict(100).heapReliable());
-      assertEquals(EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, verdict(model, 100, 100));
+      assertEquals(EstimationVerdict.RAM_REQUIREMENT_UNCERTAIN, verdict(model, 100, 100));
       assertTrue(EstimationOutcome.of(model, model.predict(100), 100, 100).details().stream()
-          .anyMatch(line -> line.startsWith("The peak RAM estimate is not reliable")));
+          .anyMatch(line -> line.startsWith("Some peak RAM estimates are not reliable")));
+
+      final BatchResourcePrediction prediction = model.predict(100);
+      final EstimationOutcome insufficientRam = EstimationOutcome.of(model, prediction, 8, 100);
+      assertEquals(EstimationVerdict.RAM_REQUIREMENT_UNCERTAIN, insufficientRam.verdict());
+      final String warning = insufficientRam.details().getFirst();
+      assertTrue(
+          warning.startsWith("Peak RAM predicts %.1f GB usage".formatted(prediction.heapGB())));
+      assertTrue(warning.contains("unreliable measurements: no full memory cleanup was confirmed"));
+      assertTrue(warning.endsWith("A larger run may lead to a better estimate."));
+
+      final BatchResourceModel allFilesUsed = BatchResourceModel.fit(runs(), validation, MODES, 32,
+          THREADS);
+      final String finalWarning = EstimationOutcome.of(allFilesUsed, allFilesUsed.predict(32), 1,
+          100).details().getFirst();
+      assertTrue(finalWarning.contains("unreliable measurements"));
+      assertFalse(finalWarning.contains("A larger run"));
+      assertNull(prediction.reliableHeapPeak());
+      assertEquals("Peak RAM: unknown (no reliable step measurements)",
+          BatchResourceReport.summaryLines(prediction, 8, 100).getFirst());
+      assertFalse(BatchResourceReport.xmxRecommendation(prediction, 8).contains("increase"));
+
       final List<StepMeasurement> adjusted = SubsetRunner.withoutGcTime(measurements, 0.1);
       assertEquals(quality, adjusted.getFirst().heapMeasurementQuality());
     }
+  }
+
+  @Test
+  void unreliablePeakDoesNotDetermineTheRamRequirement() {
+    final List<SubsetRun> runs = runs().stream()
+        .map(BatchResourceModelTest::withoutReliableAlignment).toList();
+    final SubsetRun validation = withoutReliableAlignment(syntheticRun(32));
+    final BatchResourceModel model = BatchResourceModel.fit(runs, validation, MODES, 100, THREADS);
+    final BatchResourcePrediction prediction = model.predict(100);
+
+    assertEquals(30.3, prediction.heapGB(), 0.01, "Uncertain estimates remain available");
+    assertNotNull(prediction.reliableHeapPeak());
+    assertEquals(11.1, prediction.reliableHeapPeak().heapGB(), 0.01);
+    assertEquals("Chromatogram builder", prediction.reliableHeapPeak().name());
+
+    final EstimationOutcome uncertain = EstimationOutcome.of(model, prediction, 20, 100);
+    assertEquals(EstimationVerdict.RAM_REQUIREMENT_UNCERTAIN, uncertain.verdict());
+    assertFalse(uncertain.verdict().isSufficient());
+    assertEquals(64, uncertain.nextRunFiles());
+    final String summary = BatchResourceReport.summaryLines(prediction, 20, 100).getFirst();
+    assertTrue(summary.startsWith("Peak RAM from reliable steps: %.1f GB".formatted(11.1)),
+        summary);
+    assertTrue(summary.endsWith("Highest use: Chromatogram builder"));
+    assertFalse(summary.contains("increase"), summary);
+
+    // A reliable step alone can demonstrate insufficient RAM, despite other unreliable steps.
+    assertEquals(EstimationVerdict.NOT_ENOUGH_RESOURCES, verdict(model, 8, 100));
+    assertTrue(BatchResourceReport.xmxRecommendation(prediction, 8)
+        .startsWith("increase MZmine's RAM limit to at least 17 GB"));
+    assertEquals(EstimationVerdict.NOT_ENOUGH_RESOURCES, verdict(model, 20, 1));
+    assertEquals(EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, verdict(model, 100, 100));
+
+    // Using all files cannot resolve the missing live RAM measurement by itself.
+    final BatchResourceModel allFilesUsed = BatchResourceModel.fit(runs, validation, MODES, 32,
+        THREADS);
+    final EstimationOutcome finalOutcome = EstimationOutcome.of(allFilesUsed,
+        allFilesUsed.predict(32), 8, 100);
+    assertEquals(EstimationVerdict.RAM_REQUIREMENT_UNCERTAIN, finalOutcome.verdict());
+    assertNull(finalOutcome.nextRunFiles());
+  }
+
+  private static SubsetRun withoutReliableAlignment(final SubsetRun original) {
+    final StepMeasurement m = original.steps().get(1);
+    final StepMeasurement partial = new StepMeasurement(m.step(), m.name(), m.secondsToFinish(),
+        m.usedHeapGB(), m.peakHeapGB(), m.peakHeapAfterGcGB(), m.tempFilesCreated(),
+        m.reservedTempFileGB(), m.usedTempFileGB(), m.liveTempFiles(), m.liveTempFileUsedGB(),
+        HeapMeasurementQuality.PARTIAL_GC);
+    return new SubsetRun(original.files(), original.fileEquivalents(), original.baselineHeapGB(),
+        original.baselineLiveTempGB(), original.maxRows(),
+        List.of(original.steps().getFirst(), partial));
   }
 
   @Test

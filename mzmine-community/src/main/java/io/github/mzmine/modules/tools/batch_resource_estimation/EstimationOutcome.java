@@ -35,8 +35,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param verdict      overall result
  * @param details      heap reliability and the latest validation for the banner
- * @param nextRunFiles files of the larger test run for {@link EstimationVerdict#LARGER_RUN_NEEDED},
- *                     null otherwise
+ * @param nextRunFiles files of an optional larger test run for an uncertain result, null otherwise
  */
 public record EstimationOutcome(@NotNull EstimationVerdict verdict, @NotNull List<String> details,
                                 @Nullable Integer nextRunFiles) {
@@ -59,19 +58,43 @@ public record EstimationOutcome(@NotNull EstimationVerdict verdict, @NotNull Lis
     final boolean validationReliable =
         check == null || check.maxResourceError() <= MAX_RELIABLE_DEVIATION;
     final boolean reliable = prediction.heapReliable() && validationReliable;
+    final Integer nextRunFiles = model.nextRunFiles();
+    final StepResourcePrediction reliablePeak = prediction.reliableHeapPeak();
+    final boolean reliableStepsExceedRam = reliablePeak != null
+        && Math.ceil(reliablePeak.heapGB() * BatchResourceModel.GC_HEADROOM_FACTOR) > maxHeapGB;
 
     final List<String> details = new ArrayList<>();
     if (!prediction.heapReliable()) {
-      details.add("The peak RAM estimate is not reliable: some measurements may include memory "
-          + "that was no longer needed.");
+      if (!heapEnough && !reliableStepsExceedRam) {
+        details.add(("Peak RAM predicts %.1f GB usage, but the estimate is based on unreliable "
+            + "measurements: no full memory cleanup was confirmed during some steps.%s").formatted(
+            prediction.heapGB(),
+            nextRunFiles == null ? "" : " A larger run may lead to a better estimate."));
+      } else {
+        details.add("Some peak RAM estimates are not reliable: measurements may include memory "
+            + "that was no longer needed.");
+      }
+      if (reliablePeak == null) {
+        details.add("No steps have reliable peak RAM measurements. The batch's RAM requirement "
+            + "cannot be determined from these runs.");
+      } else {
+        details.add("The RAM requirement uses only reliable steps. Other steps may include memory "
+            + "that can be freed, but their live RAM requirement is unknown.");
+      }
     }
     details.addAll(BatchResourceReport.reliabilityLines(model));
 
-    if (heapEnough && tempEnough) {
+    if (heapEnough && tempEnough && reliablePeak != null) {
       return new EstimationOutcome(reliable ? EstimationVerdict.ENOUGH_RESOURCES
           : EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, details, null);
     }
-    final Integer nextRunFiles = model.nextRunFiles();
+    if (tempEnough && !reliableStepsExceedRam && !prediction.heapReliable()) {
+      return new EstimationOutcome(EstimationVerdict.RAM_REQUIREMENT_UNCERTAIN, details,
+          nextRunFiles);
+    }
+    if (validationReliable && (reliableStepsExceedRam || !tempEnough)) {
+      return new EstimationOutcome(EstimationVerdict.NOT_ENOUGH_RESOURCES, details, null);
+    }
     if (!reliable && nextRunFiles != null) {
       return new EstimationOutcome(EstimationVerdict.LARGER_RUN_NEEDED, details, nextRunFiles);
     }

@@ -80,7 +80,7 @@ public final class EstimationOutcomePane extends HBox {
     final FxIcons icon = switch (verdict) {
       case ENOUGH_RESOURCES -> FxIcons.CHECK_CIRCLE_FILL;
       case ENOUGH_RESOURCES_UNCERTAIN -> FxIcons.CHECK_CIRCLE;
-      case LARGER_RUN_NEEDED -> FxIcons.RELOAD;
+      case RAM_REQUIREMENT_UNCERTAIN, LARGER_RUN_NEEDED -> FxIcons.RELOAD;
       case NOT_ENOUGH_RESOURCES -> FxIcons.X_CIRCLE_FILL;
     };
 
@@ -127,7 +127,7 @@ public final class EstimationOutcomePane extends HBox {
     return switch (verdict) {
       case ENOUGH_RESOURCES, ENOUGH_RESOURCES_UNCERTAIN ->
           ConfigService.getDefaultColorPalette().getPositiveColor();
-      case LARGER_RUN_NEEDED -> ColorsFX.YELLOW_WARN;
+      case RAM_REQUIREMENT_UNCERTAIN, LARGER_RUN_NEEDED -> ColorsFX.YELLOW_WARN;
       case NOT_ENOUGH_RESOURCES -> ConfigService.getDefaultColorPalette().getNegativeColor();
     };
   }

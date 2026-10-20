@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
+import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Predicted resources of the whole batch for a given number of files.
@@ -51,6 +53,15 @@ public record BatchResourcePrediction(int files, @NotNull List<StepResourcePredi
 
   public boolean heapReliable() {
     return steps.stream().allMatch(StepResourcePrediction::heapReliable);
+  }
+
+  /**
+   * The peak among steps with confirmed full collections in all input runs. Missing steps still
+   * have an unknown live RAM requirement; this is not a complete batch estimate.
+   */
+  public @Nullable StepResourcePrediction reliableHeapPeak() {
+    return steps.stream().filter(StepResourcePrediction::heapReliable)
+        .max(Comparator.comparingDouble(StepResourcePrediction::heapGB)).orElse(null);
   }
 
 }
