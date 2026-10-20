@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.SingleMzToleranceParameter;
 import java.io.File;
@@ -36,14 +37,24 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Builds MSPepSearch command lines.
  * <p>
- * Two things were established by probing MSPepSearch 0.9.7.5 against a NIST 26 installation and are
- * load bearing here:
+ * Three things were established by probing MSPepSearch 0.9.7.5 against a NIST 26 installation and
+ * are load bearing here:
  * <ul>
  *   <li>{@code /PATH} does not work - combining it with a library name fails with
  *       "MS Library initiation error -10". Libraries are therefore always passed as absolute
  *       paths and {@code /PATH} is never emitted.</li>
  *   <li>The main and replicate libraries only work behind {@code /MAIN} and {@code /REPL}; passing
  *       either as {@code /LIB} fails with the same error. See {@link NistLibraryKind}.</li>
+ *   <li>{@code /MatchPolarity} needs every query of a run to have the same polarity. A query
+ *       without polarity counts as positive, so queries of unknown polarity are searched without
+ *       the option. And within one query file the polarity of a negative query carries over to the
+ *       positive queries that follow it: with {@code Precursor_type} or {@code Charge}, every
+ *       positive query after the first negative one lost all of its hits, with {@code Ion_mode}
+ *       about half of them. Searched one polarity per run, positive queries keep all their
+ *       same-polarity hits and negative ones lose only those of the other polarity. The EI
+ *       searches behave alike: positive queries keep exactly the hits of an unfiltered search of
+ *       mainlib and replib, which hold only a few negative ion spectra. How the polarity is
+ *       written is in {@link MsPepSearchQueryWriter}.</li>
  * </ul>
  * The search options form a single concatenated leading token, in the order the MSPepSearch help
  * declares them: {@code [{sdfmk}][aijnopqrvx][{uyz}][{leh}][{IQSHLMPGD}]}. Only the presets mzmine
@@ -91,12 +102,15 @@ final class MsPepSearchCommand {
    * @param workDir    the MSPepSearch work folder.
    * @param mwForLoss  the nominal molecular weight for {@code /MwForLoss}, required by the hybrid
    *                   search and ignored otherwise.
+   * @param polarity   the polarity all queries of this run share. A positive or negative run only
+   *                   returns hits of that polarity; anything else is searched unfiltered.
    * @return the command, ready for {@link ProcessBuilder}. Every path is a separate element, so
    * paths containing spaces need no quoting.
    */
   static @NotNull List<String> build(@NotNull final NistSearchConfig config,
       @NotNull final File executable, @NotNull final File queryFile, @NotNull final File outputFile,
-      @NotNull final File workDir, @Nullable final Integer mwForLoss) {
+      @NotNull final File workDir, @Nullable final Integer mwForLoss,
+      @Nullable final PolarityType polarity) {
 
     final NistSearchMode mode = config.mode();
 
@@ -104,11 +118,16 @@ final class MsPepSearchCommand {
     command.add(executable.getAbsolutePath());
     command.add(buildOptionToken(mode));
 
-    // search parameters. The EI searches take none: /RI is never emitted because retention indices
-    // are not used for matching, and everything else the mode implies is in the option token.
+    // search parameters. /RI is never emitted because retention indices are not used for matching,
+    // and everything else an EI search implies is in the option token.
     if (mode.isHighResolution()) {
       addTolerance(command, "/Z", config.precursorTolerance());
       addTolerance(command, "/M", config.fragmentTolerance());
+    }
+    // otherwise a library spectrum of the other polarity is a hit like any other, e.g. one whose
+    // precursor m/z falls into the MS/MS window
+    if (PolarityType.isDefined(polarity)) {
+      command.add("/MatchPolarity");
     }
     if (mode.needsMolecularWeight() && mwForLoss != null) {
       command.add("/MwForLoss");
