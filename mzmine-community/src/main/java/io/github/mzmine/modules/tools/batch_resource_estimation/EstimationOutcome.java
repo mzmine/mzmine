@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import java.util.ArrayList;
@@ -6,10 +31,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The verdict of a resource estimation for a number of files with the reasons and the advice.
+ * The verdict of a resource estimation for a number of files with heap reliability and validation.
  *
  * @param verdict      overall result
- * @param details      reasons and advice for the user, one sentence per entry
+ * @param details      heap reliability and the latest validation for the banner
  * @param nextRunFiles files of the larger test run for {@link EstimationVerdict#LARGER_RUN_NEEDED},
  *                     null otherwise
  */
@@ -31,18 +56,16 @@ public record EstimationOutcome(@NotNull EstimationVerdict verdict, @NotNull Lis
     final boolean heapEnough = prediction.recommendedXmxGB() <= maxHeapGB;
     final boolean tempEnough = prediction.tempGB() <= tempDirFreeGB;
     final FitCheck check = model.latestCheck();
-    final boolean reliable = check == null || check.maxResourceError() <= MAX_RELIABLE_DEVIATION;
+    final boolean validationReliable =
+        check == null || check.maxResourceError() <= MAX_RELIABLE_DEVIATION;
+    final boolean reliable = prediction.heapReliable() && validationReliable;
 
     final List<String> details = new ArrayList<>();
-    details.add(("Processing %d files needs about %.0f GB heap (-Xmx %d GB with headroom, %.0f GB "
-        + "configured) and %.0f GB temp space (%.0f GB free).").formatted(prediction.files(),
-        prediction.heapGB(), prediction.recommendedXmxGB(), maxHeapGB, prediction.tempGB(),
-        tempDirFreeGB));
-    if (check != null) {
-      details.add("The largest test run with %d files deviated %.0f %% from its prediction%s."
-          .formatted(check.files(), check.maxResourceError() * 100,
-              reliable ? ", the estimate is reliable" : ", the estimate is less reliable"));
+    if (!prediction.heapReliable()) {
+      details.add("The peak RAM estimate is not reliable: some measurements may include memory "
+          + "that was no longer needed.");
     }
+    details.addAll(BatchResourceReport.reliabilityLines(model));
 
     if (heapEnough && tempEnough) {
       return new EstimationOutcome(reliable ? EstimationVerdict.ENOUGH_RESOURCES
@@ -50,25 +73,8 @@ public record EstimationOutcome(@NotNull EstimationVerdict verdict, @NotNull Lis
     }
     final Integer nextRunFiles = model.nextRunFiles();
     if (!reliable && nextRunFiles != null) {
-      details.add("A test run with %d files improves the estimate before you change the settings."
-          .formatted(nextRunFiles));
       return new EstimationOutcome(EstimationVerdict.LARGER_RUN_NEEDED, details, nextRunFiles);
     }
-    details.add(advice(heapEnough, tempEnough));
     return new EstimationOutcome(EstimationVerdict.NOT_ENOUGH_RESOURCES, details, null);
-  }
-
-  private static @NotNull String advice(final boolean heapEnough, final boolean tempEnough) {
-    final List<String> options = new ArrayList<>();
-    if (!heapEnough) {
-      options.add("increase -Xmx (needs that much RAM)");
-    }
-    if (!tempEnough) {
-      options.add("free space or choose a larger temp directory in the preferences");
-    }
-    options.add("use stricter feature detection settings, e.g. a higher noise level or minimum "
-        + "feature height, to reduce the features");
-    options.add("process fewer files per batch");
-    return "Options: " + String.join("; ", options) + ".";
   }
 }

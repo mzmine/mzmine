@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -21,44 +46,56 @@ public final class BatchResourceReport {
   /**
    * @param maxHeapGB     currently configured maximum heap (-Xmx)
    * @param tempDirFreeGB free space in the temp directory
-   * @return human readable summary lines without the verdict, see {@link EstimationOutcome}
+   * @return resource statistics without the verdict, heap reliability or validation, see
+   * {@link EstimationOutcome}
    */
-  public static @NotNull List<String> summaryLines(@NotNull final BatchResourceModel model,
+  public static @NotNull List<String> summaryLines(
       @NotNull final BatchResourcePrediction prediction, final double maxHeapGB,
       final double tempDirFreeGB) {
     final List<String> lines = new ArrayList<>();
-    lines.add("Estimate for %d files (%d threads)".formatted(prediction.files(),
-        model.numThreads()));
-
-    lines.add("Peak heap: %.1f GB in step \"%s\", %s".formatted(prediction.heapGB(),
-        prediction.heapBottleneckStep(), xmxRecommendation(prediction, maxHeapGB)));
-    lines.add("Retained heap: %.1f GB in step \"%s\"".formatted(prediction.retainedHeapGB(),
+    lines.add("Peak RAM: %.1f GB (%s)\nHighest use: %s".formatted(prediction.heapGB(),
+        xmxRecommendation(prediction, maxHeapGB), prediction.heapBottleneckStep()));
+    lines.add(
+        "RAM kept between steps: %.1f GB\nHighest use: %s".formatted(prediction.retainedHeapGB(),
         prediction.retainedBottleneckStep()));
-    lines.add("Temp files: %.1f GB (free in temp directory: %.1f GB)".formatted(
+    lines.add("Temporary storage: %.1f GB (%.1f GB free)".formatted(
         prediction.tempGB(), tempDirFreeGB));
-    lines.add("Processing time: %s, aligned rows: %d".formatted(
+    lines.add("Processing time: %s, aligned feature rows: %d".formatted(
         formatDuration(prediction.seconds()), prediction.rows()));
-
-    final FitCheck check = model.fitCheck();
-    if (check != null) {
-      lines.add(("Validation on %d files predicted from the smaller subsets: heap %.2f / %.2f GB, "
-          + "temp %.2f / %.2f GB, time %s / %s (predicted / measured)").formatted(check.files(),
-          check.predictedHeapGB(), check.measuredHeapGB(), check.predictedTempGB(),
-          check.measuredTempGB(), formatDuration(check.predictedSeconds()),
-          formatDuration(check.measuredSeconds())));
-    }
-    final ModelValidation validation = model.validation();
-    if (validation != null) {
-      final FitCheck totals = validation.totals();
-      lines.add(("Validation run on %d files predicted from the subsets: heap %.2f / %.2f GB, "
-          + "temp %.2f / %.2f GB, time %s / %s (predicted / measured), max deviation %.0f %%. "
-          + "The extrapolation includes this run.").formatted(totals.files(),
-          totals.predictedHeapGB(), totals.measuredHeapGB(), totals.predictedTempGB(),
-          totals.measuredTempGB(), formatDuration(totals.predictedSeconds()),
-          formatDuration(totals.measuredSeconds()), totals.maxRelativeError() * 100));
-    }
-    lines.addAll(latestCheckLines(model));
     return lines;
+  }
+
+  /**
+   * The latest validation, shown only in the verdict banner.
+   */
+  static @NotNull List<String> reliabilityLines(@NotNull final BatchResourceModel model) {
+    final List<String> lines = new ArrayList<>();
+    final FitCheck check = model.latestCheck() != null ? model.latestCheck() : model.fitCheck();
+    if (check != null) {
+      lines.add(("Validation run on %d files (estimated / measured): RAM %.2f / %.2f GB (%s), "
+          + "temporary storage %.2f / %.2f GB (%s). "
+          + "This run is included in the estimate.").formatted(check.files(),
+          check.predictedHeapGB(), check.measuredHeapGB(),
+          measuredDifference(check.predictedHeapGB(), check.measuredHeapGB()),
+          check.predictedTempGB(), check.measuredTempGB(),
+          measuredDifference(check.predictedTempGB(), check.measuredTempGB())));
+    }
+    return lines;
+  }
+
+  /**
+   * Describes measured usage relative to the estimate, so e.g. 0.5 GB measured vs 1 GB estimated
+   * means 50% less was needed. This is separate from the model's validation error threshold.
+   */
+  static @NotNull String measuredDifference(final double estimated, final double measured) {
+    if (estimated <= 0) {
+      return measured <= 0 ? "as estimated" : "more than estimated";
+    }
+    final long percent = Math.round(Math.abs(measured - estimated) / estimated * 100);
+    if (percent == 0) {
+      return "about as estimated";
+    }
+    return "%d%% %s than estimated".formatted(percent, measured < estimated ? "less" : "more");
   }
 
   /**
@@ -67,26 +104,10 @@ public final class BatchResourceReport {
   static @NotNull String xmxRecommendation(@NotNull final BatchResourcePrediction prediction,
       final double maxHeapGB) {
     if (prediction.recommendedXmxGB() > maxHeapGB) {
-      return "recommended -Xmx %d GB (configured: %.1f GB)".formatted(
+      return "increase MZmine's RAM limit to at least %d GB, currently %.1f GB".formatted(
           prediction.recommendedXmxGB(), maxHeapGB);
     }
-    return "configured -Xmx %.1f GB is enough".formatted(maxHeapGB);
-  }
-
-
-  /**
-   * The check of the largest run if runs were added after the validation run.
-   */
-  static @NotNull List<String> latestCheckLines(@NotNull final BatchResourceModel model) {
-    final FitCheck check = model.latestCheck();
-    if (check == null || model.extensions().isEmpty()) {
-      return List.of();
-    }
-    return List.of(("Largest run on %d files predicted from the smaller runs: heap %.2f / %.2f GB, "
-        + "temp %.2f / %.2f GB, time %s / %s (predicted / measured)").formatted(check.files(),
-        check.predictedHeapGB(), check.measuredHeapGB(), check.predictedTempGB(),
-        check.measuredTempGB(), formatDuration(check.predictedSeconds()),
-        formatDuration(check.measuredSeconds())));
+    return "%.1f GB available to MZmine".formatted(maxHeapGB);
   }
 
   public static double maxHeapGB() {
@@ -109,9 +130,10 @@ public final class BatchResourceReport {
     final double tempFreeGB = tempDirFreeGB();
     final EstimationOutcome outcome = EstimationOutcome.of(model, prediction, maxHeapGB,
         tempFreeGB);
-    logger.info("Batch resource estimation: %s\n%s\n%s\n%s".formatted(outcome.verdict().title(),
+    logger.info("Batch resource estimation for %d files (%d threads): %s\n%s\n%s\n%s".formatted(
+        prediction.files(), model.numThreads(), outcome.verdict().title(),
         String.join("\n", outcome.details()),
-        String.join("\n", summaryLines(model, prediction, maxHeapGB, tempFreeGB)),
+        String.join("\n", summaryLines(prediction, maxHeapGB, tempFreeGB)),
         stepsCsv(prediction)));
   }
 

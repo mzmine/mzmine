@@ -39,10 +39,12 @@ import org.jetbrains.annotations.Nullable;
  * @param peakHeapGB        peak used heap (GB) during the step, see {@link HeapPeak#peakHeapGB()}
  * @param peakHeapAfterGcGB peak used heap (GB) after garbage collections during the step, see
  *                          {@link HeapPeak#peakHeapAfterGcGB()}
+ * @param heapMeasurementQuality basis of the heap peak measurement during the step
  */
 public record StepTimeMeasurement(int step, double secondsToFinish, String name,
                                   @Nullable String usedHeapGB, double peakHeapGB,
-                                  @Nullable Double peakHeapAfterGcGB) {
+                                  @Nullable Double peakHeapAfterGcGB,
+                                  @NotNull HeapMeasurementQuality heapMeasurementQuality) {
 
   /**
    * @param trackMemory memory measurements are only precise when combined with GC before, if
@@ -54,7 +56,7 @@ public record StepTimeMeasurement(int step, double secondsToFinish, String name,
     var memory = trackMemory ? "%.2f".formatted(
         ConfigService.getConfiguration().getUsedMemoryGB()) : null;
     this(stepNumber, duration.toMillis() / 1000.0, name, memory, heapPeak.peakHeapGB(),
-        heapPeak.peakHeapAfterGcGB());
+        heapPeak.peakHeapAfterGcGB(), heapPeak.heapMeasurementQuality());
   }
 
   @Override

@@ -46,18 +46,21 @@ import org.jetbrains.annotations.Nullable;
  * @param liveTempFiles        mapped files still alive at the end of the step (best-effort)
  * @param liveTempFileUsedGB       logical bytes of still-alive segments at the end of the step (GB,
  *                         best-effort)
+ * @param heapMeasurementQuality basis of the heap peak measurement during the step
  */
 public record StepMeasurement(int step, String name, double secondsToFinish,
                               @Nullable String usedHeapGB, double peakHeapGB,
                               @Nullable Double peakHeapAfterGcGB, long tempFilesCreated,
                               double reservedTempFileGB, double usedTempFileGB, long liveTempFiles,
-                              double liveTempFileUsedGB) {
+                              double liveTempFileUsedGB,
+                              @NotNull HeapMeasurementQuality heapMeasurementQuality) {
 
   public StepMeasurement(@NotNull final StepTimeMeasurement time,
       @NotNull final StepStorageMeasurement storage) {
     this(time.step(), time.name(), time.secondsToFinish(), time.usedHeapGB(), time.peakHeapGB(),
         time.peakHeapAfterGcGB(), storage.filesCreatedInStep(), storage.reservedGBInStep(),
-        storage.usedGBInStep(), storage.liveFiles(), storage.liveUsedGB());
+        storage.usedGBInStep(), storage.liveFiles(), storage.liveUsedGB(),
+        time.heapMeasurementQuality());
   }
 
   /**
@@ -69,8 +72,8 @@ public record StepMeasurement(int step, String name, double secondsToFinish,
     final String heap = usedHeapGB == null ? "" : ", used heap: %s GB".formatted(usedHeapGB);
     final String peakAfterGc = peakHeapAfterGcGB == null ? ""
         : ", peak heap after GC: %.3f GB".formatted(peakHeapAfterGcGB);
-    return "Step %d: %s took %.3f seconds%s, peak heap: %.3f GB%s; temp files created: %d (reserved %.3f GB, used %.3f GB); live: %d files / %.3f GB".formatted(
-        step, name, secondsToFinish, heap, peakHeapGB, peakAfterGc, tempFilesCreated,
-        reservedTempFileGB, usedTempFileGB, liveTempFiles, liveTempFileUsedGB);
+    return "Step %d: %s took %.3f seconds%s, peak heap: %.3f GB%s, heap measurement: %s; temp files created: %d (reserved %.3f GB, used %.3f GB); live: %d files / %.3f GB".formatted(
+        step, name, secondsToFinish, heap, peakHeapGB, peakAfterGc, heapMeasurementQuality,
+        tempFilesCreated, reservedTempFileGB, usedTempFileGB, liveTempFiles, liveTempFileUsedGB);
   }
 }

@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -6,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.modules.batchmode.timing.HeapMeasurementQuality;
 import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -48,7 +74,7 @@ class BatchResourceModelTest {
   private static StepMeasurement measurement(final int step, final String name,
       final double seconds, final double retained, final double livePeak, final double temp) {
     return new StepMeasurement(step, name, seconds, String.valueOf(retained), livePeak + 1,
-        livePeak, 0, 0, 0, 1, temp);
+        livePeak, 0, 0, 0, 1, temp, HeapMeasurementQuality.FULL_GC);
   }
 
   private static List<SubsetRun> runs() {
@@ -102,10 +128,14 @@ class BatchResourceModelTest {
         "error " + validation.totals().maxRelativeError());
     // the charts show the validation run on its own
     assertEquals(3, model.measured().size());
-    final List<String> lines = BatchResourceReport.summaryLines(model, model.predict(100), 64,
-        100);
+    final List<String> lines = EstimationOutcome.of(model, model.predict(100), 64, 100).details();
     assertTrue(lines.stream().anyMatch(line -> line.startsWith("Validation run on 32 files")),
         String.join("\n", lines));
+    assertFalse(lines.stream().anyMatch(line -> line.contains("time ")));
+    final List<String> statistics = BatchResourceReport.summaryLines(model.predict(100), 64, 100);
+    assertFalse(statistics.stream().anyMatch(
+        line -> line.startsWith("Validation") || line.startsWith("Reliable RAM measurements")));
+    assertTrue(statistics.stream().anyMatch(line -> line.startsWith("Processing time:")));
   }
 
   @Test
@@ -144,8 +174,19 @@ class BatchResourceModelTest {
     // peak heap 30.3 GB needs a -Xmx of 46 GB with the GC headroom
     final BatchResourcePrediction prediction = model().predict(100);
     assertTrue(BatchResourceReport.xmxRecommendation(prediction, 32).startsWith(
-        "recommended -Xmx 46 GB"));
-    assertTrue(BatchResourceReport.xmxRecommendation(prediction, 64).endsWith("is enough"));
+        "increase MZmine's RAM limit to at least 46 GB"));
+    assertTrue(
+        BatchResourceReport.xmxRecommendation(prediction, 64).endsWith("available to MZmine"));
+  }
+
+  @Test
+  void describesMeasuredUsageAsMoreOrLessThanEstimated() {
+    assertEquals("59% less than estimated", BatchResourceReport.measuredDifference(1.55, 0.63));
+    assertEquals("50% more than estimated", BatchResourceReport.measuredDifference(1, 1.5));
+    assertEquals("100% less than estimated", BatchResourceReport.measuredDifference(1, 0));
+    assertEquals("about as estimated", BatchResourceReport.measuredDifference(1, 1.001));
+    assertEquals("as estimated", BatchResourceReport.measuredDifference(0, 0));
+    assertEquals("more than estimated", BatchResourceReport.measuredDifference(0, 1));
   }
 
   @Test
@@ -211,9 +252,8 @@ class BatchResourceModelTest {
         4);
     assertEquals(EstimationVerdict.NOT_ENOUGH_RESOURCES, notEnough.verdict());
     assertNull(notEnough.nextRunFiles());
-    assertTrue(notEnough.details().getLast().startsWith("Options: increase -Xmx"),
-        String.join("\n", notEnough.details()));
-    assertTrue(notEnough.details().getLast().contains("stricter feature detection"));
+    assertFalse(notEnough.details().stream()
+        .anyMatch(line -> line.startsWith("Processing ") || line.startsWith("Options:")));
 
     // uncertain, but the largest run already used all files of the batch
     final BatchResourceModel allFilesUsed = BatchResourceModel.fit(List.of(syntheticRun(4, 0.4),
@@ -225,5 +265,52 @@ class BatchResourceModelTest {
       final double tempDirFreeGB) {
     return EstimationOutcome.of(model, model.predict(model.totalFiles()), maxHeapGB,
         tempDirFreeGB).verdict();
+  }
+
+  @Test
+  void unconfirmedHeapSamplesMakeAnOtherwiseAccurateEstimateUncertain() {
+    for (final HeapMeasurementQuality quality : List.of(HeapMeasurementQuality.PARTIAL_GC,
+        HeapMeasurementQuality.NO_GC)) {
+      final SubsetRun original = syntheticRun(32);
+      final List<StepMeasurement> measurements = original.steps().stream().map(
+          m -> new StepMeasurement(m.step(), m.name(), m.secondsToFinish(), m.usedHeapGB(),
+              m.peakHeapGB(),
+              quality == HeapMeasurementQuality.NO_GC ? null : m.peakHeapAfterGcGB(),
+              m.tempFilesCreated(), m.reservedTempFileGB(), m.usedTempFileGB(), m.liveTempFiles(),
+              m.liveTempFileUsedGB(), quality)).toList();
+      final SubsetRun validation = new SubsetRun(original.files(), original.fileEquivalents(),
+          original.baselineHeapGB(), original.baselineLiveTempGB(), original.maxRows(),
+          measurements);
+      final BatchResourceModel model = BatchResourceModel.fit(runs(), validation, MODES, 100,
+          THREADS);
+
+      assertFalse(model.validation().measured().heapReliable());
+      assertFalse(model.predict(100).heapReliable());
+      assertEquals(EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, verdict(model, 100, 100));
+      assertTrue(EstimationOutcome.of(model, model.predict(100), 100, 100).details().stream()
+          .anyMatch(line -> line.startsWith("The peak RAM estimate is not reliable")));
+      final List<StepMeasurement> adjusted = SubsetRunner.withoutGcTime(measurements, 0.1);
+      assertEquals(quality, adjusted.getFirst().heapMeasurementQuality());
+    }
+  }
+
+  @Test
+  void unreliableSmallerRunRemainsVisibleAfterReliableValidation() {
+    final SubsetRun original = syntheticRun(16);
+    final StepMeasurement m = original.steps().getFirst();
+    final StepMeasurement partial = new StepMeasurement(m.step(), m.name(), m.secondsToFinish(),
+        m.usedHeapGB(), m.peakHeapGB(), m.peakHeapAfterGcGB(), m.tempFilesCreated(),
+        m.reservedTempFileGB(), m.usedTempFileGB(), m.liveTempFiles(), m.liveTempFileUsedGB(),
+        HeapMeasurementQuality.PARTIAL_GC);
+    final SubsetRun unreliable = new SubsetRun(16, 16, BASELINE, 0, original.maxRows(),
+        List.of(partial, original.steps().get(1)));
+    final BatchResourceModel model = BatchResourceModel.fit(
+        List.of(syntheticRun(4), syntheticRun(8), unreliable), syntheticRun(32), MODES, 100,
+        THREADS);
+
+    assertTrue(model.validation().measured().heapReliable());
+    assertFalse(model.predict(100).steps().getFirst().heapReliable());
+    assertTrue(model.predict(100).steps().get(1).heapReliable());
+    assertEquals(EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, verdict(model, 64, 100));
   }
 }

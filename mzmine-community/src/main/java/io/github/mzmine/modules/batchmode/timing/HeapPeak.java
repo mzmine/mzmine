@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.batchmode.timing;
 
 import org.jetbrains.annotations.NotNull;
@@ -18,11 +43,22 @@ import org.jetbrains.annotations.Nullable;
  *                          upper bound without full collections. The better basis to estimate the
  *                          required heap. Null if no garbage collection happened during the window
  *                          or GC notifications are not available.
+ * @param heapMeasurementQuality whether the value is based on an observed full collection
  */
-public record HeapPeak(double peakHeapGB, @Nullable Double peakHeapAfterGcGB) {
+public record HeapPeak(double peakHeapGB, @Nullable Double peakHeapAfterGcGB,
+                       @NotNull HeapMeasurementQuality heapMeasurementQuality) {
 
   /**
-   * @return the larger value of both peaks, null values are ignored
+   * Without collection type information, an after-GC value is not confirmed as a full GC sample.
+   */
+  public HeapPeak(final double peakHeapGB, @Nullable final Double peakHeapAfterGcGB) {
+    this(peakHeapGB, peakHeapAfterGcGB, peakHeapAfterGcGB == null ? HeapMeasurementQuality.NO_GC
+        : HeapMeasurementQuality.PARTIAL_GC);
+  }
+
+  /**
+   * @return the larger value of both peaks with the weaker measurement quality; null values are
+   * ignored
    */
   public static @NotNull HeapPeak max(@NotNull final HeapPeak a, @NotNull final HeapPeak b) {
     final Double afterGc;
@@ -33,6 +69,9 @@ public record HeapPeak(double peakHeapGB, @Nullable Double peakHeapAfterGcGB) {
     } else {
       afterGc = Math.max(a.peakHeapAfterGcGB, b.peakHeapAfterGcGB);
     }
-    return new HeapPeak(Math.max(a.peakHeapGB, b.peakHeapGB), afterGc);
+    final HeapMeasurementQuality quality =
+        a.heapMeasurementQuality.ordinal() >= b.heapMeasurementQuality.ordinal()
+            ? a.heapMeasurementQuality : b.heapMeasurementQuality;
+    return new HeapPeak(Math.max(a.peakHeapGB, b.peakHeapGB), afterGc, quality);
   }
 }

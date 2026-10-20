@@ -1,14 +1,39 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.components.factories.FxSplitPanes;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.components.util.FxLayout;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -24,21 +49,23 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import javafx.geometry.VPos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.plot.CategoryPlot;
@@ -51,37 +78,39 @@ import org.jfree.data.category.DefaultCategoryDataset;
  * extrapolation to all files and to a number of files that the user enters, plus a summary and a
  * table of the extrapolation to the entered number of files.
  */
-public final class BatchResourceEstimationResultStage extends Stage {
+public final class BatchResourceEstimationResultTab extends SimpleTab {
 
   private final @NotNull ParameterSet parameters;
   private @NotNull EstimationSession session;
   private @NotNull BatchResourceModel model;
   private int files;
-  private final ObservableList<StepResourcePrediction> stepPredictions =
-      FXCollections.observableArrayList();
-  private final VBox summary = FxLayout.newVBox();
-  private final EstimationOutcomePane outcomePane = new EstimationOutcomePane(
-      this::startLargerRun);
-  private boolean largerRunRunning = false;
+  private final ObservableList<StepResourcePrediction> stepPredictions = FXCollections.observableArrayList();
+  private final GridPane summary = new GridPane();
+  private final Label threadsLabel = new Label();
+  private final BooleanProperty largerRunRunning = new SimpleBooleanProperty(false);
+  private final EstimationOutcomePane outcomePane = new EstimationOutcomePane(this::startLargerRun,
+      largerRunRunning);
   private final Map<ResourceMetric, CategoryPlot> plots = new EnumMap<>(ResourceMetric.class);
   private final double maxHeapGB = Runtime.getRuntime().maxMemory() / (double) (1 << 30);
   // read once when the result is shown, never on spinner changes (may spin up a disk)
   private final double tempDirFreeGB = FileAndPathUtil.getTempDir().getUsableSpace() / 1e9;
 
-  private BatchResourceEstimationResultStage(@NotNull final EstimationSession session,
+  private BatchResourceEstimationResultTab(@NotNull final EstimationSession session,
       @NotNull final BatchResourceModel model, @NotNull final ParameterSet parameters) {
+    super("Batch resource estimation");
     this.session = session;
     this.model = model;
     this.parameters = parameters;
     this.files = model.totalFiles();
-    setTitle("Batch resource estimation");
-    getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
 
     final IntegerComponent filesComponent = new IntegerComponent(100, 1, null);
+    filesComponent.setPrefWrapLength(100);
+    filesComponent.setMinWidth(Region.USE_PREF_SIZE);
+    filesComponent.setMaxWidth(Region.USE_PREF_SIZE);
     filesComponent.setText(String.valueOf(model.totalFiles()));
     filesComponent.setToolTipText("""
-        Extrapolate to this number of files with the mean file size of the batch (%d files)"""
-        .formatted(model.totalFiles()));
+        Estimate resources for this many files, using the average file size of the batch (%d files).""".formatted(
+        model.totalFiles()));
     // the value is committed on enter or focus loss
     filesComponent.valueProperty().addListener((_, _, n) -> {
       if (n != null && n > 0) {
@@ -89,30 +118,43 @@ public final class BatchResourceEstimationResultStage extends Stage {
         update();
       }
     });
-    final VBox top = FxLayout.newVBox(outcomePane, FxLayout.newHBox(Pos.CENTER_LEFT,
-        FxLabels.newBoldLabel("Extrapolate to files:"), filesComponent), summary);
+    summary.setHgap(24);
+    summary.setVgap(6);
+    summary.setMinWidth(0);
+    summary.setMaxWidth(Double.MAX_VALUE);
+    for (int i = 0; i < 2; i++) {
+      final ColumnConstraints column = new ColumnConstraints();
+      column.setPercentWidth(50);
+      column.setHgrow(Priority.ALWAYS);
+      summary.getColumnConstraints().add(column);
+    }
+    final VBox top = FxLayout.newVBox(outcomePane,
+        FxLayout.newHBox(Pos.CENTER_LEFT, FxLabels.newBoldLabel("Estimate for files:"),
+            filesComponent, threadsLabel), summary);
+    top.setFillWidth(true);
+    top.setMinWidth(0);
 
     final BorderPane root = new BorderPane();
+    root.setMinSize(0, 0);
     root.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     root.setTop(top);
-    root.setCenter(FxSplitPanes.newSplitPane(0.7, Orientation.VERTICAL, createCharts(),
-        createTable()));
+    root.setCenter(
+        FxSplitPanes.newSplitPane(0.7, Orientation.VERTICAL, createCharts(), createTable()));
 
-    final Scene scene = new Scene(root, 1400, 950);
-    ConfigService.getConfiguration().getTheme().apply(scene.getStylesheets());
-    setScene(scene);
+    setContent(root);
     update();
   }
 
   /**
-   * Opens the result in a new window. The verdict banner offers a further, larger run if needed.
-   * Call on the FX thread.
+   * Opens the result in a main window tab. The verdict banner offers a further, larger run if
+   * needed. Call on the FX thread.
    *
    * @param parameters the parameters of the estimation
    */
   public static void show(@NotNull final EstimationSession session,
       @NotNull final BatchResourceModel model, @NotNull final ParameterSet parameters) {
-    new BatchResourceEstimationResultStage(session, model, parameters).show();
+    MZmineCore.getDesktop()
+        .addTab(new BatchResourceEstimationResultTab(session, model, parameters));
   }
 
   /**
@@ -122,12 +164,13 @@ public final class BatchResourceEstimationResultStage extends Stage {
       @NotNull final BatchResourceModel model) {
     this.session = session;
     this.model = model;
-    largerRunRunning = false;
+    largerRunRunning.set(false);
     update();
-    if (!isShowing()) {
-      show();
+    if (getTabPane() == null) {
+      MZmineCore.getDesktop().addTab(this);
+    } else {
+      getTabPane().getSelectionModel().select(this);
     }
-    toFront();
   }
 
   /**
@@ -135,18 +178,18 @@ public final class BatchResourceEstimationResultStage extends Stage {
    * the verdict banner offers it, a dialog would repeat the banner.
    */
   private void startLargerRun(final int runFiles) {
-    if (largerRunRunning || !BatchResourceEstimationModule.confirmClearProject(
+    if (largerRunRunning.get() || !BatchResourceEstimationModule.confirmClearProject(
         ProjectService.getProject())) {
       return;
     }
-    largerRunRunning = true;
+    largerRunRunning.set(true);
     final BatchResourceExtensionTask task = new BatchResourceExtensionTask(Instant.now(),
         parameters, session, runFiles,
         (extended, extendedModel) -> FxThread.runLater(() -> setResult(extended, extendedModel)));
     // allow a new run after an error or cancel
     task.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.ERROR || newStatus == TaskStatus.CANCELED) {
-        FxThread.runLater(() -> largerRunRunning = false);
+        FxThread.runLater(() -> largerRunRunning.set(false));
       }
     });
     MZmineCore.getTaskController().addTask(task);
@@ -155,10 +198,18 @@ public final class BatchResourceEstimationResultStage extends Stage {
   private void update() {
     final BatchResourcePrediction custom = model.predict(files);
     outcomePane.setOutcome(EstimationOutcome.of(model, custom, maxHeapGB, tempDirFreeGB));
-    summary.getChildren().setAll(
-        BatchResourceReport.summaryLines(model, custom, maxHeapGB, tempDirFreeGB)
-            .stream()
-            .map(Label::new).toList());
+    threadsLabel.setText("(%d threads)".formatted(model.numThreads()));
+    summary.getChildren().clear();
+    final List<String> statistics = BatchResourceReport.summaryLines(custom, maxHeapGB,
+        tempDirFreeGB);
+    for (int i = 0; i < statistics.size(); i++) {
+      final Label label = new Label(statistics.get(i));
+      label.setWrapText(true);
+      label.setMinWidth(0);
+      label.setMaxWidth(Double.MAX_VALUE);
+      GridPane.setValignment(label, VPos.TOP);
+      summary.add(label, i % 2, i / 2);
+    }
     stepPredictions.setAll(custom.steps());
 
     // series: measured subsets, validation and the extrapolation to the entered number of files
@@ -171,14 +222,14 @@ public final class BatchResourceEstimationResultStage extends Stage {
       seriesLabels.add("%d files (validation, measured)".formatted(validation.measured().files()));
       series.add(validation.predicted());
       seriesLabels.add(
-          "%d files (validation, extrapolated)".formatted(validation.predicted().files()));
+          "%d files (validation, estimated)".formatted(validation.predicted().files()));
     }
     for (final BatchResourcePrediction extension : model.extensions()) {
       series.add(extension);
       seriesLabels.add("%d files (additional run, measured)".formatted(extension.files()));
     }
     series.add(custom);
-    seriesLabels.add("%d files (extrapolated)".formatted(files));
+    seriesLabels.add("%d files (estimated)".formatted(files));
 
     plots.forEach((metric, plot) -> {
       final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
@@ -188,12 +239,22 @@ public final class BatchResourceEstimationResultStage extends Stage {
               "%d %s".formatted(step.step(), step.name()));
         }
       }
+      if (metric == ResourceMetric.HEAP) {
+        final RamReliabilityBarRenderer renderer = (RamReliabilityBarRenderer) plot.getRenderer();
+        renderer.setRuns(series);
+        renderer.setDefaultToolTipGenerator((data, row, column) -> {
+          final StepResourcePrediction step = series.get(row).steps().get(column);
+          return "%s, %s: %.3f GB; %s".formatted(data.getRowKey(row), data.getColumnKey(column),
+              step.heapGB(), step.heapReliability());
+        });
+      }
       plot.setDataset(dataset);
     });
   }
 
   private @NotNull GridPane createCharts() {
     final GridPane grid = new GridPane();
+    grid.setMinSize(0, 0);
     for (int i = 0; i < 2; i++) {
       final ColumnConstraints column = new ColumnConstraints();
       column.setPercentWidth(50);
@@ -212,10 +273,20 @@ public final class BatchResourceEstimationResultStage extends Stage {
       final FxJFreeChart chart = FxChartFactory.createBarChart(metric.title(), null,
           metric.axisLabel(), new DefaultCategoryDataset(), PlotOrientation.VERTICAL, true, true);
       final EChartViewer viewer = new EChartViewer(chart);
+      viewer.setMinSize(0, 0);
+      viewer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+      GridPane.setHgrow(viewer, Priority.ALWAYS);
+      GridPane.setVgrow(viewer, Priority.ALWAYS);
 
       final CategoryPlot plot = chart.getCategoryPlot();
       plot.getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
-      final BarRenderer renderer = (BarRenderer) plot.getRenderer();
+      final BarRenderer renderer;
+      if (metric == ResourceMetric.HEAP) {
+        renderer = new RamReliabilityBarRenderer();
+        plot.setRenderer(renderer);
+      } else {
+        renderer = (BarRenderer) plot.getRenderer();
+      }
       renderer.setItemMargin(0.02);
       for (int c = 0; c < colors.size(); c++) {
         renderer.setSeriesPaint(c, colors.get(c));
@@ -233,15 +304,15 @@ public final class BatchResourceEstimationResultStage extends Stage {
         TableColumns.createColumn("Step", 40, NumberFormat.getIntegerInstance(), null,
             p -> new ReadOnlyObjectWrapper<>(p.step())),
         TableColumns.createColumn("Module", 200, p -> new ReadOnlyObjectWrapper<>(p.name())),
-        TableColumns.createColumn("Scales with", 70,
-            p -> new ReadOnlyObjectWrapper<>(p.scaling())),
-        TableColumns.createColumn("Heap (GB)", 70, gb, null,
+        TableColumns.createColumn("Depends on", 70, p -> new ReadOnlyObjectWrapper<>(p.scaling())),
+        TableColumns.createColumn("RAM (GB)", 70, gb, null,
             p -> new ReadOnlyObjectWrapper<>(p.heapGB())),
-        TableColumns.createColumn("Retained heap (GB)", 70, gb, null,
+        TableColumns.createColumn("RAM estimate reliability", 160,
+            p -> new ReadOnlyObjectWrapper<>(p.heapReliability())),
+        TableColumns.createColumn("RAM kept (GB)", 90, gb, null,
             p -> new ReadOnlyObjectWrapper<>(p.retainedHeapGB())),
-        TableColumns.createColumn("Temp files (GB)", 70, gb, null,
-            p -> new ReadOnlyObjectWrapper<>(p.liveTempGB())),
-        TableColumns.createColumn("Time", 70,
+        TableColumns.createColumn("Temporary storage (GB)", 120, gb, null,
+            p -> new ReadOnlyObjectWrapper<>(p.liveTempGB())), TableColumns.createColumn("Time", 70,
             p -> new ReadOnlyObjectWrapper<>(BatchResourceReport.formatDuration(p.seconds()))));
     table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
     return table;

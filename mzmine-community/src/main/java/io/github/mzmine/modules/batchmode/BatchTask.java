@@ -415,7 +415,7 @@ public class BatchTask extends AbstractTask {
     final HeapPeak heapPeak = maxHeapPeak(stepTimes.subList(0, steps));
     measurements.add(new StepMeasurement(
         new StepTimeMeasurement(0, totalSeconds, WHOLE_BATCH_NAME, heap, heapPeak.peakHeapGB(),
-            heapPeak.peakHeapAfterGcGB()),
+            heapPeak.peakHeapAfterGcGB(), heapPeak.heapMeasurementQuality()),
         new StepStorageMeasurement(0, WHOLE_BATCH_NAME, totalFiles, totalReservedGB, totalUsedGB,
             last.liveFiles(), last.liveUsedGB())));
 
@@ -426,9 +426,8 @@ public class BatchTask extends AbstractTask {
    * @return the highest heap peaks of all steps, 0 GB peak heap if there are no steps
    */
   private static @NotNull HeapPeak maxHeapPeak(@NotNull final List<StepTimeMeasurement> steps) {
-    return steps.stream()
-        .map(step -> new HeapPeak(step.peakHeapGB(), step.peakHeapAfterGcGB()))
-        .reduce(new HeapPeak(0, null), HeapPeak::max);
+    return steps.stream().map(step -> new HeapPeak(step.peakHeapGB(), step.peakHeapAfterGcGB(),
+        step.heapMeasurementQuality())).reduce(HeapPeak::max).orElse(new HeapPeak(0, null));
   }
 
   /**

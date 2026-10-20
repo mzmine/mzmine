@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.batchmode.timing;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
@@ -49,7 +74,11 @@ public final class HeapPeakTracker {
   private final AtomicLong peakUsedAfterFullGcBytes = new AtomicLong(-1);
 
   private HeapPeakTracker() {
-    startUptimeMillis = ManagementFactory.getRuntimeMXBean().getUptime();
+    this(ManagementFactory.getRuntimeMXBean().getUptime());
+  }
+
+  HeapPeakTracker(final long startUptimeMillis) {
+    this.startUptimeMillis = startUptimeMillis;
   }
 
   /**
@@ -75,10 +104,12 @@ public final class HeapPeakTracker {
     // garbage in the old generation, so full collections are preferred if there were any
     final long afterFullGc = peakUsedAfterFullGcBytes.get();
     final long afterGc = afterFullGc >= 0 ? afterFullGc : peakUsedAfterGcBytes.get();
-    return new HeapPeak(toGB(peakUsedBytes.get()), afterGc < 0 ? null : toGB(afterGc));
+    final HeapMeasurementQuality quality = afterFullGc >= 0 ? HeapMeasurementQuality.FULL_GC
+        : afterGc >= 0 ? HeapMeasurementQuality.PARTIAL_GC : HeapMeasurementQuality.NO_GC;
+    return new HeapPeak(toGB(peakUsedBytes.get()), afterGc < 0 ? null : toGB(afterGc), quality);
   }
 
-  private void onGc(final long gcStartUptimeMillis, final long usedBeforeBytes,
+  void onGc(final long gcStartUptimeMillis, final long usedBeforeBytes,
       final long usedAfterBytes, final boolean fullGc) {
     // decision: attribute a collection by its start time so that the explicit System.gc() at the
     // end of the previous step is not added to the next step when its notification arrives late
@@ -138,12 +169,18 @@ public final class HeapPeakTracker {
         (CompositeData) notification.getUserData());
     final var gcInfo = info.getGcInfo();
     // e.g. "end of major GC" for full collections like System.gc()
-    final boolean fullGc = info.getGcAction().contains("major");
+    final boolean fullGc = isFullGc(info.getGcAction());
     final long before = sumHeapPools(gcInfo.getMemoryUsageBeforeGc(), heapPools);
     final long after = sumHeapPools(gcInfo.getMemoryUsageAfterGc(), heapPools);
     for (final HeapPeakTracker tracker : activeTrackers) {
       tracker.onGc(gcInfo.getStartTime(), before, after, fullGc);
     }
+  }
+
+  static boolean isFullGc(@NotNull final String action) {
+    // HotSpot reports full collections as major GC, young/mixed collections as minor GC and
+    // concurrent phases separately. Unknown actions must not imply a confirmed full collection.
+    return "end of major GC".equals(action);
   }
 
   private static long sumHeapPools(@NotNull final Map<String, MemoryUsage> usageByPool,

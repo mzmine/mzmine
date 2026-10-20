@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
@@ -9,6 +34,7 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.main.ConfigService;
 import java.util.function.IntConsumer;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -35,12 +61,17 @@ public final class EstimationOutcomePane extends HBox {
   /**
    * @param onStartLargerRun starts a larger run with the given number of files
    */
-  public EstimationOutcomePane(@NotNull final IntConsumer onStartLargerRun) {
+  public EstimationOutcomePane(@NotNull final IntConsumer onStartLargerRun,
+      @NotNull final ObservableBooleanValue largerRunRunning) {
     this.onStartLargerRun = onStartLargerRun;
+    actions.disableProperty().bind(largerRunRunning);
     setSpacing(14);
     setAlignment(Pos.CENTER_LEFT);
     setPadding(new Insets(10, 14, 10, 14));
     title.setTextAlignment(TextAlignment.LEFT);
+    title.setWrapText(true);
+    title.setMinWidth(0);
+    title.setMaxWidth(Double.MAX_VALUE);
   }
 
   public void setOutcome(@NotNull final EstimationOutcome outcome) {
@@ -57,6 +88,9 @@ public final class EstimationOutcomePane extends HBox {
     details.getChildren().setAll(outcome.details().stream().map(text -> {
       final Label label = FxLabels.newLabel(Styles.REGULAR, text);
       label.setTextAlignment(TextAlignment.LEFT);
+      label.setWrapText(true);
+      label.setMinWidth(0);
+      label.setMaxWidth(Double.MAX_VALUE);
       return label;
     }).toList());
     final Integer nextRunFiles = outcome.nextRunFiles();
@@ -68,8 +102,11 @@ public final class EstimationOutcomePane extends HBox {
     } else {
       actions.getChildren().clear();
     }
+    actions.setVisible(nextRunFiles != null);
+    actions.setManaged(nextRunFiles != null);
 
     final VBox text = new VBox(6, title, details, actions);
+    text.setMinWidth(0);
     HBox.setHgrow(text, Priority.ALWAYS);
     getChildren().setAll(FxIconUtil.getFontIcon(icon, ICON_SIZE, color), text);
     // tinted background with a strong left border in the color of the verdict

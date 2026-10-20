@@ -132,7 +132,7 @@ public class ImportSpeedTestMain {
       final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
       final var time = new StepTimeMeasurement(1, f.getSeconds(), name,
           "%.2f".formatted(ConfigService.getConfiguration().getUsedMemoryGB()),
-          heapPeak.peakHeapGB(), heapPeak.peakHeapAfterGcGB());
+          heapPeak.peakHeapGB(), heapPeak.peakHeapAfterGcGB(), heapPeak.heapMeasurementQuality());
       final var storage = new StepStorageMeasurement(1, name, storageBefore, storageAfter);
 
       var sm = new SpeedMeasurement(Instant.now().toString(), RUN_ID, description, "",
