@@ -179,8 +179,8 @@ public class IntegrationTests {
         "mse_project.mzmine").size());
 
     Assertions.assertEquals(2, IntegrationTestUtils.getCsvComparisonResults(
-        "rawdatafiles/integration_tests/mse/expected_results.csv",
-        exportedFlist, "mse_project.mzmine").size());
+        "rawdatafiles/integration_tests/mse/expected_results.csv", exportedFlist,
+        "mse_project.mzmine").size());
   }
 
   @Test
