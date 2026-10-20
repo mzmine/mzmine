@@ -61,7 +61,7 @@ public class PrecursorPurityCheckerModule implements MZmineProcessingModule {
       @NotNull final Instant moduleCallDate) {
 
     var flists = parameters.getValue(PrecursorPurityCheckerParameters.featureLists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     for (final ModularFeatureList flist : flists) {
       tasks.add(new PrecursorPurityCheckerTask(flist, parameters, moduleCallDate));
     }

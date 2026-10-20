@@ -24,6 +24,7 @@
 
 package io.github.mzmine.util.reporting.jasper.reporttypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -41,7 +42,11 @@ public interface ReportModule extends MZmineModule {
 
   double getProgress();
 
-  public ReportModule createInstance(@NotNull ParameterSet parameters);
+  /**
+   * @param project the project the report is generated for
+   */
+  public ReportModule createInstance(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters);
 
   void cancel();
 }

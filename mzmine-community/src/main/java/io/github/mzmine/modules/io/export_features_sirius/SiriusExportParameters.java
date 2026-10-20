@@ -37,6 +37,7 @@
 
 package io.github.mzmine.modules.io.export_features_sirius;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
@@ -136,10 +137,11 @@ public class SiriusExportParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    boolean superCheck = super.checkParameterValues(project, errorMessages);
 
-    if (getValue(FEATURE_LISTS).getMatchingFeatureLists().length > 1 && !getValue(
+    if (getValue(FEATURE_LISTS).getMatchingFeatureLists(project).length > 1 && !getValue(
         FILENAME).getName().contains(SiriusExportTask.MULTI_NAME_PATTERN)) {
       errorMessages.add(
           "More than one feature list selected but \"" + SiriusExportTask.MULTI_NAME_PATTERN

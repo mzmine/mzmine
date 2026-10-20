@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
@@ -51,7 +52,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -86,6 +86,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
 
   private static final Logger logger = Logger.getLogger(GroupMS2Processor.class.getName());
 
+  private final @NotNull MetadataTable metadata;
   private final MemoryMapStorage timsScanStorage;
   private final Double minMs2IntensityAbs;
   private final boolean combineTimsMS2;
@@ -120,17 +121,21 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
   /**
    * Create the task.
    *
+   * @param project      the metadata of this project links MS2 files to their main files
    * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
-  public GroupMS2Processor(@Nullable AbstractTask parentTask, final FeatureList list,
-      final ParameterSet parameterSet) {
-    this(parentTask, list, parameterSet, ((ModularFeatureList) list).getMemoryMapStorage());
+  public GroupMS2Processor(@NotNull MZmineProject project, @Nullable AbstractTask parentTask,
+      final FeatureList list, final ParameterSet parameterSet) {
+    this(project, parentTask, list, parameterSet,
+        ((ModularFeatureList) list).getMemoryMapStorage());
   }
 
-  public GroupMS2Processor(@Nullable AbstractTask parentTask, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage timsScanStorage) {
+  public GroupMS2Processor(@NotNull MZmineProject project, @Nullable AbstractTask parentTask,
+      final FeatureList list, final ParameterSet parameterSet,
+      @Nullable MemoryMapStorage timsScanStorage) {
     super(parentTask);
+    this.metadata = project.getProjectMetadata();
 
     this.timsScanStorage = timsScanStorage;
     // RT has two options / tolerance is only provided for second option
@@ -270,7 +275,6 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     if (mainFile == null) {
       return Stream.empty();
     }
-    final MetadataTable metadata = ProjectService.getMetadata();
     final MetadataColumn<String> mainQuantFileCol = (MetadataColumn<String>) metadata.getColumnByName(
         otherFileMs2MetadataColumnTitle);
     if (mainQuantFileCol == null) {

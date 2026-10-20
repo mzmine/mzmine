@@ -48,7 +48,7 @@ public class PrecursorDBSearchModule extends SingleTaskFeatureListsModule {
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList[] featureList) {
-    return new PrecursorDBSearchTask(parameters, moduleCallDate);
+    return new PrecursorDBSearchTask(project, parameters, moduleCallDate);
   }
 
 }

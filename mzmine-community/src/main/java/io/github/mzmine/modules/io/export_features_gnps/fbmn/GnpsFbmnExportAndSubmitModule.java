@@ -69,7 +69,8 @@ public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     // add gnps export task
-    GnpsFbmnExportAndSubmitTask task = new GnpsFbmnExportAndSubmitTask(parameters, moduleCallDate);
+    GnpsFbmnExportAndSubmitTask task = new GnpsFbmnExportAndSubmitTask(project, parameters,
+        moduleCallDate);
     tasks.add(task);
 
     return ExitCode.OK;

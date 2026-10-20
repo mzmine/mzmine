@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.StringUtils;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -42,16 +43,16 @@ public record Metadata1GroupSelection(@NotNull String columnName,
   }
 
   /**
-   * @return Checks if the current metadata table contains the specified column and the specified
+   * @return Checks if the metadata table contains the specified column and the specified
    * value. Case insensitive, see {@link #matchesValue(Object)}.
    */
   @Override
-  public boolean isValid() {
+  public boolean isValid(@NotNull MetadataTable metadata) {
     if (columnName.isBlank() || groupStr.isBlank()) {
       return false;
     }
 
-    final Map<RawDataFile, Object> columnValues = getColumnData();
+    final Map<RawDataFile, Object> columnValues = getColumnData(metadata);
     if (columnValues == null) {
       return false;
     }

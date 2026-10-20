@@ -26,10 +26,11 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.project.ProjectMismatchException;
 import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.io.JsonUtils;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureListsSelection implements Cloneable {
 
@@ -96,29 +98,38 @@ public class FeatureListsSelection implements Cloneable {
   }
 
 
+  /**
+   * @param project the feature lists are selected from this project
+   * @return the selected feature lists
+   */
   @NotNull
-  public ModularFeatureList[] getMatchingFeatureLists() {
+  public ModularFeatureList[] getMatchingFeatureLists(@NotNull final MZmineProject project) {
 
     final ModularFeatureList[] matchingFlists = switch (selectionType) {
 
-      case GUI_SELECTED_FEATURELISTS -> Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
-          .map(ModularFeatureList.class::cast).toArray(ModularFeatureList[]::new);
-      case ALL_FEATURELISTS ->
-          ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists()
-              .toArray(ModularFeatureList[]::new);
+      case GUI_SELECTED_FEATURELISTS -> {
+        ProjectMismatchException.requireCurrentProject(project, "feature lists");
+        // resolve against the project so that the selection works once other projects are shown
+        final List<FeatureList> projectLists = project.getCurrentFeatureLists();
+        yield Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
+            .filter(projectLists::contains).map(ModularFeatureList.class::cast)
+            .toArray(ModularFeatureList[]::new);
+      }
+      case ALL_FEATURELISTS -> project.getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
       case SPECIFIC_FEATURELISTS -> {
         if (specificFeatureLists == null) {
           yield new ModularFeatureList[0];
         }
-        yield FeatureListPlaceholder.getMatchingFeatureListFilterNull(specificFeatureLists);
+        yield FeatureListPlaceholder.getMatchingFeatureListFilterNull(project,
+            specificFeatureLists);
       }
       case NAME_PATTERN -> {
         if (Strings.isNullOrEmpty(namePattern)) {
           yield new ModularFeatureList[0];
         }
         ArrayList<ModularFeatureList> matchingFeatureLists = new ArrayList<>();
-        ModularFeatureList allFeatureLists[] = ProjectService.getProjectManager()
-            .getCurrentProject().getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
+        ModularFeatureList allFeatureLists[] = project.getCurrentFeatureLists()
+            .toArray(ModularFeatureList[]::new);
 
         for (ModularFeatureList pl : allFeatureLists) {
 
@@ -139,7 +150,8 @@ public class FeatureListsSelection implements Cloneable {
         if (batchLastFeatureLists == null) {
           yield new ModularFeatureList[0];
         }
-        yield FeatureListPlaceholder.getMatchingFeatureListFilterNull(batchLastFeatureLists);
+        yield FeatureListPlaceholder.getMatchingFeatureListFilterNull(project,
+            batchLastFeatureLists);
       }
     };
 
@@ -157,12 +169,29 @@ public class FeatureListsSelection implements Cloneable {
     this.selectionType = selectionType;
   }
 
-  public FeatureList[] getSpecificFeatureLists() {
-    return FeatureListPlaceholder.getMatchingFeatureListFilterNull(specificFeatureLists);
+  /**
+   * @param project the specific feature lists are searched in this project
+   * @return the specific feature lists that are in the project
+   */
+  public @NotNull FeatureList @NotNull [] getSpecificFeatureLists(
+      @NotNull final MZmineProject project) {
+    return FeatureListPlaceholder.getMatchingFeatureListFilterNull(project, specificFeatureLists);
   }
 
   public void setSpecificFeatureLists(FeatureList[] specificFeatureLists) {
     this.specificFeatureLists = FeatureListPlaceholder.of(toModular(specificFeatureLists));
+  }
+
+  public void setSpecificFeatureLists(
+      @NotNull FeatureListPlaceholder @NotNull [] specificFeatureLists) {
+    this.specificFeatureLists = Arrays.copyOf(specificFeatureLists, specificFeatureLists.length);
+  }
+
+  /**
+   * @return the specific feature lists without resolving them in a project. May be null if not set.
+   */
+  public @NotNull FeatureListPlaceholder @Nullable [] getSpecificFeatureListPlaceholders() {
+    return specificFeatureLists;
   }
 
   public String getNamePattern() {

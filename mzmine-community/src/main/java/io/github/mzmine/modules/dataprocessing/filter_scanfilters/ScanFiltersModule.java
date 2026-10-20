@@ -63,7 +63,7 @@ public class ScanFiltersModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     RawDataFile[] dataFiles = parameters.getParameter(ScanFiltersParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new ScanFilteringTask(project, dataFile, parameters, storage, moduleCallDate);

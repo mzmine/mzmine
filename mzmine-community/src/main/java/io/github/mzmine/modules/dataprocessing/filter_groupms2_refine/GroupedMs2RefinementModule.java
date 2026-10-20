@@ -61,7 +61,7 @@ public class GroupedMs2RefinementModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final FeatureList[] featureLists = parameters.getParameter(
-        GroupedMs2RefinementParameters.featureLists).getValue().getMatchingFeatureLists();
+        GroupedMs2RefinementParameters.featureLists).getValue().getMatchingFeatureLists(project);
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new GroupedMs2RefinementTask(featureList, parameters, moduleCallDate);

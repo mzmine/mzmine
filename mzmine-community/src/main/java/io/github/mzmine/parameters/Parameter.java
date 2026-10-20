@@ -25,9 +25,11 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -47,22 +49,32 @@ public interface Parameter<ValueType> {
 
   void setValue(ValueType newValue);
 
-  boolean checkValue(Collection<String> errorMessages);
+  /**
+   * Checks the value. Project dependent values, like selected raw data files or feature lists, are
+   * resolved against the given project. Parameters that embed other parameters pass the project
+   * on.
+   *
+   * @param project       the project the parameter is evaluated against
+   * @param errorMessages error messages are added here
+   * @return true if the value is valid
+   */
+  boolean checkValue(@NotNull MZmineProject project, @NotNull Collection<String> errorMessages);
 
   /**
-   *
+   * @param project    relative file paths are resolved against the file of this project
    * @param xmlElement A parameter element of the parameter.
    */
-  void loadValueFromXML(Element xmlElement);
+  void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement);
 
   /**
+   * @param project    file paths are also saved relative to the file of this project
    * @param xmlElement A parameter element
    *                   ({@link
    *                   io.github.mzmine.parameters.impl.SimpleParameterSet#parameterElement}) with
    *                   the name of this parameter as attribute
    *                   ({@link io.github.mzmine.parameters.impl.SimpleParameterSet#nameAttribute}
    */
-  void saveValueToXML(Element xmlElement);
+  void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement);
 
   /**
    * We use isSensitive() to decide whether a parameter has to be encrypted (e.g. passwords).

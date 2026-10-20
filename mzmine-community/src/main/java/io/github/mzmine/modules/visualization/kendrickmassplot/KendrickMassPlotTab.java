@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,7 +64,8 @@ public class KendrickMassPlotTab extends SimpleTab {
     setContent(root);
 
     final @NotNull ModularFeatureList[] flists = parameters.getParameter(
-        KendrickMassPlotParameters.featureList).getValue().getMatchingFeatureLists();
+            KendrickMassPlotParameters.featureList).getValue()
+        .getMatchingFeatureLists(ProjectService.getProject());
     setSubTitle(MZmineTab.getFeatureListsSubtitle(List.of(flists)));
   }
 

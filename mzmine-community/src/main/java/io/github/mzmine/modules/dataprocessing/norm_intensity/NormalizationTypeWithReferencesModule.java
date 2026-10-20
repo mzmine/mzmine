@@ -53,7 +53,7 @@ public abstract sealed class NormalizationTypeWithReferencesModule implements
       @NotNull ParameterSet moduleSpecificParameters) {
 
     final List<RawDataFile> referenceSamples = getReferenceSamples(featureList, samplesBatch,
-        moduleSpecificParameters);
+        metadata, moduleSpecificParameters);
     // important to use the actual function from this normalization and not the composite/merged function
     // because interpolation should only happen between this normalization step
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> refFunctions = createReferenceFunctions(
@@ -100,7 +100,10 @@ public abstract sealed class NormalizationTypeWithReferencesModule implements
       @NotNull SamplesBatch samplesBatch, @NotNull MetadataTable metadata,
       @NotNull ParameterSet mainParameters, @NotNull ParameterSet moduleSpecificParameters);
 
+  /**
+   * @param metadata the sample types of the reference samples are taken from this metadata table
+   */
   public abstract @NotNull List<RawDataFile> getReferenceSamples(@NotNull final FeatureList flist,
-      @NotNull SamplesBatch samplesBatch,
+      @NotNull SamplesBatch samplesBatch, @NotNull MetadataTable metadata,
       @NotNull final ParameterSet normalizationModuleParameters);
 }

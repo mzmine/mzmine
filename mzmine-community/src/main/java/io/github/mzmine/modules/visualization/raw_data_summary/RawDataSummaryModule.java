@@ -58,7 +58,7 @@ public class RawDataSummaryModule implements MZmineRunnableModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(RawDataSummaryParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     var tab = new RawDataSummaryTab(dataFiles, parameters.cloneParameterSet());
     MZmineCore.getDesktop().addTab(tab);

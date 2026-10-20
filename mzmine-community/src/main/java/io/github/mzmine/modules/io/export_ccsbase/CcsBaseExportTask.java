@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_ccsbase;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
@@ -54,6 +55,7 @@ public class CcsBaseExportTask extends AbstractTask {
 
   private final String CCS_BASE_HEADER = "name,adduct,mass,z,mz,ccs,smi,chem_class_label,ccs_type,ccs_method";
 
+  private final @NotNull MZmineProject project;
   private final FeatureList[] flists;
   private final String calibrationString;
   private final String fallbackClassLabel;
@@ -62,11 +64,13 @@ public class CcsBaseExportTask extends AbstractTask {
   private final int totalRows;
   private int finishedRows = 0;
 
-  public CcsBaseExportTask(ParameterSet parameters, Instant moduleCallDate) {
+  public CcsBaseExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     file = FileAndPathUtil.getRealFilePath(parameters.getValue(CcsBaseExportParameters.file),
         ".csv");
-    flists = parameters.getValue(CcsBaseExportParameters.flists).getMatchingFeatureLists();
+    flists = parameters.getValue(CcsBaseExportParameters.flists).getMatchingFeatureLists(project);
     calibrationString = parameters.getValue(CcsBaseExportParameters.calibrationMethod);
     fallbackClassLabel = parameters.getValue(CcsBaseExportParameters.fallbackMoleculeInfo);
     totalRows = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();

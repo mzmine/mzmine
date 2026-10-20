@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -194,7 +195,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String selectedAttr = xmlElement.getAttribute(SELECTED_ATTRIBUTE);
 
     var childNodes = xmlElement.getChildNodes();
@@ -210,7 +211,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
         if (parameters == null) {
           return;
         }
-        parameters.loadValuesFromXML(nextElement);
+        parameters.loadValuesFromXML(project, nextElement);
       });
     }
 
@@ -223,7 +224,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute(SELECTED_ATTRIBUTE, selectedValue.getStableId());
 
     var document = xmlElement.getOwnerDocument();
@@ -234,16 +235,17 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
       paramElement.setAttribute(NAME_ATTRIBUTE, entry.getKey().getStableId());
       xmlElement.appendChild(paramElement);
       var parameterSet = entry.getValue();
-      parameterSet.saveValuesToXML(paramElement);
+      parameterSet.saveValuesToXML(project, paramElement);
     }
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (selectedValue == null) {
       return false;
     }
-    return checkEmbeddedValues(errorMessages);
+    return checkEmbeddedValues(project, errorMessages);
   }
 
   @Override

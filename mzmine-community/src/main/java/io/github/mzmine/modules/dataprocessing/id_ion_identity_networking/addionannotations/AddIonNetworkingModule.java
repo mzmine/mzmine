@@ -81,7 +81,7 @@ public class AddIonNetworkingModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ModularFeatureList[] pkl = parameters.getParameter(AddIonNetworkingParameters.PEAK_LISTS).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     for (ModularFeatureList p : pkl)
       tasks.add(new AddIonNetworkingTask(project, parameters, p, moduleCallDate));
 

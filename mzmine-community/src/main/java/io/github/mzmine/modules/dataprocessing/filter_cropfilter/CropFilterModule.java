@@ -61,7 +61,7 @@ public class CropFilterModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (RawDataFile dataFile : parameters.getParameter(CropFilterParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles()) {
+        .getMatchingRawDataFiles(project)) {
       Task newTask = new CropFilterTask(project, dataFile, parameters, storage, moduleCallDate);
       tasks.add(newTask);
     }

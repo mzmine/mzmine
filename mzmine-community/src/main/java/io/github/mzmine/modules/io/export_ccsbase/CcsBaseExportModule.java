@@ -58,7 +58,7 @@ public class CcsBaseExportModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    final CcsBaseExportTask task = new CcsBaseExportTask(parameters, moduleCallDate);
+    final CcsBaseExportTask task = new CcsBaseExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
 
     return ExitCode.OK;

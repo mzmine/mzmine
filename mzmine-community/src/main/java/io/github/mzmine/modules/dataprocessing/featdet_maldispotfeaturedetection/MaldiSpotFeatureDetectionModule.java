@@ -61,7 +61,7 @@ public class MaldiSpotFeatureDetectionModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     final RawDataFile[] files = parameters.getParameter(MaldiSpotFeatureDetectionParameters.files)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
     for (RawDataFile file : files) {
       if (file instanceof ImagingRawDataFile imsImagingRawDataFile) {

@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
@@ -11,6 +12,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.mzio.general.Result;
 import java.util.Collection;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a fragmentation rule of a custom lipid class. Not intended to be used as part of a
@@ -45,9 +47,9 @@ public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
     boolean thisCheck = true;

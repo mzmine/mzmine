@@ -42,8 +42,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import java.text.NumberFormat;
@@ -52,7 +50,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
@@ -202,7 +199,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     updateParameterSetFromComponents();
 
     List<String> errors = new ArrayList<>();
-    if (parameterSet.checkParameterValues(errors, true) && flistBox.getValue() != null
+    if (parameterSet.checkParameterValues(ProjectService.getProject(), errors, true)
+        && flistBox.getValue() != null
         && fBox.getSelectedFeature() != null) {
       resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
           (ModularFeatureList) flistBox.getValue());
@@ -219,9 +217,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
 
     // do all of this and only update the chart once finished
-    final FxUpdateTask<Object> updateTask = new ResolverPreviewUpdateTask(chartName, chart, feature,
-        (ModularFeatureList) flistBox.getValue(),
-        (GeneralResolverParameters) parameterSet);
+    final FxUpdateTask<Object> updateTask = new ResolverPreviewUpdateTask(
+        ProjectService.getProject(), chartName, chart, feature,
+        (ModularFeatureList) flistBox.getValue(), (GeneralResolverParameters) parameterSet);
 
     controller.onTaskThreadDelayed(updateTask, Duration.millis(100));
   }

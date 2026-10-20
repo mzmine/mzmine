@@ -29,6 +29,7 @@ import static io.github.mzmine.util.StringUtils.nullToEmpty;
 
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -98,10 +99,11 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
 
-  public LegacyCSVExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public LegacyCSVExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     fileName = parameters.getParameter(LegacyCSVExportParameters.filename).getValue();
     fieldSeparator = parameters.getValue(LegacyCSVExportParameters.fieldSeparator).separator();
     commonElements = parameters.getParameter(LegacyCSVExportParameters.exportCommonItems)

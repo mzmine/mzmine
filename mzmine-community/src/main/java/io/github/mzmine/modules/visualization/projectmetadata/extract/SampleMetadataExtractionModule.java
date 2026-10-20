@@ -57,7 +57,7 @@ public class SampleMetadataExtractionModule extends SingleTaskRawDataFilesModule
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final RawDataFile[] raws) {
-    return new SampleMetadataExtractionTask(moduleCallDate, parameters,
+    return new SampleMetadataExtractionTask(project, moduleCallDate, parameters,
         SampleMetadataExtractionModule.class, raws);
   }
 

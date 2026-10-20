@@ -27,6 +27,7 @@ package io.github.mzmine.main;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
@@ -179,7 +180,8 @@ class ArgsToConfigUtils {
     // Load configuration
     if (prefFile.exists() && prefFile.canRead()) {
       try {
-        ConfigService.getConfiguration().loadConfiguration(prefFile, true);
+        ConfigService.getConfiguration()
+            .loadConfiguration(ProjectService.getProject(), prefFile, true);
       } catch (Exception e) {
         logger.log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
             e);

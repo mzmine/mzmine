@@ -67,7 +67,7 @@ public class PeakComparisonRowFilterModule implements MZmineProcessingModule {
 
     final FeatureList[] peakLists =
         parameters.getParameter(PeakComparisonRowFilterParameters.PEAK_LISTS).getValue()
-            .getMatchingFeatureLists();
+            .getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList peakList : peakLists) {

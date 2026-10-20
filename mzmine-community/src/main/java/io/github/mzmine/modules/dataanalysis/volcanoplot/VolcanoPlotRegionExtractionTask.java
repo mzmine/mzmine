@@ -72,7 +72,7 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
     regions = parameters.getValue(VolcanoPlotRegionExtractionParameters.regions).stream()
         .map(RegionSelectionListener::getShape).toList();
     flist = parameters.getValue(VolcanoPlotRegionExtractionParameters.flists)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
 
     abundancePreparationConfig = parameters.getParameter(
         VolcanoPlotRegionExtractionParameters.dataPreparationConfig).createConfig();
@@ -92,7 +92,7 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
         abundancePreparationConfig);
 
     final VolcanoPlotModel model = ((VolcanoPlotRegionExtractionParameters) parameters).toModel(
-        dataTable);
+        project, dataTable);
 
     // reuse the same processing as we have in the gui
     VolcanoPlotUpdateTask task = new VolcanoPlotUpdateTask(model);

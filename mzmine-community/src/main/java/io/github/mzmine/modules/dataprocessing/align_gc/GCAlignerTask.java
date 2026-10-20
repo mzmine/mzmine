@@ -71,7 +71,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     featureListName = parameters.getValue(GCAlignerParameters.FEATURE_LIST_NAME);
 
     featureLists = Arrays.stream(
-            parameters.getValue(GCAlignerParameters.FEATURE_LISTS).getMatchingFeatureLists())
+            parameters.getValue(GCAlignerParameters.FEATURE_LISTS).getMatchingFeatureLists(project))
         .map(flist -> (FeatureList) flist).toList();
 
     this.parameters = parameters;

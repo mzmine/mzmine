@@ -58,7 +58,7 @@ public class MsMsQualityExportModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new MsMsQualityExportTask(moduleCallDate, parameters));
+    tasks.add(new MsMsQualityExportTask(project, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 

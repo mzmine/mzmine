@@ -27,11 +27,13 @@ package io.github.mzmine.parameters.parametertypes;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.OptionalParameterContainer;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -122,9 +124,9 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // no need to load or save the defaultValue as this will always stay with the instance
-    embeddedParameter.loadValueFromXML(xmlElement);
+    embeddedParameter.loadValueFromXML(project, xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
     // might be blank if the attribute does not exist. For example if the parameter was not optional before
     if (selectedAttr.isBlank()) {
@@ -136,18 +138,19 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // no need to load or save the defaultValue as this will always stay with the instance
     xmlElement.setAttribute("selected", String.valueOf(value));
-    embeddedParameter.saveValueToXML(xmlElement);
+    embeddedParameter.saveValueToXML(project, xmlElement);
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!value) {
       return true;
     }
-    return embeddedParameter.checkValue(errorMessages);
+    return embeddedParameter.checkValue(project, errorMessages);
   }
 
   @Override

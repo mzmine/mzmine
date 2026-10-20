@@ -39,6 +39,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refine
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
@@ -117,7 +118,7 @@ class IonLibraryParameterTest {
     final IonLibrary initialLibrary = IonLibraries.MZMINE_DEFAULT_NEG_FULL;
     final IonLibraryParameter param = new IonLibraryParameter(initialLibrary);
     // load xml of dual polarity list, in place operation
-    ParameterUtils.loadParameterFromString(param, oldXml);
+    ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), param, oldXml);
     final IonLibrary loadedLib = param.getValue();
     assertNotNull(loadedLib);
     assertNotEquals(initialLibrary, loadedLib);
@@ -141,7 +142,7 @@ class IonLibraryParameterTest {
     final IonLibrary initialLibrary = IonLibraries.MZMINE_DEFAULT_NEG_FULL;
     final IonLibraryParameter param = new IonLibraryParameter(initialLibrary);
     // load xml of dual polarity list, in place operation
-    ParameterUtils.loadParameterFromString(param, expectedXml);
+    ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), param, expectedXml);
     assertNotNull(param.getValue());
     assertNotEquals(initialLibrary, param.getValue());
     assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL, param.getValue());
@@ -153,9 +154,9 @@ class IonLibraryParameterTest {
         IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
 
     // save and load from string
-    final String xml = ParameterUtils.saveParameterToXMLString(param);
+    final String xml = ParameterUtils.saveParameterToXMLString(new MZmineProjectImpl(), param);
     // load with a different instance to see if loaded is correct
-    final var clone = ParameterUtils.loadParameterFromString(
+    final var clone = ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), 
         new IonLibraryParameter(IonLibraries.MZMINE_DEFAULT_NEG_FULL), xml);
 
     assertNotNull(clone);
@@ -170,9 +171,9 @@ class IonLibraryParameterTest {
         List.of(IonTypes.M_PLUS.asIonType(), IonTypes.M_MINUS.asIonType())));
 
     // save and load from string
-    final String xml = ParameterUtils.saveParameterToXMLString(param);
+    final String xml = ParameterUtils.saveParameterToXMLString(new MZmineProjectImpl(), param);
     // load with a different instance to see if loaded is correct
-    final var clone = ParameterUtils.loadParameterFromString(
+    final var clone = ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), 
         new IonLibraryParameter(IonLibraries.MZMINE_DEFAULT_NEG_FULL), xml);
 
     assertNotNull(clone);
@@ -204,7 +205,7 @@ class IonLibraryParameterTest {
     params.setParameter(IonNetworkRefinementParameters.mainIonLibrary, true, library);
 
     // simulate the old file where the clone had dropped the custom name
-    final String xml = ParameterUtils.saveValuesToXMLString(params)
+    final String xml = ParameterUtils.saveValuesToXMLString(new MZmineProjectImpl(), params)
         .replace("name=\"" + IonNetworkRefinementParameters.mainIonLibrary.getName() + "\"",
             "name=\"" + IonLibraryParameter.DEFAULT_NAME + "\"");
     Assertions.assertTrue(xml.contains("name=\"" + IonLibraryParameter.DEFAULT_NAME + "\""));
@@ -212,7 +213,7 @@ class IonLibraryParameterTest {
     final IonNetworkRefinementParameters loaded = new IonNetworkRefinementParameters(true);
     loaded.setParameter(IonNetworkRefinementParameters.mainIonLibrary, false,
         IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
-    ParameterUtils.loadValuesFromXMLString(loaded, xml);
+    ParameterUtils.loadValuesFromXMLString(new MZmineProjectImpl(), loaded, xml);
 
     Assertions.assertTrue(loaded.getValue(IonNetworkRefinementParameters.mainIonLibrary));
     assertEquals(library,

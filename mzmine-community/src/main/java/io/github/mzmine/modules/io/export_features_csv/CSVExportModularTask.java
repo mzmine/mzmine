@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_features_csv;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -104,10 +105,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private int processedTypes = 0, totalTypes = 0;
 
-  public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public CSVExportModularTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
     fieldSeparator = parameters.getValue(CSVExportModularParameters.fieldSeparator).separator();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();

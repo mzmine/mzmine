@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -156,8 +157,16 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
     return true;
   }
 
+
+  /**
+   * Checks the parameters of all batch steps. Raw data file and feature list selections are skipped
+   * as the data is usually only created during the batch.
+   *
+   * @param project other project dependent parameters are checked against this project
+   */
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull final MZmineProject project,
+      @NotNull final Collection<String> errorMessages) {
 
     boolean allParamsOK = true;
     if (value == null) {
@@ -178,7 +187,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
           continue;
         }
 
-        if (!params.checkParameterValues(newErrors, true)) {
+        if (!params.checkParameterValues(project, newErrors, true)) {
           allParamsOK = false;
         }
 
@@ -193,7 +202,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
       // do meta checks through all parameters
       // check min samples filter
-      String warning = BatchUtils.checkBatchParameters(value);
+      String warning = BatchUtils.checkBatchParameters(project, value);
       if (warning != null) {
         if (DesktopService.isGUI()) {
           final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
@@ -214,17 +223,17 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
   }
 
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     lastParsingErrorMessages.clear();
     // if modules are missing (false) fail it and do not set the parameters
-    value = BatchQueue.loadFromXml(xmlElement, lastParsingErrorMessages, false);
+    value = BatchQueue.loadFromXml(project, xmlElement, lastParsingErrorMessages, false);
     // do not log warnings here it's called on startup of mzmine
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value != null) {
-      value.saveToXml(xmlElement);
+      value.saveToXml(project, xmlElement);
     }
   }
 

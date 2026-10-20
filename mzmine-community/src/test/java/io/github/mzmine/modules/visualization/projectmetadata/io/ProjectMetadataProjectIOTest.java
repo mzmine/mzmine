@@ -81,12 +81,12 @@ class ProjectMetadataProjectIOTest {
 
     final Path archive = tempDir.resolve("metadata-roundtrip.mzmine");
     try (ZipOutputStream output = new ZipOutputStream(java.nio.file.Files.newOutputStream(archive))) {
-      assertTrue(ProjectMetadataProjectIO.saveToZip(output));
+      assertTrue(ProjectMetadataProjectIO.saveToZip(output, project));
     }
 
     metadata.clearData();
     try (ZipFile zipFile = new ZipFile(archive.toFile())) {
-      assertTrue(ProjectMetadataProjectIO.loadFromZip(zipFile));
+      assertTrue(ProjectMetadataProjectIO.loadFromZip(zipFile, project));
     }
 
     final StringMetadataColumn loadedGroup = (StringMetadataColumn) metadata.getColumnByName(
@@ -107,12 +107,12 @@ class ProjectMetadataProjectIOTest {
     final Path archive = tempDir.resolve("empty-metadata.mzmine");
 
     try (ZipOutputStream output = new ZipOutputStream(java.nio.file.Files.newOutputStream(archive))) {
-      assertFalse(ProjectMetadataProjectIO.saveToZip(output));
+      assertFalse(ProjectMetadataProjectIO.saveToZip(output, project));
     }
 
     try (ZipFile zipFile = new ZipFile(archive.toFile())) {
       assertNull(zipFile.getEntry(ProjectMetadataProjectIO.PROJECT_METADATA_FILENAME));
-      assertFalse(ProjectMetadataProjectIO.loadFromZip(zipFile));
+      assertFalse(ProjectMetadataProjectIO.loadFromZip(zipFile, project));
     }
   }
 }

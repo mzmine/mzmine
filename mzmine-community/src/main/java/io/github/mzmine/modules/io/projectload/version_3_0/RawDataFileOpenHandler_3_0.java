@@ -162,7 +162,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         Element queueElement = (Element) batchQueues.item(i);
 
         List<String> errorMessages = new ArrayList<>();
-        BatchQueue batchQueue = BatchQueue.loadFromXml(queueElement, errorMessages, true);
+        BatchQueue batchQueue = BatchQueue.loadFromXml(project, queueElement, errorMessages, true);
         // TODO decide what to do with the warnings here
         if (!errorMessages.isEmpty()) {
           logger.log(Level.WARNING, "Warnings during batch file import:");

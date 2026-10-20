@@ -35,6 +35,7 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -98,7 +99,7 @@ public class IntensityPlotTab extends MZmineTab {
     mainPane = new BorderPane();
 
     featureList = parameters.getParameter(IntensityPlotParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(ProjectService.getProject())[0];
 
     String title = "Intensity plot [" + featureList + "]";
     String xAxisLabel = parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue()

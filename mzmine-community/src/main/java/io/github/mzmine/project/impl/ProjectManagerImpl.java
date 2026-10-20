@@ -96,13 +96,37 @@ public class ProjectManagerImpl implements ProjectManager {
 
   @Override
   public void clearProject() {
+    clearProject(getCurrentProject());
+  }
+
+  @Override
+  public @NotNull MZmineProject clearProject(@NotNull MZmineProject project) {
     // Create a new, empty project
-    MZmineProject old = getCurrentProject();
-    setCurrentProject(new MZmineProjectImpl());
+    final MZmineProject newProject = new MZmineProjectImpl();
     // keep libraries
-    currentProject.addSpectralLibrary(
-        old.getCurrentSpectralLibraries().toArray(new SpectralLibrary[0]));
+    newProject.addSpectralLibrary(
+        project.getCurrentSpectralLibraries().toArray(new SpectralLibrary[0]));
+    replaceProject(project, newProject);
     logger.info("Project cleared");
+    return newProject;
+  }
+
+  @Override
+  public void replaceProject(@NotNull MZmineProject oldProject,
+      @NotNull MZmineProject newProject) {
+    if (oldProject == newProject) {
+      return;
+    }
+    if (oldProject == currentProject) {
+      // also closes the data files of the old project
+      setCurrentProject(newProject);
+      return;
+    }
+
+    // decision: the old project is not visible in the GUI, only close its data files
+    for (RawDataFile oldFile : oldProject.getDataFiles()) {
+      oldFile.close();
+    }
   }
 
 }

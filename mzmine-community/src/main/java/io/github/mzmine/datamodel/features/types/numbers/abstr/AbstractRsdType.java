@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -35,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.NoDataColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.MathUtils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +51,9 @@ import org.jetbrains.annotations.Nullable;
  * metadata.
  * <p>
  * The sample types used for the calculation are defined by the feature list preferences, see
- * {@link FeatureListPreferences#getRsdFiles(List)}.
+ * {@link FeatureListPreferences#getRsdFiles(MetadataTable, List)} and the metadata of the
+ * project of the feature list. Feature lists without a project, e.g., removed feature lists, have
+ * no RSD.
  */
 public abstract class AbstractRsdType extends PercentType implements MappingType<Float>,
     MinSamplesRequirement, NoDataColumnType {
@@ -71,7 +75,13 @@ public abstract class AbstractRsdType extends PercentType implements MappingType
    */
   private @Nullable Float calculateRsd(@NotNull final FeatureListRow row) {
     final FeatureList flist = row.getFeatureList();
-    final List<RawDataFile> qcFiles = flist.getPreferences().getRsdFiles(flist.getRawDataFiles());
+    final MZmineProject project = flist.getProject();
+    // decision: without a project there are no sample types, e.g., for a removed feature list
+    if (project == null) {
+      return null;
+    }
+    final List<RawDataFile> qcFiles = flist.getPreferences()
+        .getRsdFiles(project.getProjectMetadata(), flist.getRawDataFiles());
     // sample stdev (n-1) needs at least two values
     if (qcFiles.size() < getMinSamples()) {
       return null;

@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.proxy;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.web.ProxyType;
@@ -81,13 +82,14 @@ public class ProxyConfigParameter extends AbstractParameter<FullProxyConfig, Pro
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     // any checks needed? it is never null
     return true;
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final ProxyConfigOption option = ProxyConfigOption.valueOf(
         xmlElement.getAttribute("proxyOption"));
 
@@ -101,7 +103,7 @@ public class ProxyConfigParameter extends AbstractParameter<FullProxyConfig, Pro
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute("proxyOption", value.option().name());
 
     // child

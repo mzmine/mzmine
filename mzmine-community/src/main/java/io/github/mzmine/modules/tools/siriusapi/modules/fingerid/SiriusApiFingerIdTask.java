@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -62,11 +63,13 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
 
   public static final int FEATURE_COUNT_THRESHOLD = 50;
   private static final CloseableReentrantReadWriteLock optOutLock = new CloseableReentrantReadWriteLock();
+  private final @NotNull MZmineProject project;
   private final ModularFeatureList flist;
   private final String idStr;
   private SiriusJobWaiterTask jobWaiterTask = null;
 
   /**
+   * @param project        the project to resolve the feature list selection from
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
@@ -74,12 +77,14 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected SiriusApiFingerIdTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
+  protected SiriusApiFingerIdTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
     idStr = parameters.getOptionalValue(SiriusApiFingerIdParameters.rowIds).orElse("");
-    flist = parameters.getValue(SiriusApiFingerIdParameters.flist).getMatchingFeatureLists()[0];
+    flist = parameters.getValue(SiriusApiFingerIdParameters.flist)
+        .getMatchingFeatureLists(project)[0];
   }
 
   @Override
@@ -117,8 +122,8 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
       final Job job = sirius.api().jobs()
           .startJob(sirius.getProject().getProjectId(), submission, List.of(JobOptField.PROGRESS));
 
-      jobWaiterTask = new SiriusJobWaiterTask(this, getModuleClass(), moduleCallDate, parameters,
-          () -> sirius.api().jobs()
+      jobWaiterTask = new SiriusJobWaiterTask(project, this, getModuleClass(), moduleCallDate,
+          parameters, () -> sirius.api().jobs()
               .getJob(sirius.getProject().getProjectId(), job.getId(), List.of()),
           () -> SiriusToMzmine.importResultsForRows(sirius, rows));
       jobWaiterTask.run();

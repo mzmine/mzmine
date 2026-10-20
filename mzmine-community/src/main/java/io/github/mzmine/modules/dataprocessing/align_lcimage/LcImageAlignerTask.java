@@ -90,7 +90,7 @@ public class LcImageAlignerTask extends AbstractTask {
     this.project = project;
 
     final ModularFeatureList[] matchingFeatureLists = parameters.getValue(
-        LcImageAlignerParameters.flists).getMatchingFeatureLists();
+        LcImageAlignerParameters.flists).getMatchingFeatureLists(project);
 
     // checked in setup dialog
     imageLists = Arrays.stream(matchingFeatureLists)

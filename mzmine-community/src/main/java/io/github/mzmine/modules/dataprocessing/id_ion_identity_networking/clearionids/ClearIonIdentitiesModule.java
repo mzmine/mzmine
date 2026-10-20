@@ -71,7 +71,7 @@ public class ClearIonIdentitiesModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] pkl = parameters.getParameter(ClearIonIdentitiesParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     for (ModularFeatureList p : pkl) {
       tasks.add(new ClearIonIdentitiesTask(project, parameters, p, moduleCallDate));
     }

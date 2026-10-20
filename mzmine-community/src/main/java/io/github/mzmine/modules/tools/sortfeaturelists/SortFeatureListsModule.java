@@ -63,7 +63,7 @@ public class SortFeatureListsModule implements MZmineProcessingModule {
 
     List<FeatureList> featureLists = Arrays.asList(
         parameters.getParameter(SortFeatureListsParameters.featureLists).getValue()
-            .getMatchingFeatureLists());
+            .getMatchingFeatureLists(project));
     /*
      * PeakListTreeModel model = null; if (project instanceof MZmineProjectImpl) { model =
      * ((MZmineProjectImpl) project).getPeakListTreeModel(); } else if (MZmineCore.getDesktop()

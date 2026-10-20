@@ -66,7 +66,7 @@ public class NeutralLossFilterModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     FeatureList peakLists[] = parameters.getParameter(NeutralLossFilterParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (FeatureList peakList : peakLists) {

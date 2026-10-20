@@ -34,7 +34,6 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.io.File;
@@ -42,7 +41,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import testutils.MZmineTestUtil;
 
@@ -100,7 +98,8 @@ class BatchQueueOverrideTest {
     final URL resource = BatchQueueOverrideTest.class.getClassLoader().getResource(BATCH_RESOURCE);
     assertNotNull(resource, "Test resource not found on classpath: " + BATCH_RESOURCE);
     final File batchFile = new File(resource.toURI());
-    return BatchQueue.loadFromXml(XMLUtils.load(batchFile).getDocumentElement(), new ArrayList<>(),
+    return BatchQueue.loadFromXml(new MZmineProjectImpl(),
+        XMLUtils.load(batchFile).getDocumentElement(), new ArrayList<>(),
         true);
   }
 }

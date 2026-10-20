@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -89,8 +90,9 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    if (!super.checkParameterValues(errorMessages)) {
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    if (!super.checkParameterValues(project, errorMessages)) {
       return false;
     }
 
@@ -99,10 +101,11 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
     if (getValue(files)) {
       final RawDataFilesSelection value = getParameter(files).getEmbeddedParameter().getValue();
       final RawDataFilesSelection clone = value.clone();
-      final RawDataFile[] files = clone.getMatchingRawDataFiles(); // dont evaluate the real parameter, otherwise we have to reset it.
+      final RawDataFile[] files = clone.getMatchingRawDataFiles(
+          project); // dont evaluate the real parameter, otherwise we have to reset it.
 
       ModularFeatureList[] flists = getValue(
-          ReferenceCCSCalibrationParameters.flists).getMatchingFeatureLists();
+          ReferenceCCSCalibrationParameters.flists).getMatchingFeatureLists(project);
 
       if (files.length != 0 && flists.length > 1) {
         errorMessages.add(

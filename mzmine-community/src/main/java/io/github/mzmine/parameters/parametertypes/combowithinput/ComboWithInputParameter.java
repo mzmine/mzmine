@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
@@ -36,6 +37,7 @@ import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -128,8 +130,8 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    embeddedParameter.loadValueFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    embeddedParameter.loadValueFromXML(project, xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
 
     if (selectedAttr.isEmpty()) {
@@ -151,7 +153,7 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -160,17 +162,18 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
     } else {
       xmlElement.setAttribute("selected", value.getSelectedOption().toString());
     }
-    embeddedParameter.saveValueToXML(xmlElement);
+    embeddedParameter.saveValueToXML(project, xmlElement);
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(getName() + " is not set properly");
       return false;
     }
     if (useEmbeddedParameter()) {
-      return embeddedParameter.checkValue(errorMessages);
+      return embeddedParameter.checkValue(project, errorMessages);
     }
     return true;
   }

@@ -54,7 +54,8 @@ public class IntegrationDashboardModule extends AbstractRunnableModule {
     final SimpleRunnableTask task = new SimpleRunnableTask(() -> {
       final IntegrationDashboardTab tab = new IntegrationDashboardTab();
       tab.onFeatureListSelectionChanged(Arrays.asList(
-          parameters.getValue(IntegrationDashboardParameters.flists).getMatchingFeatureLists()));
+          parameters.getValue(IntegrationDashboardParameters.flists)
+              .getMatchingFeatureLists(project)));
       ((MZmineGUI) DesktopService.getDesktop()).addTab(tab);
     });
     tasks.add(task);

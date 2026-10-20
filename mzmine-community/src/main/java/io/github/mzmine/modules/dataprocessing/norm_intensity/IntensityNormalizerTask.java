@@ -43,7 +43,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
@@ -172,7 +171,7 @@ class IntensityNormalizerTask extends AbstractTask {
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         normalizedFeatureList.getRawDataFiles().size());
 
-    final MetadataTable metadata = ProjectService.getMetadata();
+    final MetadataTable metadata = project.getProjectMetadata();
 
     // ── Pass 1: pre-normalization by metadata column (dilution factor, sample weight, …) ──
     // should happen before separating samples into batches because factor may be scaled to median
@@ -280,7 +279,7 @@ class IntensityNormalizerTask extends AbstractTask {
 
       for (RawDataFile raw : sampleBatch.getRaws()) {
         // add and merge function into summary
-        summary.addMergeFunction(raw, fileFunction);
+        summary.addMergeFunction(project.getProjectMetadata(), raw, fileFunction);
         processedFiles++;
       }
     }
@@ -302,7 +301,7 @@ class IntensityNormalizerTask extends AbstractTask {
   /// @param summary      the summary to save normalization results to
   private void normalizeSamplesBatch(SamplesBatch samplesBatch,
       IntensityNormalizationSearchableSummary summary) {
-    final MetadataTable metadata = ProjectService.getMetadata();
+    final MetadataTable metadata = project.getProjectMetadata();
 
     // ── Pass 2: pre-normalization by internal standard compounds ──
     // usually applied by internal standards to each sample
@@ -374,7 +373,8 @@ class IntensityNormalizerTask extends AbstractTask {
 
     try {
       final List<RawDataFile> referenceFiles = NormalizationFunctionUtils.getReferenceSamplesOrThrow(
-          false, new SamplesBatch(normalizedFeatureList.getRawDataFiles()),
+          project.getProjectMetadata(), false,
+          new SamplesBatch(normalizedFeatureList.getRawDataFiles()),
           internalStandardParams.getValue(StandardCompoundNormalizationTypeParameters.sampleTypes));
 
       internalStandardSelection = standardModule.selectStandards(summary, normalizedFeatureList,

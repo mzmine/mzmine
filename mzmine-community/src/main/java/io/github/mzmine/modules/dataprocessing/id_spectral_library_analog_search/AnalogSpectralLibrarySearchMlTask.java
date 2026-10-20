@@ -493,7 +493,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
   private @NotNull List<SpectralLibraryEntry> loadAndSortLibraryEntries() {
     final List<SpectralLibraryEntry> entries = parameters.getValue(
             AnalogSpectralLibrarySearchParameters.libraries)
-        .getMatchingLibraryEntriesAndCheckAvailability();
+        .getMatchingLibraryEntriesAndCheckAvailability(project);
     return entries.stream().filter(e -> e.getPrecursorMZ() != null)
         .sorted(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ)).toList();
   }

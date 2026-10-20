@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manualintegration;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.parameters.UserParameter;
@@ -99,7 +100,7 @@ public class ManualIntegrationEntriesParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
     for (final ManualIntegrationEntry entry : value) {
       final Element entryElement = doc.createElement(ENTRY_ELEMENT);
@@ -129,7 +130,7 @@ public class ManualIntegrationEntriesParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList entryElements = xmlElement.getElementsByTagName(ENTRY_ELEMENT);
     final List<ManualIntegrationEntry> loaded = new ArrayList<>();
     for (int i = 0; i < entryElements.getLength(); i++) {
@@ -168,7 +169,8 @@ public class ManualIntegrationEntriesParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value.isEmpty()) {
       errorMessages.add("No manual integrations are defined.");
       return false;

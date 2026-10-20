@@ -212,7 +212,7 @@ public class ProjectSavingTask extends AbstractTask {
       // Stage 3 - save project metadata
       currentStage++;
       currentSavedObjectName = "project metadata";
-      ProjectMetadataProjectIO.saveToZip(zipStream);
+      ProjectMetadataProjectIO.saveToZip(zipStream, savedProject);
       currentSavedObjectName = "raw file metadata";
       RawFileMetadataProjectIO.saveToZip(zipStream, savedProject);
 
@@ -327,7 +327,7 @@ public class ProjectSavingTask extends AbstractTask {
 
     try {
       File tempConfigFile = FileAndPathUtil.createTempFile("mzmineconfig", ".tmp");
-      MZmineCore.getConfiguration().saveConfiguration(tempConfigFile);
+      MZmineCore.getConfiguration().saveConfiguration(savedProject, tempConfigFile);
       FileInputStream fileStream = new FileInputStream(tempConfigFile);
 
       StreamCopy copyMachine = new StreamCopy();
@@ -390,8 +390,8 @@ public class ProjectSavingTask extends AbstractTask {
 
     final List<FeatureList> currentFeatureLists = savedProject.getCurrentFeatureLists();
     for (FeatureList featureList : currentFeatureLists) {
-      FeatureListSaveTask saveTask = new FeatureListSaveTask((ModularFeatureList) featureList,
-          zipStream);
+      FeatureListSaveTask saveTask = new FeatureListSaveTask(savedProject,
+          (ModularFeatureList) featureList, zipStream);
 
       AtomicBoolean finished = new AtomicBoolean(false);
       saveTask.addTaskStatusListener((_, newStatus, _) -> {

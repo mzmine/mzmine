@@ -120,7 +120,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
 
     //check updated values
     ArrayList<String> messages = new ArrayList<>();
-    boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+    boolean allParametersOK = paramPane.getParameterSet()
+        .checkParameterValues(ProjectService.getProject(), messages);
 
     if (!allParametersOK) {
       StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");

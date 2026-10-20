@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.projectsave;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -88,14 +89,20 @@ public class FeatureListSaveTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
   private static final IDType idType = new IDType();
 
+  private final @NotNull MZmineProject project;
   private final ModularFeatureList flist;
   private final ZipOutputStream zos;
   private final int rows;
   private final StreamCopy copy;
   private int processedRows = 0;
 
-  public FeatureListSaveTask(ModularFeatureList flist, ZipOutputStream zos) {
+  /**
+   * @param project the project that is saved, file paths are saved relative to its file
+   */
+  public FeatureListSaveTask(@NotNull MZmineProject project, ModularFeatureList flist,
+      ZipOutputStream zos) {
     super(null, Instant.now());
+    this.project = project;
     this.flist = flist;
     this.zos = zos;
     rows = flist.getNumberOfRows();
@@ -233,7 +240,7 @@ public class FeatureListSaveTask extends AbstractTask {
 
     // write user defined preferences of this feature list
     Element preferencesElement = document.createElement(CONST.XML_FLIST_PREFERENCES_ELEMENT);
-    flist.getPreferences().saveToXML(preferencesElement);
+    flist.getPreferences().saveToXML(project, preferencesElement);
     root.appendChild(preferencesElement);
 
     // write applied methods
@@ -243,7 +250,7 @@ public class FeatureListSaveTask extends AbstractTask {
       FeatureListAppliedMethod appliedMethod = appliedMethods.get(i);
       if (appliedMethod != null) {
         Element methodElement = document.createElement(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
-        appliedMethod.saveValueToXML(methodElement);
+        appliedMethod.saveValueToXML(project, methodElement);
         appliedMethodsList.appendChild(methodElement);
       } else {
         logger.severe(

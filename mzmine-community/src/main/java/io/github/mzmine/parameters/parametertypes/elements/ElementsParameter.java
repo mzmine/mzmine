@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
@@ -94,7 +96,8 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value.isEmpty()) {
       errorMessages.add("There are no chemical elements selected.");
       return false;
@@ -104,7 +107,8 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
   }
 
   @Override
-  public void loadValueFromXML(org.w3c.dom.Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project,
+      @NotNull org.w3c.dom.Element xmlElement) {
     if (xmlElement == null) {
       throw new NullPointerException("XML Element is null.");
     }
@@ -115,7 +119,8 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
   }
 
   @Override
-  public void saveValueToXML(org.w3c.dom.Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project,
+      @NotNull org.w3c.dom.Element xmlElement) {
     if (xmlElement == null) {
       throw new NullPointerException("XML Element is null.");
     }

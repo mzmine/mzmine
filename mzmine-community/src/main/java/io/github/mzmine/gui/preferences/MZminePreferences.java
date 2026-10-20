@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import static io.github.mzmine.util.files.ExtensionFilters.MSCONVERT;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
@@ -85,6 +86,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MZminePreferences extends SimpleParameterSet {
@@ -630,9 +632,9 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
     return superCheck;

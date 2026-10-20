@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.export_library_analysis_csv;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
@@ -100,10 +101,14 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
   private File fileName;
   private long totalTypes = 0;
 
-  public LibraryAnalysisCSVExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  /**
+   * @param project the libraries are selected from this project
+   */
+  public LibraryAnalysisCSVExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     libraries = parameters.getParameter(LibraryAnalysisCSVExportParameters.libraries).getValue()
-        .getMatchingLibraries();
+        .getMatchingLibraries(project);
     fileName = parameters.getParameter(LibraryAnalysisCSVExportParameters.filename).getValue();
     fieldSeparator = parameters.getValue(LibraryAnalysisCSVExportParameters.fieldSeparator)
         .separator();

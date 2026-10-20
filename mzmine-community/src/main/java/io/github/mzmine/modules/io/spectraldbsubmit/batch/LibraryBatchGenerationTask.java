@@ -39,6 +39,7 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -127,10 +128,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   /**
    * Full batch mode constructor: processes feature lists and writes entries to a file.
    */
-  public LibraryBatchGenerationTask(@NotNull final LibraryBatchGenerationParameters parameters,
+  public LibraryBatchGenerationTask(@NotNull final MZmineProject project,
+      @NotNull final LibraryBatchGenerationParameters parameters,
       @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate);
-    flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
+    flists = parameters.getValue(LibraryBatchGenerationParameters.flists)
+        .getMatchingFeatureLists(project);
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
     this.parameters = parameters;
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);

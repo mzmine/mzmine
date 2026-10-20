@@ -54,7 +54,7 @@ public class MetaboAnalystExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    MetaboAnalystExportTask task = new MetaboAnalystExportTask(parameters, moduleCallDate);
+    MetaboAnalystExportTask task = new MetaboAnalystExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }

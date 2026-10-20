@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
@@ -40,13 +41,14 @@ import org.w3c.dom.Element;
 public final class MultilinearRawFileRtCorrectionModule implements RawFileRtCorrectionModule {
 
   @Override
-  public AbstractRtCorrectionFunction createInterpolated(@NotNull RawDataFile file,
+  public AbstractRtCorrectionFunction createInterpolated(@NotNull final MZmineProject project,
+      @NotNull RawDataFile file,
       @NotNull List<RtStandard> rtSortedStandards,
       @NotNull AbstractRtCorrectionFunction previousRunCalibration, double previousRunWeight,
       @NotNull AbstractRtCorrectionFunction nextRunCalibration, double nextRunWeight,
       @NotNull final RTMeasure rtMeasure, @NotNull ParameterSet parameters) {
 
-    return new MultiLinearRtCorrectionFunction(file, rtSortedStandards,
+    return new MultiLinearRtCorrectionFunction(project, file, rtSortedStandards,
         (MultiLinearRtCorrectionFunction) previousRunCalibration, previousRunWeight,
         (MultiLinearRtCorrectionFunction) nextRunCalibration, nextRunWeight,
         parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth),

@@ -62,7 +62,7 @@ public class CliqueMSModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList peakLists[] = parameters.getParameter(CliqueMSParameters.PEAK_LISTS).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     for (FeatureList peakList : peakLists) {
       Task newTask = new CliqueMSTask(parameters, peakList, moduleCallDate);

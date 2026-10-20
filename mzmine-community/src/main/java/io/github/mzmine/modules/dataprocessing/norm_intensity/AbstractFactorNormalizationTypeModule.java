@@ -53,9 +53,10 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
 
   @Override
   public @NotNull List<RawDataFile> getReferenceSamples(@NotNull FeatureList flist,
-      @NotNull SamplesBatch samplesBatch, @NotNull ParameterSet normalizationModuleParameters) {
+      @NotNull SamplesBatch samplesBatch, @NotNull MetadataTable metadata,
+      @NotNull ParameterSet normalizationModuleParameters) {
     // select reference samples (like pooled QCs)
-    return NormalizationFunctionUtils.getReferenceSamplesOrThrow(false, samplesBatch,
+    return NormalizationFunctionUtils.getReferenceSamplesOrThrow(metadata, false, samplesBatch,
         normalizationModuleParameters.getValue(
             FeatureIntensityNormalizationParameters.sampleTypes));
   }
@@ -87,7 +88,7 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
 
       final NormalizationFunction function = new FactorNormalizationFunction(normalizationFactor);
       // add or merge function into a new instance within summary
-      summary.addMergeFunction(file, function);
+      summary.addMergeFunction(metadata, file, function);
 
       // add the correct function of this module and not the merged/composite function here
       // important for interpolation

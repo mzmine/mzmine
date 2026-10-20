@@ -37,6 +37,7 @@
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationTask;
@@ -68,6 +69,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(
       GnpsFbmnExportAndSubmitTask.class.getName());
+  private final @NotNull MZmineProject project;
   private final ParameterSet parameters;
   private final AbundanceMeasure featureMeasure;
   private final File baseFile;
@@ -78,12 +80,14 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private Task currentTask;
   private String currentDescription = "Export to GNPS FBMN and IIMN";
 
-  GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  GnpsFbmnExportAndSubmitTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.project = project;
     this.parameters = parameters;
 
     featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     featureMeasure = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY);
     csvType = parameters.getValue(GnpsFbmnExportAndSubmitParameters.CSV_TYPE);
     baseFile = FileAndPathUtil.eraseFormat(
@@ -132,7 +136,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     });
 
     currentDescription = "Exporting GNPS mgf of MS2 spectra";
-    currentTask = new GnpsFbmnMgfExportTask(parameters, getModuleCallDate());
+    currentTask = new GnpsFbmnMgfExportTask(project, parameters, getModuleCallDate());
     currentTask.run();
     currentStep++;
     int mgfCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();

@@ -26,8 +26,10 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -91,7 +93,7 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList minNodes = xmlElement.getElementsByTagName("min");
     if (minNodes.getLength() != 1) {
       return;
@@ -108,7 +110,7 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -122,7 +124,8 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (valueRequired && (value == null)) {
       errorMessages.add(name + " is not set properly");
       return false;

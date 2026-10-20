@@ -64,7 +64,7 @@ public class RawDataOverviewModule implements MZmineRunnableModule {
   public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    Task newTask = new RawDataOverviewTask(parameters, moduleCallDate);
+    Task newTask = new RawDataOverviewTask(project, parameters, moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;

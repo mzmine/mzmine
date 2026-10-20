@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
@@ -66,9 +67,10 @@ public class SingleSpectrumLibrarySearchModule implements MZmineModule {
     // Run task.
     if (parameters.showSetupDialog(scan, null, true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(new SingleSpectrumLibrarySearchTask(
-          (SingleSpectrumLibrarySearchParameters) parameters.cloneParameterSet(), scan, spectraPlot,
-          moduleCallDate));
+      MZmineCore.getTaskController().addTask(
+          new SingleSpectrumLibrarySearchTask(ProjectService.getProject(),
+              (SingleSpectrumLibrarySearchParameters) parameters.cloneParameterSet(), scan,
+              spectraPlot, moduleCallDate));
     }
   }
 

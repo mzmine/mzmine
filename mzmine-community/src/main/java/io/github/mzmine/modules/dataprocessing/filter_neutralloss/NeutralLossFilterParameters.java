@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -37,6 +38,7 @@ import io.github.mzmine.util.FormulaUtils;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Locale;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class NeutralLossFilterParameters extends SimpleParameterSet {
@@ -72,8 +74,9 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    if (super.checkParameterValues(errorMessages) == false) {
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    if (super.checkParameterValues(project, errorMessages) == false) {
       return false;
     }
 

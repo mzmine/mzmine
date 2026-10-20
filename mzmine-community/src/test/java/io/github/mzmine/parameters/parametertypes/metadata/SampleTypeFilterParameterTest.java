@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter.Mode;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ class SampleTypeFilterParameterTest {
     final Element root = legacyElement(document, "blank", "sample", "qc", "calibration");
 
     final SampleTypeFilterParameter parameter = newParameter();
-    parameter.loadValueFromXML(root);
+    parameter.loadValueFromXML(new MZmineProjectImpl(), root);
 
     final SampleTypeFilter value = parameter.getValue();
     assertEquals(Mode.LIST, value.getMode());
@@ -87,7 +88,7 @@ class SampleTypeFilterParameterTest {
     final Element root = legacyElement(document, "qc");
 
     final SampleTypeFilterParameter parameter = newParameter();
-    parameter.loadValueFromXML(root);
+    parameter.loadValueFromXML(new MZmineProjectImpl(), root);
 
     final SampleTypeFilter filter = parameter.getValue();
     assertTrue(filter.matchesValue("qc"));
@@ -105,7 +106,7 @@ class SampleTypeFilterParameterTest {
         SampleType.allValueStrings().toArray(String[]::new));
 
     final SampleTypeFilterParameter parameter = newParameter();
-    parameter.loadValueFromXML(root);
+    parameter.loadValueFromXML(new MZmineProjectImpl(), root);
 
     // an old batch listed the types it knew - it must keep meaning exactly those, not "everything",
     // otherwise loading it would silently widen the filter
@@ -120,7 +121,7 @@ class SampleTypeFilterParameterTest {
     final Element root = legacyElement(document, "qc", "pooled_qc", "my custom group");
 
     final SampleTypeFilterParameter parameter = newParameter();
-    parameter.loadValueFromXML(root);
+    parameter.loadValueFromXML(new MZmineProjectImpl(), root);
 
     assertEquals(Set.of("qc", "pooled_qc", "my custom group"), parameter.getValue().getValues());
     assertTrue(parameter.getValue().matchesValue("Pooled_QC"));
@@ -142,7 +143,7 @@ class SampleTypeFilterParameterTest {
     final Document document = XMLUtils.newDocument();
     final Element root = document.createElement("parameter");
     document.appendChild(root);
-    saved.saveValueToXML(root);
+    saved.saveValueToXML(new MZmineProjectImpl(), root);
 
     final var items = root.getElementsByTagName(SampleTypeFilterParameter.XML_ITEM_TAG);
     final List<String> written = new ArrayList<>();
@@ -180,7 +181,7 @@ class SampleTypeFilterParameterTest {
     root.setAttribute("mode", "something_new_from_the_future");
 
     final SampleTypeFilterParameter parameter = newParameter();
-    parameter.loadValueFromXML(root);
+    parameter.loadValueFromXML(new MZmineProjectImpl(), root);
 
     assertEquals(Mode.LIST, parameter.getValue().getMode());
     assertEquals(Set.of("qc"), parameter.getValue().getValues());
@@ -195,20 +196,20 @@ class SampleTypeFilterParameterTest {
     assertEquals(parameter.getValue(), clone.getValue());
     // the old CheckComboParameter dropped requiresSelection when cloning
     clone.setValue(SampleTypeFilter.none());
-    assertFalse(clone.checkValue(new ArrayList<>()));
+    assertFalse(clone.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
   }
 
   @Test
   void checkValueOnlyFailsWhenSelectionIsRequired() {
     final SampleTypeFilterParameter optional = newParameter();
     optional.setValue(SampleTypeFilter.none());
-    assertTrue(optional.checkValue(new ArrayList<>()));
+    assertTrue(optional.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
 
     final SampleTypeFilterParameter required = new SampleTypeFilterParameter("Sample types",
         "description", SampleTypeFilter.all(), true);
-    assertTrue(required.checkValue(new ArrayList<>()));
+    assertTrue(required.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
     required.setValue(SampleTypeFilter.ofValues(List.of()));
-    assertFalse(required.checkValue(new ArrayList<>()));
+    assertFalse(required.checkValue(new MZmineProjectImpl(), new ArrayList<>()));
   }
 
   private static SampleTypeFilterParameter saveAndLoad(SampleTypeFilterParameter parameter)
@@ -216,10 +217,10 @@ class SampleTypeFilterParameterTest {
     final Document document = XMLUtils.newDocument();
     final Element root = document.createElement("parameter");
     document.appendChild(root);
-    parameter.saveValueToXML(root);
+    parameter.saveValueToXML(new MZmineProjectImpl(), root);
 
     final SampleTypeFilterParameter loaded = newParameter();
-    loaded.loadValueFromXML(root);
+    loaded.loadValueFromXML(new MZmineProjectImpl(), root);
     return loaded;
   }
 }

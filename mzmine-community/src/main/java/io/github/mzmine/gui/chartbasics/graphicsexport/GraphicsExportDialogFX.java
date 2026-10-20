@@ -36,8 +36,10 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Button;
@@ -191,7 +193,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     //
     GraphicsExportParameters parameterSet = (GraphicsExportParameters) this.parameterSet;
 
-    if (parameterSet.checkParameterValues(null)) {
+    if (parameterSet.checkParameterValues(ProjectService.getProject(), new ArrayList<>())) {
       File path = parameterSet.getFullpath();
       try {
         logger.info("Writing image to file: " + path.getAbsolutePath());

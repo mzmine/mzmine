@@ -65,7 +65,7 @@ public class ImageVisualizerModule implements MZmineRunnableModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] files = parameters.getParameter(ImageVisualizerParameters.rawDataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     for (RawDataFile file : files) {
       if (!(file instanceof ImagingRawDataFile imageRaw)) {

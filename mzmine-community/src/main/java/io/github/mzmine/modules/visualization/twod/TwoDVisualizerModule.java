@@ -111,7 +111,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     RawDataFile[] dataFiles = parameters.getParameter(TwoDVisualizerParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
     ScanSelection scanSel = parameters.getParameter(TwoDVisualizerParameters.scanSelection)
         .getValue();
     Scan[] scans = scanSel.getMatchingScans(dataFiles[0]);

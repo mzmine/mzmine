@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -90,7 +92,8 @@ public class SpectralLibrarySelectionParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (required && value.getSelectionType() == SpectralLibrarySelectionType.SPECIFIC
         && value.getSpecificLibraryNames().isEmpty()) {
       errorMessages.add(
@@ -101,7 +104,7 @@ public class SpectralLibrarySelectionParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     SpectralLibrarySelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");
@@ -130,7 +133,7 @@ public class SpectralLibrarySelectionParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

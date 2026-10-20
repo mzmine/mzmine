@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -140,10 +141,11 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     previewWrapperPane.setCenter(clusteringSelectedFeatureSplit);
 
     // use all feature lists in preview
-    final List<FeatureList> currentFeatureLists = ProjectService.getProject()
-        .getCurrentFeatureLists();
+    final MZmineProject project = ProjectService.getProject();
+    final List<FeatureList> currentFeatureLists = project.getCurrentFeatureLists();
     final @NotNull ModularFeatureList[] selectedLists = parameters.getParameter(
-        SpectralDeconvolutionGCParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
+            SpectralDeconvolutionGCParameters.FEATURE_LISTS).getValue()
+        .getMatchingFeatureLists(project);
 
     featureListCombo = new ComboBox<>();
     featureListCombo.setItems(FXCollections.observableArrayList(currentFeatureLists));

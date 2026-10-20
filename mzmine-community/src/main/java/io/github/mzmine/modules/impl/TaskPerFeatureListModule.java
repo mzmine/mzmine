@@ -83,7 +83,7 @@ public abstract class TaskPerFeatureListModule extends AbstractProcessingModule 
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
     try {
-      var featureLists = ParameterUtils.getMatchingFeatureListsFromParameter(parameters);
+      var featureLists = ParameterUtils.getMatchingFeatureListsFromParameter(project, parameters);
 
       MemoryMapStorage storage = requiresMemoryMapping ? MemoryMapStorage.forFeatureList() : null;
 

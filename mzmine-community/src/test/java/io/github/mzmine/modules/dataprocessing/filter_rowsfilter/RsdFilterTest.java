@@ -69,7 +69,7 @@ class RsdFilterTest {
     final RsdFilterParameters parameters = new RsdFilterParameters();
     parameters.setAll(AbundanceMeasure.Height, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION, 0.2,
         0.2, false, qcSelection);
-    final RsdFilter filter = parameters.createFilter(featureList.getRows(), rawFiles);
+    final RsdFilter filter = parameters.createFilter(metadata, featureList.getRows(), rawFiles);
 
     Assertions.assertEquals(rawFiles.subList(0, 2), filter.getGroupDataFiles());
     Assertions.assertEquals(2, filter.dataTable().getFeatureRow(0).countOriginalMissingValues());

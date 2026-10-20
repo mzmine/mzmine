@@ -58,8 +58,8 @@ public class FeatureCorrelationHistogramModule implements MZmineRunnableModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] flists = parameters
-        .getParameter(FeatureCorrelationHistogramParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+        .getParameter(FeatureCorrelationHistogramParameters.featureLists).getValue()
+        .getMatchingFeatureLists(project);
 
     for (int i = 0; i < flists.length; i++) {
       Task newTask =

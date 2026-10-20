@@ -74,7 +74,7 @@ public class CorrelateGroupingModule implements MZmineProcessingModule {
       @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] featureLists = parameters.getParameter(
-        CorrelateGroupingParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
+        CorrelateGroupingParameters.PEAK_LISTS).getValue().getMatchingFeatureLists(project);
     for (ModularFeatureList pkl : featureLists) {
       tasks.add(new CorrelateGroupingTask(project, parameters, pkl, moduleCallDate));
     }

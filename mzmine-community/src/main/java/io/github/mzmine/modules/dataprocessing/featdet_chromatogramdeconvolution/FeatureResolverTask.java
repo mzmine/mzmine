@@ -175,7 +175,7 @@ public class FeatureResolverTask extends AbstractTask {
           var groupMs2Param = parameters.getParameter(GeneralResolverParameters.groupMS2Parameters);
           if (groupMs2Param.getValue()) {
             GroupMS2SubParameters ms2params = groupMs2Param.getEmbeddedParameters();
-            groupMS2Task = new GroupMS2Processor(this, newPeakList, ms2params);
+            groupMS2Task = new GroupMS2Processor(project, this, newPeakList, ms2params);
             // group all features with MS/MS
             groupMS2Task.process();
             groupMs2Param = null; // clear progress

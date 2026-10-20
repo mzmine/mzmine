@@ -34,6 +34,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -80,7 +81,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
 
   public VanKrevelenDiagramXYZDataset(ParameterSet parameters) {
     FeatureList featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList)
-        .getValue().getMatchingFeatureLists()[0];
+        .getValue().getMatchingFeatureLists(ProjectService.getProject())[0];
     this.parameters = parameters.cloneParameterSet();
     filteredRows = featureList.stream()
         .filter(featureListRow -> featureListRow.getPreferredAnnotation() != null).toList();

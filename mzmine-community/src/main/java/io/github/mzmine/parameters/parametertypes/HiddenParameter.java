@@ -25,9 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -63,18 +65,19 @@ public class HiddenParameter<ValueType> implements Parameter<ValueType> {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return getEmbeddedParameter().checkValue(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    return getEmbeddedParameter().checkValue(project, errorMessages);
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-    getEmbeddedParameter().loadValueFromXML(xmlElement);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    getEmbeddedParameter().loadValueFromXML(project, xmlElement);
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
-    getEmbeddedParameter().saveValueToXML(xmlElement);
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    getEmbeddedParameter().saveValueToXML(project, xmlElement);
   }
 
   @Override

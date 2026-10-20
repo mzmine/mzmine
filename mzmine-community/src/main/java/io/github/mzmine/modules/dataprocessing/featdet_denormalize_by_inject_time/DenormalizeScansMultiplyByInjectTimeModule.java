@@ -63,7 +63,7 @@ public class DenormalizeScansMultiplyByInjectTimeModule implements MZmineProcess
 
     RawDataFile[] dataFiles = parameters.getParameter(
             DenormalizeScansMultiplyByInjectTimeParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forMassList();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new DenormalizeScansMultiplyByInjectTimeTask(project, dataFile, parameters,

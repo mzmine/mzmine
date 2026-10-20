@@ -65,8 +65,8 @@ public class RecursiveIMSBuilderModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-    for (RawDataFile rawDataFile : parameters
-        .getParameter(RecursiveIMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles()) {
+    for (RawDataFile rawDataFile : parameters.getParameter(
+        RecursiveIMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles(project)) {
       if (rawDataFile instanceof IMSRawDataFile) {
         tasks.add(new RecursiveIMSBuilderTask(storage, (IMSRawDataFile) rawDataFile, parameters, project, moduleCallDate));
       }

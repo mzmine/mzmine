@@ -25,10 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.maths.MathOperator;
 import java.text.NumberFormat;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -106,7 +108,7 @@ public class OptionForValuesParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList optionNode = xmlElement.getElementsByTagName("option");
     NodeList valueNode = xmlElement.getElementsByTagName("value");
     NodeList operatorNode = xmlElement.getElementsByTagName("operator");
@@ -121,7 +123,7 @@ public class OptionForValuesParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -138,7 +140,8 @@ public class OptionForValuesParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (valueRequired && (value == null)) {
       errorMessages.add(name + " is not set properly");
       return false;

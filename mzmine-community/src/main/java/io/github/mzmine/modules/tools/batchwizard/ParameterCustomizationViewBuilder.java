@@ -43,6 +43,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverrid
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -542,7 +543,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
       param.setValueFromComponent(currentEditorComponent);
 
       List<String> errors = new ArrayList<>();
-      if (!param.checkValue(errors)) {
+      if (!param.checkValue(ProjectService.getProject(), errors)) {
         model.setInstructionsText("Invalid parameter value:\n%s".formatted(
             errors.stream().map(Object::toString).collect(Collectors.joining("\n"))));
         return;

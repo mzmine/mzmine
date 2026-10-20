@@ -24,11 +24,13 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.StringCrypter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 public class EncryptionKeyParameter implements Parameter<StringCrypter> {
@@ -52,12 +54,13 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     try {
       final String nuVal = xmlElement.getTextContent();
       if (nuVal == null || nuVal.isEmpty()) {
@@ -71,7 +74,7 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

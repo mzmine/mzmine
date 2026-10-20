@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundNameIdentifier;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.RIRecordType;
@@ -225,9 +226,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
     final List<ImportType<?>> selectedTypes = getParameter(columns).getValue().stream()

@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
@@ -43,9 +44,11 @@ import org.w3c.dom.Element;
  * {@link RawFileRtCorrectionModule} and must be listed in {@link RtCorrectionFunctions}. A
  * correction can be interpolated between two neighbouring files, or created specifically for a set
  * of standards.
- * {@link RawFileRtCorrectionModule#createFromStandards(FeatureList, List, ParameterSet)} or
- * {@link RawFileRtCorrectionModule#createInterpolated(RawDataFile, List,
- * AbstractRtCorrectionFunction, double, AbstractRtCorrectionFunction, double, ParameterSet)}
+ * {@link RawFileRtCorrectionModule#createFromStandards(FeatureList, List, RTMeasure, ParameterSet)}
+ * or
+ * {@link RawFileRtCorrectionModule#createInterpolated(MZmineProject, RawDataFile, List,
+ * AbstractRtCorrectionFunction, double, AbstractRtCorrectionFunction, double, RTMeasure,
+ * ParameterSet)}
  */
 public abstract class AbstractRtCorrectionFunction {
 
@@ -105,12 +108,12 @@ public abstract class AbstractRtCorrectionFunction {
   }
 
   @Nullable
-  public RawDataFile getRawDataFile() {
-    return getRawDataFilePlaceholder().getMatchingFile();
+  public RawDataFile getRawDataFile(@NotNull final MZmineProject project) {
+    return getRawDataFilePlaceholder().getMatchingFile(project);
   }
 
   @NotNull
-  protected RawDataFilePlaceholder getRawDataFilePlaceholder() {
+  public RawDataFilePlaceholder getRawDataFilePlaceholder() {
     return filePlaceholder;
   }
 

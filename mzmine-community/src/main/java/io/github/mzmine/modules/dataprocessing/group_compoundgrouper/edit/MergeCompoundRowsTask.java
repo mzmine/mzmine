@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -24,16 +25,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MergeCompoundRowsTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final @NotNull ModularFeatureList flist;
   private final int targetCompoundId;
   private final @NotNull String otherCompoundIds;
   private final @NotNull String extraRowIds;
 
-  protected MergeCompoundRowsTask(@NotNull final Instant moduleCallDate,
+  protected MergeCompoundRowsTask(@NotNull final MZmineProject project,
+      @NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters) {
     super(null, moduleCallDate, parameters, MergeCompoundRowsModule.class);
+    this.project = project;
     this.flist = parameters.getValue(MergeCompoundRowsParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     this.targetCompoundId = parameters.getValue(MergeCompoundRowsParameters.targetCompoundId);
     this.otherCompoundIds = parameters.getValue(MergeCompoundRowsParameters.otherCompoundIds);
     this.extraRowIds = parameters.getValue(MergeCompoundRowsParameters.extraRowIds);

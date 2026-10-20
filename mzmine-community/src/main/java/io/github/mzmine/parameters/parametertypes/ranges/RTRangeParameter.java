@@ -26,9 +26,11 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 
 import java.text.NumberFormat;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class RTRangeParameter extends DoubleRangeParameter {
 
@@ -51,7 +53,8 @@ public class RTRangeParameter extends DoubleRangeParameter {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (valueRequired && (this.getValue() == null)) {
       errorMessages.add(this.getName() + " is not set properly");
       return false;

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.identities.iontype.IonPartFrequency;
 import io.github.mzmine.datamodel.identities.iontype.IonPartReference;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
@@ -114,7 +115,8 @@ public class IonTypeRankingParameter implements
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value.getFrequencies().isEmpty()) {
       errorMessages.add(name
           + ": define at least one ion building block frequency, otherwise all ion types score equally");
@@ -124,7 +126,7 @@ public class IonTypeRankingParameter implements
   }
 
   @Override
-  public void loadValueFromXML(final @NotNull Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final NodeList rankingNodes = xmlElement.getElementsByTagName(XML_RANKING_TAG);
     if (rankingNodes.getLength() == 0) {
       // nothing saved for this parameter, keep the default
@@ -155,7 +157,7 @@ public class IonTypeRankingParameter implements
   }
 
   @Override
-  public void saveValueToXML(final @NotNull Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
     final Element rankingElement = doc.createElement(XML_RANKING_TAG);
     for (final IonPartFrequency entry : value.getFrequencies()) {

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_splitaligned;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
@@ -55,12 +56,13 @@ public class SplitAlignedFeatureListParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
-    final @NotNull ModularFeatureList[] selectedFlists = getValue(flists).getMatchingFeatureLists();
+    final @NotNull ModularFeatureList[] selectedFlists = getValue(flists).getMatchingFeatureLists(
+        project);
 
     if (selectedFlists.length > 0) {
       final String nonAlignedLists = Arrays.stream(selectedFlists)

@@ -25,11 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -112,18 +114,19 @@ class CustomLipidChainChoiceParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }

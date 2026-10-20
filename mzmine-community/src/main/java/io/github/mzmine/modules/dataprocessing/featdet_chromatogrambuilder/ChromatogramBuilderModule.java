@@ -59,7 +59,7 @@ public class ChromatogramBuilderModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(ChromatogramBuilderParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
 
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 

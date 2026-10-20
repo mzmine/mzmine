@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.export_features_mgf;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -73,9 +74,10 @@ public class AdapMgfExportTask extends AbstractTask {
   private final int totalRows;
   private int finishedRows = 0;
 
-  public AdapMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public AdapMgfExportTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     this(parameters, parameters.getParameter(AdapMgfExportParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists(), moduleCallDate);
+        .getMatchingFeatureLists(project), moduleCallDate);
   }
 
   public AdapMgfExportTask(ParameterSet parameters, FeatureList[] featureLists,

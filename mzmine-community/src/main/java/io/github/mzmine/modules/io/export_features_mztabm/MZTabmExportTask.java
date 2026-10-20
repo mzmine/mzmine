@@ -48,7 +48,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.io.SemverVersionReader;
@@ -81,7 +80,7 @@ public class MZTabmExportTask extends AbstractTask {
     super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
     this.featureLists = parameters.getParameter(MZTabmExportParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     this.fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
     this.exportAll = parameters.getParameter(MZTabmExportParameters.exportAll).getValue();
   }

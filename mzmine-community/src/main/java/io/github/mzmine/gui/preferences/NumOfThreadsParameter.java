@@ -27,8 +27,10 @@ package io.github.mzmine.gui.preferences;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -111,7 +113,7 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String attrValue = xmlElement.getAttribute("isautomatic");
     if (attrValue.length() > 0) {
       this.automatic = Boolean.parseBoolean(attrValue);
@@ -124,13 +126,14 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute("isautomatic", String.valueOf(automatic));
     xmlElement.setTextContent(value.toString());
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(name + " is not set");
       return false;

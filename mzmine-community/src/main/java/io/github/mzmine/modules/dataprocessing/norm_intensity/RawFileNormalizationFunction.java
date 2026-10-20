@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import java.time.LocalDateTime;
@@ -50,25 +52,31 @@ public record RawFileNormalizationFunction(@NotNull RawDataFilePlaceholder rawDa
   public static final String XML_ACQUISITION_TIMESTAMP_ATTR = "acquisitionTimestamp";
   public static final String XML_PARENT_ELEMENT = "rawFileNormalization";
 
-  public RawFileNormalizationFunction (@NotNull RawDataFile file, @NotNull NormalizationFunction function) {
-    final LocalDateTime runDate = MetadataTableUtils.getRunDate(file);
+  /**
+   * @param metadata used to look up the run date if the file has no acquisition timestamp
+   */
+  public RawFileNormalizationFunction(@NotNull MetadataTable metadata, @NotNull RawDataFile file,
+      @NotNull NormalizationFunction function) {
+    final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
     this(new RawDataFilePlaceholder(file), runDate, function);
   }
 
   /**
    *
+   * @param project the project to resolve the raw data file from
    * @return The data file this normalization applies to. may be null if the file was removed from
    * the project.
    */
-  public @Nullable RawDataFile getRawDataFile() {
-    return rawDataFilePlaceholder().getMatchingFile();
+  public @Nullable RawDataFile getRawDataFile(@NotNull final MZmineProject project) {
+    return rawDataFilePlaceholder().getMatchingFile(project);
   }
 
   /**
    * @return Create a copy of the function that points to the new file
    */
-  public @NotNull RawFileNormalizationFunction withRawFile(@NotNull RawDataFile file) {
-    final LocalDateTime runDate = MetadataTableUtils.getRunDate(file);
+  public @NotNull RawFileNormalizationFunction withRawFile(@NotNull MetadataTable metadata,
+      @NotNull RawDataFile file) {
+    final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
     return new RawFileNormalizationFunction(new RawDataFilePlaceholder(file), runDate, function);
   }
 

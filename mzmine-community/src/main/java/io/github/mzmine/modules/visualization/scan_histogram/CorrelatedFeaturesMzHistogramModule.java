@@ -57,7 +57,8 @@ public class CorrelatedFeaturesMzHistogramModule implements MZmineRunnableModule
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] flists = parameters.getParameter(
-        CorrelatedFeaturesMzHistogramParameters.featureLists).getValue().getMatchingFeatureLists();
+            CorrelatedFeaturesMzHistogramParameters.featureLists).getValue()
+        .getMatchingFeatureLists(project);
 
     for (ModularFeatureList flist : flists) {
       Task newTask = new CorrelatedFeaturesMzHistogramTask(flist, parameters.cloneParameterSet(),

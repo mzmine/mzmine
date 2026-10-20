@@ -25,8 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -115,7 +117,7 @@ public class PercentParameter implements UserParameter<Double, PercentComponent>
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String numString = xmlElement.getTextContent();
     if (numString.length() == 0)
       return;
@@ -123,14 +125,15 @@ public class PercentParameter implements UserParameter<Double, PercentComponent>
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     xmlElement.setTextContent(value.toString());
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(name + " is not set");
       return false;

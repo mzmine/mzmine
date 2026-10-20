@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -47,11 +48,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 
 class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
 
   private static Logger logger = Logger.getLogger(ResolverPreviewUpdateTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final SimpleXYChart<?> chart;
   private final Feature feature;
   private final ModularFeatureList flist;
@@ -64,9 +67,11 @@ class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
   private ColoredXYDataset unresolvedDataset;
   private List<ColoredXYDataset> resolvedFeatures;
 
-  public ResolverPreviewUpdateTask(String chartName, SimpleXYChart<?> chart, Feature feature,
-      ModularFeatureList flist, GeneralResolverParameters parameters) {
+  public ResolverPreviewUpdateTask(@NotNull MZmineProject project, String chartName,
+      SimpleXYChart<?> chart, Feature feature, ModularFeatureList flist,
+      GeneralResolverParameters parameters) {
     super("Updating %s".formatted(chartName), Instant.now());
+    this.project = project;
     this.chart = chart;
     this.feature = feature;
     this.flist = flist;
@@ -112,7 +117,7 @@ class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
       unresolvedDataset = createMainDataset();
 
       final List<String> errors = new ArrayList<>();
-      if (parameters.checkParameterValues(errors, true)) {
+      if (parameters.checkParameterValues(project, errors, true)) {
         this.resolver = parameters.getResolver(parameters, flist);
         if (resolver != null) {
           resolvedFeatures = switch (dimension) {

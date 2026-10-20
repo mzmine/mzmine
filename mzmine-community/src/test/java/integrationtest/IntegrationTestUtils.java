@@ -245,8 +245,10 @@ public class IntegrationTestUtils {
         overrideMetadataFile, overrideSpectralLibraries, null, Instant.now(), null, null);
 
     if (checkImportedFilesAndLibraries) {
+      // the batch may have replaced the project, e.g., by loading a project
+      final MZmineProject resultProject = batchTask != null ? batchTask.getProject() : project;
       checkImportedFilesAndLibraries(overrideDataFiles, overrideSpectralLibraries, batchFileName,
-          project);
+          resultProject);
     }
 
     if (batchTask == null || batchTask.getStatus() != TaskStatus.FINISHED) {
@@ -325,7 +327,8 @@ public class IntegrationTestUtils {
     final List<String> batchLoadErrors = new ArrayList<>();
     final BatchQueue queue;
     try {
-      queue = BatchQueue.loadFromXml(XMLUtils.load(batchFile).getDocumentElement(), batchLoadErrors,
+      queue = BatchQueue.loadFromXml(ProjectService.getProject(),
+          XMLUtils.load(batchFile).getDocumentElement(), batchLoadErrors,
           true);
     } catch (ParserConfigurationException | IOException | SAXException e) {
       throw new RuntimeException("Error while loading batch file" + e);
@@ -423,11 +426,12 @@ public class IntegrationTestUtils {
 
     var parameters = (ProjectLoaderParameters) new ProjectLoaderParameters().cloneParameterSet();
     parameters.setParameter(ProjectLoaderParameters.projectFile, projectFile);
-    ProjectOpeningTask task = new ProjectOpeningTask(parameters, Instant.now());
+    ProjectOpeningTask task = new ProjectOpeningTask(ProjectService.getProject(), parameters,
+        Instant.now());
     task.run();
 
     // new project created in project opening task
-    final MZmineProject loadedProject = ProjectService.getProject();
+    final MZmineProject loadedProject = Objects.requireNonNull(task.getResultProject());
 
     final FeatureList finalFlist = loadedProject.getCurrentFeatureLists().stream()
         .max(Comparator.comparingInt(fl -> fl.getName().length())).get();

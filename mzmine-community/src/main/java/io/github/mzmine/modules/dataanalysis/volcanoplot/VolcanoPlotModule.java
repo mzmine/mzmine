@@ -50,7 +50,7 @@ public class VolcanoPlotModule extends AbstractRunnableModule {
       @NotNull Instant moduleCallDate) {
 
     final ModularFeatureList flist = parameters.getValue(VolcanoPlotParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     final VolcanoPlotTab tab = new VolcanoPlotTab(flist);
     MZmineCore.getDesktop().addTab(tab);
 

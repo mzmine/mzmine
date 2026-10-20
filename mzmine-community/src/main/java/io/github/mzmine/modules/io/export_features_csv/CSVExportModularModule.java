@@ -54,7 +54,7 @@ public class CSVExportModularModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    CSVExportModularTask task = new CSVExportModularTask(parameters, moduleCallDate);
+    CSVExportModularTask task = new CSVExportModularTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }

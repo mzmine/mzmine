@@ -56,7 +56,7 @@ public class CompoundDashboardModule extends AbstractRunnableModule {
 
     final SimpleRunnableTask task = new SimpleRunnableTask(() -> {
       final @NotNull ModularFeatureList[] flists = parameters.getValue(
-          CompoundDashboardParameters.flists).getMatchingFeatureLists();
+          CompoundDashboardParameters.flists).getMatchingFeatureLists(project);
       if (flists.length == 0) {
         return;
       }

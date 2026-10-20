@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
@@ -66,7 +67,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     FeatureList[] selectedFeatureLists = getParameter(featureList).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(ProjectService.getProject());
     if (selectedFeatureLists.length > 0) {
       RawDataFile[] plDataFiles = selectedFeatureLists[0].getRawDataFiles()
           .toArray(RawDataFile[]::new);

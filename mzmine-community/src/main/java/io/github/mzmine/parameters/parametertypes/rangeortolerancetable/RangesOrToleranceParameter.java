@@ -24,6 +24,7 @@
 
 package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -110,8 +111,9 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    boolean failed = !toleranceParameter.checkValue(errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    boolean failed = !toleranceParameter.checkValue(project, errorMessages);
     String invalid = value.ranges().stream().filter(v -> !v.isValid()).map(RangeOrValue::toString)
         .collect(Collectors.joining(", "));
     if (!invalid.isBlank()) {
@@ -122,12 +124,12 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Element toleranceParam = (Element) xmlElement.getElementsByTagName(
         SimpleParameterSet.parameterElement).item(0);
     assert toleranceParam.getAttribute(SimpleParameterSet.nameAttribute)
         .equals(toleranceParameter.getName());
-    toleranceParameter.loadValueFromXML(toleranceParam);
+    toleranceParameter.loadValueFromXML(project, toleranceParam);
 
     final Element rovListElement = (Element) xmlElement.getElementsByTagName("ranges_or_values")
         .item(0);
@@ -153,12 +155,12 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final Document doc = xmlElement.getOwnerDocument();
 
     final Element toleranceElement = doc.createElement(SimpleParameterSet.parameterElement);
     toleranceElement.setAttribute(SimpleParameterSet.nameAttribute, toleranceParameter.getName());
-    toleranceParameter.saveValueToXML(toleranceElement);
+    toleranceParameter.saveValueToXML(project, toleranceElement);
 
     final Element rovList = doc.createElement("ranges_or_values");
 

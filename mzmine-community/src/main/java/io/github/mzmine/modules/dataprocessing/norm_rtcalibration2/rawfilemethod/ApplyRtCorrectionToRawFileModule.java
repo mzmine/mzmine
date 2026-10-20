@@ -52,7 +52,7 @@ public class ApplyRtCorrectionToRawFileModule implements MZmineProcessingModule 
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new ApplyRtCorrectionToRawFileTask(null, moduleCallDate, parameters,
+    tasks.add(new ApplyRtCorrectionToRawFileTask(project, null, moduleCallDate, parameters,
         ApplyRtCorrectionToRawFileModule.class));
     return ExitCode.OK;
   }
@@ -72,11 +72,12 @@ public class ApplyRtCorrectionToRawFileModule implements MZmineProcessingModule 
     return ApplyRtCorrectionToRawFileParameters.class;
   }
 
-  public static void applyOnThisThread(List<AbstractRtCorrectionFunction> calis) {
+  public static void applyOnThisThread(@NotNull MZmineProject project,
+      @NotNull List<AbstractRtCorrectionFunction> calis) {
     final ApplyRtCorrectionToRawFileParameters param = ApplyRtCorrectionToRawFileParameters.create(
         calis);
 
-    final ApplyRtCorrectionToRawFileTask task = new ApplyRtCorrectionToRawFileTask(null,
+    final ApplyRtCorrectionToRawFileTask task = new ApplyRtCorrectionToRawFileTask(project, null,
         Instant.now(), param, ApplyRtCorrectionToRawFileModule.class);
     task.run();
   }

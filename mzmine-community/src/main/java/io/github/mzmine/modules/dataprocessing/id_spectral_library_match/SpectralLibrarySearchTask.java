@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -45,9 +46,9 @@ class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
   private static final Logger logger = Logger.getLogger(SpectralLibrarySearchTask.class.getName());
   private final FeatureList[] featureLists;
 
-  public SpectralLibrarySearchTask(ParameterSet parameters, FeatureList[] featureLists,
-                                   @NotNull Instant moduleCallDate) {
-    super(parameters, combineRows(featureLists), moduleCallDate);
+  public SpectralLibrarySearchTask(@NotNull MZmineProject project, ParameterSet parameters,
+      FeatureList[] featureLists, @NotNull Instant moduleCallDate) {
+    super(project, parameters, combineRows(featureLists), moduleCallDate);
     this.featureLists = featureLists;
   }
 

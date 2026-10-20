@@ -27,12 +27,14 @@ package io.github.mzmine.parameters.parametertypes;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.CompositeParametersParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelectionParameter;
 import java.util.Collection;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MinimumSamplesInOneMetadataGroupParameter extends
@@ -121,9 +123,10 @@ public class MinimumSamplesInOneMetadataGroupParameter extends
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return value != null && metadata.checkValue(errorMessages) && minSamples.checkValue(
-        errorMessages);
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    return value != null && metadata.checkValue(project, errorMessages) && minSamples.checkValue(
+        project, errorMessages);
   }
 
   @Override

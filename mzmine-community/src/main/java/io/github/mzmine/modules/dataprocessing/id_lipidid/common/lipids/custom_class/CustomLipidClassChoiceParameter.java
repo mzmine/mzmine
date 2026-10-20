@@ -28,11 +28,13 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -112,12 +114,13 @@ public class CustomLipidClassChoiceParameter
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
     ArrayList<CustomLipidClass> newValues = new ArrayList<>();
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -132,7 +135,7 @@ public class CustomLipidClassChoiceParameter
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (values == null)
       return;
     Document parentDocument = xmlElement.getOwnerDocument();

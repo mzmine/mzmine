@@ -26,11 +26,12 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -131,12 +132,13 @@ public class FeatureListsParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     FeatureList matchingPeakLists[];
     if (value == null) {
       matchingPeakLists = new FeatureList[0];
     } else {
-      matchingPeakLists = value.getMatchingFeatureLists();
+      matchingPeakLists = value.getMatchingFeatureLists(project);
     }
 
     if (matchingPeakLists.length < minCount) {
@@ -162,10 +164,7 @@ public class FeatureListsParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-
-    FeatureList[] currentDataPeakLists = ProjectService.getProjectManager().getCurrentProject()
-        .getCurrentFeatureLists().toArray(FeatureList[]::new);
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     FeatureListsSelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");
@@ -176,18 +175,15 @@ public class FeatureListsParameter implements
       selectionType = FeatureListsSelectionType.valueOf(xmlElement.getAttribute("type"));
     }
 
-    ArrayList<Object> newValues = new ArrayList<Object>();
+    // decision: keep names as placeholders, they are resolved in a project during evaluation
+    final List<FeatureListPlaceholder> newValues = new ArrayList<>();
 
     NodeList items = xmlElement.getElementsByTagName("specific_peak_list");
     for (int i = 0; i < items.getLength(); i++) {
-      String itemString = items.item(i).getTextContent();
-      for (FeatureList df : currentDataPeakLists) {
-        if (df.getName().equals(itemString)) {
-          newValues.add(df);
-        }
-      }
+      newValues.add(new FeatureListPlaceholder(items.item(i).getTextContent()));
     }
-    FeatureList specificPeakLists[] = newValues.toArray(new FeatureList[0]);
+    final FeatureListPlaceholder[] specificPeakLists = newValues.toArray(
+        FeatureListPlaceholder[]::new);
 
     String namePattern = null;
     items = xmlElement.getElementsByTagName("name_pattern");
@@ -202,15 +198,16 @@ public class FeatureListsParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
     Document parentDocument = xmlElement.getOwnerDocument();
     xmlElement.setAttribute("type", value.getSelectionType().name());
 
-    if (value.getSpecificFeatureLists() != null) {
-      for (FeatureList item : value.getSpecificFeatureLists()) {
+    final FeatureListPlaceholder[] specificFeatureLists = value.getSpecificFeatureListPlaceholders();
+    if (specificFeatureLists != null) {
+      for (FeatureListPlaceholder item : specificFeatureLists) {
         Element newElement = parentDocument.createElement("specific_peak_list");
         newElement.setTextContent(item.getName());
         xmlElement.appendChild(newElement);

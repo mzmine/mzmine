@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.presets.ModulePreset;
@@ -112,6 +113,7 @@ public class SampleMetadataExtractionParameters extends SimpleParameterSet {
   /**
    * Creates an extraction task from these parameters for the externally provided files.
    *
+   * @param project        the metadata is written to this project
    * @param parameters     the (selected) embedded parameters of this class
    * @param moduleCallDate the module call date
    * @param moduleClass    the calling module (recorded as applied method)
@@ -119,9 +121,10 @@ public class SampleMetadataExtractionParameters extends SimpleParameterSet {
    * @return a runnable extraction task
    */
   public static SampleMetadataExtractionTask createTaskWithDataFiles(
-      @NotNull final ParameterSet parameters, @NotNull final Instant moduleCallDate,
+      @NotNull final MZmineProject project, @NotNull final ParameterSet parameters,
+      @NotNull final Instant moduleCallDate,
       @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws) {
-    return new SampleMetadataExtractionTask(moduleCallDate, parameters, moduleClass, raws,
+    return new SampleMetadataExtractionTask(project, moduleCallDate, parameters, moduleClass, raws,
         parameters.getValue(mappings), parameters.getValue(overwrite));
   }
 

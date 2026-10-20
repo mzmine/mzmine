@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
@@ -182,7 +183,7 @@ public class MultiChoiceParameter<ValueType> implements
 
   @SuppressWarnings("unchecked")
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
     ArrayList<ValueType> newValues = new ArrayList<ValueType>();
     for (int i = 0; i < items.getLength(); i++) {
@@ -199,7 +200,7 @@ public class MultiChoiceParameter<ValueType> implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (values == null) {
       return;
     }
@@ -212,7 +213,8 @@ public class MultiChoiceParameter<ValueType> implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (values == null) {
       errorMessages.add(name + " is not set properly");
       return false;

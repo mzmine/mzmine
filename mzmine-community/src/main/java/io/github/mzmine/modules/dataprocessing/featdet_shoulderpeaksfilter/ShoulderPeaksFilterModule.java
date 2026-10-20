@@ -71,7 +71,7 @@ public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
     // storage for masslists
     MemoryMapStorage storage = MemoryMapStorage.forMassList();
     RawDataFile[] dataFiles = parameters.getParameter(ShoulderPeaksFilterParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new ShoulderPeaksFilterTask(dataFile, parameters.cloneParameterSet(true),
           storage, moduleCallDate);

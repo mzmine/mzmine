@@ -42,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
@@ -93,7 +94,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
     // Basic parameters
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
+        .getMatchingRawDataFiles(ProjectService.getProject())[0];
     rtRange = RangeUtils.toFloatRange(
         parameters.getEmbeddedParameterValueIfSelectedOrElse(MsMsParameters.rtRange, Range.all()));
     mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(MsMsParameters.mzRange,

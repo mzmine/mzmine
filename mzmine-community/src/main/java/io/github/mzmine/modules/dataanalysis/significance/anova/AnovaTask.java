@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.significance.anova;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -32,10 +33,10 @@ import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
@@ -48,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 public class AnovaTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(AnovaTask.class.getName());
+  private final @NotNull MZmineProject project;
   private final ParameterSet parameters;
   private final FeatureList flist;
   private final String groupingColumnName;
@@ -55,8 +57,10 @@ public class AnovaTask extends AbstractTask {
   private AnovaTest calc;
   private int processed;
 
-  public AnovaTask(FeatureList flist, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public AnovaTask(@NotNull MZmineProject project, FeatureList flist, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     this.flist = flist;
     this.parameters = parameters;
     this.groupingColumnName = this.parameters.getValue(AnovaParameters.groupingParameter);
@@ -87,9 +91,9 @@ public class AnovaTask extends AbstractTask {
       final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
           flist.getRows(), flist.getRawDataFiles(), tablePrepConfig);
 
-      final MetadataColumn<?> column = ProjectService.getMetadata()
-          .getColumnByName(groupingColumnName);
-      calc = new AnovaTest(dataTable, column);
+      final MetadataTable metadata = project.getProjectMetadata();
+      final MetadataColumn<?> column = metadata.getColumnByName(groupingColumnName);
+      calc = new AnovaTest(metadata, dataTable, column);
     } catch (MetadataColumnDoesNotExistException e) {
       setErrorMessage(e.getMessage());
       logger.log(Level.WARNING, e.getMessage(), e);

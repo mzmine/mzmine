@@ -59,7 +59,7 @@ public class RansacAlignerModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList[] featureLists = parameters.getParameter(RansacAlignerParameters.peakLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     Task task = new RansacAlignerTask(project, featureLists, parameters,
         MemoryMapStorage.forFeatureList(), moduleCallDate);

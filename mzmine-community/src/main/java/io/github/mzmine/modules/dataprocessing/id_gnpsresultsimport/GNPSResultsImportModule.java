@@ -61,7 +61,7 @@ public class GNPSResultsImportModule implements MZmineProcessingModule {
 
     // max 1
     ModularFeatureList featureList = parameters.getParameter(GNPSResultsImportParameters.FEATURE_LIST)
-        .getValue().getMatchingFeatureLists()[0];
+        .getValue().getMatchingFeatureLists(project)[0];
 
     Task newTask = new GNPSResultsImportTask(parameters, featureList, moduleCallDate);
     tasks.add(newTask);

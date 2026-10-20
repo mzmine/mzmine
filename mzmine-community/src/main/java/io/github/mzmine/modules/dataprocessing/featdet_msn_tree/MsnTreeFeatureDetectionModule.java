@@ -56,7 +56,7 @@ public class MsnTreeFeatureDetectionModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(MsnTreeFeatureDetectionParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new MsnTreeFeatureDetectionTask(project, dataFile, parameters, storage,

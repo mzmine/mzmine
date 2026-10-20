@@ -71,7 +71,7 @@ public class LipidAnnotationSummaryModule implements MZmineRunnableModule {
 
     FeatureList[] featureLists = parameters.getParameter(
             parameters.getParameter(LipidAnnotationParameters.featureLists)).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     for (FeatureList featureList : featureLists) {
       List<FeatureListRow> rowsWithLipidID = featureList.getRows().stream()
           .filter(this::rowHasMatchedLipidSignals).toList();

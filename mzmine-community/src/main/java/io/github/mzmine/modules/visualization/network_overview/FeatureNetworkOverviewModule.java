@@ -56,7 +56,7 @@ public class FeatureNetworkOverviewModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ModularFeatureList[] featureLists = parameters.getParameter(
-        FeatureNetworkOverviewParameters.featureLists).getValue().getMatchingFeatureLists();
+        FeatureNetworkOverviewParameters.featureLists).getValue().getMatchingFeatureLists(project);
 
     NetworkOverviewWindow window = new NetworkOverviewWindow(featureLists[0], null, null,
         NetworkOverviewFlavor.IIMN);

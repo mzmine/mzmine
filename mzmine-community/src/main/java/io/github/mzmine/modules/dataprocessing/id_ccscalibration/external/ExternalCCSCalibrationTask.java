@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.external;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalculator;
@@ -45,19 +46,22 @@ public class ExternalCCSCalibrationTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(
       ExternalCCSCalibrationTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final CCSCalculator ccsCalculator;
   private final ParameterSet ccsCalculatorParameters;
   private final RawDataFile[] files;
   private double progress = 0;
   private int processed = 0;
 
-  public ExternalCCSCalibrationTask(@Nullable MemoryMapStorage storage,
+  public ExternalCCSCalibrationTask(@NotNull MZmineProject project,
+      @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet ccsCalculatorParameters) {
     super(storage, moduleCallDate);
+    this.project = project;
     this.ccsCalculator = MZmineCore.getModuleInstance(ExternalCCSCalibrationModule.class);
     this.ccsCalculatorParameters = ccsCalculatorParameters;
     files = ccsCalculatorParameters.getParameter(ExternalCCSCalibrationParameters.files).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
   }
 
   @Override

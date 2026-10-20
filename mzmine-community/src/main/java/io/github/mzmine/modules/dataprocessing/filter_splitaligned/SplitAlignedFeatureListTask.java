@@ -36,10 +36,8 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.SamplesGroupedBy;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -79,7 +77,7 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final MetadataTable metadata = ProjectService.getMetadata();
+    final MetadataTable metadata = project.getProjectMetadata();
     final List<? extends SamplesGroupedBy<?>> sampleGroups = getGroupedSamples(metadata);
 
     totalItems = (long) flist.getNumberOfRows() * flist.getNumberOfRawDataFiles();
@@ -125,7 +123,8 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
   private @NotNull List<? extends SamplesGroupedBy<?>> getGroupedSamples(MetadataTable metadata) {
     List<? extends SamplesGroupedBy<?>> sampleGroups;
     if (gropingColumn != null) {
-      sampleGroups = metadata.groupFilesByColumnIncludeNull(
+      // only group the files of this feature list
+      sampleGroups = metadata.groupFilesByColumnIncludeNull(flist.getRawDataFiles(),
           metadata.getColumnByName(gropingColumn));
     } else {
       sampleGroups = flist.getRawDataFiles().stream()

@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_scans_modular;
 import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -110,14 +111,17 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
   // status
   public AtomicInteger exported = new AtomicInteger(0);
   private String description = "";
+  private final @NotNull MZmineProject project;
   private @Nullable ProjectMetadataToLibraryEntryMapper projectMetadataMapper = null;
 
-  protected ExportScansFeatureTask(final @Nullable MemoryMapStorage storage,
+  protected ExportScansFeatureTask(final @NotNull MZmineProject project,
+      final @Nullable MemoryMapStorage storage,
       final @NotNull Instant moduleCallDate, @NotNull final ParameterSet parameters,
       @NotNull final Class<? extends MZmineModule> moduleClass,
       final @NotNull FeatureList[] featureLists) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
+    this.project = project;
     format = parameters.getValue(ExportScansFeatureMainParameters.exportFormat);
     String exportFormat = format.getExtension();
     File file = parameters.getValue(ExportScansFeatureMainParameters.file);
@@ -222,7 +226,8 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
     if (!useProjectMetadata) {
       return;
     }
-    projectMetadataMapper = mapperParam.getEmbeddedParameters().createMapper();
+    projectMetadataMapper = mapperParam.getEmbeddedParameters()
+        .createMapper(project.getProjectMetadata());
   }
 
   protected void exportFeatureLists(final FeatureList[] featureLists, final File outFile) {

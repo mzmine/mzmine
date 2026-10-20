@@ -50,7 +50,8 @@ public class SiriusApiRankAnnotationsModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new SiriusApiRankAnnotationsTask(null, moduleCallDate, parameters, this.getClass()));
+    tasks.add(new SiriusApiRankAnnotationsTask(project, null, moduleCallDate, parameters,
+        this.getClass()));
 
     return ExitCode.OK;
   }

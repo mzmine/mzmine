@@ -74,7 +74,8 @@ public class ProjectLoadTest {
     param.setParameter(ProjectLoaderParameters.projectFile, new File(
         ProjectLoaderParameters.class.getClassLoader().getResource("rawdatafiles/dom_test.mzmine")
             .getFile()));
-    ProjectOpeningTask newTask = new ProjectOpeningTask(param, Instant.now());
+    ProjectOpeningTask newTask = new ProjectOpeningTask(ProjectService.getProject(), param,
+        Instant.now());
     newTask.run();
 
     var flist = ProjectService.getProjectManager().getCurrentProject()

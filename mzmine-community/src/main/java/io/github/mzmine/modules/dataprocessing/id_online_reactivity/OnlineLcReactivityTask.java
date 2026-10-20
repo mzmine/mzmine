@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 import static java.util.stream.Collectors.toCollection;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -79,8 +80,11 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   private final MetadataColumn<?> sampleIdCol;
   private final MetadataColumn<?> unreactedControlsCol;
 
-  public OnlineLcReactivityTask(@NotNull ParameterSet parameters, FeatureList flist,
-      @NotNull Instant moduleCallDate) {
+  /**
+   * @param project the metadata columns are taken from this project
+   */
+  public OnlineLcReactivityTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      FeatureList flist, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate, parameters, OnlineLcReactivityModule.class);
     this.flist = flist;
     reactionsFile = parameters.getValue(OnlineLcReactivityParameters.reactionsFile);
@@ -89,7 +93,7 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     eductAdducts = parameters.getValue(OnlineLcReactivityParameters.eductAdducts);
     productAdducts = parameters.getValue(OnlineLcReactivityParameters.productAdducts);
 
-    MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final MetadataTable metadata = project.getProjectMetadata();
     sampleIdCol = parameters.getOptionalValue(OnlineLcReactivityParameters.uniqueSampleId)
         .map(metadata::getColumnByName).orElse(null);
     unreactedControlsCol = parameters.getOptionalValue(

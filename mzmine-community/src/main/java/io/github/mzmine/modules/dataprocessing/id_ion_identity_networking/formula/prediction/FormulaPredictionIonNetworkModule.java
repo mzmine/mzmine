@@ -77,7 +77,8 @@ public class FormulaPredictionIonNetworkModule implements MZmineProcessingModule
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     ModularFeatureList featureLists[] = parameters.getParameter(
-        FormulaPredictionIonNetworkParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
+            FormulaPredictionIonNetworkParameters.PEAK_LISTS).getValue()
+        .getMatchingFeatureLists(project);
 
     for (ModularFeatureList featureList : featureLists) {
       Task newTask = new FormulaPredictionIonNetworkTask(featureList, parameters, moduleCallDate);

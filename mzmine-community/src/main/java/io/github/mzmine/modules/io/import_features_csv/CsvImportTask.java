@@ -65,7 +65,7 @@ public class CsvImportTask extends AbstractTask {
     this.project = project;
     // first file only
     this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
+        .getMatchingRawDataFiles(project)[0];
     this.fileName = parameters.getParameter(CsvImportParameters.filename).getValue()[0];
     this.parameters = parameters;
   }

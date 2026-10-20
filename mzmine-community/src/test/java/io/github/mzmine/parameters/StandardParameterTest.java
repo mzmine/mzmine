@@ -60,6 +60,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.text.DecimalFormat;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -173,11 +174,11 @@ class StandardParameterTest {
   @MethodSource("defaultCases")
   void saveLoadParameter(ParameterTestCase test) {
     final Parameter param = test.param();
-    final String xml = ParameterUtils.saveParameterToXMLString(param);
+    final String xml = ParameterUtils.saveParameterToXMLString(new MZmineProjectImpl(), param);
 
     // use a changed clone to see that values are actually loaded
     final Parameter clone = test.cloneParamPermutated();
-    ParameterUtils.loadParameterFromString(clone, xml);
+    ParameterUtils.loadParameterFromString(new MZmineProjectImpl(), clone, xml);
 
     // check value and embedded
     assertNotSame(param, clone);

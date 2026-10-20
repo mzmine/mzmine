@@ -121,7 +121,7 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
     RawDataFilesParameter param = parameters.getParameter(
         IMSRawDataOverviewParameters.rawDataFiles);
     RawDataFilesSelection selection = param.getValue();
-    RawDataFile[] files = selection.getMatchingRawDataFiles();
+    RawDataFile[] files = selection.getMatchingRawDataFiles(project);
     for (RawDataFile file : files) {
       if (!(file instanceof IMSRawDataFile)) {
         MZmineCore.getDesktop().displayMessage("Invalid file type",

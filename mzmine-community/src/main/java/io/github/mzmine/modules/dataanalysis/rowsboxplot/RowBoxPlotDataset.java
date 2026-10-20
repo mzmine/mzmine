@@ -33,6 +33,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataResults;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
@@ -50,8 +51,11 @@ public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
 
   private final @NotNull SimpleColorPalette colorPalette;
 
-  public RowBoxPlotDataset(FeatureListRow row, @Nullable MetadataColumn<?> groupingColumn,
-      AbundanceMeasure abundance) {
+  /**
+   * @param metadata the samples are grouped by the values in this metadata table
+   */
+  public RowBoxPlotDataset(@NotNull MetadataTable metadata, FeatureListRow row,
+      @Nullable MetadataColumn<?> groupingColumn, AbundanceMeasure abundance) {
 
     if (groupingColumn == null) { // no grouping, so just a single group
       final List<Float> values = row.getFeatures().stream().map(abundance::get)
@@ -64,8 +68,8 @@ public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
     // use the same method for grouping like ColorByMetadataTask and PCAScoresProvider
     // colors for this plot / dataset are defined by theme so need to apply colors to the theme and reapply theme to chart
     final List<RawDataFile> files = row.getFeatureList().getRawDataFiles();
-    final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(groupingColumn,
-        files);
+    final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(metadata,
+        groupingColumn, files);
 
     colorPalette = grouping.createColorPalette();
 

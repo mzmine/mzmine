@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
@@ -32,6 +33,7 @@ import io.github.mzmine.util.maths.Weighting;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -141,7 +143,7 @@ public class CenterMeasureParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     try {
       CenterMeasure measure = CenterMeasure.valueOf(xmlElement.getAttribute("measure"));
       Weighting weighting = Weighting.valueOf(xmlElement.getAttribute("weighting"));
@@ -152,7 +154,7 @@ public class CenterMeasureParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -172,7 +174,8 @@ public class CenterMeasureParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(name + " is not set properly");
       return false;

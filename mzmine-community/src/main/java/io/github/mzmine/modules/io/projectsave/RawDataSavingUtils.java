@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
@@ -62,10 +63,11 @@ public class RawDataSavingUtils {
   private static final Logger logger = Logger.getLogger(RawDataSavingUtils.class.getName());
 
   /**
+   * @param project the project the files belong to. Used to resolve file selections.
    * @param files The raw data files to create a batch queue for.
    * @return A single batch queue to process all files in the same order.
    */
-  public static BatchQueue makeBatchQueue(List<RawDataFile> files) {
+  public static BatchQueue makeBatchQueue(@NotNull MZmineProject project, List<RawDataFile> files) {
     // get all applied methods
     final List<FeatureListAppliedMethod> appliedMethods = files.stream()
         .flatMap(file -> file.getAppliedMethods().stream())
@@ -93,7 +95,7 @@ public class RawDataSavingUtils {
 
       // add a new queue step, replace raw file parameters to SPECIFIC
       queue.add(new MZmineProcessingStepImpl<>(procModule,
-          RawDataSavingUtils.replaceAndMergeFileAndRawParameters(
+          RawDataSavingUtils.replaceAndMergeFileAndRawParameters(project,
               methodList.stream().map(FeatureListAppliedMethod::getParameters).toList(),
               procModule)));
       logger.finest(() -> "Added module " + module.getName() + " to raw file batch queue.");
@@ -140,7 +142,8 @@ public class RawDataSavingUtils {
    * @see RawDataSavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean, boolean, boolean)
    */
   @Nullable
-  public static BatchQueue mergeQueues(BatchQueue q1, BatchQueue q2, boolean mergeSubsets) {
+  public static BatchQueue mergeQueues(@NotNull MZmineProject project, BatchQueue q1, BatchQueue q2,
+      boolean mergeSubsets) {
     if (!queuesEqual(q1, q2, mergeSubsets, mergeSubsets, mergeSubsets)) {
       return null;
     }
@@ -155,8 +158,8 @@ public class RawDataSavingUtils {
       final var parameterSet1 = step1.getParameterSet();
       final var parameterSet2 = step2.getParameterSet();
 
-      final ParameterSet mergedParameterSet = replaceAndMergeFileAndRawParameters(parameterSet1,
-          parameterSet2, step1.getModule());
+      final ParameterSet mergedParameterSet = replaceAndMergeFileAndRawParameters(project,
+          parameterSet1, parameterSet2, step1.getModule());
 
       mergedQueue.add(new MZmineProcessingStepImpl<>(q1.get(i).getModule(), mergedParameterSet));
     }
@@ -170,21 +173,21 @@ public class RawDataSavingUtils {
   }
 
   /**
-   * @see this#replaceAndMergeFileAndRawParameters(ParameterSet, ParameterSet,
+   * @see this#replaceAndMergeFileAndRawParameters(MZmineProject, ParameterSet, ParameterSet,
    * MZmineProcessingModule)
    */
-  public static ParameterSet replaceAndMergeFileAndRawParameters(
+  public static ParameterSet replaceAndMergeFileAndRawParameters(@NotNull MZmineProject project,
       Collection<ParameterSet> parameterSets, MZmineProcessingModule module) {
     final Iterator<ParameterSet> iterator = parameterSets.iterator();
     ParameterSet merged = iterator.next();
 
     if (parameterSets.size() == 1) {
       // dirty hack to replace the raw file selection if we only have one parameter set
-      return replaceAndMergeFileAndRawParameters(merged, merged, module);
+      return replaceAndMergeFileAndRawParameters(project, merged, merged, module);
     }
 
     while (iterator.hasNext()) {
-      merged = replaceAndMergeFileAndRawParameters(merged, iterator.next(), module);
+      merged = replaceAndMergeFileAndRawParameters(project, merged, iterator.next(), module);
     }
 
     return merged;
@@ -196,14 +199,15 @@ public class RawDataSavingUtils {
    * returns the same value. The {@link RawDataFilesSelectionType} of the
    * {@link RawDataFilesParameter} will be set to {@link RawDataFilesSelectionType#SPECIFIC_FILES}.
    *
+   * @param project       the project used to resolve raw data file selections.
    * @param parameterSet1 The first parameter set.
    * @param parameterSet2 The second parameter set.
    * @return The merged parameter set.
    */
   @NotNull
   public static ParameterSet replaceAndMergeFileAndRawParameters(
-      @NotNull final ParameterSet parameterSet1, @NotNull final ParameterSet parameterSet2,
-      MZmineProcessingModule module) {
+      @NotNull final MZmineProject project, @NotNull final ParameterSet parameterSet1,
+      @NotNull final ParameterSet parameterSet2, MZmineProcessingModule module) {
 
     if (!ParameterUtils.equalValues(parameterSet1, parameterSet2, true, true)) {
       throw new IllegalArgumentException(
@@ -224,11 +228,11 @@ public class RawDataSavingUtils {
         if (module.getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT && !fnp.getName()
             .equals(SpectralLibraryImportParameters.dataBaseFiles.getName())) {
           // check if the files still exist in the project
-          files.addAll(Arrays.stream(((FileNamesParameter) param1).getValue()).filter(
-              f -> new RawDataFilePlaceholder(f.getName(), f.getAbsolutePath()).getMatchingFile()
+          files.addAll(Arrays.stream(((FileNamesParameter) param1).getValue()).filter(f ->
+              new RawDataFilePlaceholder(f.getName(), f.getAbsolutePath()).getMatchingFile(project)
                   != null).toList());
-          files.addAll(Arrays.stream(((FileNamesParameter) param2).getValue()).filter(
-              f -> new RawDataFilePlaceholder(f.getName(), f.getAbsolutePath()).getMatchingFile()
+          files.addAll(Arrays.stream(((FileNamesParameter) param2).getValue()).filter(f ->
+              new RawDataFilePlaceholder(f.getName(), f.getAbsolutePath()).getMatchingFile(project)
                   != null).toList());
         } else {
           Collections.addAll(files, ((FileNamesParameter) param1).getValue());
@@ -241,14 +245,16 @@ public class RawDataSavingUtils {
           && param2 instanceof RawDataFilesParameter rfp2) {
         final Set<RawDataFile> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
         if (rfp1.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
-          files.addAll(getRemainingProjectFiles(rfp1.getValue().getSpecificFilesPlaceholders()));
+          files.addAll(
+              getRemainingProjectFiles(project, rfp1.getValue().getSpecificFilesPlaceholders()));
         } else {
-          files.addAll(getRemainingProjectFiles(rfp1.getValue().getEvaluationResult()));
+          files.addAll(getRemainingProjectFiles(project, rfp1.getValue().getEvaluationResult()));
         }
         if (rfp2.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
-          files.addAll(getRemainingProjectFiles(rfp2.getValue().getSpecificFilesPlaceholders()));
+          files.addAll(
+              getRemainingProjectFiles(project, rfp2.getValue().getSpecificFilesPlaceholders()));
         } else {
-          files.addAll(getRemainingProjectFiles(rfp2.getValue().getEvaluationResult()));
+          files.addAll(getRemainingProjectFiles(project, rfp2.getValue().getEvaluationResult()));
         }
         logger.finest(
             () -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
@@ -259,9 +265,10 @@ public class RawDataSavingUtils {
   }
 
   @NotNull
-  private static List<RawDataFile> getRemainingProjectFiles(RawDataFilePlaceholder[] files) {
+  private static List<RawDataFile> getRemainingProjectFiles(@NotNull MZmineProject project,
+      RawDataFilePlaceholder[] files) {
     return Arrays.stream(files).<RawDataFile>mapMulti((ph, c) -> {
-      final RawDataFile file = ph.getMatchingFile();
+      final RawDataFile file = ph.getMatchingFile(project);
       if (file != null) {
         c.accept(file);
       }

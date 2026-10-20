@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 public class WizardMassDetectorParameter extends
@@ -43,7 +45,7 @@ public class WizardMassDetectorParameter extends
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     options = Arrays.stream(xmlElement.getAttribute(CHOICES_ATTRIBUTE).split(","))
         .map(MassDetectorWizardOptions::valueOf).toArray(MassDetectorWizardOptions[]::new);
 
@@ -65,8 +67,8 @@ public class WizardMassDetectorParameter extends
   }
 
   @Override
-  public void saveValueToXML(final Element xmlElement) {
-    super.saveValueToXML(xmlElement);
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
+    super.saveValueToXML(project, xmlElement);
     if (value != null) {
       xmlElement.setAttribute(MS1_LEVEL_ATTRIBUTE, String.valueOf(value.getMs1NoiseLevel()));
       xmlElement.setAttribute(MSN_LEVEL_ATTRIBUTE, String.valueOf(value.getMsnNoiseLevel()));

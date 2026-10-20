@@ -36,6 +36,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Dat
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import io.github.mzmine.project.ProjectService;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,7 +78,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 
     // If the parameters are not complete, exit
     ArrayList<String> errors = new ArrayList<String>();
-    boolean paramsOK = parameters.checkParameterValues(errors);
+    boolean paramsOK = parameters.checkParameterValues(ProjectService.getProject(), errors);
     if (!paramsOK) {
       return;
     }

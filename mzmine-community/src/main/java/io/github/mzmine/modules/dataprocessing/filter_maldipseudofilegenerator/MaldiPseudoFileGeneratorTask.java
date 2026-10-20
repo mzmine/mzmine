@@ -67,7 +67,8 @@ public class MaldiPseudoFileGeneratorTask extends AbstractTask {
     super(null, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
-    files = parameters.getValue(MaldiPseudoFileGeneratorParameters.files).getMatchingRawDataFiles();
+    files = parameters.getValue(MaldiPseudoFileGeneratorParameters.files)
+        .getMatchingRawDataFiles(project);
   }
 
   @Override

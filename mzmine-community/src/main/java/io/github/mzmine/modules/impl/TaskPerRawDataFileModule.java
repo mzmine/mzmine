@@ -86,7 +86,7 @@ public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule 
       @NotNull final Instant moduleCallDate) {
 
     try {
-      var rawFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(parameters);
+      var rawFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(project, parameters);
 
       // raw data processing modules memory map to mass list storage
       MemoryMapStorage storage = requiresMemoryMapping ? MemoryMapStorage.forMassList() : null;

@@ -106,7 +106,7 @@ public class MobilityMzRegionExtractionModule implements MZmineProcessingModule 
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ModularFeatureList[] featureLists = parameters
         .getParameter(MobilityMzRegionExtractionParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList featureList : featureLists) {

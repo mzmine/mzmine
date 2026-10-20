@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.project.ProjectService;
 import java.io.IOException;
 
 public class ParameterSetJsonSerializer extends JsonSerializer<ParameterSet> {
@@ -37,7 +38,9 @@ public class ParameterSetJsonSerializer extends JsonSerializer<ParameterSet> {
   @Override
   public void serialize(ParameterSet parameterSet, JsonGenerator gen, SerializerProvider provider)
       throws IOException {
-    final String xml = ParameterUtils.saveValuesToXMLString(parameterSet);
+    // decision: presets are not part of a project, save paths relative to the current project
+    final String xml = ParameterUtils.saveValuesToXMLString(ProjectService.getProject(),
+        parameterSet);
     gen.writeString(xml);
   }
 

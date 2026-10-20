@@ -41,6 +41,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.XMLUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -290,7 +291,7 @@ public class RegionSelectionWrapper<T extends EChartViewer> extends BorderPane {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         final RegionsParameter param = new RegionsParameter("regions", "User defined regions");
-        param.loadValueFromXML((Element) nodes.item(i));
+        param.loadValueFromXML(ProjectService.getProject(), (Element) nodes.item(i));
 
         regions.addAll(param.getValue());
       }
@@ -318,7 +319,7 @@ public class RegionSelectionWrapper<T extends EChartViewer> extends BorderPane {
         final Element root = doc.createElement("root");
         doc.appendChild(root);
         final Element element = doc.createElement(parameter.getName().toLowerCase());
-        parameter.saveValueToXML(element);
+        parameter.saveValueToXML(ProjectService.getProject(), element);
         root.appendChild(element);
 
         XMLUtils.saveToFile(file, doc);

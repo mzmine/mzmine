@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
@@ -41,6 +42,7 @@ import io.github.mzmine.util.FormulaUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -87,9 +89,9 @@ public class AddCustomLipidClassParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
     boolean thisCheck = true;
@@ -166,13 +168,14 @@ public class AddCustomLipidClassParameters extends SimpleParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
+  public Map<String, Parameter<?>> loadValuesFromXML(@NotNull MZmineProject project,
+      @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter set is only intended for GUI usage and for loading and saving to an xml file.");
   }
 
   @Override
-  public void saveValuesToXML(Element xmlElement) {
+  public void saveValuesToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     throw new UnsupportedOperationException(
         "This parameter set is only intended for GUI usage and for loading and saving to an xml file.");
   }

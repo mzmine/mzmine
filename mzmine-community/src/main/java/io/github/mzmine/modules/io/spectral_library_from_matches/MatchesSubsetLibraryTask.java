@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.io.spectral_library_from_matches;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -45,12 +45,17 @@ import org.jetbrains.annotations.NotNull;
 
 public class MatchesSubsetLibraryTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final FeatureList[] featureLists;
   private final String libName;
 
-  public MatchesSubsetLibraryTask(@NotNull ParameterSet parameters,
+  /**
+   * @param project the created library is added to this project
+   */
+  public MatchesSubsetLibraryTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @NotNull FeatureList[] featureLists) {
     super(null, moduleCallDate, parameters, MatchesSubsetLibraryModule.class);
+    this.project = project;
     this.featureLists = featureLists;
     libName = FileAndPathUtil.safePathEncode(
         parameters.getValue(MatchesSubsetLibraryParameters.libraryName));
@@ -78,7 +83,7 @@ public class MatchesSubsetLibraryTask extends AbstractFeatureListTask {
 
     final SpectralLibrary library = new SpectralLibrary(null, libName, new File(""));
     library.addEntries(allEntries);
-    ProjectService.getProject().addSpectralLibrary(library);
+    project.addSpectralLibrary(library);
   }
 
   @Override

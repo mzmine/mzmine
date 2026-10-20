@@ -55,8 +55,8 @@ public class LibraryBatchGenerationModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    Task newTask = new LibraryBatchGenerationTask((LibraryBatchGenerationParameters) parameters,
-        moduleCallDate);
+    Task newTask = new LibraryBatchGenerationTask(project,
+        (LibraryBatchGenerationParameters) parameters, moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;

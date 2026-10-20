@@ -70,6 +70,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderer;
 import io.github.mzmine.modules.visualization.molstructure.StructureRenderService;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrumPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -139,6 +140,7 @@ public class ReportUtils {
   private final Function<RawDataFile, Color> getSpectrumColor = RawDataFile::getColorAWT;
   @NotNull
   private final EStandardChartTheme theme;
+  private final @NotNull MetadataTable metadata;
   private final Structure2DRenderConfig structureRenderConfig;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
   private final NumberFormats formats = ConfigService.getGuiFormats();
@@ -152,8 +154,12 @@ public class ReportUtils {
   private EChartViewer mirrorChart = null; // must be regenerated for each match
   private LipidSpectrumPlot lipidChart = null;
 
-  public ReportUtils(@NotNull EStandardChartTheme theme,
+  /**
+   * @param metadata the samples are grouped by the metadata of this table, e.g., in box plots
+   */
+  public ReportUtils(@NotNull MetadataTable metadata, @NotNull EStandardChartTheme theme,
       Structure2DRenderConfig structureRenderConfig) {
+    this.metadata = metadata;
     this.theme = theme;
     this.structureRenderConfig = structureRenderConfig;
 
@@ -568,7 +574,7 @@ public class ReportUtils {
       return false;
     }
 
-    final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn,
+    final RowBoxPlotDataset ds = new RowBoxPlotDataset(metadata, row, groupingColumn,
         boxPlotAbundanceMeasure);
     if (ds.getColumnCount() == 0 || ds.getRowCount() == 0 || row.getRawDataFiles().size() <= 1) {
       return false;

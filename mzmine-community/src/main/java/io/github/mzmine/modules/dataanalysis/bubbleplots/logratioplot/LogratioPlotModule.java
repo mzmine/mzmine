@@ -61,8 +61,8 @@ public class LogratioPlotModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList featureLists[] =
-        parameters.getParameter(CVParameters.featureLists).getValue().getMatchingFeatureLists();
+    FeatureList featureLists[] = parameters.getParameter(CVParameters.featureLists).getValue()
+        .getMatchingFeatureLists(project);
 
     for (FeatureList pl : featureLists) {
 

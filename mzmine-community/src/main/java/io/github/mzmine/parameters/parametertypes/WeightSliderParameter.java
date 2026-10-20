@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +107,7 @@ public class WeightSliderParameter implements UserParameter<Integer, WeightSlide
   }
 
   @Override
-  public void loadValueFromXML(final @NotNull Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     final @NotNull String numString = xmlElement.getTextContent();
     if (!numString.isEmpty()) {
       value = Integer.parseInt(numString);
@@ -114,14 +115,15 @@ public class WeightSliderParameter implements UserParameter<Integer, WeightSlide
   }
 
   @Override
-  public void saveValueToXML(final @NotNull Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value != null) {
       xmlElement.setTextContent(value.toString());
     }
   }
 
   @Override
-  public boolean checkValue(final @NotNull Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (valueRequired && value == null) {
       errorMessages.add(name + " is not set properly");
       return false;

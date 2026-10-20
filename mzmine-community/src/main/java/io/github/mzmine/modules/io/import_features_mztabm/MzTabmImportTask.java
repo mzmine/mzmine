@@ -53,7 +53,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -236,7 +235,7 @@ public class MzTabmImportTask extends AbstractTask {
       }
 
       // import files
-      RawDataFileUtils.createRawDataImportTasks(ProjectService.getProjectManager().getCurrentProject(),
+      RawDataFileUtils.createRawDataImportTasks(project,
           underlyingTasks, MZTabmImportModule.class, parameters, moduleCallDate,
           filesToImport.toArray(new File[0]));
       if (underlyingTasks.size() > 0) {

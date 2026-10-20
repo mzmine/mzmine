@@ -59,7 +59,7 @@ public class MsnFeatureDetectionModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(MsnPeakPickerParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new MsnPeakPickingTask(project, dataFile, parameters, storage, moduleCallDate);

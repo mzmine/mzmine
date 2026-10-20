@@ -31,7 +31,6 @@ import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignifica
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -52,19 +51,20 @@ public record UnivariateRowSignificanceTestConfig(@NotNull SignificanceTests sam
    * the column exists and the respective values exist in that column.
    */
   public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig(
-      @NotNull FeaturesDataTable fullDataTable) {
-    return this.<T>toValidConfig(fullDataTable, null);
+      @NotNull MetadataTable metadata, @NotNull FeaturesDataTable fullDataTable) {
+    return this.<T>toValidConfig(metadata, fullDataTable, null);
   }
 
   /**
    * Might throw {@link MetadataValueDoesNotExistException}
    *
+   * @param metadata     the grouping column and its values are taken from this metadata table
    * @param fullOrTableA the full data table with all samples or already split into table A
    * @param dataTableB   might be null if only a full feature table is provided
    */
   public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig(
-      @NotNull FeaturesDataTable fullOrTableA, @Nullable FeaturesDataTable dataTableB) {
-    final MetadataTable metadata = ProjectService.getMetadata();
+      @NotNull MetadataTable metadata, @NotNull FeaturesDataTable fullOrTableA,
+      @Nullable FeaturesDataTable dataTableB) {
 
     final MetadataColumn<T> col = (MetadataColumn<T>) metadata.getColumnByName(column);
     if (col == null) {
@@ -106,7 +106,7 @@ public record UnivariateRowSignificanceTestConfig(@NotNull SignificanceTests sam
           b);
     } else {
       // only full feature table
-      return new UnivariateRowSignificanceTest<>(fullOrTableA, samplingConfig, col, a, b);
+      return new UnivariateRowSignificanceTest<>(metadata, fullOrTableA, samplingConfig, col, a, b);
     }
   }
 }

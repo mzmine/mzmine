@@ -58,7 +58,7 @@ public class AdapMgfExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    AdapMgfExportTask task = new AdapMgfExportTask(parameters, moduleCallDate);
+    AdapMgfExportTask task = new AdapMgfExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

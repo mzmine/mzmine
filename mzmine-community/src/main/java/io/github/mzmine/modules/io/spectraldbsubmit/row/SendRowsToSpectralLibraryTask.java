@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.row;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationSubParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -54,17 +54,23 @@ public class SendRowsToSpectralLibraryTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(
       SendRowsToSpectralLibraryTask.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final List<ModularFeatureListRow> rows;
   private final SpectralLibrary targetLibrary;
   private final LibraryBatchGenerationSubParameters parameters;
   private final long totalRows;
   private final AtomicInteger finishedRows = new AtomicInteger(0);
 
-  public SendRowsToSpectralLibraryTask(@NotNull final List<ModularFeatureListRow> rows,
+  /**
+   * @param project the target library is added to this project
+   */
+  public SendRowsToSpectralLibraryTask(@NotNull final MZmineProject project,
+      @NotNull final List<ModularFeatureListRow> rows,
       @NotNull final SpectralLibrary targetLibrary,
       @NotNull final LibraryBatchGenerationSubParameters parameters,
       @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.project = project;
     this.rows = rows;
     this.targetLibrary = targetLibrary;
     this.parameters = parameters;
@@ -114,7 +120,7 @@ public class SendRowsToSpectralLibraryTask extends AbstractTask {
     }
 
     // add/update the library in the current project so it is visible and exportable
-    ProjectService.getProjectManager().getCurrentProject().addSpectralLibrary(targetLibrary);
+    project.addSpectralLibrary(targetLibrary);
 
     // make sure to track the last selected library in the config parameters
     saveLastSelectedLibraryToConfig();

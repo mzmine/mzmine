@@ -68,7 +68,7 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
         MainSpectralNetworkingParameters.algorithms);
 
     var featureLists = parameters.getValue(MainSpectralNetworkingParameters.featureLists)
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     var newTasks = createTasks(moduleCallDate, project, parameters, featureLists, algorithm);
     tasks.addAll(newTasks);

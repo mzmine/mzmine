@@ -64,7 +64,7 @@ public class InjectTimeAnalysisModule implements MZmineRunnableModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(InjectTimeAnalysisParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles(project);
 
     Task newTask = new InjectTimeAnalysisTask(dataFiles, parameters.cloneParameterSet(),
         moduleCallDate);

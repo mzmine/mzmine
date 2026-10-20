@@ -25,10 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.CSVParsingUtils;
 import java.io.File;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -38,7 +40,7 @@ import org.w3c.dom.Element;
  * separator, see {@link CSVParsingUtils#autoDetermineSeparator(File)}.
  * <p>
  * Replaces the plain string parameters that were used before. Their values are still loaded, see
- * {@link #loadValueFromXML(Element)}.
+ * {@link #loadValueFromXML(MZmineProject, Element)}.
  */
 public class FieldSeparatorParameter extends
     ComboWithInputParameter<FieldSeparatorOption, FieldSeparator, StringParameter> {
@@ -98,9 +100,9 @@ public class FieldSeparatorParameter extends
    * export, fall back to the default value.
    */
   @Override
-  public void loadValueFromXML(final Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (!xmlElement.getAttribute("selected").isEmpty()) {
-      super.loadValueFromXML(xmlElement);
+      super.loadValueFromXML(project, xmlElement);
       return;
     }
 
@@ -111,7 +113,8 @@ public class FieldSeparatorParameter extends
   }
 
   @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(getName() + " is not set properly");
       return false;

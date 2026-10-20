@@ -24,11 +24,11 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.MetadataNormalizationConfig.Mode;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.project.ProjectService;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -60,9 +60,9 @@ public class MetadataColumnNormalizationTypeParameters extends SimpleParameterSe
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages, boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
 
     if (skipRawDataAndFeatureListParameters) {
@@ -70,10 +70,10 @@ public class MetadataColumnNormalizationTypeParameters extends SimpleParameterSe
     }
 
     final String columnName = getValue(metadataColumn).metadataColumn();
-    final MetadataColumn<?> column = ProjectService.getMetadata().getColumnByName(columnName);
+    final MetadataColumn<?> column = project.getProjectMetadata().getColumnByName(columnName);
     if (column == null) {
       errorMessages.add("Metadata column %s does not exist. (columns = %s)".formatted(columnName,
-          ProjectService.getMetadata().getColumns().stream().map(MetadataColumn::getTitle)
+          project.getProjectMetadata().getColumns().stream().map(MetadataColumn::getTitle)
               .collect(Collectors.joining(", "))));
     }
     if (column != null && column.getType() != AvailableTypes.NUMBER) {

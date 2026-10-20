@@ -67,7 +67,7 @@ public class MergeAlignerTask extends AbstractTask {
     this.parameters = parameters;
 
     featureLists = parameters.getParameter(MergeAlignerParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
 
     featureListName = parameters.getParameter(MergeAlignerParameters.peakListName).getValue();
   }

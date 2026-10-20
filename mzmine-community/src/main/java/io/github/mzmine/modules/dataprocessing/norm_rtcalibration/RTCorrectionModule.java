@@ -65,7 +65,7 @@ public class RTCorrectionModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final List<String> errors = new ArrayList<>();
-    if (!parameters.checkParameterValues(errors)) {
+    if (!parameters.checkParameterValues(project, errors)) {
       String msg = MODULE_NAME + "\nPlease check parameter values:\n" + String.join("\n", errors);
       MZmineCore.getDesktop().displayErrorMessage(msg);
     } else {

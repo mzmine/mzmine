@@ -94,8 +94,9 @@ class UnivariateRowSignificanceTestTest {
     // feature list only contains 2 of 3 samples of each group
     final FeaturesDataTable table = createDataTable(List.of(0, 1, 3, 4));
 
-    final UnivariateRowSignificanceTest<String> test = new UnivariateRowSignificanceTest<>(table,
-        SignificanceTests.WELCHS_T_TEST, groupColumn, "A", "B");
+    final UnivariateRowSignificanceTest<String> test = new UnivariateRowSignificanceTest<>(
+        ProjectService.getMetadata(), table, SignificanceTests.WELCHS_T_TEST, groupColumn, "A",
+        "B");
 
     // in data table order, the metadata grouping itself has no stable order
     assertEquals(List.of(allFiles.get(0), allFiles.get(1)),
@@ -131,8 +132,8 @@ class UnivariateRowSignificanceTestTest {
     final FeaturesDataTable table = createDataTable(List.of(0, 1, 2, 3));
 
     final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-        () -> new UnivariateRowSignificanceTest<>(table, SignificanceTests.WELCHS_T_TEST,
-            groupColumn, "A", "B"));
+        () -> new UnivariateRowSignificanceTest<>(ProjectService.getMetadata(), table,
+            SignificanceTests.WELCHS_T_TEST, groupColumn, "A", "B"));
     // message needs to name the feature list as the reason, not just the metadata
     assertTrue(ex.getMessage().contains("feature list"), ex.getMessage());
   }
@@ -164,8 +165,9 @@ class UnivariateRowSignificanceTestTest {
     // so the t-test has no variance to work with and returns NaN. Those rows used to disappear from
     // the volcano plot without any notice.
     final FeaturesDataTable table = createDataTable(List.of(0, 1, 3, 4));
-    final UnivariateRowSignificanceTest<String> test = new UnivariateRowSignificanceTest<>(table,
-        SignificanceTests.WELCHS_T_TEST, groupColumn, "A", "B");
+    final UnivariateRowSignificanceTest<String> test = new UnivariateRowSignificanceTest<>(
+        ProjectService.getMetadata(), table, SignificanceTests.WELCHS_T_TEST, groupColumn, "A",
+        "B");
 
     final RowSignificanceTestResult result = test.test(table.getFeatureListRows().getFirst());
     assertNotNull(result);

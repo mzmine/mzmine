@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.export_features_featureML;
 
 import com.google.common.collect.Range;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -71,10 +72,11 @@ public class FeatureMLExportModularTask extends AbstractTask {
   private int processedRows = 0;
   private int totalRows = 0;
 
-  public FeatureMLExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public FeatureMLExportModularTask(@NotNull MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(FeatureMLExportModularParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     fileName = parameters.getParameter(FeatureMLExportModularParameters.filename).getValue();
     this.rowFilter = parameters.getParameter(FeatureMLExportModularParameters.filter).getValue();
   }

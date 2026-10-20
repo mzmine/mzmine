@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -20,15 +21,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SetRepresentativeRowTask extends AbstractFeatureListTask {
 
+  private final @NotNull MZmineProject project;
   private final @NotNull ModularFeatureList flist;
   private final int compoundId;
   private final int representativeRowId;
 
-  protected SetRepresentativeRowTask(@NotNull final Instant moduleCallDate,
+  protected SetRepresentativeRowTask(@NotNull final MZmineProject project,
+      @NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters) {
     super(null, moduleCallDate, parameters, SetRepresentativeRowModule.class);
+    this.project = project;
     this.flist = parameters.getValue(SetRepresentativeRowParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
     this.compoundId = parameters.getValue(SetRepresentativeRowParameters.compoundId);
     this.representativeRowId = parameters.getValue(
         SetRepresentativeRowParameters.representativeRowId);

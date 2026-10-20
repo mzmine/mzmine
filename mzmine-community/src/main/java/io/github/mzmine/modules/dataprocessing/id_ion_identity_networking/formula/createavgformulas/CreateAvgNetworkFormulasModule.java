@@ -77,7 +77,7 @@ public class CreateAvgNetworkFormulasModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     ModularFeatureList featureLists[] = parameters.getParameter(
-        CreateAvgNetworkFormulasParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
+        CreateAvgNetworkFormulasParameters.PEAK_LISTS).getValue().getMatchingFeatureLists(project);
 
     for (ModularFeatureList featureList : featureLists) {
       Task newTask = new CreateAvgNetworkFormulasTask(featureList, parameters, moduleCallDate);

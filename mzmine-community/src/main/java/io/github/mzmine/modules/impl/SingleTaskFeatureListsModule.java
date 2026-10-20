@@ -77,7 +77,7 @@ public abstract class SingleTaskFeatureListsModule extends AbstractProcessingMod
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
     try {
-      var featureLists = ParameterUtils.getMatchingFeatureListsFromParameter(parameters);
+      var featureLists = ParameterUtils.getMatchingFeatureListsFromParameter(project, parameters);
 
       MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 

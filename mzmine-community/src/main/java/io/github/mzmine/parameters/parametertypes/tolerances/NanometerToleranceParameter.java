@@ -25,9 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -103,7 +104,7 @@ public class NanometerToleranceParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.isEmpty()) {
       return;
@@ -113,7 +114,7 @@ public class NanometerToleranceParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -123,7 +124,8 @@ public class NanometerToleranceParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(name + " is not set properly");
       return false;

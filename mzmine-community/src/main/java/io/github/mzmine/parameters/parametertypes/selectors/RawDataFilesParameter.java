@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelectionParameter;
-import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -138,12 +137,13 @@ public class RawDataFilesParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     RawDataFile[] matchingFiles;
     if (value == null) {
       matchingFiles = new RawDataFile[0];
     } else {
-      matchingFiles = value.getMatchingRawDataFiles();
+      matchingFiles = value.getMatchingRawDataFiles(project);
     }
     if (value != null) {
       value.resetSelection(); // has to be reset after evaluation
@@ -161,10 +161,7 @@ public class RawDataFilesParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-
-    RawDataFile[] currentDataFiles = ProjectService.getProjectManager().getCurrentProject()
-        .getDataFiles();
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     RawDataFilesSelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");
@@ -188,7 +185,7 @@ public class RawDataFilesParameter implements
           FileNamesParameter.XML_RELATIVE_PATH_ATTRIBUTE);
       // try if we can find this file in a relative path
       if (path != null && !new File(path).exists() && !relPathValue.isBlank()) {
-        final File relPath = ProjectService.getProject().resolveRelativePathToFile(relPathValue);
+        final File relPath = project.resolveRelativePathToFile(relPathValue);
         if (relPath != null && relPath.exists()) {
           path = relPath.getAbsolutePath();
         }
@@ -213,7 +210,7 @@ public class RawDataFilesParameter implements
     for (int i = 0; i < items.getLength(); i++) {
       final Element element = (Element) items.item(i);
       final String type = element.getAttribute("includeExcludeType");
-      metadataSelection.loadValueFromXML(element);
+      metadataSelection.loadValueFromXML(project, element);
 
       final MetadataListGroupsSelection selection = metadataSelection.getValue();
       if ("exclude".equals(type)) {
@@ -231,7 +228,7 @@ public class RawDataFilesParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -239,8 +236,7 @@ public class RawDataFilesParameter implements
     xmlElement.setAttribute("type", value.getSelectionType().getUniqueID());
 
     if (value.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES
-        && value.getSpecificFiles() != null) {
-      final MZmineProject project = ProjectService.getProject();
+        && value.getSpecificFilesPlaceholders() != null) {
       for (RawDataFile item : value.getSpecificFilesPlaceholders()) {
         assert item != null;
         Element newElement = parentDocument.createElement("specific_file");
@@ -267,13 +263,13 @@ public class RawDataFilesParameter implements
     Element newElement = parentDocument.createElement("by_metadata");
     newElement.setAttribute("includeExcludeType", "include");
     new MetadataListGroupsSelectionParameter("included_metadata", "for load save",
-        value.getIncludeMetadataSelection()).saveValueToXML(newElement);
+        value.getIncludeMetadataSelection()).saveValueToXML(project, newElement);
     xmlElement.appendChild(newElement);
 
     newElement = parentDocument.createElement("by_metadata");
     newElement.setAttribute("includeExcludeType", "exclude");
     new MetadataListGroupsSelectionParameter("excluded_metadata", "for load save",
-        value.getExcludeMetadataSelection()).saveValueToXML(newElement);
+        value.getExcludeMetadataSelection()).saveValueToXML(project, newElement);
     xmlElement.appendChild(newElement);
 
   }

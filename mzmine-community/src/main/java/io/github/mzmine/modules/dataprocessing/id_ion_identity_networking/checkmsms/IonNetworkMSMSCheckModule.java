@@ -70,7 +70,7 @@ public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] pkl = parameters.getParameter(IonNetworkMSMSCheckParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists(project);
     for (ModularFeatureList p : pkl) {
       tasks.add(new IonNetworkMSMSCheckTask(project, parameters, p, moduleCallDate));
     }

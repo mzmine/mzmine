@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.AbstractParameter;
@@ -128,13 +129,13 @@ public class ScanSelectionParameter extends
 
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     // need to clear first - null values are not loaded
     setValue(null);
     boolean isNewFormat =
         xmlElement.getElementsByTagName(SimpleParameterSet.parameterElement).getLength() > 0;
     if (isNewFormat) {
-      embeddedParameters.loadValuesFromXML(xmlElement);
+      embeddedParameters.loadValuesFromXML(project, xmlElement);
       String selectedAttr = xmlElement.getAttribute("selected");
       this.active = requireNonNullElse(Boolean.valueOf(selectedAttr), false);
       setValue(active, createFilter());
@@ -145,17 +146,18 @@ public class ScanSelectionParameter extends
 
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setAttribute("selected", String.valueOf(active));
-    embeddedParameters.saveValuesToXML(xmlElement);
+    embeddedParameters.saveValuesToXML(project, xmlElement);
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!active) {
       return true;
     }
-    return embeddedParameters.checkParameterValues(errorMessages);
+    return embeddedParameters.checkParameterValues(project, errorMessages);
   }
 
   /**

@@ -57,7 +57,7 @@ public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     RawDataFile[] dataFiles = parameters.getParameter(
-        TargetedFeatureDetectionParameters.rawDataFile).getValue().getMatchingRawDataFiles();
+        TargetedFeatureDetectionParameters.rawDataFile).getValue().getMatchingRawDataFiles(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new TargetedFeatureDetectionModuleTask(project, parameters, dataFile, storage,

@@ -29,6 +29,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRt
 import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.interpolateMissingCalibrations;
 import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.removeNonMonotonousStandards;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -46,6 +47,7 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
@@ -109,6 +111,7 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
   public @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
       @Nullable List<FeatureList> flists) {
     messages.clear();
+    final MZmineProject project = ProjectService.getProject();
 
     assert flists != null;
 
@@ -129,15 +132,17 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     var sampleTypeFilter = parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue();
 
     final List<String> errorMessages = new ArrayList<>();
-    if (!parameters.checkParameterValues(errorMessages)) {
+    if (!parameters.checkParameterValues(project, errorMessages)) {
       final String error = String.join(", ", errorMessages);
       logger.info(error);
       messages.add(FxTexts.boldText(error));
       return List.of();
     }
 
-    final List<FeatureList> referenceFlistsByNumRows = flists.stream()
-        .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
+    final MetadataTable metadata = project.getProjectMetadata();
+    final List<FeatureList> referenceFlistsByNumRows = flists.stream().filter(
+            flist -> flist.getRawDataFiles().stream()
+                .allMatch(raw -> sampleTypeFilter.matches(metadata, raw)))
         .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
 
     if (referenceFlistsByNumRows.isEmpty()) {
@@ -164,7 +169,8 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
       return List.of();
     }
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
-        referenceFlistsByNumRows, flists, ProjectService.getMetadata(), monotonousStandards,
+        project, referenceFlistsByNumRows, flists, project.getProjectMetadata(),
+        monotonousStandards,
         calibrationModule, rtMeasure, calibrationModuleParameters);
 
     // use different shapes to make it more obvious which belong together
@@ -174,12 +180,12 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
 
     for (AbstractRtCorrectionFunction cali : allCalibrations) {
-      final RawDataFile file = cali.getRawDataFile();
+      final RawDataFile file = cali.getRawDataFile(project);
 
       // use default colors, file colors are usually all the same for QC
       final var clr = palette.getNextColorAWT();
 
-      if (sampleTypeFilter.matches(file)) {
+      if (sampleTypeFilter.matches(project.getProjectMetadata(), file)) {
         final AnyXYProvider medianVsOriginal = new AnyXYProvider(clr,
             file.getName() + " standard shift vs %s RT".formatted(rtMeasure.toString()),
             monotonousStandards.size(), i -> (double) rtMeasure.getRt(monotonousStandards.get(i)),
@@ -207,7 +213,8 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
   @Override
   public List<FeatureList> getValueForPreview() {
     return Arrays.stream(parameters.getParameter(RTCorrectionParameters.featureLists).getValue()
-            .getMatchingFeatureLists()).sorted(Comparator.comparing(FeatureList::getNumberOfRows))
+            .getMatchingFeatureLists(ProjectService.getProject()))
+        .sorted(Comparator.comparing(FeatureList::getNumberOfRows))
         .map(FeatureList.class::cast).toList();
   }
 }

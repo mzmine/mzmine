@@ -59,11 +59,11 @@ public class Ms2SearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList peakList1[] =
-        parameters.getParameter(Ms2SearchParameters.peakList1).getValue().getMatchingFeatureLists();
+    FeatureList peakList1[] = parameters.getParameter(Ms2SearchParameters.peakList1).getValue()
+        .getMatchingFeatureLists(project);
 
-    FeatureList peakList2[] =
-        parameters.getParameter(Ms2SearchParameters.peakList2).getValue().getMatchingFeatureLists();
+    FeatureList peakList2[] = parameters.getParameter(Ms2SearchParameters.peakList2).getValue()
+        .getMatchingFeatureLists(project);
 
     // Previously iterated over all the peaklists & did a separate task for
     // each.

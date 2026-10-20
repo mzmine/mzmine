@@ -58,7 +58,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -149,7 +148,8 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
 
-    List<BatchQueue> cleanedBatchQueues = List.of(RawDataSavingUtils.makeBatchQueue(files));
+    List<BatchQueue> cleanedBatchQueues = List.of(
+        RawDataSavingUtils.makeBatchQueue(project, files));
     progress += stepProgress;
 
     if (saveFilesInProject) {
@@ -170,7 +170,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
       for (final BatchQueue mergedBatchQueue : cleanedBatchQueues) {
         final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
-        mergedBatchQueue.saveToXml(batchQueueEntry);
+        mergedBatchQueue.saveToXml(project, batchQueueEntry);
         batchRoot.appendChild(batchQueueEntry);
       }
 

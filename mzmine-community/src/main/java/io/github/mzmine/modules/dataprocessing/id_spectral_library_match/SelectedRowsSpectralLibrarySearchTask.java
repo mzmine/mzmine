@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -57,9 +58,10 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
   private final List<SpectralDBAnnotation> syncList = Collections.synchronizedList(
       new ArrayList<>());
 
-  public SelectedRowsSpectralLibrarySearchTask(List<FeatureListRow> rows, FeatureTableFX table,
-      ParameterSet parameters, @NotNull Instant moduleCallDate) {
-    super(parameters, rows, moduleCallDate); // no new data stored -> null
+  public SelectedRowsSpectralLibrarySearchTask(@NotNull MZmineProject project,
+      List<FeatureListRow> rows, FeatureTableFX table, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
+    super(project, parameters, rows, moduleCallDate); // no new data stored -> null
     this.table = table;
     FxThread.runLater(() -> {
       resultWindow = new SpectraIdentificationResultsWindowFX();

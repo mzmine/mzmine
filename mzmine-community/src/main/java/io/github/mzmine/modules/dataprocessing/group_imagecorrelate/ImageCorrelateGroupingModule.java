@@ -64,7 +64,7 @@ public class ImageCorrelateGroupingModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] featureLists = parameters.getValue(
-        ImageCorrelateGroupingParameters.FEATURE_LISTS).getMatchingFeatureLists();
+        ImageCorrelateGroupingParameters.FEATURE_LISTS).getMatchingFeatureLists(project);
     for (ModularFeatureList pkl : featureLists) {
       tasks.add(new ImageCorrelateGroupingTask(parameters, pkl, moduleCallDate));
     }

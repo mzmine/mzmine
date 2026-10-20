@@ -25,12 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes.combonested;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -130,7 +132,7 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     NodeList currentChoiceList = xmlElement.getElementsByTagName("currentchoice");
     if (currentChoiceList.getLength() == 0) {
       return;
@@ -143,7 +145,8 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
       Element choice = (Element) choicesList.item(i);
       String choiceName = choice.getAttribute("name");
       ParameterSet choiceParameterSet = choices.get(choiceName).cloneParameterSet();
-      choiceParameterSet.loadValuesFromXML((Element) choice.getElementsByTagName("value").item(0));
+      choiceParameterSet.loadValuesFromXML(project,
+          (Element) choice.getElementsByTagName("value").item(0));
       choices.put(choiceName, choiceParameterSet);
     }
 
@@ -151,7 +154,7 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }
@@ -164,20 +167,21 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
       Element choiceElement = parentDocument.createElement("choice");
       choiceElement.setAttribute("name", choice.getKey());
       Element choiceInnerElement = parentDocument.createElement("value");
-      choice.getValue().saveValuesToXML(choiceInnerElement);
+      choice.getValue().saveValuesToXML(project, choiceInnerElement);
       choiceElement.appendChild(choiceInnerElement);
       xmlElement.appendChild(choiceElement);
     }
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add(name + " is not set properly");
       return false;
     }
 
-    return value.getCurrentChoiceParameterSet().checkParameterValues(errorMessages);
+    return value.getCurrentChoiceParameterSet().checkParameterValues(project, errorMessages);
   }
 
 }

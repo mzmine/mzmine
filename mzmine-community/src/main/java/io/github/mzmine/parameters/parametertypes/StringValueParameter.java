@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.Node;
@@ -110,17 +111,18 @@ public abstract class StringValueParameter<COMPONENT extends Node> implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     value = requireNonNullElse(xmlElement.getTextContent(), "");
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     xmlElement.setTextContent(value);
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (!valueRequired) {
       return true;
     }

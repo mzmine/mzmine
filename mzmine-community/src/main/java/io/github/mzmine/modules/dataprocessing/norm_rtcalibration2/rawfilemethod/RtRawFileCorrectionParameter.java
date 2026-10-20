@@ -24,7 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod;
 
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
@@ -106,12 +106,13 @@ public class RtRawFileCorrectionParameter implements
 
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return calibrationFunctions != null;
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     this.calibrationFunctions.clear();
 
@@ -144,16 +145,15 @@ public class RtRawFileCorrectionParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
     final Document doc = xmlElement.getOwnerDocument();
     for (AbstractRtCorrectionFunction func : calibrationFunctions) {
       final Element correctionFunctionElement = doc.createElement(rtCorrectionFunctionElement);
 
-      final RawDataFile file = func.getRawDataFile();
-      if (file == null) {
-        continue; // file not loaded anymore
-      }
+      // decision: save by placeholder name without resolving the file in a project, the same way
+      // it is loaded. Functions of removed files are resolved to null when they are used
+      final RawDataFilePlaceholder file = func.getRawDataFilePlaceholder();
 
       correctionFunctionElement.setAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
       correctionFunctionElement.setAttribute(rtCorrectionModuleAttribute,

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_features_csv;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -75,14 +76,15 @@ public class CSVExportModularParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
+    final boolean superCheck = super.checkParameterValues(project, errorMessages);
 
     // Check if substitute pattern is present in filename if several feature lists are selected by the user
     String plNamePattern = "{}";
     boolean substitute = this.getValue(filename).getPath().contains(plNamePattern);
 
-    if (!substitute && this.getValue(featureLists).getMatchingFeatureLists().length > 1) {
+    if (!substitute && this.getValue(featureLists).getMatchingFeatureLists(project).length > 1) {
       errorMessages.add("""
           Cannot export multiple feature lists to the same CSV file. Please use "{}" pattern in filename. \
           This will be replaced with the feature list name to generate one file per feature list.

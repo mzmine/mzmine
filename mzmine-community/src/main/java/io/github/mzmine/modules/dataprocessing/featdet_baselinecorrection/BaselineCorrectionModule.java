@@ -50,7 +50,7 @@ public class BaselineCorrectionModule extends AbstractProcessingModule {
       @NotNull Instant moduleCallDate) {
 
     final @NotNull ModularFeatureList[] flists = parameters.getValue(
-        BaselineCorrectionParameters.flists).getMatchingFeatureLists();
+        BaselineCorrectionParameters.flists).getMatchingFeatureLists(project);
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (final @NotNull ModularFeatureList flist : flists) {

@@ -25,10 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -103,7 +105,7 @@ public class ColorParameter implements UserParameter<Color, ColorPicker> {
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     String t = xmlElement.getTextContent();
     if (t != null) {
       try {
@@ -119,7 +121,7 @@ public class ColorParameter implements UserParameter<Color, ColorPicker> {
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null)
       return;
     StringBuilder s = new StringBuilder();
@@ -134,7 +136,8 @@ public class ColorParameter implements UserParameter<Color, ColorPicker> {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 

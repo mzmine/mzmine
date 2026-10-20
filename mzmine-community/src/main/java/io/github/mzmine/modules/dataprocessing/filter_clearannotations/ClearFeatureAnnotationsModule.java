@@ -64,7 +64,7 @@ public class ClearFeatureAnnotationsModule implements MZmineProcessingModule {
 
     final FeatureList[] peakLists =
         parameters.getParameter(ClearFeatureAnnotationsParameters.featureLists).getValue()
-            .getMatchingFeatureLists();
+            .getMatchingFeatureLists(project);
 
     for (FeatureList peakList : peakLists) {
       Task newTask = new ClearFeatureAnnotationsTask(project, peakList, parameters, moduleCallDate);

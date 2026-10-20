@@ -60,7 +60,7 @@ public class LipidAnnotationQCDashboardModule extends AbstractRunnableModule {
       final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab();
       tab.onFeatureListSelectionChanged(Arrays.asList(
           parameters.getValue(LipidAnnotationQCDashboardParameters.flists)
-              .getMatchingFeatureLists()));
+              .getMatchingFeatureLists(project)));
       ((MZmineGUI) DesktopService.getDesktop()).addTab(tab);
     });
     tasks.add(task);

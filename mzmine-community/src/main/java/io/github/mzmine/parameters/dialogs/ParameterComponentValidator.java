@@ -30,6 +30,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -79,7 +80,7 @@ class ParameterComponentValidator {
       // clone to not change the actual parameter value
       final UserParameter<?, T> clone = parameter.cloneParameter();
       clone.setValueFromComponent(comp.component());
-      if (clone.checkValue(errors)) {
+      if (clone.checkValue(ProjectService.getProject(), errors)) {
         return null;
       }
     } catch (Exception e) {

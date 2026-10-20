@@ -48,6 +48,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
@@ -392,7 +393,7 @@ public class BatchComponentController implements LastFilesComponent {
     document.appendChild(element);
 
     // Serialize batch queue.
-    batchQueue.saveToXml(element);
+    batchQueue.saveToXml(ProjectService.getProject(), element);
 
     String extension = ExtensionFilters.getFirstCleanExtensionName(ExtensionFilters.MZ_BATCH);
     file = FileAndPathUtil.getRealFilePath(file, extension);
@@ -416,8 +417,8 @@ public class BatchComponentController implements LastFilesComponent {
       throws ParserConfigurationException, IOException, SAXException {
     List<String> errorMessages = new ArrayList<>();
     // allow missing modules but report them as error messages
-    final BatchQueue queue = BatchQueue.loadFromXml(XMLUtils.load(file).getDocumentElement(),
-        errorMessages, true);
+    final BatchQueue queue = BatchQueue.loadFromXml(ProjectService.getProject(),
+        XMLUtils.load(file).getDocumentElement(), errorMessages, true);
 
     logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
 

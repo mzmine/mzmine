@@ -37,6 +37,7 @@ import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.modules.batchmode.order.Ms2ScanPairingCondition;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
@@ -62,8 +63,8 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(
-          new SelectedRowsSpectralLibrarySearchTask(rows, table, parameters.cloneParameterSet(),
-              moduleCallDate));
+          new SelectedRowsSpectralLibrarySearchTask(ProjectService.getProject(), rows, table,
+              parameters.cloneParameterSet(), moduleCallDate));
     }
   }
 
@@ -82,8 +83,8 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final ModularFeatureList[] featureLists = parameters.getParameter(
-        SpectralLibrarySearchParameters.peakLists).getValue().getMatchingFeatureLists();
-    Task newTask = new SpectralLibrarySearchTask(parameters, featureLists, moduleCallDate);
+        SpectralLibrarySearchParameters.peakLists).getValue().getMatchingFeatureLists(project);
+    Task newTask = new SpectralLibrarySearchTask(project, parameters, featureLists, moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;

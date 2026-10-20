@@ -25,16 +25,17 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,7 +69,8 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     return true;
   }
 
@@ -76,10 +78,9 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
    * @see io.github.mzmine.parameters.Parameter#loadValueFromXML(org.w3c.dom. Element)
    */
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
 
-    FeatureList[] allPeakLists = ProjectService.getProjectManager().getCurrentProject()
-        .getCurrentFeatureLists().toArray(FeatureList[]::new);
+    FeatureList[] allPeakLists = project.getCurrentFeatureLists().toArray(FeatureList[]::new);
 
     List<Feature> newValues = new ArrayList<>();
 
@@ -118,10 +119,10 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   /*
-   * @see io.github.mzmine.parameters.Parameter#saveValueToXML(org.w3c.dom.Element)
+   * @see io.github.mzmine.parameters.Parameter#saveValueToXML(io.github.mzmine.datamodel.MZmineProject, org.w3c.dom.Element)
    */
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     if (value == null) {
       return;
     }

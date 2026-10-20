@@ -29,12 +29,12 @@ import static io.github.mzmine.modules.visualization.projectmetadata.table.colum
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.forType;
 
 import com.opencsv.exceptions.CsvException;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.StringUtils;
 import java.io.File;
@@ -54,6 +54,7 @@ public class ProjectMetadataReader {
 
   private static final Logger logger = Logger.getLogger(ProjectMetadataReader.class.getName());
 
+  private final @NotNull MZmineProject project;
   private final boolean skipColOnError;
   private final boolean removeAttributesPrefix;
   private final List<String> errors = new ArrayList<>();
@@ -62,12 +63,21 @@ public class ProjectMetadataReader {
   private String[] descriptions;
   private AvailableTypes[] dataTypes;
 
-  public ProjectMetadataReader(final boolean skipColOnError, final boolean removeAttributesPrefix) {
-    this(skipColOnError, removeAttributesPrefix, false);
+  /**
+   * @param project raw data files are matched against the data files of this project
+   */
+  public ProjectMetadataReader(@NotNull final MZmineProject project,
+      final boolean skipColOnError, final boolean removeAttributesPrefix) {
+    this(project, skipColOnError, removeAttributesPrefix, false);
   }
 
-  public ProjectMetadataReader(final boolean skipColOnError, final boolean removeAttributesPrefix,
+  /**
+   * @param project raw data files are matched against the data files of this project
+   */
+  public ProjectMetadataReader(@NotNull final MZmineProject project,
+      final boolean skipColOnError, final boolean removeAttributesPrefix,
       final boolean usePlaceholderForMissingFiles) {
+    this.project = project;
     this.skipColOnError = skipColOnError;
     this.removeAttributesPrefix = removeAttributesPrefix;
     this.usePlaceholderForMissingFiles = usePlaceholderForMissingFiles;
@@ -86,7 +96,7 @@ public class ProjectMetadataReader {
     descriptions = null;
     dataTypes = null;
 
-    if (!usePlaceholderForMissingFiles && ProjectService.getProject().getNumberOfDataFiles() == 0) {
+    if (!usePlaceholderForMissingFiles && project.getNumberOfDataFiles() == 0) {
       errors.add("Import data files before importing metadata.");
       return null;
     }
@@ -272,7 +282,7 @@ public class ProjectMetadataReader {
   private RawDataFile[] findProjectRawFiles(final String[] fileNames) {
     // match raw data files with or without file format
     var rawFiles = Arrays.stream(fileNames).map(name -> {
-      final RawDataFile actualFile = ProjectService.getProject().getDataFileByName(name);
+      final RawDataFile actualFile = project.getDataFileByName(name);
       // may use placeholders instead of real files
       // mostly if loading is done as a precheck
       return actualFile == null && usePlaceholderForMissingFiles ? new RawDataFilePlaceholder(name,

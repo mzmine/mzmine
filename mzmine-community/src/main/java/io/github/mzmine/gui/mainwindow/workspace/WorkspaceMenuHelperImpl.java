@@ -32,7 +32,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
-import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.SimpleRunnableTask;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -42,7 +42,6 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Menu;
@@ -111,7 +110,7 @@ class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
         return;
       }
       file = FileAndPathUtil.getRealFilePath(file, MZmineConfiguration.CONFIG_EXTENSION);
-      ConfigService.getConfiguration().saveConfiguration(file);
+      ConfigService.getConfiguration().saveConfiguration(ProjectService.getProject(), file);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot save config", ex);
     }
@@ -126,7 +125,7 @@ class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
       if (file == null) {
         return;
       }
-      ConfigService.getConfiguration().loadConfiguration(file, true);
+      ConfigService.getConfiguration().loadConfiguration(ProjectService.getProject(), file, true);
 
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot save config", ex);

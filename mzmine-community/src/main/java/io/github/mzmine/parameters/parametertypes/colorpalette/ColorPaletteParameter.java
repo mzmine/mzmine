@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.util.color.Vision;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,7 +85,8 @@ public class ColorPaletteParameter implements
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (getValue() == null || !getValue().isValid()) {
       errorMessages.add("Not enough colors in color palette " + getName());
       return false;
@@ -93,7 +95,7 @@ public class ColorPaletteParameter implements
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
+  public void loadValueFromXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     int selected = Integer.valueOf(xmlElement.getAttribute(SELECTED_INDEX));
 
     NodeList childs = xmlElement.getElementsByTagName(PALETTE_ELEMENT);
@@ -119,7 +121,7 @@ public class ColorPaletteParameter implements
   }
 
   @Override
-  public void saveValueToXML(Element xmlElement) {
+  public void saveValueToXML(@NotNull MZmineProject project, @NotNull Element xmlElement) {
     Document doc = xmlElement.getOwnerDocument();
 
     xmlElement.setAttribute(SELECTED_INDEX, Integer.toString(palettes.indexOf(value)));

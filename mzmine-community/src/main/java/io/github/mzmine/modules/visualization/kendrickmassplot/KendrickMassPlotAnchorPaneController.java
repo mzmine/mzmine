@@ -41,6 +41,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.
 import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import java.awt.geom.Point2D;
@@ -136,7 +137,7 @@ public class KendrickMassPlotAnchorPaneController {
   public void initialize(ParameterSet parameters) {
     this.parameters = parameters.cloneParameterSet();
     this.featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(ProjectService.getProject())[0];
 
     this.useRKM_X = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
@@ -238,7 +239,7 @@ public class KendrickMassPlotAnchorPaneController {
     }
 
     KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
-        parameters, 1, 1);
+        ProjectService.getProject(), parameters, 1, 1);
 
     kendrickMassPlotXYZDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
@@ -405,8 +406,9 @@ public class KendrickMassPlotAnchorPaneController {
   private void updatePlot() {
     bubbleLegendPane.setDisable(true);
     XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
-    KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters, xAxisDivisor,
-        xAxisCharge, yAxisDivisor, yAxisCharge);
+    KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(
+        ProjectService.getProject(), parameters, xAxisDivisor, xAxisCharge, yAxisDivisor,
+        yAxisCharge);
     newDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
         FxThread.runLater(() -> {

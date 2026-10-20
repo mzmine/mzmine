@@ -93,7 +93,7 @@ public class BatchModeModule implements MZmineProcessingModule {
     }
 
     try {
-      final LoadedBatchQueue batchQueue = BatchQueue.loadFromFile(batchFile);
+      final LoadedBatchQueue batchQueue = BatchQueue.loadFromFile(project, batchFile);
 
       // versions might have changed
       if (!batchQueue.errorMessages().isEmpty()) {

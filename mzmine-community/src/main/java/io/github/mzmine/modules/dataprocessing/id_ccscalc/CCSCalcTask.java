@@ -69,7 +69,7 @@ public class CCSCalcTask extends AbstractTask {
     this.rangeChargeMap = parameters.getParameter(CCSCalcParameters.assumeChargeStage)
         .getEmbeddedParameter().getValue();
     this.featureLists = parameters.getParameter(CCSCalcParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+        .getMatchingFeatureLists(project);
     this.project = project;
     this.parameters = parameters;
 

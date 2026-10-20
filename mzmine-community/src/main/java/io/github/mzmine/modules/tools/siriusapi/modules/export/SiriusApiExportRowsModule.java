@@ -47,7 +47,8 @@ public class SiriusApiExportRowsModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new SiriusApiExportRowsTask(null, moduleCallDate, parameters, this.getClass()));
+    tasks.add(
+        new SiriusApiExportRowsTask(project, null, moduleCallDate, parameters, this.getClass()));
 
     return ExitCode.OK;
   }

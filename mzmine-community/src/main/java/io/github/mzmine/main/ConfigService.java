@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -91,7 +92,8 @@ public final class ConfigService {
    */
   public static boolean saveUserConfig() {
     try {
-      getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
+      getConfiguration().saveConfiguration(ProjectService.getProject(),
+          MZmineConfiguration.CONFIG_FILE);
       return true;
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Cannot save user config", e);

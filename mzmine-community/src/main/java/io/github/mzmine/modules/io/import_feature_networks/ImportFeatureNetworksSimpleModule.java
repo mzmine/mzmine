@@ -80,7 +80,7 @@ public class ImportFeatureNetworksSimpleModule implements MZmineProcessingModule
       @NotNull final Instant moduleCallDate) {
     File[] inputFiles = parameters.getValue(ImportFeatureNetworksSimpleParameters.input);
     var featureList = parameters.getValue(ImportFeatureNetworksSimpleParameters.flist)
-        .getMatchingFeatureLists()[0];
+        .getMatchingFeatureLists(project)[0];
 
     if (inputFiles.length == 0) {
       logger.warning("Please select one or more tsv or csv files for network import");

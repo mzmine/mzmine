@@ -60,7 +60,7 @@ public class LibraryAnalysisCSVExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    LibraryAnalysisCSVExportTask task = new LibraryAnalysisCSVExportTask(parameters,
+    LibraryAnalysisCSVExportTask task = new LibraryAnalysisCSVExportTask(project, parameters,
         moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;

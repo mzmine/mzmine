@@ -32,7 +32,6 @@ import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.FileHasNoRunD
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.table.InterpolationWeights.InterpolationWeight;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -243,13 +242,6 @@ public class MetadataTableUtils {
     LocalDateTime runDate = file.getStartTimeStamp();
     runDate = runDate == null ? metadata.getValue(metadata.getRunDateColumn(), file) : runDate;
     return runDate;
-  }
-
-  /**
-   * Get the run date from the file or the metadata table or null if none provide a run date.
-   */
-  public static @Nullable LocalDateTime getRunDate(@NotNull RawDataFile file) {
-    return getRunDate(ProjectService.getMetadata(), file);
   }
 
 

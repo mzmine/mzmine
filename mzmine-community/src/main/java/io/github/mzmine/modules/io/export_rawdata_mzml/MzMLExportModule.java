@@ -69,7 +69,7 @@ public class MzMLExportModule implements MZmineProcessingModule {
       folder = folder.getParentFile();
 
     RawDataFile[] dataFile = parameters.getParameter(MzMLExportParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+        .getMatchingRawDataFiles(project);
 
     for (RawDataFile r : dataFile) {
       File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(), extension);

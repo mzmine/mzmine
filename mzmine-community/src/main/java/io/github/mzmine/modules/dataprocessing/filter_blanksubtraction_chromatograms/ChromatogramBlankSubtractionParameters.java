@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -71,11 +72,12 @@ public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages,
+  public boolean checkParameterValues(@NotNull final MZmineProject project,
+      @NotNull final Collection<String> errorMessages,
       final boolean skipRawDataAndFeatureListParameters) {
     boolean preconditions = true;
     if (!skipRawDataAndFeatureListParameters) {
-      ModularFeatureList[] flists = getValue(featureLists).getMatchingFeatureLists();
+      ModularFeatureList[] flists = getValue(featureLists).getMatchingFeatureLists(project);
       if (flists != null && flists.length > 0) {
         String error = checkPreconditions(flists);
         if (error != null) {
@@ -85,7 +87,7 @@ public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
       }
     }
 
-    boolean otherConditions = super.checkParameterValues(errorMessages,
+    boolean otherConditions = super.checkParameterValues(project, errorMessages,
         skipRawDataAndFeatureListParameters);
     return otherConditions && preconditions;
   }

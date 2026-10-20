@@ -25,9 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import java.text.NumberFormat;
 import java.util.Collection;
 import com.google.common.collect.Range;
+import org.jetbrains.annotations.NotNull;
 
 public class MobilityRangeParameter extends DoubleRangeParameter {
 
@@ -52,7 +54,8 @@ public class MobilityRangeParameter extends DoubleRangeParameter {
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (valueRequired && (this.getValue() == null)) {
       errorMessages.add(this.getName() + " is not set properly");
       return false;

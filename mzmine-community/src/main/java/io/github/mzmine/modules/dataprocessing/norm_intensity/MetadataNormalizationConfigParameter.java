@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.MetadataNormalizationConfig.Mode;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.parameters.CompositeParametersParameter;
@@ -95,7 +96,8 @@ public class MetadataNormalizationConfigParameter extends
   }
 
   @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+  public boolean checkValue(@NotNull MZmineProject project,
+      @NotNull Collection<String> errorMessages) {
     if (getValue().metadataColumn().isBlank()) {
       errorMessages.add("Metadata column cannot be blank");
       return false;
