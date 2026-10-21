@@ -66,6 +66,7 @@ public class ProjectOpeningTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ProjectOpeningTask.class.getName());
   private final boolean mergeOntoExisting;
   private final boolean keepCurrentLibraries;
+  private final boolean loadProjectConfiguration;
 
   private File openFile;
   private final ParameterSet parameters;
@@ -90,6 +91,8 @@ public class ProjectOpeningTask extends AbstractTask {
     this.parameters = parameters;
     mergeOntoExisting = parameters.getValue(ProjectLoaderParameters.mergeOntoExisting);
     keepCurrentLibraries = parameters.getValue(ProjectLoaderParameters.keepLibraries);
+    loadProjectConfiguration = parameters.getValue(
+        ProjectLoaderParameters.loadProjectConfiguration);
   }
 
   /**
@@ -178,7 +181,8 @@ public class ProjectOpeningTask extends AbstractTask {
         if (entryName.equals(ProjectSavingTask.VERSION_FILENAME)) {
           loadVersion(cis);
           versionInformationLoaded = true;
-        } else if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME)) {
+        } else if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME)
+            && loadProjectConfiguration) {
           loadConfiguration(cis);
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
