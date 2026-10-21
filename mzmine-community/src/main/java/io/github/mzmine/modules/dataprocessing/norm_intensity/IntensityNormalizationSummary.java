@@ -36,7 +36,19 @@ import org.jetbrains.annotations.NotNull;
  * {@link IntensityNormalizationSearchableSummary}
  */
 public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFunction> functions,
-                                            @NotNull List<String> messages) {
+                                            @NotNull List<String> messages,
+                                            @NotNull List<FeatureQcProvenance> featureQc) {
+
+  public IntensityNormalizationSummary {
+    functions = List.copyOf(functions);
+    messages = List.copyOf(messages);
+    featureQc = List.copyOf(featureQc);
+  }
+
+  public IntensityNormalizationSummary(@NotNull final List<RawFileNormalizationFunction> functions,
+      @NotNull final List<String> messages) {
+    this(functions, messages, List.of());
+  }
 
   public static final @NotNull IntensityNormalizationSummary EMPTY = new IntensityNormalizationSummary(
       List.of(), List.of());
@@ -51,7 +63,7 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
 
   @NotNull
   public IntensityNormalizationSummary copy() {
-    return new IntensityNormalizationSummary(List.copyOf(functions), List.copyOf(messages));
+    return new IntensityNormalizationSummary(functions, messages, featureQc);
   }
 
   public IntensityNormalizationSummary(
@@ -94,6 +106,17 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
             messages.size(), countWarnings()));
     for (final String message : messages) {
       sb.append("\n").append(message);
+    }
+    for (final FeatureQcProvenance qc : featureQc) {
+      final FeatureQcDiagnostics diagnostics = qc.diagnostics();
+      sb.append("\nFeature-QC v").append(diagnostics.methodVersion())
+          .append("; modeled ").append(qc.modeledAbundance())
+          .append("; the same factors apply to both area and height.")
+          .append("\nSource revision: ").append(qc.sourceRevision())
+          .append("\n").append(diagnostics.solver()).append("; ").append(diagnostics.coordinatePolicy())
+          .append("\n").append(diagnostics.scalePolicy())
+          .append("\nSettings: ").append(diagnostics.settings())
+          .append("\nAvailability: ").append(diagnostics.availability());
     }
     return sb.toString();
   }

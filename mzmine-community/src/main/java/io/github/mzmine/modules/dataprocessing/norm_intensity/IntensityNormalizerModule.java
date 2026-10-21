@@ -68,8 +68,17 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new IntensityNormalizerTask(project, featureList, parameters, storage,
-          moduleCallDate);
+      final Task newTask;
+      if (Boolean.TRUE.equals(parameters.getValue(IntensityNormalizerParameters.hiddenReviewedFunctions))) {
+        final var summary = parameters.getValue(IntensityNormalizerParameters.hiddenNormalizationSummary);
+        newTask = IntensityNormalizerTask.createReplayTask(project, featureList,
+            parameters.getValue(IntensityNormalizerParameters.suffix),
+            parameters.getValue(IntensityNormalizerParameters.hiddenSourceRevision), summary,
+            parameters.getValue(IntensityNormalizerParameters.hiddenNativeSourceFingerprint),
+            parameters, IntensityNormalizerModule.class, storage, moduleCallDate);
+      } else {
+        newTask = new IntensityNormalizerTask(project, featureList, parameters, storage, moduleCallDate);
+      }
       tasks.add(newTask);
     }
 
@@ -105,6 +114,8 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
     parameters.setParameter(IntensityNormalizerParameters.handleOriginal,
         OriginalFeatureListOption.KEEP);
     parameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary, summary);
+    parameters.setParameter(IntensityNormalizerParameters.hiddenReviewedFunctions, true);
+    parameters.setParameter(IntensityNormalizerParameters.hiddenSourceRevision, sourceRevision);
     return IntensityNormalizerTask.createReviewedTask(project, source, suffix, sourceRevision, summary,
         parameters, IntensityNormalizerModule.class, storage, moduleCallDate, current);
   }

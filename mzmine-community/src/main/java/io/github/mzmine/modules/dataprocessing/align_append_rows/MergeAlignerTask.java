@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -92,6 +93,10 @@ public class MergeAlignerTask extends AbstractTask {
           + " feature lists (need at least 2)");
       setStatus(TaskStatus.ERROR);
       return;
+    }
+    for (final ModularFeatureList featureList : featureLists) {
+      NormalizationRowIdentity.requireIdentityPreservingTransformation(featureList,
+          "merge feature lists");
     }
 
     setStatus(TaskStatus.PROCESSING);

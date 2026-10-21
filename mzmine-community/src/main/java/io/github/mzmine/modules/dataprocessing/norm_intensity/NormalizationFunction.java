@@ -30,6 +30,7 @@ import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -93,6 +94,21 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
    */
   default boolean isConstantFactor() {
     return this instanceof FactorNormalizationFunction;
+  }
+
+  /** Whether resolving this function requires the identity of a feature-list row. */
+  default boolean isRowDependent() {
+    return false;
+  }
+
+  /** Row IDs embedded in this function and therefore reserved from later reuse. */
+  default @NotNull Set<Integer> protectedRowIds() {
+    return Set.of();
+  }
+
+  /** Fast single-ID check used by row allocators; implementations must not materialize all IDs. */
+  default boolean protectsRowId(final int rowId) {
+    return false;
   }
 
   /**

@@ -5,90 +5,182 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class FeatureQcDriftNormalizationTest {
 
+  private static final FeatureQcSettings SETTINGS = new FeatureQcSettings(.75d, 2, 5, 10d, .5d);
+
   @Test
-  void usesRemainingUsableQcsAndHonorsCancellation() {
-    final var samples = new java.util.ArrayList<>(samples());
-    samples.add(new FeatureQcDriftNormalization.Sample("missing", "A", 2.5d, true));
-    final Map<Integer, Map<String, Double>> values = Map.of(1,
-        Map.of("s1", 100d, "s2", 100d, "s3", 100d, "s4", 100d, "s5", 100d));
-    final var result = FeatureQcDriftNormalization.calculate(samples, values, 5, .75, 2, 10, false);
-    assertTrue(result.unavailableRows().isEmpty());
-    assertEquals(1d, result.rowFactors().get(1).get("missing"), 1e-10);
-    assertTrue(result.boundarySampleIds().isEmpty());
-    assertThrows(java.util.concurrent.CancellationException.class, () ->
-        FeatureQcDriftNormalization.calculate(samples, values, 5, .75, 2, 10, false, () -> true));
+  void restoresCommonGlobalLogTargetAcrossBatches() {
+    final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
+    final Map<String, Double> values = new LinkedHashMap<>();
+    for (int index = 0; index < 5; index++) {
+      samples.add(new FeatureQcDriftNormalization.Sample("a" + index, "A", index, true));
+      samples.add(new FeatureQcDriftNormalization.Sample("b" + index, "B", index, true));
+      values.put("a" + index, 10d);
+      values.put("b" + index, 20d);
+    }
+
+    final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
+        SETTINGS);
+
+    assertEquals(Math.log(Math.sqrt(200d)), result.globalLogTargets().get(1), 1e-12);
+    assertEquals(Math.sqrt(2d), result.rowFactors().get(1).get("a0"), 1e-12);
+    assertEquals(1d / Math.sqrt(2d), result.rowFactors().get(1).get("b0"), 1e-12);
+    assertEquals(1, result.availability().fullyCorrectedRows());
   }
 
   @Test
-  void fitsKnownLogDriftAndKeepsFlatFeatureNearOne() {
-    final List<FeatureQcDriftNormalization.Sample> samples = samples();
-    final Map<String, Double> drift = Map.of("s1", 100d, "s2", 90d, "s3", 80d, "s4", 70d,
-        "s5", 60d);
-    final Map<String, Double> flat = Map.of("s1", 100d, "s2", 100d, "s3", 100d, "s4", 100d,
-        "s5", 100d);
+  void usesMedianOfLogsRatherThanLogOfArithmeticRawMedian() {
+    final Map<String, Double> values = new LinkedHashMap<>();
+    for (int index = 0; index < 6; index++) values.put("s" + index, index < 3 ? 1d : 9d);
+    final List<FeatureQcDriftNormalization.Sample> samples = samples("A", 6);
 
-    final var result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, drift, 2, flat),
-        5, .75d, 2, 10d, false);
+    final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(7, values),
+        new FeatureQcSettings(1d, 0, 5, 100d, .5d));
 
-    assertFalse(result.unavailableRows().containsKey(1));
-    assertEquals(1d, result.rowFactors().get(2).get("s3"), 1e-10);
-    // Target is the median QC response (80); a lower final response needs an upward factor.
-    assertTrue(result.rowFactors().get(1).get("s5") > 1d);
-    assertTrue(result.rowFactors().get(1).get("s1") < 1d);
+    assertEquals(Math.log(3d), result.globalLogTargets().get(7), 1e-12);
+    assertTrue(Math.abs(Math.exp(result.globalLogTargets().get(7)) - 5d) > 1d);
   }
 
   @Test
-  void leavesRowsUnavailableForMissingQcAndOutOfRangeFactors() {
-    final Map<String, Double> missing = Map.of("s1", 100d, "s2", 90d, "s3", 80d, "s4", 70d);
-    final Map<String, Double> extreme = Map.of("s1", 100d, "s2", 90d, "s3", 80d, "s4", 70d,
-        "s5", 1d);
+  void keepsSupportedBatchWhenAnotherBatchCannotFit() {
+    final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
+    final Map<String, Double> values = new LinkedHashMap<>();
+    // Use distinct IDs for the second batch and intentionally leave three QC responses absent.
+    for (int index = 0; index < 5; index++) {
+      samples.add(new FeatureQcDriftNormalization.Sample("a" + index, "A", index, true));
+      samples.add(new FeatureQcDriftNormalization.Sample("b" + index, "B", index, true));
+      values.put("a" + index, 100d);
+    }
+    values.put("b0", 100d);
+    values.put("b1", 100d);
 
-    final var result = FeatureQcDriftNormalization.calculate(samples(), Map.of(1, missing, 2, extreme),
-        5, .75d, 2, 2d, false);
+    final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
+        SETTINGS);
 
-    assertEquals(2, result.unavailableRows().size());
-    assertTrue(result.rowFactors().isEmpty());
+    assertEquals(5, result.rowFactors().get(1).size());
+    assertEquals(FeatureQcUnavailableReason.BATCH_INSUFFICIENT_USABLE_QCS,
+        result.unavailableReason(1, "b0"));
+    assertEquals(1d, result.rowFactors().get(1).get("a0"), 1e-12);
+    final FeatureQcBatchDiagnostic batchB = result.diagnostics().rows().get(1).batches().get("B");
+    assertEquals(0d, batchB.usableQcCoordinateMinimum(), 1e-12);
+    assertEquals(1d, batchB.usableQcCoordinateMaximum(), 1e-12);
+    assertEquals(1, result.availability().partiallyCorrectedRows());
   }
 
   @Test
-  void flagsNearestBoundaryAndHandlesIndependentBatches() {
-    final List<FeatureQcDriftNormalization.Sample> samples = List.of(
-        new FeatureQcDriftNormalization.Sample("before", "A", -1d, false),
-        new FeatureQcDriftNormalization.Sample("a1", "A", 0d, true),
-        new FeatureQcDriftNormalization.Sample("a2", "A", 1d, true),
-        new FeatureQcDriftNormalization.Sample("a3", "A", 2d, true),
-        new FeatureQcDriftNormalization.Sample("a4", "A", 3d, true),
-        new FeatureQcDriftNormalization.Sample("a5", "A", 4d, true),
-        new FeatureQcDriftNormalization.Sample("b1", "B", 0d, true),
-        new FeatureQcDriftNormalization.Sample("b2", "B", 1d, true),
-        new FeatureQcDriftNormalization.Sample("b3", "B", 2d, true),
-        new FeatureQcDriftNormalization.Sample("b4", "B", 3d, true),
-        new FeatureQcDriftNormalization.Sample("b5", "B", 4d, true));
-    final Map<String, Double> values = Map.of("a1", 10d, "a2", 10d, "a3", 10d, "a4", 10d,
-        "a5", 10d, "b1", 20d, "b2", 20d, "b3", 20d, "b4", 20d, "b5", 20d);
+  void appliesGlobalAndBatchMissingInequalitiesExactly() {
+    final List<FeatureQcDriftNormalization.Sample> globalSamples = samples("A", 10);
+    final Map<String, Double> globalValues = new LinkedHashMap<>();
+    for (int index = 0; index < 5; index++) globalValues.put("s" + index, 10d);
+    final FeatureQcResult global = FeatureQcDriftNormalization.calculate(globalSamples,
+        Map.of(1, globalValues), SETTINGS);
+    assertFalse(global.unavailableRows().containsKey(1)); // 50% is not greater than the threshold.
+    assertEquals(1, global.availability().uncorrectedRows());
 
-    final var result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), 5, .75d, 2,
-        10d, true);
+    final List<FeatureQcDriftNormalization.Sample> batchSamples = new ArrayList<>();
+    final Map<String, Double> batchValues = new LinkedHashMap<>();
+    for (int index = 0; index < 10; index++) {
+      batchSamples.add(new FeatureQcDriftNormalization.Sample("a" + index, "A", index, true));
+      batchSamples.add(new FeatureQcDriftNormalization.Sample("b" + index, "B", index, true));
+      batchValues.put("a" + index, 10d);
+      if (index < 5) batchValues.put("b" + index, 10d);
+    }
+    final FeatureQcResult batch = FeatureQcDriftNormalization.calculate(batchSamples,
+        Map.of(2, batchValues), SETTINGS);
+    assertEquals(FeatureQcUnavailableReason.BATCH_MISSING_QC_THRESHOLD,
+        batch.unavailableReason(2, "b0"));
+    assertEquals(1d, batch.rowFactors().get(2).get("a0"), 1e-12);
+  }
+
+  @Test
+  void recordsBoundaryMissingInputAndDeterministicDiagnostics() {
+    final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
+    samples.add(new FeatureQcDriftNormalization.Sample("before", "A", -1d, false));
+    samples.addAll(samples("A", 6));
+    final Map<String, Double> values = new LinkedHashMap<>();
+    for (int index = 0; index < 6; index++) values.put("s" + index, 100d);
+
+    final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
+        new FeatureQcSettings(1d, 0, 5, 10d, .5d));
+    final FeatureQcBatchDiagnostic diagnostic = result.diagnostics().rows().get(1).batches().get("A");
 
     assertTrue(result.boundarySampleIds().get(1).contains("before"));
-    assertEquals(1.5d, result.rowFactors().get(1).get("a1"), 1e-10);
-    assertEquals(.75d, result.rowFactors().get(1).get("b1"), 1e-10);
+    assertNull(result.unavailableReason(1, "before"));
+    assertEquals(1d, result.rowFactors().get(1).get("before"), 1e-12);
+    assertEquals(6, diagnostic.leaveOneOutPredictionCount());
+    assertEquals(0d, diagnostic.leaveOneOutLogMse(), 1e-12);
+    assertEquals(0d, diagnostic.beforeQcRsd(), 1e-12);
+    assertEquals(0d, diagnostic.afterQcRsd(), 1e-12);
+    assertEquals(0d, diagnostic.usableQcCoordinateMinimum(), 1e-12);
+    assertEquals(5d, diagnostic.usableQcCoordinateMaximum(), 1e-12);
+    assertEquals(FeatureQcSettings.METHOD_VERSION, result.diagnostics().methodVersion());
+    assertEquals(12, diagnostic.fitPoints().size());
+    assertEquals(-1d, diagnostic.fitPoints().getFirst().time(), 1e-12);
+    assertNull(diagnostic.fitPoints().getFirst().observedLogQc());
+    assertEquals(6, diagnostic.fitPoints().stream()
+        .filter(point -> point.observedLogQc() != null).count());
   }
 
-  private static List<FeatureQcDriftNormalization.Sample> samples() {
-    return List.of(new FeatureQcDriftNormalization.Sample("s1", "A", 0d, true),
-        new FeatureQcDriftNormalization.Sample("s2", "A", 1d, true),
-        new FeatureQcDriftNormalization.Sample("s3", "A", 2d, true),
-        new FeatureQcDriftNormalization.Sample("s4", "A", 3d, true),
-        new FeatureQcDriftNormalization.Sample("s5", "A", 4d, true));
+  @Test
+  void rejectsFactorsForTheirBatchAndCancellationIsNotAFitFailure() {
+    final List<FeatureQcDriftNormalization.Sample> samples = samples("A", 5);
+    final Map<String, Double> values = Map.of("s0", 100d, "s1", 90d, "s2", 80d, "s3", 70d,
+        "s4", 1d);
+    final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
+        new FeatureQcSettings(.75d, 2, 5, 2d, .5d));
+    assertEquals(FeatureQcUnavailableReason.FACTOR_OUT_OF_BOUNDS, result.unavailableReason(1, "s0"));
+    assertThrows(java.util.concurrent.CancellationException.class,
+        () -> FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), SETTINGS, () -> true));
+  }
+
+  @Test
+  void reportsNoQcReferencesAndNoPositiveInputWithoutTreatingEitherAsARequestFailure() {
+    final List<FeatureQcDriftNormalization.Sample> noQcs = List.of(
+        new FeatureQcDriftNormalization.Sample("study", "A", 0d, false));
+    final FeatureQcResult noQcResult = FeatureQcDriftNormalization.calculate(noQcs,
+        Map.of(1, Map.of("study", 10d)), SETTINGS);
+    assertEquals(FeatureQcUnavailableReason.NO_QC_REFERENCES, noQcResult.unavailableRows().get(1));
+
+    final FeatureQcResult noInputResult = FeatureQcDriftNormalization.calculate(samples("A", 5),
+        Map.of(2, Map.of()), new FeatureQcSettings(.75d, 2, 5, 10d, 1d));
+    assertEquals(FeatureQcUnavailableReason.NO_POSITIVE_FINITE_INPUT,
+        noInputResult.unavailableRows().get(2));
+  }
+
+  @Test
+  void reportsUnavailableLeaveOneOutInsteadOfMisleadingZeroScore() {
+    final Map<String, Double> values = Map.of("s0", 100d, "s1", 100d, "s2", 100d, "s3", 100d,
+        "s4", 100d);
+    final FeatureQcBatchDiagnostic batch = FeatureQcDriftNormalization.calculate(samples("A", 5),
+        Map.of(1, values), SETTINGS).diagnostics().rows().get(1).batches().get("A");
+    assertNull(batch.leaveOneOutLogMse());
+    assertEquals(0, batch.leaveOneOutPredictionCount());
+    assertEquals(5, batch.leaveOneOutFailureCount());
+  }
+
+  @Test
+  void deprecatedBooleanDoesNotSilentlySelectHistoricalBehavior() {
+    assertThrows(IllegalArgumentException.class,
+        () -> FeatureQcDriftNormalization.calculate(samples("A", 5), Map.of(), 5, .75d, 2, 10d,
+            false, () -> false));
+  }
+
+  private static List<FeatureQcDriftNormalization.Sample> samples(final String batch, final int count) {
+    final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
+    for (int index = 0; index < count; index++) {
+      samples.add(new FeatureQcDriftNormalization.Sample("s" + index, batch, index, true));
+    }
+    return samples;
   }
 }

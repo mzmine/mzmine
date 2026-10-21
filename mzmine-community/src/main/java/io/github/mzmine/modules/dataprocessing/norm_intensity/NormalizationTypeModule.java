@@ -29,6 +29,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntConsumer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,7 +40,25 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface NormalizationTypeModule extends MZmineModule permits
     InternalStandardSelectingNormalizer, MetadataColumnNormalizationTypeModule,
-    NoNormalizationTypeModule, NormalizationTypeWithReferencesModule {
+    NoNormalizationTypeModule, NormalizationTypeWithReferencesModule, FeatureQcNormalizationModule {
+
+  /** Whether applying this method must preserve its source table as a separate list. */
+  default boolean requiresSourceCopy() { return false; }
+
+  /** Calculates this stage after preceding stages have completed for every batch. */
+  default void createAllNormalizationFunctionsToSummary(
+      @NotNull final IntensityNormalizationSearchableSummary summary,
+      @NotNull final ModularFeatureList featureList, @NotNull final List<SamplesBatch> batches,
+      @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
+      @NotNull final ParameterSet moduleSpecificParameters,
+      @NotNull final BooleanSupplier canceled, @NotNull final IntConsumer completedFiles) {
+    for (final SamplesBatch batch : batches) {
+      if (canceled.getAsBoolean()) throw new java.util.concurrent.CancellationException();
+      createAllNormalizationFunctionsToSummary(summary, featureList, batch, metadata,
+          mainParameters, moduleSpecificParameters);
+      completedFiles.accept(batch.size());
+    }
+  }
 
   void createAllNormalizationFunctionsToSummary(
       @NotNull IntensityNormalizationSearchableSummary summary,

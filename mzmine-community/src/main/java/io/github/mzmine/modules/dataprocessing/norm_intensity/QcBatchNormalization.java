@@ -120,22 +120,29 @@ public final class QcBatchNormalization {
         throw new IllegalArgumentException("Batch '%s' has no reference sample.".formatted(entry.getKey()));
       }
 
-      final double median = MathUtils.calcMedian(references.stream().mapToDouble(Sample::metric).toArray());
-      batchMedians.put(entry.getKey(), median);
+      final Map<String, Double> referenceMetrics = new LinkedHashMap<>();
+      references.forEach(reference -> referenceMetrics.put(reference.id(), reference.metric()));
+      final ScalarQcBatchNormalization.ReferenceFactors<String> referenceFactors =
+          ScalarQcBatchNormalization.calculateReferenceFactors(referenceMetrics);
+      batchMedians.put(entry.getKey(), referenceFactors.referenceLevel());
+
+      final Map<String, ScalarQcBatchNormalization.ResolvedInterpolation<String>> interpolations =
+          new LinkedHashMap<>();
       for (final Sample sample : batchSamples) {
-        final FrozenInterpolation frozen = frozenInterpolations.get(sample.id());
-        final double factor = factorForSample(sample, references, median, edgeSampleIds, frozen,
-            frozenInterpolations.isEmpty());
-        factors.put(sample.id(), factor);
+        if (!sample.reference()) {
+          interpolations.put(sample.id(), resolveInterpolation(sample, references, edgeSampleIds,
+              frozenInterpolations.get(sample.id()), frozenInterpolations.isEmpty()));
+        }
       }
+      factors.putAll(ScalarQcBatchNormalization.calculateWithinBatchFactors(
+          referenceFactors.factors(), interpolations));
     }
 
-    final double interBatchReference = MathUtils.calcMedian(
-        batchMedians.values().stream().mapToDouble(Double::doubleValue).toArray());
+    final ScalarQcBatchNormalization.InterBatchScales<String> interBatchScales =
+        ScalarQcBatchNormalization.calculateInterBatchScales(batchMedians, correctBetweenBatches);
     if (correctBetweenBatches) {
       for (final Map.Entry<String, List<Sample>> entry : batches.entrySet()) {
-        final double interBatchFactor = interBatchFactor(interBatchReference,
-            batchMedians.get(entry.getKey()));
+        final double interBatchFactor = interBatchScales.scales().get(entry.getKey());
         for (final Sample sample : entry.getValue()) {
           factors.compute(sample.id(), (id, factor) -> factor * interBatchFactor);
         }
@@ -153,7 +160,7 @@ public final class QcBatchNormalization {
       }
     }
     return new Result(immutableOrderedMap(factorsInSampleOrder), immutableOrderedMap(batchMedians),
-        interBatchReference, immutableOrderedSet(edgesInSampleOrder));
+        interBatchScales.interBatchReference(), immutableOrderedSet(edgesInSampleOrder));
   }
 
   /** Calculates the feature-intensity metric with the native normalizer's arithmetic. */
@@ -221,34 +228,26 @@ public final class QcBatchNormalization {
     }
   }
 
-  private static double factorForSample(@NotNull final Sample sample,
-      @NotNull final List<Sample> references, final double median,
+  private static @NotNull ScalarQcBatchNormalization.ResolvedInterpolation<String> resolveInterpolation(
+      @NotNull final Sample sample, @NotNull final List<Sample> references,
       @NotNull final Set<String> edgeSampleIds, @Nullable final FrozenInterpolation frozen,
       final boolean calculateWeights) {
-    if (sample.reference()) {
-      if (frozen != null) {
-        throw new IllegalArgumentException("Reference sample must not have frozen interpolation: "
-            + sample.id());
-      }
-      return referenceFactor(median, sample.metric());
-    }
-
     if (!calculateWeights) {
       if (frozen == null || !sample.id().equals(frozen.sampleId())) {
         throw new IllegalArgumentException("Missing frozen interpolation for sample: " + sample.id());
       }
-      return frozenFactor(sample, references, median, edgeSampleIds, frozen);
+      return resolveFrozenInterpolation(sample, references, edgeSampleIds, frozen);
     }
 
     final Sample first = references.getFirst();
     final Sample last = references.getLast();
     if (sample.order() < first.order()) {
       edgeSampleIds.add(sample.id());
-      return referenceFactor(median, first.metric());
+      return ScalarQcBatchNormalization.ResolvedInterpolation.single(first.id());
     }
     if (sample.order() > last.order()) {
       edgeSampleIds.add(sample.id());
-      return referenceFactor(median, last.metric());
+      return ScalarQcBatchNormalization.ResolvedInterpolation.single(last.id());
     }
 
     for (int index = 1; index < references.size(); index++) {
@@ -257,15 +256,15 @@ public final class QcBatchNormalization {
       if (sample.order() < next.order()) {
         final double nextWeight = (sample.order() - previous.order()) / (next.order()
             - previous.order());
-        return interpolateFactor(referenceFactor(median, previous.metric()), 1d - nextWeight,
-            referenceFactor(median, next.metric()), nextWeight);
+        return new ScalarQcBatchNormalization.ResolvedInterpolation<>(previous.id(), 1d - nextWeight,
+            next.id(), nextWeight);
       }
     }
     throw new IllegalStateException("Could not determine QC factor for sample: " + sample.id());
   }
 
-  private static double frozenFactor(@NotNull final Sample sample,
-      @NotNull final List<Sample> references, final double median,
+  private static @NotNull ScalarQcBatchNormalization.ResolvedInterpolation<String> resolveFrozenInterpolation(
+      @NotNull final Sample sample, @NotNull final List<Sample> references,
       @NotNull final Set<String> edgeSampleIds, @NotNull final FrozenInterpolation frozen) {
     final Map<String, Sample> referencesById = new LinkedHashMap<>();
     references.forEach(reference -> referencesById.put(reference.id(), reference));
@@ -284,15 +283,15 @@ public final class QcBatchNormalization {
             + sample.id());
       }
       edgeSampleIds.add(sample.id());
-      return referenceFactor(median, previous.metric());
+      return ScalarQcBatchNormalization.ResolvedInterpolation.single(previous.id());
     }
     final Sample next = referencesById.get(frozen.nextReferenceId());
     if (next == null || next == previous) {
       throw new IllegalArgumentException("Frozen next QC is not a distinct sample-batch reference: "
           + sample.id());
     }
-    return interpolateFactor(referenceFactor(median, previous.metric()), frozen.previousWeight(),
-        referenceFactor(median, next.metric()), frozen.nextWeight());
+    return new ScalarQcBatchNormalization.ResolvedInterpolation<>(previous.id(),
+        frozen.previousWeight(), next.id(), frozen.nextWeight());
   }
 
   private static void validateFactors(@NotNull final Map<String, Double> factors) {

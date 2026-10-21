@@ -47,6 +47,10 @@ import io.github.mzmine.datamodel.identities.iontype.project_io.IonNetworksLoade
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingParameters;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerParameters;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.RawFileNormalizationFunction;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -507,10 +511,14 @@ public class FeatureListLoadTask extends AbstractTask {
   private ModularFeatureList createRows(MemoryMapStorage storage, File dataFile,
       File metadataFile) {
 
-    ModularFeatureList flist = readMetadataCreateFeatureList(metadataFile, storage);
-    if (flist == null) {
+    final PendingFeatureList pendingFeatureList = readMetadataCreateFeatureList(metadataFile,
+        storage);
+    if (pendingFeatureList == null) {
       throw new IllegalStateException("Cannot create feature list.");
     }
+    final ModularFeatureList flist = pendingFeatureList.featureList();
+    final Set<Integer> restoredIds = hasRowDependentNormalization(
+        pendingFeatureList.appliedMethods()) ? new java.util.HashSet<>() : null;
 
     try (InputStream fis = new FileInputStream(dataFile)) {
       final XMLInputFactory xif = XMLInputFactory.newInstance();
@@ -523,6 +531,10 @@ public class FeatureListLoadTask extends AbstractTask {
         final int type = reader.next();
         if (type == XMLEvent.START_ELEMENT && reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
           int id = Integer.parseInt(reader.getAttributeValue(null, idTypeUniqueID));
+          if (restoredIds != null && !restoredIds.add(id)) {
+            throw new IllegalArgumentException(
+                "Cannot load row-dependent normalization with duplicate saved row ID " + id);
+          }
           flist.addRow(new ModularFeatureListRow(flist, id));
         }
       }
@@ -530,6 +542,10 @@ public class FeatureListLoadTask extends AbstractTask {
       logger.log(Level.WARNING, e.getMessage(), e);
       return null;
     }
+
+    // Row-dependent normalization stores factors by persisted row ID. Attach the loaded history
+    // only after every saved ID is restored, so normal allocation safeguards do not renumber rows.
+    flist.getAppliedMethods().addAll(pendingFeatureList.appliedMethods());
 
     logger.finest(
         () -> "Created " + flist.getNumberOfRows() + " rows in feature list " + flist.getName());
@@ -544,7 +560,7 @@ public class FeatureListLoadTask extends AbstractTask {
    * @param storage The storage to use for the feature list.
    * @return The created feature list.
    */
-  private ModularFeatureList readMetadataCreateFeatureList(File file, MemoryMapStorage storage) {
+  private PendingFeatureList readMetadataCreateFeatureList(File file, MemoryMapStorage storage) {
     try {
       final Document configuration = XMLUtils.load(file);
 
@@ -627,7 +643,6 @@ public class FeatureListLoadTask extends AbstractTask {
       flist.setDateCreated(
           metadataElement.getElementsByTagName(CONST.XML_FLIST_DATE_CREATED_ELEMENT).item(0)
               .getTextContent());
-      flist.getAppliedMethods().addAll(appliedMethods);
       selectedScansMap.forEach(flist::setSelectedScans);
 
       final FeatureListAppliedMethod preferredAnnoationSorting = ParameterUtils.getLatestModuleCall(
@@ -642,12 +657,31 @@ public class FeatureListLoadTask extends AbstractTask {
       if (preferences != null) {
         flist.setPreferences(preferences);
       }
-      return flist;
+      return new PendingFeatureList(flist, appliedMethods);
     } catch (XPathExpressionException | ParserConfigurationException | SAXException |
              IOException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
       return null;
     }
+  }
+
+  /** Metadata is retained until saved rows have been restored with their original identities. */
+  private record PendingFeatureList(ModularFeatureList featureList,
+                                    List<FeatureListAppliedMethod> appliedMethods) {}
+
+  private static boolean hasRowDependentNormalization(
+      List<FeatureListAppliedMethod> appliedMethods) {
+    for (int index = appliedMethods.size() - 1; index >= 0; index--) {
+      final FeatureListAppliedMethod method = appliedMethods.get(index);
+      if (!(method.getModule() instanceof IntensityNormalizerModule)) {
+        continue;
+      }
+      final IntensityNormalizationSummary summary = method.getParameters().getValue(
+          IntensityNormalizerParameters.hiddenNormalizationSummary);
+      return summary != null && summary.functions().stream()
+          .anyMatch(RawFileNormalizationFunction::isRowDependent);
+    }
+    return false;
   }
 
   private void parseRow(XMLStreamReader reader, MemoryMapStorage storage, MZmineProject project,

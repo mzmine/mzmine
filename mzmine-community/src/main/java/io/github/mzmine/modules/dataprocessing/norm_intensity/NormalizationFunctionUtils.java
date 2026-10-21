@@ -33,6 +33,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.Interpolatio
 import io.github.mzmine.modules.visualization.projectmetadata.table.InterpolationWeights.SingleInterpolationWeight;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +81,38 @@ public class NormalizationFunctionUtils {
       throw new IllegalStateException("Cannot have more reference functions than in sample batch");
     }
     final List<RawDataFile> referenceFiles = List.copyOf(refFunctions.keySet());
+
+    // Scalar QC normalization is the only reference method with constant factors. Resolve the
+    // native metadata weights here, then let the shared engine calculate the complete stage.
+    if (refFunctions.values().stream().allMatch(FactorNormalizationFunction.class::isInstance)) {
+      final Map<RawDataFile, Double> referenceFactors = new LinkedHashMap<>();
+      refFunctions.forEach((file, function) -> referenceFactors.put(file,
+          ((FactorNormalizationFunction) function).factor()));
+      final Map<RawDataFile, ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile>> interpolations =
+          new LinkedHashMap<>();
+      for (final RawDataFile fileToInterpolate : samplesBatch.getRaws()) {
+        if (refFunctions.containsKey(fileToInterpolate)) {
+          continue;
+        }
+        final InterpolationWeights weights = MetadataTableUtils.extractAcquisitionDateInterpolationWeights(
+            fileToInterpolate, referenceFiles, metadata);
+        final ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile> interpolation = switch (weights) {
+          case SingleInterpolationWeight w -> ScalarQcBatchNormalization.ResolvedInterpolation.single(
+              w.closestRun());
+          case BinaryInterpolationWeights w -> new ScalarQcBatchNormalization.ResolvedInterpolation<>(
+              w.previousRun().file(), w.previousRun().weight(), w.nextRun().file(),
+              w.nextRun().weight());
+          case MultiInterpolationWeights w -> throw new UnsupportedOperationException(
+              "Currently not supported to apply multi point >2 interpolation on qcs");
+        };
+        interpolations.put(fileToInterpolate, interpolation);
+      }
+      final Map<RawDataFile, Double> factors = ScalarQcBatchNormalization.calculateWithinBatchFactors(
+          referenceFactors, interpolations);
+      interpolations.keySet().forEach(file -> summary.addMergeFunction(file,
+          new FactorNormalizationFunction(factors.get(file))));
+      return;
+    }
 
     // Interpolate any files not yet covered (batch-aware path already covers all files).
     for (final RawDataFile fileToInterpolate : samplesBatch.getRaws()) {

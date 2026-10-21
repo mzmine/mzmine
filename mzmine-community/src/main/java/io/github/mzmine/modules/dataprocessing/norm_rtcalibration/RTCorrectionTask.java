@@ -201,6 +201,8 @@ class RTCorrectionTask extends AbstractTask {
       ModularFeatureList normalizedFeatureList, ModularFeatureListRow[] standards,
       double[] normalizedStdRTs) {
 
+    final List<FeatureListRow> sourceRows = new ArrayList<>();
+    final List<ModularFeatureListRow> normalizedRows = new ArrayList<>();
     for (FeatureListRow originalRow : originalFeatureList.getRows()) {
       if (isCanceled()) {
         return;
@@ -208,9 +210,11 @@ class RTCorrectionTask extends AbstractTask {
 
       ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList,
           (ModularFeatureListRow) originalRow, standards, normalizedStdRTs);
-      normalizedFeatureList.addRow(normalizedRow);
+      sourceRows.add(originalRow);
+      normalizedRows.add(normalizedRow);
       processedRows++;
     }
+    normalizedFeatureList.addRowsPreservingIdentity(sourceRows, normalizedRows);
   }
 
   /**

@@ -28,8 +28,10 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.OptionalDouble;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -116,6 +118,20 @@ record CompositeNormalizationFunction(
       factor *= resolved.getAsDouble();
     }
     return OptionalDouble.of(factor);
+  }
+
+  @Override public boolean isRowDependent() {
+    return functions.stream().anyMatch(NormalizationFunction::isRowDependent);
+  }
+
+  @Override public @NotNull Set<Integer> protectedRowIds() {
+    final Set<Integer> ids = new LinkedHashSet<>();
+    functions.forEach(function -> ids.addAll(function.protectedRowIds()));
+    return Set.copyOf(ids);
+  }
+
+  @Override public boolean protectsRowId(final int rowId) {
+    return functions.stream().anyMatch(function -> function.protectsRowId(rowId));
   }
 
   @Override

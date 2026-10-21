@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.mzmine.modules.dataprocessing.norm_intensity.QcBatchNormalization.Sample;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -128,5 +129,24 @@ class QcBatchNormalizationTest {
 
     final double factor = QcBatchNormalization.referenceFactor(15d, 10d);
     assertEquals(factor, new FactorNormalizationFunction(factor).getNormalizationFactor(0d, 0f));
+  }
+
+  @Test
+  void sharedStagesCalculateReferenceInterpolationAndOptionalBatchAlignment() {
+    final Map<String, Double> metrics = new LinkedHashMap<>();
+    metrics.put("qc_1", 10d);
+    metrics.put("qc_2", 20d);
+    final var references = ScalarQcBatchNormalization.calculateReferenceFactors(metrics);
+    final var withinBatch = ScalarQcBatchNormalization.calculateWithinBatchFactors(
+        references.factors(), Map.of("sample", new ScalarQcBatchNormalization.ResolvedInterpolation<>(
+            "qc_1", 1d / 3d, "qc_2", 1d / 3d)));
+
+    assertEquals(15d, references.referenceLevel());
+    assertEquals(.75d, withinBatch.get("sample"));
+    final var scales = ScalarQcBatchNormalization.calculateInterBatchScales(
+        Map.of("A", 15d, "B", 45d), true);
+    assertEquals(30d, scales.interBatchReference());
+    assertEquals(2d, scales.scales().get("A"));
+    assertEquals(2d / 3d, scales.scales().get("B"));
   }
 }

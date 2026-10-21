@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -121,6 +122,8 @@ public class ImsExpanderTask extends AbstractTask {
 
   @Override
   public void run() {
+    NormalizationRowIdentity.requireIdentityPreservingTransformation(flist,
+        "expand ion-mobility traces");
     setStatus(TaskStatus.PROCESSING);
     if (flist.getNumberOfRawDataFiles() != 1 || !(flist.getRawDataFile(
         0) instanceof IMSRawDataFile imsFile)) {
@@ -217,7 +220,7 @@ public class ImsExpanderTask extends AbstractTask {
         f.set(FeatureDataType.class, expandedTrace.series());
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
         row.addFeature(imsFile, f);
-        newFlist.addRow(row);
+        newFlist.addRowPreservingIdentity(expandedTrace.oldRow(), row);
         createdRows++;
       }
     }

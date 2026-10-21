@@ -1,0 +1,21 @@
+import org.gradle.api.tasks.JavaExec
+
+// Invoke from the repository root:
+// ./gradlew --no-daemon -I docs/benchmarks/normalization-persistence.init.gradle \
+//   :mzmine-community:runNormalizationPersistenceBenchmark
+gradle.beforeProject { project ->
+  if (project.path == ':mzmine-community') {
+    ['small': [], 'large': ['--large']].each { label, benchmarkArgs ->
+      project.tasks.register("normalizationPersistence${label.capitalize()}", JavaExec) {
+        dependsOn 'testClasses'
+        classpath = project.sourceSets.test.runtimeClasspath
+        mainClass = 'io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationPersistenceBenchmark'
+        args benchmarkArgs
+        jvmArgs '-Xmx4g'
+      }
+    }
+    project.tasks.register('runNormalizationPersistenceBenchmark') {
+      dependsOn 'normalizationPersistenceSmall', 'normalizationPersistenceLarge'
+    }
+  }
+}

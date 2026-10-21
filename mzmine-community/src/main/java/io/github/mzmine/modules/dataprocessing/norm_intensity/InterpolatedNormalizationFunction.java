@@ -28,6 +28,8 @@ import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.maths.Precision;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.OptionalDouble;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -77,6 +79,20 @@ public record InterpolatedNormalizationFunction(@NotNull NormalizationFunction p
     final OptionalDouble next = nextFunction.getNormalizationFactor(row, mz, rt);
     if (previous.isEmpty() || next.isEmpty()) return OptionalDouble.empty();
     return OptionalDouble.of(previous.getAsDouble() * previousWeight + next.getAsDouble() * nextWeight);
+  }
+
+  @Override public boolean isRowDependent() {
+    return previousFunction.isRowDependent() || nextFunction.isRowDependent();
+  }
+
+  @Override public @NotNull Set<Integer> protectedRowIds() {
+    final Set<Integer> ids = new LinkedHashSet<>(previousFunction.protectedRowIds());
+    ids.addAll(nextFunction.protectedRowIds());
+    return Set.copyOf(ids);
+  }
+
+  @Override public boolean protectsRowId(final int rowId) {
+    return previousFunction.protectsRowId(rowId) || nextFunction.protectsRowId(rowId);
   }
 
   @Override

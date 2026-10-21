@@ -45,6 +45,7 @@ import io.github.mzmine.util.XMLUtils;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -163,6 +164,11 @@ class NormalizationFunctionsParameterTest {
   void hiddenParameterInNormalizerParameterSetPersistsFunctions() throws Exception {
     final IntensityNormalizerParameters parameters = createIntensityParameters("hidden_save",
         AbundanceMeasure.Height, OriginalFeatureListOption.KEEP, List.of(factorFunction));
+    parameters.setParameter(IntensityNormalizerParameters.hiddenReviewedFunctions, true);
+    parameters.setParameter(IntensityNormalizerParameters.hiddenNativeSourceFingerprint,
+        "stable-native-fingerprint");
+    parameters.setParameter(IntensityNormalizerParameters.hiddenSourceRevision,
+        "reviewed-source-revision");
 
     final String xml = ParameterUtils.saveValuesToXMLString(parameters);
     final IntensityNormalizerParameters loaded = createIntensityParameters("placeholder",
@@ -181,6 +187,35 @@ class NormalizationFunctionsParameterTest {
     assertEquals(factorFile.getName(), rawFunc.rawDataFilePlaceholder().getName());
     assertEquals(factorTimestamp, rawFunc.acquisitionTimestamp());
     assertEquals(FACTOR, loadedFactor.getNormalizationFactor(0d, 0f), 1e-12);
+    assertTrue(loaded.getValue(IntensityNormalizerParameters.hiddenReviewedFunctions));
+    assertEquals("stable-native-fingerprint", loaded.getValue(
+        IntensityNormalizerParameters.hiddenNativeSourceFingerprint));
+    assertEquals("reviewed-source-revision", loaded.getValue(
+        IntensityNormalizerParameters.hiddenSourceRevision));
+  }
+
+  @Test
+  void roundtripPreservesTypedFeatureQcProvenanceExactly() throws Exception {
+    final FeatureQcSettings settings = new FeatureQcSettings(.8d, 1, 5, 12d, .4d);
+    final FeatureQcBatchDiagnostic batch = new FeatureQcBatchDiagnostic("batch1", 6, 6, 1d,
+        6d, 0, 6, null, .1d, .05d, 6, .02d, 6, 0, null, .8d, 1.2d,
+        List.of(new FeatureQcFitPoint(1d, Math.log(10d), Math.log(11d))));
+    final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics("solver", "elapsed",
+        "global-log", FeatureQcSettings.METHOD_VERSION, settings, Map.of(3, Math.log(10d)),
+        new FeatureQcAvailability(1, 0, 0, 0, 6, 0), Map.of(3,
+            new FeatureQcRowDiagnostic(3, 6, 6, null, Map.of("batch1", batch))));
+    final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
+    parameter.setValue(new IntensityNormalizationSummary(List.of(), List.of(), List.of(
+        new FeatureQcProvenance("revision", "Area", diagnostics))));
+
+    final Document document = XMLUtils.newDocument();
+    final Element root = document.createElement("normalizationFunctions");
+    document.appendChild(root);
+    parameter.saveValueToXML(root);
+    final NormalizationFunctionsParameter loaded = new NormalizationFunctionsParameter();
+    loaded.loadValueFromXML(root);
+
+    assertEquals(parameter.getValue().featureQc(), loaded.getValue().featureQc());
   }
 
   @Test
