@@ -169,10 +169,11 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
           solutionTable);
       borderPane.setCenter(content);
     } else {
-      // decision: the compact table only holds the estimate and the front, so a fixed height of
-      // roughly two rows plus header and scroll bar leaves the space to the chart
-      solutionTable.setPrefHeight(COMPACT_TABLE_HEIGHT);
-      solutionTable.setMinHeight(COMPACT_TABLE_HEIGHT);
+      // decision: reserve an extra row for the optional initial-settings comparison while keeping
+      // the compact table small enough to leave space for the chart.
+      final double additionalHeight = model.getInitialUserSettingsSolution() != null ? 35d : 0d;
+      solutionTable.setPrefHeight(COMPACT_TABLE_HEIGHT + additionalHeight);
+      solutionTable.setMinHeight(COMPACT_TABLE_HEIGHT + additionalHeight);
       final BorderPane content = new BorderPane(progressChart);
       content.setBottom(solutionTable);
       borderPane.setCenter(content);
@@ -197,18 +198,20 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     buttonBar.getButtons().add(exportButton);
     // decision: only expose actions whose caller supplied an implementation.
     if (openInBatch != null) {
-      final Button button = FxButtons.createButton("Open in batch", FxIcons.BATCH, null, openInBatch);
+      final Button button = FxButtons.createButton("Open in batch", FxIcons.BATCH, null,
+          openInBatch);
       button.disableProperty().bind(noUsableSelection);
       buttonBar.getButtons().add(button);
     }
     if (quickRun != null) {
-      final Button button = FxButtons.createButton("Quick run & annotate", FxIcons.BATCH, null, quickRun);
+      final Button button = FxButtons.createButton("Quick run & annotate", FxIcons.BATCH, null,
+          quickRun);
       button.disableProperty().bind(noUsableSelection);
       buttonBar.getButtons().add(button);
     }
     if (onAcceptPressed != null) {
-      final Button button = FxButtons.createButton("Apply", FxIcons.CHECK_CIRCLE,
-          null, onAcceptPressed);
+      final Button button = FxButtons.createButton("Apply", FxIcons.CHECK_CIRCLE, null,
+          onAcceptPressed);
       button.disableProperty().bind(noUsableSelection);
       buttonBar.getButtons().add(button);
     }
