@@ -33,7 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class BatchExecutionBudget {
 
   private final int maximum;
-  private final AtomicInteger executed = new AtomicInteger();
+  private final AtomicInteger searchExecuted = new AtomicInteger();
+  private final AtomicInteger additionalExecuted = new AtomicInteger();
 
   BatchExecutionBudget(int maximum) {
     if (maximum <= 0) {
@@ -49,16 +50,28 @@ final class BatchExecutionBudget {
    * @throws BatchExecutionLimitReachedException if the complete budget is already reserved
    */
   int reserve() {
-    final int previous = executed.getAndUpdate(
+    final int previous = searchExecuted.getAndUpdate(
         current -> current < maximum ? current + 1 : current);
     if (previous >= maximum) {
       throw new BatchExecutionLimitReachedException(maximum);
     }
-    return previous + 1;
+    return additionalExecuted.get() + previous + 1;
+  }
+
+  /**
+   * Reserves an explicitly requested comparison batch outside the configured estimate and search
+   * budget. It still receives the next physical execution index for diagnostics.
+   */
+  int reserveAdditional() {
+    return searchExecuted.get() + additionalExecuted.incrementAndGet();
   }
 
   int count() {
-    return executed.get();
+    return searchExecuted.get() + additionalExecuted.get();
+  }
+
+  int searchCount() {
+    return searchExecuted.get();
   }
 
   int maximum() {

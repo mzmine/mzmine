@@ -88,21 +88,21 @@ class OptimizationOutcomeQualityTest {
   }
 
   @Test
-  void excludesCurrentBaselineFromTheSearchComparison() {
+  void excludesInitialUserSettingsFromTheSearchComparison() {
     final Solution estimate = solution(6d, true, 10);
     final Solution chosen = solution(6d, true, 12);
     final Solution current = solution(9d, true, 14);
-    SolutionOrigin.CURRENT.applyTo(current);
+    SolutionOrigin.INITIAL_USER_SETTINGS.applyTo(current);
 
     OptimizationOutcomeQuality.assertQuality(estimate, List.of(chosen),
         List.of(estimate, chosen, current));
   }
 
   @Test
-  void rejectsCurrentBaselineInTheReturnedFront() {
+  void rejectsInitialUserSettingsInTheReturnedFront() {
     final Solution estimate = solution(6d, true, 10);
     final Solution current = solution(9d, true, 14);
-    SolutionOrigin.CURRENT.applyTo(current);
+    SolutionOrigin.INITIAL_USER_SETTINGS.applyTo(current);
 
     Assertions.assertThrows(AssertionError.class,
         () -> OptimizationOutcomeQuality.assertQuality(estimate, List.of(current),

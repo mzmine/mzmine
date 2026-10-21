@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
@@ -119,6 +120,21 @@ class WizardOptimizationProblemParameterTest {
   }
 
   @Test
+  void candidateKeepsTheInitialDataSettings() {
+    final WizardSequence sequence = fullSequence();
+    sequence.get(WizardPart.DATA_IMPORT).orElseThrow()
+        .setParameter(DataImportWizardParameters.extractMetadata, true);
+    final ParameterEstimationContext context = ParameterEstimationTestData.context(sequence);
+    final WizardOptimizationProblem problem = problem(context, PreparedParameterSet.prepare(context),
+        List.of(ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT));
+
+    final WizardSequence candidate = problem.createWizardSequenceFromSolution(problem.newSolution());
+
+    Assertions.assertTrue(candidate.get(WizardPart.DATA_IMPORT).orElseThrow()
+        .getValue(DataImportWizardParameters.extractMetadata));
+  }
+
+  @Test
   void noPolarityFilterKeepsTheWizardIonMode() {
     final ParameterEstimationContext context = context();
     final WizardOptimizationProblem problem = problem(context,
@@ -133,7 +149,7 @@ class WizardOptimizationProblemParameterTest {
   }
 
   @Test
-  void completedBatchProgressIncludesCurrentButExcludesCachedAndFailedEvaluations() {
+  void completedBatchProgressIncludesInitialUserSettingsOutsideTheSearchBudget() {
     final ParameterEstimationContext context = context();
     try (final var evaluators = mockConstruction(OptimizationBatchEvaluator.class,
         (evaluator, _) -> when(evaluator.evaluate(any(), any(), anyBoolean(), any()))
@@ -145,22 +161,31 @@ class WizardOptimizationProblemParameterTest {
       problem.evaluate(estimate);
       Assertions.assertEquals(1, problem.getCompletedBatchExecutionCount());
 
-      problem.evaluateCurrentSequence(fullSequence());
+      problem.evaluateInitialUserSettings(fullSequence());
       Assertions.assertEquals(2, problem.getCompletedBatchExecutionCount());
       Assertions.assertEquals(2, problem.getBatchExecutionCount());
       Assertions.assertEquals(1, problem.getEvaluatedSolutions().size(),
-          "Current remains separate from optimizer observations");
+          "Initial user settings remain separate from optimizer observations");
+      Assertions.assertThrows(IllegalStateException.class,
+          () -> problem.evaluateInitialUserSettings(fullSequence()));
+      Assertions.assertEquals(2, problem.getBatchExecutionCount());
 
       problem.evaluate(problem.newSolution());
-      Assertions.assertEquals(2, problem.getCompletedBatchExecutionCount());
+      Assertions.assertEquals(2, problem.getCompletedBatchExecutionCount(),
+          "A cached estimate does not execute another batch");
       Assertions.assertEquals(2, problem.getBatchExecutionCount());
+      Assertions.assertEquals(1, problem.getSearchBatchExecutionCount());
 
       doAnswer(invocation -> {
         invocation.<IntSupplier>getArgument(3).getAsInt();
         throw new IllegalStateException("Failed trial");
       }).when(evaluators.constructed().getFirst()).evaluate(any(), any(), anyBoolean(), any());
+      final Solution failedTrial = problem.newSolution();
+      final var variable = (org.moeaframework.core.variable.RealVariable) failedTrial.getVariable(0);
+      variable.setValue(variable.getValue() == variable.getUpperBound()
+          ? variable.getLowerBound() : variable.getUpperBound());
       Assertions.assertThrows(IllegalStateException.class,
-          () -> problem.evaluateCurrentSequence(fullSequence()));
+          () -> problem.evaluate(failedTrial));
       Assertions.assertEquals(2, problem.getCompletedBatchExecutionCount());
       Assertions.assertEquals(3, problem.getBatchExecutionCount());
     }
@@ -172,6 +197,7 @@ class WizardOptimizationProblemParameterTest {
     final ParameterSet parameters = OptimizerParameters.create(
         List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE), 30);
     parameters.setParameter(OptimizerParameters.paramToOptimize, selected);
+    parameters.setParameter(OptimizerParameters.evaluateInitialUserSettings, true);
     return new WizardOptimizationProblem(context, prepared, parameters,
         new AtomicReference<>(TaskStatus.PROCESSING), 30, () -> false);
   }

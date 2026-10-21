@@ -3,6 +3,8 @@
  */
 package io.github.mzmine.gui;
 
+import static io.github.mzmine.javafx.concurrent.threading.FxThread.requireFxThread;
+
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -457,10 +459,4 @@ public final class DashboardNavigation {
         || tab.getAlignedFeatureLists().contains(featureList);
   }
 
-  private static void requireFxThread() {
-    if (!javafx.application.Platform.isFxApplicationThread()) {
-      throw new IllegalStateException(
-          "DashboardNavigation must be called on the JavaFX application thread; use FxThread.runLater");
-    }
-  }
 }

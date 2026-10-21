@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataTask;
@@ -32,7 +33,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMeta
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -40,7 +40,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import java.io.File;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 public class AllSpectralDataImportMainTask extends AbstractTask {
 
   private final ThreadPoolTask mainImportTask;
+  private final MZmineProject project;
   private final List<? extends Task> importTasks;
   private final File metadataFile;
   private final ParameterSet parameters;
@@ -55,17 +58,17 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   private final ParameterSet extractMetadataParameters;
   private final boolean sortAndRecolor;
   private final Set<RawDataFile> baselineRawDataFiles;
+  private final Set<RawDataFile> reusedRawDataFiles;
+  private final int requestedRawDataFileCount;
   private final List<? extends Task> rawDataImportTasks;
   private volatile @Nullable Task currentFollowupTask;
 
-  public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
+  public AllSpectralDataImportMainTask(final @NotNull MZmineProject project,
+      final @NotNull List<? extends Task> tasks,
+      final @NotNull List<? extends Task> rawDataImportTasks,
       final @NotNull ParameterSet parameters) {
-    this(tasks, List.of(), parameters);
-  }
-
-  public AllSpectralDataImportMainTask(final @NotNull List<? extends Task> tasks,
-      final @NotNull List<? extends Task> rawDataImportTasks, final @NotNull ParameterSet parameters) {
     super(Instant.now(), "Main data import task");
+    this.project = project;
     importTasks = List.copyOf(tasks);
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
     metadataFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
@@ -74,7 +77,12 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
         AllSpectralDataImportParameters.extractMetadata, null);
     sortAndRecolor = parameters.getValue(AllSpectralDataImportParameters.sortAndRecolor);
     this.parameters = parameters;
-    baselineRawDataFiles = Set.copyOf(ProjectService.getProject().getCurrentRawDataFiles());
+    baselineRawDataFiles = Set.copyOf(project.getCurrentRawDataFiles());
+    reusedRawDataFiles = Set.copyOf(AllSpectralDataImportParameters.getLoadedRawDataFiles(project,
+        parameters));
+    requestedRawDataFileCount = (int) Arrays.stream(
+            parameters.getValue(AllSpectralDataImportParameters.fileNames))
+        .filter(Objects::nonNull).count();
     this.rawDataImportTasks = List.copyOf(rawDataImportTasks);
   }
 
@@ -137,7 +145,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
 
   private ColorByMetadataTask recolorBlanksAndQcs() {
     List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-        ProjectService.getProject(), parameters);
+        project, parameters);
 
     ColorByMetadataTask task = new ColorByMetadataTask(moduleCallDate,
         ColorByMetadataParameters.createDefault(loaded), AllSpectralDataImportModule.class);
@@ -154,7 +162,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
 
   private Task extractMetadata() {
     final List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-        ProjectService.getProject(), parameters);
+        project, parameters);
     final RawDataFile[] files = loaded.toArray(RawDataFile[]::new);
     final Task extractTask = SampleMetadataExtractionParameters.createTaskWithDataFiles(
         extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class, files);
@@ -175,18 +183,19 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   }
 
   /** Actual raw files added while this native import task was running. */
-  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
-    return AllSpectralDataImportParameters.getLoadedRawDataFiles(ProjectService.getProject(), parameters).stream()
+  public @NotNull List<RawDataFile> getNewlyImportedRawDataFiles() {
+    return AllSpectralDataImportParameters.getLoadedRawDataFiles(project, parameters).stream()
         .filter(raw -> !baselineRawDataFiles.contains(raw)).toList();
   }
 
   /** Bounded measured import counts for the prepared native import. */
   public @NotNull ImportOutcome getImportOutcome() {
-    final int selected = rawDataImportTasks.size();
-    final int imported = getImportedRawDataFiles().size();
+    final int selected = requestedRawDataFileCount;
+    final int reused = reusedRawDataFiles.size();
+    final int imported = getNewlyImportedRawDataFiles().size();
     final int failed = (int) rawDataImportTasks.stream()
         .filter(task -> task.getStatus() == TaskStatus.ERROR).count();
-    return new ImportOutcome(selected, imported, failed);
+    return new ImportOutcome(selected, reused, imported, failed);
   }
 
   private void runFollowupTask(final @NotNull Task task) {
@@ -198,7 +207,8 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     }
   }
 
-  public record ImportOutcome(int selectedRawFileCount, int importedRawFileCount,
+  public record ImportOutcome(int selectedRawFileCount, int reusedRawFileCount,
+                              int importedRawFileCount,
                               int failedRawFileCount) {
   }
 

@@ -33,6 +33,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchDo
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.RealVariable;
@@ -41,6 +42,13 @@ import org.moeaframework.core.variable.RealVariable;
  * The only parameter binding that knows about an optimizer vector index.
  */
 public record IndexedParameter<T>(@NotNull PreparedParameter<T> parameter, int index) {
+
+  /**
+   * Per-parameter display values for a non-vector comparison row. The initial-user-settings
+   * baseline intentionally has no optimizer variables, because it is not a candidate that can be
+   * applied or ranked.
+   */
+  public static final String ATTR_DISPLAY_VALUES = "_optimizerDisplayValues";
 
   public IndexedParameter {
     if (index < 0) {
@@ -90,7 +98,23 @@ public record IndexedParameter<T>(@NotNull PreparedParameter<T> parameter, int i
   }
 
   public @NotNull String formatValue(@NotNull Solution solution) {
+    final Object displayValues = solution.getAttribute(ATTR_DISPLAY_VALUES);
+    if (displayValues instanceof Map<?, ?> values) {
+      final Object displayValue = values.get(parameter.definition().id());
+      if (displayValue instanceof String value) {
+        return value;
+      }
+    }
     return parameter.searchDomain().format(value(solution));
+  }
+
+  /**
+   * Formats an effective native parameter value with the same domain formatter as optimizer
+   * values, without encoding or constraining it first.
+   */
+  @SuppressWarnings("unchecked")
+  public @NotNull String formatNativeValue(@NotNull Object value) {
+    return parameter.searchDomain().format((T) value);
   }
 
   public void applyToWizard(@NotNull Solution solution, @NotNull WizardSequence sequence) {

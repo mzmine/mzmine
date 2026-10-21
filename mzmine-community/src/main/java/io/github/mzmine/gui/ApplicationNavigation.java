@@ -3,13 +3,14 @@
  */
 package io.github.mzmine.gui;
 
+import static io.github.mzmine.javafx.concurrent.threading.FxThread.requireFxThread;
+
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.util.FeatureTableFXUtil;
-import javafx.application.Platform;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.jetbrains.annotations.NotNull;
@@ -86,10 +87,8 @@ public final class ApplicationNavigation {
         }
       }
     }
+    // Request focus once. A deferred retry could steal focus after the user has switched away.
     focusWindowNow(window);
-    Platform.runLater(() -> {
-      if (window.isShowing()) focusWindowNow(window);
-    });
   }
 
   private static void focusWindowNow(final @NotNull Window window) {
@@ -100,10 +99,4 @@ public final class ApplicationNavigation {
     window.requestFocus();
   }
 
-  private static void requireFxThread() {
-    if (!Platform.isFxApplicationThread()) {
-      throw new IllegalStateException(
-          "ApplicationNavigation must be called on the JavaFX application thread; use FxThread.runLater");
-    }
-  }
 }

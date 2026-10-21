@@ -103,8 +103,8 @@ public final class NativeImportSelection {
     }
 
     /** Actual raw files added by this prepared import, never files from another import or project. */
-    public @NotNull List<RawDataFile> getImportedRawDataFiles() {
-      return mainTask().map(AllSpectralDataImportMainTask::getImportedRawDataFiles)
+    public @NotNull List<RawDataFile> getNewlyImportedRawDataFiles() {
+      return mainTask().map(AllSpectralDataImportMainTask::getNewlyImportedRawDataFiles)
           .orElse(List.of());
     }
 
