@@ -104,10 +104,19 @@ public class OptimizerParameters extends SimpleParameterSet {
       If disabled, only the raw data estimate and the current best solutions are shown with their \
       parameter values and optimization targets.""", false);
 
+  public static final BooleanParameter evaluateInitialUserSettings = new BooleanParameter(
+      "Evaluate initial user settings", """
+      Runs one additional full batch using the wizard settings captured before estimation and \
+      optimization. It is shown as a separate comparison baseline and is never ranked as an \
+      optimized solution.
+
+      This additional batch does not consume the configured iteration budget, which remains \
+      reserved for the raw-data estimate and the optimizer search.""", false);
+
   public OptimizerParameters() {
     // decision: the optional benchmark features are grouped at the bottom
     super(optimizers, iterations, maxShapeRejectionFactor, paramToOptimize, showExtendedStatistics,
-        benchmarkFeatures);
+        evaluateInitialUserSettings, benchmarkFeatures);
   }
 
   /**
@@ -135,6 +144,7 @@ public class OptimizerParameters extends SimpleParameterSet {
     param.setParameter(maxShapeRejectionFactor, false);
     param.setParameter(paramToOptimize, new ArrayList<>(DEFAULT_SOLUTIONS));
     param.setParameter(showExtendedStatistics, false);
+    param.setParameter(evaluateInitialUserSettings, false);
     return param;
   }
 
@@ -158,6 +168,8 @@ public class OptimizerParameters extends SimpleParameterSet {
     param.setParameter(paramToOptimize,
         new ArrayList<>(simpleParameters.getValue(SimpleOptimizerParameters.paramToOptimize)));
     param.setParameter(showExtendedStatistics, false);
+    // decision: the simple setup keeps the optional comparison off to avoid an extra batch.
+    param.setParameter(evaluateInitialUserSettings, false);
     return param;
   }
 

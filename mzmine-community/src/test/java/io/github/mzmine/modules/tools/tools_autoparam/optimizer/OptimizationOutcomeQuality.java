@@ -51,8 +51,8 @@ final class OptimizationOutcomeQuality {
     Assertions.assertFalse(front.isEmpty(), "optimization returned an empty front");
     front.forEach(solution -> {
       Assertions.assertTrue(solution.isFeasible(), "front contains an infeasible solution");
-      Assertions.assertNotEquals(SolutionOrigin.CURRENT, SolutionOrigin.of(solution),
-          "front contains the Current baseline");
+      Assertions.assertNotEquals(SolutionOrigin.INITIAL_USER_SETTINGS, SolutionOrigin.of(solution),
+          "front contains the initial-user-settings baseline");
       assertResult(solution, "front solution");
     });
 
@@ -74,7 +74,7 @@ final class OptimizationOutcomeQuality {
   }
 
   private static boolean isEligible(final @NotNull Solution solution) {
-    return SolutionOrigin.of(solution) != SolutionOrigin.CURRENT && solution.isFeasible()
+    return SolutionOrigin.of(solution) != SolutionOrigin.INITIAL_USER_SETTINGS && solution.isFeasible()
         && solution.getNumberOfObjectives() == 1 && hasFiniteScores(solution)
         && hasFeatures(solution);
   }

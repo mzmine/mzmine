@@ -457,27 +457,19 @@ public class RowsFilterTask extends AbstractTask {
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class,
-            createAppliedMethodParameters(), getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(getAppliedMethodDescription(), RowsFilterModule.class,
+            parameters, getModuleCallDate()));
 
     return newFeatureList;
   }
 
-  /**
-   * Creates a provenance snapshot without changing the parameter set shared by other queued row
-   * filter tasks. The configured metadata group remains available as user input, while the hidden
-   * value records exactly which files it resolved to for this result.
-   */
-  private @NotNull ParameterSet createAppliedMethodParameters() {
-    final ParameterSet appliedParameters = parameters.cloneParameterSet(true);
-    final RsdFilterParameters appliedRsdParameters = appliedParameters.getParameter(
-        RowsFilterParameters.cvFilter).getEmbeddedParameters();
+  /** Records the configured RSD grouping without claiming to preserve its resolved membership. */
+  private @NotNull String getAppliedMethodDescription() {
     if (cvFilter == null) {
-      appliedRsdParameters.clearResolvedGroupDataFiles();
-    } else {
-      appliedRsdParameters.recordResolvedGroupDataFiles(cvFilter.getGroupDataFiles());
+      return getTaskDescription();
     }
-    return appliedParameters;
+    return "%s (RSD group: \"%s\" in metadata column \"%s\")".formatted(getTaskDescription(),
+        cvFilter.group().groupStr(), cvFilter.group().columnName());
   }
 
   /**

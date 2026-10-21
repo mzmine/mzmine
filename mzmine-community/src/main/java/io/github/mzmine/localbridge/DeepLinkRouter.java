@@ -59,7 +59,6 @@ public final class DeepLinkRouter {
     }
   }
 
-  /** Finds mzmine URLs in launcher arguments without interpreting any other command-line option. */
   /**
    * Captures OS protocol launches before ordinary CLI parsing. External clients use
    * {@code mzmine://app/connection} to open the native connection screen, and navigation links to
@@ -152,7 +151,9 @@ public final class DeepLinkRouter {
     }
   }
 
-  /** Strictly parses mzmine://navigate/&lt;instance&gt;/&lt;project&gt;/&lt;destination&gt;[/&lt;id&gt;]. */
+  /**
+   * Strictly parses {@code mzmine://navigate/<instance>/<project>/<destination>[/<id>]}.
+   */
   public static @NotNull DeepLink parse(final @NotNull String value) {
     if (value.length() > 256) {
       throw new IllegalArgumentException("mzmine deep-link URI exceeds the maximum length");

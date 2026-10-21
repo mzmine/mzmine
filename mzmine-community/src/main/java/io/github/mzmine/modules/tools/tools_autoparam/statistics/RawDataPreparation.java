@@ -34,6 +34,10 @@ import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -212,5 +216,70 @@ public final class RawDataPreparation {
         .toArray(File[]::new);
     final File[] candidates = nonBlankFiles.length > 3 ? nonBlankFiles : allFiles;
     return CollectionUtils.selectRandomElements(List.of(candidates), 10).toArray(File[]::new);
+  }
+
+  /**
+   * Selects raw-data input for native analysis from a wizard Data Import step without changing the
+   * wizard's full data selection.
+   *
+   * @param sequence             wizard sequence containing the Data Import step
+   * @param minimumAnalysisFiles minimum number of files required by the caller
+   * @param selectionMode        whether to use the representative set or every selected file
+   * @return immutable snapshots of the Data Import files, analysis files, and metadata file
+   * @throws IllegalArgumentException if {@code minimumAnalysisFiles} is less than one
+   * @throws IllegalStateException    if the Data Import step or required input is unavailable
+   */
+  public static @NotNull WizardAnalysisInput selectWizardAnalysisInput(
+      @NotNull WizardSequence sequence, final int minimumAnalysisFiles,
+      @NotNull AnalysisInputSelectionMode selectionMode) {
+    if (minimumAnalysisFiles < 1) {
+      throw new IllegalArgumentException("Minimum analysis files must be at least one.");
+    }
+    final WizardStepParameters importStep = sequence.get(WizardPart.DATA_IMPORT).orElseThrow(
+        () -> new IllegalStateException("The wizard has no data import step."));
+    final File[] dataFiles = importStep.getValue(DataImportWizardParameters.fileNames);
+    if (dataFiles == null || dataFiles.length == 0) {
+      throw new IllegalStateException("Select at least one raw data file in the Data Import step first.");
+    }
+    if (Arrays.stream(dataFiles).anyMatch(Objects::isNull)) {
+      throw new IllegalStateException("The Data Import step contains an invalid raw data file.");
+    }
+    final File[] analysisFiles = switch (selectionMode) {
+      case REPRESENTATIVE -> selectOptimizerInputFiles(dataFiles);
+      case ALL -> dataFiles;
+    };
+    if (analysisFiles.length < minimumAnalysisFiles) {
+      throw new IllegalStateException("""
+          This requires at least %d raw data files. Those data files need to be comparable (same \
+          instrument, same method, similar or same sample).""".formatted(minimumAnalysisFiles));
+    }
+    final File metadataFile = importStep.getOptionalValue(DataImportWizardParameters.metadataFile)
+        .orElse(null);
+    return new WizardAnalysisInput(dataFiles, analysisFiles, metadataFile);
+  }
+
+  /** Selection strategy for wizard raw-data analysis. */
+  public enum AnalysisInputSelectionMode {
+    REPRESENTATIVE, ALL
+  }
+
+  /** Immutable snapshots of the complete Data Import selection and its analysis subset. */
+  public record WizardAnalysisInput(File @NotNull [] dataFiles, File @NotNull [] analysisFiles,
+                                    @Nullable File metadataFile) {
+
+    public WizardAnalysisInput {
+      dataFiles = dataFiles.clone();
+      analysisFiles = analysisFiles.clone();
+    }
+
+    @Override
+    public File @NotNull [] dataFiles() {
+      return dataFiles.clone();
+    }
+
+    @Override
+    public File @NotNull [] analysisFiles() {
+      return analysisFiles.clone();
+    }
   }
 }

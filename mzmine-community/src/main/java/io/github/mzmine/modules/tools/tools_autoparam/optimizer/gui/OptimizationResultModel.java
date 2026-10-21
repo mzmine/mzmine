@@ -36,6 +36,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -55,10 +57,12 @@ public class OptimizationResultModel {
   private final ObjectProperty<@Nullable Solution> selectedSolution = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable Solution> preferredFrontSolution = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable Solution> singlePassSolution = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable Solution> initialUserSettingsSolution = new SimpleObjectProperty<>();
   private final IntegerProperty preferredSortObjectiveIndex = new SimpleIntegerProperty(0);
   private final BooleanProperty optimizationRunning = new SimpleBooleanProperty(true);
   private final BooleanProperty stopSearchRequested = new SimpleBooleanProperty(false);
   private final IntegerProperty completedBatchExecutions = new SimpleIntegerProperty(0);
+  private final StringProperty terminalResultDescription = new SimpleStringProperty();
 
   /**
    * Shows all evaluated solutions and their diagnostic attributes instead of only the estimate and
@@ -154,6 +158,18 @@ public class OptimizationResultModel {
     return singlePassSolution;
   }
 
+  /**
+   * Optional separately evaluated initial user settings. It is displayed for comparison but never
+   * belongs to the optimizer front or its selectable candidates.
+   */
+  public @Nullable Solution getInitialUserSettingsSolution() {
+    return initialUserSettingsSolution.get();
+  }
+
+  public @NotNull ObjectProperty<@Nullable Solution> initialUserSettingsSolutionProperty() {
+    return initialUserSettingsSolution;
+  }
+
   public boolean isOptimizationRunning() {
     return optimizationRunning.get();
   }
@@ -179,6 +195,15 @@ public class OptimizationResultModel {
    */
   public @NotNull IntegerProperty completedBatchExecutionsProperty() {
     return completedBatchExecutions;
+  }
+
+  /** Null after successful completion; otherwise identifies the terminal task state in the UI. */
+  public @Nullable String getTerminalResultDescription() {
+    return terminalResultDescription.get();
+  }
+
+  public @NotNull StringProperty terminalResultDescriptionProperty() {
+    return terminalResultDescription;
   }
 
   public @NotNull ObservableList<Solution> getDisplayedSolutions() {

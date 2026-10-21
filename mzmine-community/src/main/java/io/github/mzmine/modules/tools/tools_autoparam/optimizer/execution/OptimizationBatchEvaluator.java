@@ -99,7 +99,7 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
     this.externalStatus = externalStatus;
   }
 
-  private @NotNull BatchQueue createEvaluationQueue(final @NotNull WizardSequence sequence) {
+  @NotNull BatchQueue createEvaluationQueue(final @NotNull WizardSequence sequence) {
     final WorkflowWizardParameterFactory workflow = (WorkflowWizardParameterFactory) sequence.get(
         WizardPart.WORKFLOW).orElseThrow().getFactory();
 
@@ -108,15 +108,15 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
         .setParameter(DataImportWizardParameters.fileNames, files);
 
     final BatchQueue queue = workflow.getBatchBuilder(sequence).createQueue();
-    queue.removeIf(step -> isPostProcessingModule(step.getModule())
-        || step.getModule() instanceof AutoSaveBatchModule);
+    queue.removeIf(step -> isPostProcessingModule(step.getModule()));
     // decision: match runBatchQueue after wizard overrides; metadata was imported during preparation.
     if (!queue.setImportFiles(files, null, null)) {
       throw new IllegalStateException("Could not set the optimization batch input files");
     }
-    if (!BatchUtils.confirmModuleOrderWarnings(queue)) {
+    final String processingOrderWarning = BatchUtils.checkModuleOrder(queue);
+    if (processingOrderWarning != null) {
       throw new IllegalStateException(
-          "Optimization batch was not started because processing-order warnings were declined");
+          "Optimization batch has invalid processing order:\n" + processingOrderWarning);
     }
     return queue;
   }
@@ -126,7 +126,7 @@ final class OptimizationBatchEvaluator implements AutoCloseable {
         || module instanceof CorrelateGroupingModule || module instanceof IonNetworkingModule
         || module instanceof LipidAnnotationModule || module instanceof SpectralLibrarySearchModule
         || module instanceof MainSpectralNetworkingModule || module instanceof IsotopeGrouperModule
-        || module instanceof CompoundGrouperModule;
+        || module instanceof CompoundGrouperModule || module instanceof AutoSaveBatchModule;
   }
 
   private void waitForBatchToExitLocked() {

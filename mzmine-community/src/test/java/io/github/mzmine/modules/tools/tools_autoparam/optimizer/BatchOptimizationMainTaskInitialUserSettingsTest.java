@@ -21,31 +21,43 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
+import io.github.mzmine.main.MZmineCore;
 import java.util.List;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.moeaframework.core.Solution;
 
-class BatchOptimizationMainTaskCurrentBaselineTest {
+class BatchOptimizationMainTaskInitialUserSettingsTest {
+
+  @BeforeAll
+  static void initializeConfiguration() {
+    MZmineCore.getConfiguration().getPreferences();
+  }
 
   @Test
-  void skippedCurrentReusesTheEstimateScoreButNeverEntersTheSearchFront() {
-    final Solution estimate = new Solution(0, 1);
+  void simpleOptimizerSetupDoesNotSpendAnExtraBaselineBatch() {
+    final OptimizerParameters parameters = OptimizerParameters.create(
+        new SimpleOptimizerParameters());
+
+    assertFalse(parameters.getValue(OptimizerParameters.evaluateInitialUserSettings));
+  }
+
+  @Test
+  void retainsCompletedObservationsWhenTheOptimizerStopsAtTheBatchBoundary() {
+    final Solution estimate = new Solution(0, 2);
     estimate.setObjectiveValue(0, 42d);
-    SolutionOrigin.ESTIMATE.applyTo(estimate);
+    estimate.setObjectiveValue(1, 10d);
+    final Solution completedObservation = new Solution(0, 2);
+    completedObservation.setObjectiveValue(0, 43d);
+    completedObservation.setObjectiveValue(1, 9d);
 
-    final Solution current = BatchOptimizationMainTask.skippedCurrentSolution(estimate);
-    final var front = BatchOptimizationMainTask.createSearchFront(List.of(estimate, current),
-        List.of(current));
+    final var front = BatchOptimizationMainTask.createSearchFront(List.of(estimate),
+        List.of(completedObservation));
 
-    assertEquals(SolutionOrigin.CURRENT, SolutionOrigin.of(current));
-    assertEquals(42d, current.getObjectiveValue(0));
-    assertTrue(current.getAttribute("Current baseline skipped") instanceof Boolean);
-    assertEquals(1, front.size());
-    assertSame(estimate, front.get(0));
-    assertFalse(front.contains(current));
+    assertEquals(2, front.size());
+    assertTrue(front.contains(estimate));
+    assertTrue(front.contains(completedObservation));
   }
 }

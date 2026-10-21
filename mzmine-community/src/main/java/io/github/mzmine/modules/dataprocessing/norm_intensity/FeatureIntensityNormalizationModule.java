@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Arrays;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,7 +68,7 @@ public final class FeatureIntensityNormalizationModule extends
     final double[] abundances = featureList.stream().map(r -> (ModularFeature) r.getFeature(file))
         .filter(Objects::nonNull)
         .mapToDouble(feature -> abundanceMeasure.getOrNaN(feature, existingNormFunction))
-        .filter(d -> !Double.isNaN(d)).toArray();
+        .filter(Double::isFinite).toArray();
 
     if (abundances.length == 0) {
       throw new IllegalStateException(
@@ -75,7 +76,7 @@ public final class FeatureIntensityNormalizationModule extends
               featureList.getName()));
     }
 
-    final double result = QcBatchNormalization.metric(abundances, mode);
+    final double result = calculateNormalizationMetric(abundances, mode);
 
     if (!Double.isFinite(result) || Double.compare(result, 0d) == 0) {
       throw new IllegalStateException(
@@ -84,5 +85,21 @@ public final class FeatureIntensityNormalizationModule extends
     }
 
     return result;
+  }
+
+  /**
+   * Calculates the file metric used by feature-intensity normalization.
+   *
+   * <p>Non-finite abundances are unavailable measurements. Returning {@link Double#NaN} for no
+   * usable abundance lets callers retain their context-specific error handling.
+   */
+  public static double calculateNormalizationMetric(final double @NotNull [] abundances,
+      @NotNull final FeatureIntensityNormalizationMode mode) {
+    final double[] finiteAbundances = Arrays.stream(abundances).filter(Double::isFinite).toArray();
+    if (finiteAbundances.length == 0) {
+      return Double.NaN;
+    }
+
+    return QcBatchNormalization.metric(finiteAbundances, mode);
   }
 }

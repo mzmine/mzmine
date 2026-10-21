@@ -49,7 +49,7 @@ public enum SolutionOrigin {
    * The user's unmodified wizard settings, evaluated as the review baseline. This is deliberately
    * not a search candidate and therefore never participates in optimizer ranking.
    */
-  CURRENT("Current"),
+  INITIAL_USER_SETTINGS("Initial user settings"),
 
   /**
    * A Gaussian perturbation around the estimate, injected into the initial population.
