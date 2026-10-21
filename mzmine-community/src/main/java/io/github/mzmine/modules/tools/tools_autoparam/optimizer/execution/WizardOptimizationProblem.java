@@ -363,6 +363,9 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     return initial;
   }
 
+  /**
+   * Snapshots display values only for the initial user batch comparison, not optimizer candidates.
+   */
   private @NotNull Map<String, String> initialUserSettingsDisplayValues(
       @NotNull WizardSequence initialUserSettings) {
     final Map<String, String> values = new LinkedHashMap<>();
@@ -390,6 +393,9 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     return batchEvaluator.createEvaluationQueue(copyForEvaluation(initialUserSettings));
   }
 
+  /**
+   * Formats an effective batch parameter only for the initial user batch comparison.
+   */
   private static @NotNull String effectiveBatchParameterValue(@NotNull IndexedParameter<?> indexed,
       @NotNull BatchQueue queue, @NotNull BatchParameterDefinition<?> definition) {
     final List<ParameterSet> matching = queue.stream()
