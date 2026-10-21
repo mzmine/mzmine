@@ -71,6 +71,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupabletreeview.FeatureListByMetadataStrategy;
 import io.github.mzmine.util.javafx.groupabletreeview.FeatureListByProcessingStepStrategy;
@@ -642,7 +643,7 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
 
     // show message that temp folder should be setup
     if (preferences.getValue(MZminePreferences.showTempFolderAlert)) {
-      File tmpPath = preferences.getValue(MZminePreferences.tempDirectory);
+      File tmpPath = FileAndPathUtil.getTempDir();
       File userDir = FileUtils.getUserDirectory();
       if (tmpPath == null || !tmpPath.exists() || tmpPath.getAbsolutePath().toLowerCase()
           .contains("users") || tmpPath.equals(userDir)) {
