@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.gui.DesktopService;
@@ -36,6 +37,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.timing.HeapMeasurementQuality;
 import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.nio.file.Files;
@@ -45,11 +47,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TabPane;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -101,6 +106,71 @@ class ResourceEstimationJavaFxTest {
     ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file.toFile());
   }
 
+  private static BatchResourceEstimationResultTab createTab(final EstimationSession session,
+      final BatchResourceModel model) throws Exception {
+    final var constructor = BatchResourceEstimationResultTab.class.getDeclaredConstructor(
+        EstimationSession.class, BatchResourceModel.class, ParameterSet.class);
+    constructor.setAccessible(true);
+    return constructor.newInstance(session, model, new BatchResourceEstimationParameters());
+  }
+
+  @Test
+  void additionalRunsValidateTheirSizeAndAdvanceAfterCompletion() throws Exception {
+    onFxThread(() -> {
+      final List<SubsetRun> runs = List.of(run(6), run(12), run(24));
+      final List<StepScalingMode> modes = List.of(StepScalingMode.SCALES_WITH_FILES);
+      final SubsetRunner runner = new SubsetRunner(new BatchQueue(), List.of(), null, 1,
+          new GlobalProjectProvider());
+      final EstimationSession session = new EstimationSession(runner, modes, 16, runs, run(48),
+          List.of());
+      final BatchResourceEstimationResultTab tab = createTab(session, model());
+      new TabPane(tab);
+      final BorderPane root = (BorderPane) tab.getContent();
+      final HBox input = (HBox) ((VBox) root.getTop()).getChildren().get(1);
+      final IntegerComponent estimateFiles = (IntegerComponent) input.getChildren().get(1);
+      final IntegerComponent runFiles = (IntegerComponent) input.getChildren().get(4);
+      final Button runButton = (Button) input.getChildren().get(5);
+      assertEquals("96", runFiles.getText());
+      ((EstimationOutcomePane) ((VBox) root.getTop()).getChildren().getFirst()).setOutcome(
+          new EstimationOutcome(EstimationVerdict.ENOUGH_RESOURCES, List.of(), null));
+      assertFalse(runButton.isDisabled());
+      for (final String invalid : List.of("", "0", "48", "641")) {
+        runFiles.setText(invalid);
+        assertTrue(runButton.isDisabled(), invalid);
+      }
+      runFiles.setText("100");
+      assertFalse(runButton.isDisabled());
+      estimateFiles.valueProperty().setValue(200);
+      assertEquals("100", runFiles.getText(), "Changing the prediction must preserve run input");
+
+      final var runningField = BatchResourceEstimationResultTab.class.getDeclaredField(
+          "largerRunRunning");
+      runningField.setAccessible(true);
+      final BooleanProperty running = (BooleanProperty) runningField.get(tab);
+      running.set(true);
+      assertTrue(runButton.isDisabled());
+      assertTrue(runFiles.isDisabled());
+      running.set(false);
+      assertFalse(runButton.isDisabled());
+
+      final var setResult = BatchResourceEstimationResultTab.class.getDeclaredMethod("setResult",
+          EstimationSession.class, BatchResourceModel.class);
+      setResult.setAccessible(true);
+      final EstimationSession extended = session.withExtension(run(400));
+      setResult.invoke(tab, extended,
+          BatchResourceModel.fit(runs, run(48), extended.extensionRuns(), modes, 640, 16));
+      assertEquals("640", runFiles.getText(), "Default is capped at the batch size");
+      assertFalse(runButton.isDisabled());
+      assertEquals(200, estimateFiles.valueProperty().getValue());
+      final EstimationSession complete = extended.withExtension(run(640));
+      setResult.invoke(tab, complete,
+          BatchResourceModel.fit(runs, run(48), complete.extensionRuns(), modes, 640, 16));
+      assertTrue(runButton.isDisabled());
+      assertTrue(runFiles.isDisabled());
+      return null;
+    });
+  }
+
   @Test
   void hatchingDoesNotClipLaterDrawingOnTheJavaFxCanvas() throws Exception {
     onFxThread(() -> {
@@ -139,11 +209,7 @@ class ResourceEstimationJavaFxTest {
           new GlobalProjectProvider());
       final EstimationSession session = new EstimationSession(runner, modes, 16, runs, run(48),
           List.of());
-      final var constructor = BatchResourceEstimationResultTab.class.getDeclaredConstructor(
-          EstimationSession.class, BatchResourceModel.class, ParameterSet.class);
-      constructor.setAccessible(true);
-      final BatchResourceEstimationResultTab tab = constructor.newInstance(session, model(),
-          new BatchResourceEstimationParameters());
+      final BatchResourceEstimationResultTab tab = createTab(session, model());
       final BorderPane root = (BorderPane) tab.getContent();
       new Scene(root, 1400, 1000);
       root.applyCss();

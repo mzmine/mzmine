@@ -42,11 +42,11 @@ import org.jetbrains.annotations.NotNull;
  * @param heapReliable    measurement used a full GC sample, or all input measurements of the
  *                        extrapolation did; does not guarantee the live peak was captured
  */
-public record StepResourcePrediction(int step, @NotNull String name, @NotNull String scaling,
+record StepResourcePrediction(int step, @NotNull String name, @NotNull String scaling,
                                      double heapGB, double retainedHeapGB, double liveTempGB,
                                      double seconds, boolean heapReliable) {
 
-  public @NotNull String heapReliability() {
+  @NotNull String heapReliability() {
     return heapReliable ? "Reliable" : "Unreliable";
   }
 

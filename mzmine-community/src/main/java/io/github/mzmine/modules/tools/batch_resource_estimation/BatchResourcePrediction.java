@@ -45,13 +45,13 @@ import org.jetbrains.annotations.Nullable;
  * @param heapBottleneckStep     name of the step with the highest heap
  * @param retainedBottleneckStep name of the step with the highest retained heap
  */
-public record BatchResourcePrediction(int files, @NotNull List<StepResourcePrediction> steps,
+record BatchResourcePrediction(int files, @NotNull List<StepResourcePrediction> steps,
                                       double heapGB, double retainedHeapGB, double tempGB,
                                       double seconds, int rows, int recommendedXmxGB,
                                       @NotNull String heapBottleneckStep,
                                       @NotNull String retainedBottleneckStep) {
 
-  public boolean heapReliable() {
+  boolean heapReliable() {
     return steps.stream().allMatch(StepResourcePrediction::heapReliable);
   }
 
@@ -59,7 +59,7 @@ public record BatchResourcePrediction(int files, @NotNull List<StepResourcePredi
    * The peak among steps with confirmed full collections in all input runs. Missing steps still
    * have an unknown live RAM requirement; this is not a complete batch estimate.
    */
-  public @Nullable StepResourcePrediction reliableHeapPeak() {
+  @Nullable StepResourcePrediction reliableHeapPeak() {
     return steps.stream().filter(StepResourcePrediction::heapReliable)
         .max(Comparator.comparingDouble(StepResourcePrediction::heapGB)).orElse(null);
   }

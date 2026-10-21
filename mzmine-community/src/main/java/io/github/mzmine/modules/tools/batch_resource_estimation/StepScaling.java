@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
  *                 {@link #timeX(StepScalingMode, double, int, double)}
  * @param heapReliable all input runs observed a full collection during this step
  */
-public record StepScaling(int step, @NotNull String name, @NotNull StepScalingMode mode,
+record StepScaling(int step, @NotNull String name, @NotNull StepScalingMode mode,
                           @NotNull ScalingFit retained, @NotNull ScalingFit working,
                           @Nullable InStepMemory inStep, @NotNull ScalingFit liveTemp,
                           @NotNull ScalingFit seconds, boolean heapReliable) {

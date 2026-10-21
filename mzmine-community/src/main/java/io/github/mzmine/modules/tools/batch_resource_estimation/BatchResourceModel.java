@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * @param nextRunFiles       files of a further run with twice the files of the largest run, null
  *                           if the largest run already used all files of the batch
  */
-public record BatchResourceModel(int totalFiles, int numThreads, double baselineHeapGB,
+record BatchResourceModel(int totalFiles, int numThreads, double baselineHeapGB,
                                  double baselineLiveTempGB, @NotNull List<StepScaling> steps,
                                  @NotNull ScalingFit rows,
                                  @NotNull List<BatchResourcePrediction> measured,
@@ -77,7 +77,7 @@ public record BatchResourceModel(int totalFiles, int numThreads, double baseline
   /**
    * Fits the model without a validation run.
    */
-  public static @NotNull BatchResourceModel fit(@NotNull final List<SubsetRun> runs,
+  static @NotNull BatchResourceModel fit(@NotNull final List<SubsetRun> runs,
       @NotNull final List<StepScalingMode> modes, final int totalFiles, final int numThreads) {
     return fit(runs, null, List.of(), modes, totalFiles, numThreads);
   }
@@ -85,7 +85,7 @@ public record BatchResourceModel(int totalFiles, int numThreads, double baseline
   /**
    * Fits the model without extension runs.
    */
-  public static @NotNull BatchResourceModel fit(@NotNull final List<SubsetRun> runs,
+  static @NotNull BatchResourceModel fit(@NotNull final List<SubsetRun> runs,
       @Nullable final SubsetRun validationRun, @NotNull final List<StepScalingMode> modes,
       final int totalFiles, final int numThreads) {
     return fit(runs, validationRun, List.of(), modes, totalFiles, numThreads);
@@ -101,7 +101,7 @@ public record BatchResourceModel(int totalFiles, int numThreads, double baseline
    * @param totalFiles    number of files in the batch
    * @param numThreads    number of threads the runs used
    */
-  public static @NotNull BatchResourceModel fit(@NotNull final List<SubsetRun> runs,
+  static @NotNull BatchResourceModel fit(@NotNull final List<SubsetRun> runs,
       @Nullable final SubsetRun validationRun, @NotNull final List<SubsetRun> extensionRuns,
       @NotNull final List<StepScalingMode> modes, final int totalFiles, final int numThreads) {
     if (runs.isEmpty()) {
@@ -197,7 +197,7 @@ public record BatchResourceModel(int totalFiles, int numThreads, double baseline
   /**
    * Predicts the resources for a number of files with the mean file size of the batch.
    */
-  public @NotNull BatchResourcePrediction predict(final int files) {
+  @NotNull BatchResourcePrediction predict(final int files) {
     return predict(files, files);
   }
 

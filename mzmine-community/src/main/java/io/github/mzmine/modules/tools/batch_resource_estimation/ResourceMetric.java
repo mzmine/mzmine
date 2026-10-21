@@ -30,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The per step resources that are plotted in the result of the resource estimation.
  */
-public enum ResourceMetric {
+enum ResourceMetric {
   HEAP, RETAINED_HEAP, TEMP_FILES, TIME;
 
-  public double value(@NotNull final StepResourcePrediction step) {
+  double value(@NotNull final StepResourcePrediction step) {
     return switch (this) {
       case HEAP -> step.heapGB();
       case RETAINED_HEAP -> step.retainedHeapGB();
@@ -42,7 +42,7 @@ public enum ResourceMetric {
     };
   }
 
-  public @NotNull String title() {
+  @NotNull String title() {
     return switch (this) {
       case HEAP -> "Peak RAM";
       case RETAINED_HEAP -> "RAM kept between steps";
@@ -51,7 +51,7 @@ public enum ResourceMetric {
     };
   }
 
-  public @NotNull String axisLabel() {
+  @NotNull String axisLabel() {
     return switch (this) {
       case HEAP, RETAINED_HEAP, TEMP_FILES -> "GB";
       case TIME -> "seconds";

@@ -25,16 +25,12 @@
 
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
-import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.main.ConfigService;
-import java.util.function.IntConsumer;
-import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -47,24 +43,16 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Banner with the verdict of the resource estimation: a colored box with an icon, the verdict and
- * its reasons. Offers the larger run if one is needed.
+ * its reasons. Additional runs are controlled beside the file-count input in the result tab.
  */
-public final class EstimationOutcomePane extends HBox {
+final class EstimationOutcomePane extends HBox {
 
   private static final int ICON_SIZE = 40;
 
-  private final @NotNull IntConsumer onStartLargerRun;
   private final Label title = FxLabels.newLabel(Styles.BOLD_TITLE, "");
   private final VBox details = new VBox(2);
-  private final HBox actions = FxLayout.newHBox(Pos.CENTER_LEFT);
 
-  /**
-   * @param onStartLargerRun starts a larger run with the given number of files
-   */
-  public EstimationOutcomePane(@NotNull final IntConsumer onStartLargerRun,
-      @NotNull final ObservableBooleanValue largerRunRunning) {
-    this.onStartLargerRun = onStartLargerRun;
-    actions.disableProperty().bind(largerRunRunning);
+  EstimationOutcomePane() {
     setSpacing(14);
     setAlignment(Pos.CENTER_LEFT);
     setPadding(new Insets(10, 14, 10, 14));
@@ -74,7 +62,7 @@ public final class EstimationOutcomePane extends HBox {
     title.setMaxWidth(Double.MAX_VALUE);
   }
 
-  public void setOutcome(@NotNull final EstimationOutcome outcome) {
+  void setOutcome(@NotNull final EstimationOutcome outcome) {
     final EstimationVerdict verdict = outcome.verdict();
     final Color color = color(verdict);
     final FxIcons icon = switch (verdict) {
@@ -93,19 +81,7 @@ public final class EstimationOutcomePane extends HBox {
       label.setMaxWidth(Double.MAX_VALUE);
       return label;
     }).toList());
-    final Integer nextRunFiles = outcome.nextRunFiles();
-    if (nextRunFiles != null) {
-      actions.getChildren().setAll(FxButtons.createButton(
-          "Add a run with %d files".formatted(nextRunFiles), FxIcons.RELOAD,
-          "Runs the batch on %d files and adds the run to this result".formatted(nextRunFiles),
-          () -> onStartLargerRun.accept(nextRunFiles)));
-    } else {
-      actions.getChildren().clear();
-    }
-    actions.setVisible(nextRunFiles != null);
-    actions.setManaged(nextRunFiles != null);
-
-    final VBox text = new VBox(6, title, details, actions);
+    final VBox text = new VBox(6, title, details);
     text.setMinWidth(0);
     HBox.setHgrow(text, Priority.ALWAYS);
     getChildren().setAll(FxIconUtil.getFontIcon(icon, ICON_SIZE, color), text);

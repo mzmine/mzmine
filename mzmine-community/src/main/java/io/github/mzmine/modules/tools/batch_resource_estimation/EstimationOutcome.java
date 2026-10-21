@@ -37,18 +37,18 @@ import org.jetbrains.annotations.Nullable;
  * @param details      heap reliability and the latest validation for the banner
  * @param nextRunFiles files of an optional larger test run for an uncertain result, null otherwise
  */
-public record EstimationOutcome(@NotNull EstimationVerdict verdict, @NotNull List<String> details,
+record EstimationOutcome(@NotNull EstimationVerdict verdict, @NotNull List<String> details,
                                 @Nullable Integer nextRunFiles) {
 
-  // decision: the largest test run may deviate by this fraction from its prediction for a
-  // reliable estimate
+  // decision: only underestimates reduce confidence in resource sufficiency; overestimates are
+  // conservative. The tolerance is a fraction of the measured usage.
   static final double MAX_RELIABLE_DEVIATION = 0.25;
 
   /**
    * @param maxHeapGB     currently configured maximum heap (-Xmx)
    * @param tempDirFreeGB free space in the temp directory
    */
-  public static @NotNull EstimationOutcome of(@NotNull final BatchResourceModel model,
+  static @NotNull EstimationOutcome of(@NotNull final BatchResourceModel model,
       @NotNull final BatchResourcePrediction prediction, final double maxHeapGB,
       final double tempDirFreeGB) {
     // decision: the heap needs the GC headroom of the recommended -Xmx
@@ -56,30 +56,33 @@ public record EstimationOutcome(@NotNull EstimationVerdict verdict, @NotNull Lis
     final boolean tempEnough = prediction.tempGB() <= tempDirFreeGB;
     final FitCheck check = model.latestCheck();
     final boolean validationReliable =
-        check == null || check.maxResourceError() <= MAX_RELIABLE_DEVIATION;
-    final boolean reliable = prediction.heapReliable() && validationReliable;
+        check == null || check.maxResourceUnderestimation() <= MAX_RELIABLE_DEVIATION;
     final Integer nextRunFiles = model.nextRunFiles();
     final StepResourcePrediction reliablePeak = prediction.reliableHeapPeak();
     final boolean reliableStepsExceedRam = reliablePeak != null
         && Math.ceil(reliablePeak.heapGB() * BatchResourceModel.GC_HEADROOM_FACTOR) > maxHeapGB;
+    final boolean peakMeasurementReliable =
+        reliablePeak != null && reliablePeak.heapGB() >= prediction.heapGB();
+    final boolean reliable = peakMeasurementReliable && validationReliable;
 
     final List<String> details = new ArrayList<>();
-    if (!prediction.heapReliable()) {
+    if (!peakMeasurementReliable) {
       if (!heapEnough && !reliableStepsExceedRam) {
         details.add(("Peak RAM predicts %.1f GB usage, but the estimate is based on unreliable "
-            + "measurements: no full memory cleanup was confirmed during some steps.%s").formatted(
+            + "measurements: no full memory cleanup was confirmed during some steps. "
+            + "These steps may need less RAM than estimated.%s").formatted(
             prediction.heapGB(),
             nextRunFiles == null ? "" : " A larger run may lead to a better estimate."));
       } else {
         details.add("Some peak RAM estimates are not reliable: measurements may include memory "
-            + "that was no longer needed.");
+            + "that was no longer needed. These steps may need less RAM than estimated.");
       }
       if (reliablePeak == null) {
         details.add("No steps have reliable peak RAM measurements. The batch's RAM requirement "
             + "cannot be determined from these runs.");
       } else {
-        details.add("The RAM requirement uses only reliable steps. Other steps may include memory "
-            + "that can be freed, but their live RAM requirement is unknown.");
+        details.add("The RAM requirement uses only reliable steps. The RAM needed by the other "
+            + "steps is unknown.");
       }
     }
     details.addAll(BatchResourceReport.reliabilityLines(model));

@@ -45,6 +45,7 @@ import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
+import io.github.mzmine.modules.tools.batch_resource_estimation.BatchResourceEstimationModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -64,6 +65,7 @@ import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import io.github.mzmine.util.web.truststore.NativeTrustStoreManager;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
+import io.mzio.mzmine.startup.EstimateResourcesSettings;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.mzmine.startup.MZmineExit;
 import io.mzio.users.gui.fx.LoginOptions;
@@ -308,10 +310,16 @@ public final class MZmineCore {
       final File overrideProjectImport = argsParser.getProjectImport();
       final File overrideCsvDatabase = argsParser.getCsvDatabase();
 
-      // run batch file
-      batchTask = BatchModeModule.runBatchFile(ProjectService.getProject(), batchFile,
-          overrideDataFiles, overrideMetadataFile, overrideSpectralLibraryFiles, outBaseFile,
-          Instant.now(), overrideProjectImport, overrideCsvDatabase);
+      final EstimateResourcesSettings estimationSettings = argsParser.getEstimateResourcesSettings();
+      if (estimationSettings != null) {
+        batchTask = BatchResourceEstimationModule.runBatchFile(batchFile, overrideDataFiles,
+            overrideMetadataFile, overrideSpectralLibraryFiles, overrideProjectImport,
+            overrideCsvDatabase, estimationSettings, Instant.now());
+      } else {
+        batchTask = BatchModeModule.runBatchFile(ProjectService.getProject(), batchFile,
+            overrideDataFiles, overrideMetadataFile, overrideSpectralLibraryFiles, outBaseFile,
+            Instant.now(), overrideProjectImport, overrideCsvDatabase);
+      }
     }
 
     // option to keep MZmine running after the batch is finished

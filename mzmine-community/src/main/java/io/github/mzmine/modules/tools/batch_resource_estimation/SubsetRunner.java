@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
  * and the file order so that later runs, e.g. a larger run that is added to a result, use the same
  * files.
  */
-public final class SubsetRunner {
+final class SubsetRunner {
 
   private static final Logger logger = Logger.getLogger(SubsetRunner.class.getName());
 
@@ -68,7 +68,7 @@ public final class SubsetRunner {
    * @param metadataFile     metadata file of the data import, null if none
    * @param meanBytesPerFile mean file size of all files of the batch
    */
-  public SubsetRunner(@NotNull final BatchQueue queue,
+  SubsetRunner(@NotNull final BatchQueue queue,
       @NotNull final List<EstimationInputFile> order, @Nullable final File metadataFile,
       final double meanBytesPerFile, @NotNull final EstimationProjectProvider projectProvider) {
     this.queue = queue;
@@ -81,7 +81,7 @@ public final class SubsetRunner {
   /**
    * @return the number of files in the batch
    */
-  public int totalFiles() {
+  int totalFiles() {
     return order.size();
   }
 
@@ -91,7 +91,7 @@ public final class SubsetRunner {
    * @return the measurements or null if the run was canceled
    * @throws IllegalStateException if the batch failed
    */
-  public @Nullable SubsetRun run(final int files) {
+  @Nullable SubsetRun run(final int files) {
     canceled = false;
     final List<EstimationInputFile> subset = order.subList(0, files);
     final MZmineProject project = projectProvider.projectForRun();
@@ -171,7 +171,7 @@ public final class SubsetRunner {
   /**
    * Stops the current run after its current batch step.
    */
-  public void cancel() {
+  void cancel() {
     canceled = true;
     final BatchTask batch = currentBatch;
     if (batch != null) {
@@ -197,5 +197,10 @@ public final class SubsetRunner {
       Thread.currentThread().interrupt();
     }
     System.gc();
+  }
+
+  @NotNull String getBatchDescription() {
+    final var b = currentBatch;
+    return b != null ? " " + b.getTaskDescription() : "";
   }
 }

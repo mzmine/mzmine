@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -11,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  * How the working memory and time of a batch step grow with the number of files. The retained
  * data and the temp files of all steps grow with the number of files.
  */
-public enum StepScalingMode {
+enum StepScalingMode {
   /**
    * Tasks run in parallel on at most the configured number of threads. The working memory grows
    * with min(files, threads) and the time with the number of thread waves.
@@ -26,12 +51,12 @@ public enum StepScalingMode {
   /**
    * @return the scaling mode of each step in the order of the queue
    */
-  public static @NotNull List<StepScalingMode> ofSteps(
+  static @NotNull List<StepScalingMode> ofSteps(
       @NotNull final List<MZmineProcessingStep<MZmineProcessingModule>> steps) {
     return steps.stream().map(step -> of(step.getModule())).toList();
   }
 
-  public static @NotNull StepScalingMode of(@NotNull final MZmineProcessingModule module) {
+  static @NotNull StepScalingMode of(@NotNull final MZmineProcessingModule module) {
     // decision: correlation grouping correlates the features of all samples per row, measured to
     // grow with the files. The other feature grouping modules keep the scaling of their category.
     if (module instanceof CorrelateGroupingModule) {
@@ -45,7 +70,7 @@ public enum StepScalingMode {
    * by the number of threads. Their input and results still grow with the files, see
    * {@link InStepMemory}.
    */
-  public static @NotNull StepScalingMode of(@NotNull final MZmineModuleCategory category) {
+  static @NotNull StepScalingMode of(@NotNull final MZmineModuleCategory category) {
     return switch (category) {
       case ALIGNMENT, GAPFILLING -> SCALES_WITH_FILES;
       case PROJECTIO, PROJECT, PROJECTMETADATA, RAWDATAIMPORT, RAWDATA, RAWDATAFILTERING,

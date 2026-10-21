@@ -40,10 +40,12 @@ import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -55,20 +57,30 @@ import org.jetbrains.annotations.Nullable;
  * the estimate is valid for these settings. Export steps are removed as they do not change the
  * resources of the processing and would overwrite results.
  */
-public class BatchResourceEstimationTask extends AbstractSimpleToolTask {
+class BatchResourceEstimationTask extends AbstractSimpleToolTask {
 
   private static final Logger logger = Logger.getLogger(
       BatchResourceEstimationTask.class.getName());
 
   private final @NotNull EstimationProjectProvider projectProvider;
+  private final @NotNull Consumer<BatchQueue> configureQueue;
   private volatile @Nullable SubsetRunner runner;
   private volatile @NotNull String description = "Batch resource estimation";
 
-  public BatchResourceEstimationTask(@NotNull final Instant moduleCallDate,
+  BatchResourceEstimationTask(@NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
       @NotNull final EstimationProjectProvider projectProvider) {
+    this(moduleCallDate, parameters, projectProvider, _ -> {
+    });
+  }
+
+  BatchResourceEstimationTask(@NotNull final Instant moduleCallDate,
+      @NotNull final ParameterSet parameters,
+      @NotNull final EstimationProjectProvider projectProvider,
+      @NotNull final Consumer<BatchQueue> configureQueue) {
     super(moduleCallDate, parameters);
     this.projectProvider = projectProvider;
+    this.configureQueue = configureQueue;
   }
 
   @Override
@@ -78,6 +90,7 @@ public class BatchResourceEstimationTask extends AbstractSimpleToolTask {
     if (queue == null) {
       return;
     }
+    configureQueue.accept(queue);
     final ParameterSet importParameters = queue.getFirst().getParameterSet();
     final File[] allFiles = importParameters.getValue(AllSpectralDataImportParameters.fileNames);
     final File metadataFile = importParameters.getEmbeddedParameterValueIfSelectedOrElse(
@@ -139,10 +152,10 @@ public class BatchResourceEstimationTask extends AbstractSimpleToolTask {
     if (isCanceled()) {
       return;
     }
-    description = "Batch resource estimation: validation run on %d files (%d/%d)".formatted(
+    description = "Batch resource estimation: Run on %d files (%d/%d)".formatted(
         validationSize, totalRuns, totalRuns);
     final SubsetRun validationRun = subsetRunner.run(validationSize);
-    if (validationRun == null) {
+    if (validationRun == null || isCanceled()) {
       return;
     }
     incrementFinishedItems();
@@ -151,6 +164,11 @@ public class BatchResourceEstimationTask extends AbstractSimpleToolTask {
         List.copyOf(runs), validationRun, List.of());
     final BatchResourceModel model = session.fitModel();
     BatchResourceReport.logPrediction(model);
+    try {
+      BatchResourceReport.exportStatistics(parameters, model);
+    } catch (IOException e) {
+      error("Cannot export resource estimation statistics: " + e.getMessage(), e);
+    }
 
     if (DesktopService.isGUI()) {
       FxThread.runLater(() -> BatchResourceEstimationResultTab.show(session, model, parameters));
@@ -193,6 +211,12 @@ public class BatchResourceEstimationTask extends AbstractSimpleToolTask {
     }
     for (final String message : loaded.errorMessages()) {
       logger.warning("Batch file: " + message);
+    }
+    if (!DesktopService.isGUI() && !loaded.errorMessages().isEmpty()
+        && !ConfigService.isIgnoreParameterWarningsInBatch()) {
+      error("The batch contains parameter warnings. Update the batch in the GUI or use "
+          + "--ignore-parameter-warnings to accept them.");
+      return null;
     }
     final BatchQueue queue = loaded.newQueue();
     if (queue.isEmpty() || !(queue.getFirst()
@@ -238,6 +262,7 @@ public class BatchResourceEstimationTask extends AbstractSimpleToolTask {
 
   @Override
   public String getTaskDescription() {
-    return description;
+    final var r = runner;
+    return description + (r != null ? r.getBatchDescription() : "");
   }
 }

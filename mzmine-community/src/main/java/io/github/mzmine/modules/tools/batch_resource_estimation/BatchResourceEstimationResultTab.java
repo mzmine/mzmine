@@ -29,11 +29,13 @@ import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.components.factories.FxSplitPanes;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -49,16 +51,31 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -78,7 +95,7 @@ import org.jfree.data.category.DefaultCategoryDataset;
  * extrapolation to all files and to a number of files that the user enters, plus a summary and a
  * table of the extrapolation to the entered number of files.
  */
-public final class BatchResourceEstimationResultTab extends SimpleTab {
+final class BatchResourceEstimationResultTab extends SimpleTab {
 
   private final @NotNull ParameterSet parameters;
   private @NotNull EstimationSession session;
@@ -87,9 +104,10 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
   private final ObservableList<StepResourcePrediction> stepPredictions = FXCollections.observableArrayList();
   private final GridPane summary = new GridPane();
   private final Label threadsLabel = new Label();
+  private final IntegerComponent additionalRunFiles;
+  private final IntegerProperty largestMeasuredFiles = new SimpleIntegerProperty();
   private final BooleanProperty largerRunRunning = new SimpleBooleanProperty(false);
-  private final EstimationOutcomePane outcomePane = new EstimationOutcomePane(this::startLargerRun,
-      largerRunRunning);
+  private final EstimationOutcomePane outcomePane = new EstimationOutcomePane();
   private final Map<ResourceMetric, CategoryPlot> plots = new EnumMap<>(ResourceMetric.class);
   private final double maxHeapGB = Runtime.getRuntime().maxMemory() / (double) (1 << 30);
   // read once when the result is shown, never on spinner changes (may spin up a disk)
@@ -118,6 +136,20 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
         update();
       }
     });
+    additionalRunFiles = new IntegerComponent(100, 1, model.totalFiles());
+    additionalRunFiles.setPrefWrapLength(100);
+    additionalRunFiles.setMinWidth(Region.USE_PREF_SIZE);
+    additionalRunFiles.setMaxWidth(Region.USE_PREF_SIZE);
+    additionalRunFiles.disableProperty()
+        .bind(largerRunRunning.or(largestMeasuredFiles.greaterThanOrEqualTo(model.totalFiles())));
+    updateAdditionalRunFiles();
+    final Button runButton = FxButtons.createButton("Run estimate", FxIcons.RELOAD,
+        "Run a larger subset and add its measurements to this result",
+        () -> startLargerRun(selectedRunFiles()));
+    runButton.disableProperty().bind(Bindings.createBooleanBinding(
+        () -> largerRunRunning.get() || selectedRunFiles() <= largestMeasuredFiles.get()
+            || selectedRunFiles() > this.model.totalFiles(), largerRunRunning, largestMeasuredFiles,
+        additionalRunFiles.getTextField().textProperty()));
     summary.setHgap(24);
     summary.setVgap(6);
     summary.setMinWidth(0);
@@ -130,7 +162,8 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
     }
     final VBox top = FxLayout.newVBox(outcomePane,
         FxLayout.newHBox(Pos.CENTER_LEFT, FxLabels.newBoldLabel("Estimate for files:"),
-            filesComponent, threadsLabel), summary);
+            filesComponent, threadsLabel, FxLabels.newLabel("Additional run files:"),
+            additionalRunFiles, runButton), summary);
     top.setFillWidth(true);
     top.setMinWidth(0);
 
@@ -146,12 +179,12 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
   }
 
   /**
-   * Opens the result in a main window tab. The verdict banner offers a further, larger run if
-   * needed. Call on the FX thread.
+   * Opens the result in a main window tab. A larger run can be added regardless of the verdict.
+   * Call on the FX thread.
    *
    * @param parameters the parameters of the estimation
    */
-  public static void show(@NotNull final EstimationSession session,
+  static void show(@NotNull final EstimationSession session,
       @NotNull final BatchResourceModel model, @NotNull final ParameterSet parameters) {
     MZmineCore.getDesktop()
         .addTab(new BatchResourceEstimationResultTab(session, model, parameters));
@@ -164,6 +197,7 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
       @NotNull final BatchResourceModel model) {
     this.session = session;
     this.model = model;
+    updateAdditionalRunFiles();
     largerRunRunning.set(false);
     update();
     if (getTabPane() == null) {
@@ -174,11 +208,12 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
   }
 
   /**
-   * decision: a further run is added to the current result instead of repeating all subsets. Only
-   * the verdict banner offers it, a dialog would repeat the banner.
+   * A further run extends the current result instead of repeating all subsets. Runs must grow in
+   * size because the model fits the final segment of the measured curve.
    */
   private void startLargerRun(final int runFiles) {
-    if (largerRunRunning.get() || !BatchResourceEstimationModule.confirmClearProject(
+    if (largerRunRunning.get() || runFiles <= largestMeasuredFiles.get()
+        || runFiles > model.totalFiles() || !BatchResourceEstimationModule.confirmClearProject(
         ProjectService.getProject())) {
       return;
     }
@@ -193,6 +228,24 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
       }
     });
     MZmineCore.getTaskController().addTask(task);
+  }
+
+  private void updateAdditionalRunFiles() {
+    final int largest = session.extensionRuns().isEmpty() ? session.validationRun().files()
+        : session.extensionRuns().getLast().files();
+    largestMeasuredFiles.set(largest);
+    additionalRunFiles.setText(String.valueOf(Math.min(2L * largest, model.totalFiles())));
+    additionalRunFiles.setToolTipText(
+        largest >= model.totalFiles() ? "All files in the batch have already been measured"
+            : "Run with more than %d and at most %d files".formatted(largest, model.totalFiles()));
+  }
+
+  private int selectedRunFiles() {
+    try {
+      return Integer.parseInt(additionalRunFiles.getText());
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 
   private void update() {
@@ -299,6 +352,7 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
 
   private @NotNull TableView<StepResourcePrediction> createTable() {
     final TableView<StepResourcePrediction> table = new TableView<>(stepPredictions);
+    table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     final NumberFormat gb = new DecimalFormat("0.00");
     table.getColumns().addAll(
         TableColumns.createColumn("Step", 40, NumberFormat.getIntegerInstance(), null,
@@ -315,6 +369,36 @@ public final class BatchResourceEstimationResultTab extends SimpleTab {
             p -> new ReadOnlyObjectWrapper<>(p.liveTempGB())), TableColumns.createColumn("Time", 70,
             p -> new ReadOnlyObjectWrapper<>(BatchResourceReport.formatDuration(p.seconds()))));
     table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+    final MenuItem copy = new MenuItem("Copy selected rows");
+    copy.disableProperty().bind(Bindings.isEmpty(table.getSelectionModel().getSelectedItems()));
+    copy.setOnAction(_ -> copySelectedRows(table));
+    table.setContextMenu(new ContextMenu(copy));
+    final KeyCombination copyShortcut = new KeyCodeCombination(KeyCode.C,
+        KeyCombination.SHORTCUT_DOWN);
+    table.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (copyShortcut.match(event)) {
+        copySelectedRows(table);
+        event.consume();
+      }
+    });
     return table;
+  }
+
+  private static void copySelectedRows(@NotNull final TableView<StepResourcePrediction> table) {
+    if (table.getSelectionModel().getSelectedIndices().isEmpty()) {
+      return;
+    }
+    final var columns = table.getVisibleLeafColumns();
+    final StringBuilder text = new StringBuilder(
+        columns.stream().map(column -> column.getText()).collect(Collectors.joining("\t")));
+    for (final int row : table.getSelectionModel().getSelectedIndices().stream().sorted()
+        .toList()) {
+      text.append('\n').append(
+          columns.stream().map(column -> Objects.toString(column.getCellData(row), ""))
+              .collect(Collectors.joining("\t")));
+    }
+    final ClipboardContent content = new ClipboardContent();
+    content.putString(text.toString());
+    Clipboard.getSystemClipboard().setContent(content);
   }
 }

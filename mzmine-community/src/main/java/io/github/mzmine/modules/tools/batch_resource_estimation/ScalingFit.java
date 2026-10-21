@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
  * @param coefficient y at x = 1
  * @param exponent    1 is linear growth, 2 quadratic
  */
-public record ScalingFit(double coefficient, double exponent) {
+record ScalingFit(double coefficient, double exponent) {
 
   /**
    * Smaller values are treated as zero (GB or seconds) and cannot be fitted in log space
@@ -24,13 +49,13 @@ public record ScalingFit(double coefficient, double exponent) {
   // of noisy small subsets would explode on extrapolation
   static final double MAX_EXPONENT = 2;
 
-  public static final ScalingFit ZERO = new ScalingFit(0, 1);
+  static final ScalingFit ZERO = new ScalingFit(0, 1);
 
   /**
    * @param x dataset sizes in file equivalents, ascending and positive
    * @param y measured values without baseline, same length as x
    */
-  public static @NotNull ScalingFit fit(final double @NotNull [] x, final double @NotNull [] y) {
+  static @NotNull ScalingFit fit(final double @NotNull [] x, final double @NotNull [] y) {
     if (x.length != y.length) {
       throw new IllegalArgumentException("x and y differ in length");
     }
@@ -81,7 +106,7 @@ public record ScalingFit(double coefficient, double exponent) {
    * @param x dataset sizes, ascending and positive
    * @param y measured values, same length as x
    */
-  public static @NotNull ScalingFit fitLastSegment(final double @NotNull [] x,
+  static @NotNull ScalingFit fitLastSegment(final double @NotNull [] x,
       final double @NotNull [] y) {
     if (x.length != y.length) {
       throw new IllegalArgumentException("x and y differ in length");
@@ -113,7 +138,7 @@ public record ScalingFit(double coefficient, double exponent) {
    * @return the exponent between two points in log-log space, NaN if a value is too small or both
    * x are equal
    */
-  public static double segmentExponent(final double x1, final double y1, final double x2,
+  static double segmentExponent(final double x1, final double y1, final double x2,
       final double y2) {
     if (y1 <= MIN_POSITIVE || y2 <= MIN_POSITIVE || x1 <= 0 || x2 <= 0 || x1 == x2) {
       return Double.NaN;
@@ -137,7 +162,7 @@ public record ScalingFit(double coefficient, double exponent) {
     return new ScalingFit(coefficient, exponent);
   }
 
-  public double predict(final double x) {
+  double predict(final double x) {
     return coefficient * Math.pow(x, exponent);
   }
 }

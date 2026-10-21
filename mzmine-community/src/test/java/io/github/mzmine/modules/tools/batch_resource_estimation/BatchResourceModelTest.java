@@ -190,6 +190,15 @@ class BatchResourceModelTest {
   }
 
   @Test
+  void validationOnlyFlagsUnderestimatedResources() {
+    assertEquals(0, new FitCheck(32, 2, 1, 4, 2, 1, 100).maxResourceUnderestimation());
+    assertEquals(0.5, new FitCheck(32, 1, 2, 4, 2, 1, 1).maxResourceUnderestimation());
+    assertEquals(0.5, new FitCheck(32, 2, 1, 1, 2, 1, 1).maxResourceUnderestimation());
+    assertEquals(0.25, new FitCheck(32, 0.75, 1, 1, 1, 1, 1).maxResourceUnderestimation());
+    assertEquals(0, new FitCheck(32, 1, 0, 0, 0, 1, 1).maxResourceUnderestimation());
+  }
+
+  @Test
   void flatteningStepIsExtrapolatedFromLargestRuns() {
     final BatchResourceModel model = flattening();
     // the validation run shows that the extrapolation overestimated the flattening step
@@ -235,11 +244,16 @@ class BatchResourceModelTest {
     // predicted exactly: peak heap 30.3 GB for 100 files, -Xmx 46 GB, temp 5 GB
     final BatchResourceModel reliable = BatchResourceModel.fit(runs(), syntheticRun(32), MODES,
         100, THREADS);
-    // the validation run deviates from its prediction: -Xmx 18 GB, temp 5 GB
-    final BatchResourceModel uncertain = flattening();
+    // An overestimated validation run remains conservative: -Xmx 18 GB, temp 5 GB.
+    final BatchResourceModel conservative = flattening();
+    // The validation run needs more RAM than predicted from the smaller runs.
+    final BatchResourceModel uncertain = BatchResourceModel.fit(runs(),
+        syntheticRun(32, 0.04 * Math.pow(32, 1.5)), MODES, 100, THREADS);
 
     assertEquals(EstimationVerdict.ENOUGH_RESOURCES, verdict(reliable, 64, 100));
-    assertEquals(EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, verdict(uncertain, 64, 100));
+    assertEquals(EstimationVerdict.ENOUGH_RESOURCES, verdict(conservative, 64, 100));
+    assertEquals(EstimationVerdict.NOT_ENOUGH_RESOURCES, verdict(conservative, 8, 100));
+    assertEquals(EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, verdict(uncertain, 1000, 100));
 
     // does not fit and the estimate is uncertain, a larger test run improves it
     final EstimationOutcome largerRun = EstimationOutcome.of(uncertain, uncertain.predict(100), 8,
@@ -330,6 +344,8 @@ class BatchResourceModelTest {
 
     final EstimationOutcome uncertain = EstimationOutcome.of(model, prediction, 20, 100);
     assertEquals(EstimationVerdict.RAM_REQUIREMENT_UNCERTAIN, uncertain.verdict());
+    assertTrue(
+        uncertain.details().stream().anyMatch(line -> line.contains("unreliable measurements")));
     assertFalse(uncertain.verdict().isSufficient());
     assertEquals(64, uncertain.nextRunFiles());
     final String summary = BatchResourceReport.summaryLines(prediction, 20, 100).getFirst();
@@ -366,7 +382,7 @@ class BatchResourceModelTest {
   }
 
   @Test
-  void unreliableSmallerRunRemainsVisibleAfterReliableValidation() {
+  void lowerUnreliableStepsDoNotMakeTheReliablePeakUncertain() {
     final SubsetRun original = syntheticRun(16);
     final StepMeasurement m = original.steps().getFirst();
     final StepMeasurement partial = new StepMeasurement(m.step(), m.name(), m.secondsToFinish(),
@@ -382,6 +398,9 @@ class BatchResourceModelTest {
     assertTrue(model.validation().measured().heapReliable());
     assertFalse(model.predict(100).steps().getFirst().heapReliable());
     assertTrue(model.predict(100).steps().get(1).heapReliable());
-    assertEquals(EstimationVerdict.ENOUGH_RESOURCES_UNCERTAIN, verdict(model, 64, 100));
+    assertEquals(EstimationVerdict.ENOUGH_RESOURCES, verdict(model, 64, 100));
+    final EstimationOutcome outcome = EstimationOutcome.of(model, model.predict(100), 64, 100);
+    assertEquals(1, outcome.details().size(), "Lower unreliable steps need no peak RAM warning");
+    assertTrue(outcome.details().getFirst().startsWith("Validation run on 32 files"));
   }
 }

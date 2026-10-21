@@ -25,8 +25,13 @@
 
 package io.github.mzmine.modules.tools.batch_resource_estimation;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CsvWriter;
+import io.github.mzmine.util.io.WriterOptions;
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Text output of the resource estimation, shared by the log and the result dialog.
  */
-public final class BatchResourceReport {
+final class BatchResourceReport {
 
   private static final Logger logger = Logger.getLogger(BatchResourceReport.class.getName());
 
@@ -49,7 +54,7 @@ public final class BatchResourceReport {
    * @return resource statistics without the verdict, heap reliability or validation, see
    * {@link EstimationOutcome}
    */
-  public static @NotNull List<String> summaryLines(
+  static @NotNull List<String> summaryLines(
       @NotNull final BatchResourcePrediction prediction, final double maxHeapGB,
       final double tempDirFreeGB) {
     final List<String> lines = new ArrayList<>();
@@ -122,21 +127,21 @@ public final class BatchResourceReport {
     return "%.1f GB available to MZmine".formatted(maxHeapGB);
   }
 
-  public static double maxHeapGB() {
+  static double maxHeapGB() {
     return Runtime.getRuntime().maxMemory() / (double) (1 << 30);
   }
 
   /**
    * Reads the disk, call from a task and not on UI events.
    */
-  public static double tempDirFreeGB() {
+  static double tempDirFreeGB() {
     return FileAndPathUtil.getTempDir().getUsableSpace() / 1e9;
   }
 
   /**
    * Logs the verdict, the summary and the per step prediction for the files of the batch.
    */
-  public static void logPrediction(@NotNull final BatchResourceModel model) {
+  static void logPrediction(@NotNull final BatchResourceModel model) {
     final BatchResourcePrediction prediction = model.predict(model.totalFiles());
     final double maxHeapGB = maxHeapGB();
     final double tempFreeGB = tempDirFreeGB();
@@ -149,12 +154,62 @@ public final class BatchResourceReport {
         stepsCsv(prediction)));
   }
 
-  public static @NotNull String stepsCsv(@NotNull final BatchResourcePrediction prediction) {
+  static @NotNull String stepsCsv(@NotNull final BatchResourcePrediction prediction) {
     return CsvWriter.writeToString(prediction.steps(), StepResourcePrediction.class, '\t', true)
         .stripTrailing();
   }
 
-  public static @NotNull String formatDuration(final double seconds) {
+  /**
+   * Replaces the optional TSV with all measured runs, validation, and the latest prediction for the
+   * full batch. Called on the task thread after the initial estimation and each added run.
+   */
+  static void exportStatistics(@NotNull final ParameterSet parameters,
+      @NotNull final BatchResourceModel model) throws IOException {
+    final File output = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        BatchResourceEstimationParameters.statisticsFile, null);
+    if (output == null) {
+      return;
+    }
+    final List<StatisticsRow> rows = new ArrayList<>();
+    for (final BatchResourcePrediction run : model.measured()) {
+      addStatistics(rows, "Subset (measured)", run, model.numThreads());
+    }
+    final ModelValidation validation = model.validation();
+    if (validation != null) {
+      addStatistics(rows, "Validation (measured)", validation.measured(), model.numThreads());
+      addStatistics(rows, "Validation (estimated)", validation.predicted(), model.numThreads());
+    }
+    for (final BatchResourcePrediction run : model.extensions()) {
+      addStatistics(rows, "Additional run (measured)", run, model.numThreads());
+    }
+    addStatistics(rows, "Full batch (estimated)", model.predict(model.totalFiles()),
+        model.numThreads());
+    CsvWriter.writeToFile(output.getAbsoluteFile(), rows, StatisticsRow.class,
+        WriterOptions.REPLACE, '\t');
+  }
+
+  private static void addStatistics(@NotNull final List<StatisticsRow> rows,
+      @NotNull final String runType, @NotNull final BatchResourcePrediction prediction,
+      final int threads) {
+    for (final StepResourcePrediction step : prediction.steps()) {
+      rows.add(
+          new StatisticsRow(runType, prediction.files(), threads, prediction.rows(), step.step(),
+              step.name(), step.scaling(), step.heapGB(), step.heapReliability(),
+              step.retainedHeapGB(), step.liveTempGB(), step.seconds()));
+    }
+  }
+
+  @JsonPropertyOrder({"runType", "files", "threads", "alignedFeatureRows", "step", "module",
+      "dependsOn", "peakRamGB", "ramReliability", "retainedRamGB", "temporaryStorageGB",
+      "processingSeconds"})
+  private record StatisticsRow(String runType, int files, int threads, int alignedFeatureRows,
+                               int step, String module, String dependsOn, double peakRamGB,
+                               String ramReliability, double retainedRamGB,
+                               double temporaryStorageGB, double processingSeconds) {
+
+  }
+
+  static @NotNull String formatDuration(final double seconds) {
     final Duration duration = Duration.ofSeconds(Math.round(seconds));
     return "%d:%02d:%02d".formatted(duration.toHours(), duration.toMinutesPart(),
         duration.toSecondsPart());

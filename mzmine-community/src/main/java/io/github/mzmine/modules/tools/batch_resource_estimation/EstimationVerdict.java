@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * largest test run was predicted well from the smaller runs and the heap measurements were taken
  * after observed full collections.
  */
-public enum EstimationVerdict {
+enum EstimationVerdict {
   /**
    * The estimate is reliable and the heap and temp space are enough.
    */
@@ -57,7 +57,7 @@ public enum EstimationVerdict {
    */
   NOT_ENOUGH_RESOURCES;
 
-  public @NotNull String title() {
+  @NotNull String title() {
     return switch (this) {
       case ENOUGH_RESOURCES -> "The batch fits within the available RAM and temporary storage";
       case ENOUGH_RESOURCES_UNCERTAIN -> "The batch should fit, but the estimate is uncertain";
@@ -70,7 +70,7 @@ public enum EstimationVerdict {
   /**
    * @return true if the batch can run with the current settings
    */
-  public boolean isSufficient() {
+  boolean isSufficient() {
     return switch (this) {
       case ENOUGH_RESOURCES, ENOUGH_RESOURCES_UNCERTAIN -> true;
       case RAM_REQUIREMENT_UNCERTAIN, LARGER_RUN_NEEDED, NOT_ENOUGH_RESOURCES -> false;
