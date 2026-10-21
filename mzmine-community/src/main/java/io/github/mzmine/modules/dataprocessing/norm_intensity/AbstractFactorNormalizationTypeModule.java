@@ -88,6 +88,9 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
   /**
    * Derives the common reference metric and one constant normalization function per reference.
    * The returned functions are the unmerged functions used later for interpolation.
+   *
+   * @param <T> reference-sample key, such as a {@link RawDataFile} or an external sample ID;
+   *            the input keys are retained in the returned function map
    */
   public static <T> @NotNull ReferenceFunctions<T> calculateReferenceFunctions(
       @NotNull final Map<T, Double> metrics) {
@@ -104,7 +107,13 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
     return new ReferenceFunctions<>(referenceMetric, functions);
   }
 
-  /** Result of calculating factor-normalization reference functions. */
+  /**
+   * Result of calculating factor-normalization reference functions.
+   *
+   * @param <T> reference-sample key, such as a {@link RawDataFile} or an external sample ID,
+   *            matching the keys supplied to
+   *            {@link AbstractFactorNormalizationTypeModule#calculateReferenceFunctions(Map)}
+   */
   public record ReferenceFunctions<T>(double referenceMetric,
                                       @NotNull Map<T, NormalizationFunction> functions) {
 
