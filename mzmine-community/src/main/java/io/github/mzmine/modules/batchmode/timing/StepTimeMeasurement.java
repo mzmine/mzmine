@@ -27,33 +27,43 @@ package io.github.mzmine.modules.batchmode.timing;
 
 import io.github.mzmine.main.ConfigService;
 import java.time.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @param step            1-based step number, 0 for measurements that cover a whole batch instead
- *                        of a single step
- * @param secondsToFinish wall-clock seconds the step took
- * @param name            module name of the step
- * @param usedHeapGB      used heap (GB) after the step, or null if not tracked
+ * @param step              1-based step number, 0 for measurements that cover a whole batch
+ *                          instead of a single step
+ * @param secondsToFinish   wall-clock seconds the step took
+ * @param name              module name of the step
+ * @param usedHeapGB        used heap (GB) after the step, or null if not tracked
+ * @param peakHeapGB        peak used heap (GB) during the step, see {@link HeapPeak#peakHeapGB()}
+ * @param peakHeapAfterGcGB peak used heap (GB) after garbage collections during the step, see
+ *                          {@link HeapPeak#peakHeapAfterGcGB()}
+ * @param heapMeasurementQuality basis of the heap peak measurement during the step
  */
 public record StepTimeMeasurement(int step, double secondsToFinish, String name,
-                                  @Nullable String usedHeapGB) {
+                                  @Nullable String usedHeapGB, double peakHeapGB,
+                                  @Nullable Double peakHeapAfterGcGB,
+                                  @NotNull HeapMeasurementQuality heapMeasurementQuality) {
 
   /**
-   * @param trackMemory memory measurements are only precise when combined with GC
-   *                                  before, if active - please perform gc before this constructor
+   * @param trackMemory memory measurements are only precise when combined with GC before, if
+   *                    active - please perform gc before this constructor
+   * @param heapPeak    peak heap usage during the step
    */
   public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration,
-      final boolean trackMemory) {
+      final boolean trackMemory, @NotNull final HeapPeak heapPeak) {
     var memory = trackMemory ? "%.2f".formatted(
         ConfigService.getConfiguration().getUsedMemoryGB()) : null;
-    this(stepNumber, duration.toMillis() / 1000.0, name, memory);
+    this(stepNumber, duration.toMillis() / 1000.0, name, memory, heapPeak.peakHeapGB(),
+        heapPeak.peakHeapAfterGcGB(), heapPeak.heapMeasurementQuality());
   }
 
   @Override
   public String toString() {
     String heap = usedHeapGB == null ? "" : " (used heap: %s GB)".formatted(usedHeapGB);
-    return "Step %d: %s took %.3f seconds to finish%s".formatted(step, name, secondsToFinish, heap);
+    return "Step %d: %s took %.3f seconds to finish%s, peak heap: %.2f GB".formatted(step, name,
+        secondsToFinish, heap, peakHeapGB);
   }
 
 }

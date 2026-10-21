@@ -367,6 +367,8 @@ runtime {
             "java.sql",
             "java.datatransfer",
             "java.management",
+            // GC notifications for the peak heap tracking of batch steps
+            "jdk.management",
             "java.xml",
             "java.xml.crypto",
             "jdk.xml.dom",

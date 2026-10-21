@@ -235,8 +235,12 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
   public static void activateProject(@NotNull MZmineProject project) {
 
     FxThread.runLater(() -> {
-
-      ProjectService.getProjectManager().setCurrentProject(project);
+      // decision: a newer project may have been set before this runs, e.g., by two quick
+      // clearProject calls. Switching back would close the data files of the newer project and
+      // swap the project under a running batch.
+      if (ProjectService.getProject() != project) {
+        return;
+      }
       if (mainWindowController != null) {
         GroupableTreeView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
         rawDataList.setItems(project.getCurrentRawDataFiles());

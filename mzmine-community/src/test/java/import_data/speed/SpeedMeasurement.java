@@ -53,7 +53,10 @@ import org.jetbrains.annotations.Nullable;
  * @param timeSeconds        wall clock seconds of the step
  * @param gbRamUsed          used heap (GB) after the step, only set when
  *                           {@link SpeedTestEnvironment#runGCafterBatchStep()} is enabled
- * @param tempFilesCreated   memory mapped temp files created during the step
+ * @param stepPeakHeapGB     peak used heap (GB) during the step, tracked by GC notifications
+ * @param stepPeakHeapAfterGcGB peak used heap (GB) after garbage collections during the step,
+ *                           null if no collection happened
+ * @param tempFilesCreated  memory mapped temp files created during the step
  * @param reservedTempFileGB nominal reserved space of the temp files created during the step
  * @param usedTempFileGB     logical bytes written to temp files during the step
  * @param liveTempFiles      mapped files still alive at the end of the step (best effort, depends
@@ -68,7 +71,8 @@ public record SpeedMeasurement(@NotNull String runDate, @NotNull String runId,
                                @NotNull String description, @NotNull String batchFile,
                                @NotNull SpeedTestPhase phase, int iteration, @NotNull String status,
                                int files, int step, @NotNull String name, double timeSeconds,
-                               @Nullable String gbRamUsed, long tempFilesCreated,
+                               @Nullable String gbRamUsed, double stepPeakHeapGB,
+                               @Nullable Double stepPeakHeapAfterGcGB, long tempFilesCreated,
                                double reservedTempFileGB, double usedTempFileGB, long liveTempFiles,
                                double liveTempFileUsedGB, int featureLists, int rows, int features,
                                double tempDirFreeGBBefore, double tempDirFreeGBAfter,
@@ -87,7 +91,8 @@ public record SpeedMeasurement(@NotNull String runDate, @NotNull String runId,
       @NotNull final SpeedIterationStats iterationStats, @NotNull final SpeedTestEnvironment env) {
     this(runDate, runId, description, batchFile, phase, iteration, status, files,
         measurement.step(), measurement.name(), measurement.secondsToFinish(),
-        measurement.usedHeapGB(), measurement.tempFilesCreated(), measurement.reservedTempFileGB(),
+        measurement.usedHeapGB(), measurement.peakHeapGB(), measurement.peakHeapAfterGcGB(),
+        measurement.tempFilesCreated(), measurement.reservedTempFileGB(),
         measurement.usedTempFileGB(), measurement.liveTempFiles(), measurement.liveTempFileUsedGB(),
         iterationStats.featureLists(), iterationStats.rows(), iterationStats.features(),
         iterationStats.tempDirFreeGBBefore(), iterationStats.tempDirFreeGBAfter(),
