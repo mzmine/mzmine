@@ -27,11 +27,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 35252,
-          "sha512": "31b07afe8621b029a96fb069513caf5c205c5f1a97ba72ffb3684819b7ceb4f057924d6b30f85c95fb0d35a0e899b0b484395d5582265c8539b77e0169f99757",
-          "sha256": "4913789660488ff325293084eae3663a088741dc972b12a9fa8cd3acec802b11",
-          "sha1": "171accda50e1890e5734cb1b919ee66309d1559c",
-          "md5": "a8b40de4e048168c064caf4f088dece6"
+          "size": 39189,
+          "sha512": "d20bd6bdb04eb88486f5cd30b29acebff0feb58bc1c1b2989e4b3e0d58fe5414653da7d62710ad376de176db8358c024a2badff15ee4bcb9b6d9adf69c013362",
+          "sha256": "db85118d6c8830103655c3af2e2d10debddd6754129ec7464bffcd14d57ef07c",
+          "sha1": "509242e9b0b42252d843428cabb5c05f31cb8298",
+          "md5": "b5b49efa7eaab891f57893ee9faacaa2"
         }
       ]
     },
@@ -170,11 +170,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 35252,
-          "sha512": "31b07afe8621b029a96fb069513caf5c205c5f1a97ba72ffb3684819b7ceb4f057924d6b30f85c95fb0d35a0e899b0b484395d5582265c8539b77e0169f99757",
-          "sha256": "4913789660488ff325293084eae3663a088741dc972b12a9fa8cd3acec802b11",
-          "sha1": "171accda50e1890e5734cb1b919ee66309d1559c",
-          "md5": "a8b40de4e048168c064caf4f088dece6"
+          "size": 39189,
+          "sha512": "d20bd6bdb04eb88486f5cd30b29acebff0feb58bc1c1b2989e4b3e0d58fe5414653da7d62710ad376de176db8358c024a2badff15ee4bcb9b6d9adf69c013362",
+          "sha256": "db85118d6c8830103655c3af2e2d10debddd6754129ec7464bffcd14d57ef07c",
+          "sha1": "509242e9b0b42252d843428cabb5c05f31cb8298",
+          "md5": "b5b49efa7eaab891f57893ee9faacaa2"
         }
       ]
     }
