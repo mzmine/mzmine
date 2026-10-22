@@ -169,13 +169,6 @@ class FeatureQcDriftNormalizationTest {
     assertEquals(5, batch.leaveOneOutFailureCount());
   }
 
-  @Test
-  void deprecatedBooleanDoesNotSilentlySelectHistoricalBehavior() {
-    assertThrows(IllegalArgumentException.class,
-        () -> FeatureQcDriftNormalization.calculate(samples("A", 5), Map.of(), 5, .75d, 2, 10d,
-            false, () -> false));
-  }
-
   private static List<FeatureQcDriftNormalization.Sample> samples(final String batch, final int count) {
     final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
     for (int index = 0; index < count; index++) {

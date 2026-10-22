@@ -20,7 +20,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
@@ -186,9 +185,9 @@ class ReviewedIntensityNormalizationTaskTest {
     addRow(fixture.source, 2, fixture.first, 30f, fixture.second, 40f);
     final IntensityNormalizationSummary summary = new IntensityNormalizationSummary(List.of(
         new RawFileNormalizationFunction(fixture.first,
-            new FeatureRowNormalizationFunction(Map.of(1, 2d), Set.of(2))),
+            new FeatureRowNormalizationFunction(Map.of(1, 2d), Map.of(2, "missing QC"))),
         new RawFileNormalizationFunction(fixture.second,
-            new FeatureRowNormalizationFunction(Map.of(1, .5d), Set.of(2)))));
+            new FeatureRowNormalizationFunction(Map.of(1, .5d), Map.of(2, "missing QC")))));
     final Task task = IntensityNormalizerModule.createReviewedTask(fixture.project, fixture.source,
         "reviewed", "revision", summary, MemoryMapStorage.forFeatureList(), Instant.now(), () -> true);
 
@@ -208,9 +207,9 @@ class ReviewedIntensityNormalizationTaskTest {
     ((ModularFeature) fixture.source.getFeature(0, fixture.first)).setHeight(null);
     final IntensityNormalizationSummary summary = new IntensityNormalizationSummary(List.of(
         new RawFileNormalizationFunction(fixture.first,
-            new FeatureRowNormalizationFunction(Map.of(1, 2d), Set.of())),
+            new FeatureRowNormalizationFunction(Map.of(1, 2d), Map.of())),
         new RawFileNormalizationFunction(fixture.second,
-            new FeatureRowNormalizationFunction(Map.of(1, .5d), Set.of()))));
+            new FeatureRowNormalizationFunction(Map.of(1, .5d), Map.of()))));
     final Task task = IntensityNormalizerModule.createReviewedTask(fixture.project, fixture.source,
         "reviewed", "revision", summary, MemoryMapStorage.forFeatureList(), Instant.now(), () -> true);
 

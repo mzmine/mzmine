@@ -86,10 +86,8 @@ and has no invented QC factor.
 MCP previews and native processing use the same calculation for matching inputs and settings. The
 MCP method is version 2 and rejects the old `correct_between_batches` option for feature-QC. The
 sample-wide `qc_batch` method retains that option and its established timestamp interpolation.
-Reviewed application uses the frozen factors. Historical factors are never refitted under the new
-global-target policy. Legacy frozen runs without a saved native source fingerprint cannot be
-re-executed safely; their stored factors remain historical results. Request-only legacy records
-without raw-file bindings are reported as unavailable instead of guessing their sample mapping.
+Reviewed application uses the saved factors without refitting. Re-execution verifies the saved
+source fingerprint before creating a normalized copy.
 
 ## Reference interpretation
 

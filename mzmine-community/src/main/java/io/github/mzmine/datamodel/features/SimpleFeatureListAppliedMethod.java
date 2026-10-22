@@ -27,8 +27,6 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.LegacyScopedNormalizationReader;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.PlaceholderModule;
 import io.github.mzmine.modules.tools.PlaceholderModuleParameters;
@@ -148,31 +146,15 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     Class<? extends MZmineModule> moduleClass = null;
     ParameterSet moduleParameters = null;
 
-    if (LegacyScopedNormalizationReader.LEGACY_MODULE_CLASS.equals(moduleClassName)) {
-      try {
-        moduleClass = IntensityNormalizerModule.class;
-        moduleParameters = LegacyScopedNormalizationReader.migrate(parametersElement);
-      } catch (RuntimeException exception) {
-        final String reason = "Cannot safely migrate legacy scoped normalization: "
-            + exception.getMessage();
-        logger.warning(reason);
-        moduleClass = PlaceholderModule.class;
-        moduleParameters = PlaceholderModuleParameters.forElement(moduleClassName, parametersElement);
-        final PlaceholderModuleParameters placeholder = (PlaceholderModuleParameters) moduleParameters;
-        placeholder.setParameter(PlaceholderModuleParameters.oldModuleName,
-            reason + "\n\n" + placeholder.getValue(PlaceholderModuleParameters.oldModuleName));
-      }
-    } else {
-      try {
-        moduleClass = (Class<? extends MZmineModule>) Class.forName(moduleClassName);
-        moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
-            .cloneParameterSet(true);
-        moduleParameters.loadValuesFromXML(parametersElement);
-      } catch (Exception | NoClassDefFoundError e) {
-        logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));
-        moduleClass = PlaceholderModule.class;
-        moduleParameters = PlaceholderModuleParameters.forElement(moduleClassName, parametersElement);
-      }
+    try {
+      moduleClass = (Class<? extends MZmineModule>) Class.forName(moduleClassName);
+      moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
+          .cloneParameterSet(true);
+      moduleParameters.loadValuesFromXML(parametersElement);
+    } catch (Exception | NoClassDefFoundError e) {
+      logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));
+      moduleClass = PlaceholderModule.class;
+      moduleParameters = PlaceholderModuleParameters.forElement(moduleClassName, parametersElement);
     }
 
     final Instant date;

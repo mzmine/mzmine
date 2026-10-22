@@ -27,13 +27,7 @@ import org.w3c.dom.Element;
 public final class FeatureRowNormalizationFunction implements NormalizationFunction {
 
   public static final String XML_TYPE = "feature_row";
-  public static final String LEGACY_UNAVAILABLE_REASON = "Unavailable";
-  private static final String XML_FACTOR_ELEMENT = "rowFactor";
-  private static final String XML_UNAVAILABLE_ELEMENT = "unavailableRow";
   private static final String XML_PAYLOAD_ELEMENT = "packedRowFactors";
-  private static final String XML_ROW_ID_ATTR = "rowId";
-  private static final String XML_FACTOR_ATTR = "factor";
-  private static final String XML_REASON_ATTR = "reason";
   private static final String XML_VERSION_ATTR = "version";
   private static final String XML_ENCODING_ATTR = "encoding";
   private static final String XML_FACTOR_COUNT_ATTR = "factorCount";
@@ -43,23 +37,11 @@ public final class FeatureRowNormalizationFunction implements NormalizationFunct
   private final Map<Integer, Double> factors;
   private final Map<Integer, String> unavailableReasons;
 
-  /** Compatibility constructor for existing callers and old whole-row unavailable payloads. */
-  public FeatureRowNormalizationFunction(@NotNull final Map<Integer, Double> factors,
-      @NotNull final Set<Integer> unavailableRowIds) {
-    this(factors, toLegacyReasons(unavailableRowIds));
-  }
-
   public FeatureRowNormalizationFunction(@NotNull final Map<Integer, Double> factors,
       @NotNull final Map<Integer, String> unavailableReasons) {
     this.factors = Collections.unmodifiableMap(new LinkedHashMap<>(factors));
     this.unavailableReasons = Collections.unmodifiableMap(new LinkedHashMap<>(unavailableReasons));
     validate();
-  }
-
-  private static Map<Integer, String> toLegacyReasons(final Set<Integer> ids) {
-    final Map<Integer, String> reasons = new LinkedHashMap<>();
-    ids.forEach(id -> reasons.put(id, LEGACY_UNAVAILABLE_REASON));
-    return reasons;
   }
 
   private void validate() {
@@ -81,8 +63,6 @@ public final class FeatureRowNormalizationFunction implements NormalizationFunct
   }
 
   public @NotNull Map<Integer, Double> factors() { return factors; }
-  /** Kept for callers written before per-row reasons were persisted. */
-  public @NotNull Set<Integer> unavailableRowIds() { return unavailableReasons.keySet(); }
   public @NotNull Map<Integer, String> unavailableReasons() { return unavailableReasons; }
 
   @Override
@@ -152,23 +132,9 @@ public final class FeatureRowNormalizationFunction implements NormalizationFunct
 
   public static @NotNull FeatureRowNormalizationFunction loadFromXML(@NotNull final Element functionElement) {
     final Element payload = XMLUtils.streamChildElementsByTagName(functionElement, XML_PAYLOAD_ELEMENT)
-        .reduce((left, right) -> { throw new IllegalArgumentException("Multiple packed row-factor payloads."); }).orElse(null);
-    return payload == null ? loadLegacy(functionElement) : loadPacked(payload);
-  }
-
-  private static @NotNull FeatureRowNormalizationFunction loadLegacy(final Element functionElement) {
-    final Map<Integer, Double> factors = new LinkedHashMap<>();
-    for (final Element factor : XMLUtils.streamChildElementsByTagName(functionElement, XML_FACTOR_ELEMENT).toList()) {
-      final int rowId = Integer.parseInt(XMLUtils.requireAttribute(factor, XML_ROW_ID_ATTR));
-      if (factors.put(rowId, Double.parseDouble(XMLUtils.requireAttribute(factor, XML_FACTOR_ATTR))) != null) throw new IllegalArgumentException("Feature-row factor XML contains duplicate row IDs.");
-    }
-    final Map<Integer, String> unavailable = new LinkedHashMap<>();
-    for (final Element row : XMLUtils.streamChildElementsByTagName(functionElement, XML_UNAVAILABLE_ELEMENT).toList()) {
-      final int rowId = Integer.parseInt(XMLUtils.requireAttribute(row, XML_ROW_ID_ATTR));
-      final String reason = row.hasAttribute(XML_REASON_ATTR) ? row.getAttribute(XML_REASON_ATTR) : LEGACY_UNAVAILABLE_REASON;
-      if (unavailable.put(rowId, reason) != null) throw new IllegalArgumentException("Feature-row normalization XML contains duplicate unavailable rows.");
-    }
-    return new FeatureRowNormalizationFunction(factors, unavailable);
+        .reduce((left, right) -> { throw new IllegalArgumentException("Multiple packed row-factor payloads."); })
+        .orElseThrow(() -> new IllegalArgumentException("Missing packed row-factor payload."));
+    return loadPacked(payload);
   }
 
   private static @NotNull FeatureRowNormalizationFunction loadPacked(final Element payload) {

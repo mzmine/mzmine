@@ -38,26 +38,25 @@ class FeatureRowNormalizationFunctionTest {
   }
 
   @Test
-  void readsLegacyElementsAndRejectsOverlappingOrMalformedPayloads() throws Exception {
+  void rejectsMissingOrDuplicatePackedPayloads() throws Exception {
     final Document document = XMLUtils.newDocument();
     final Element element = document.createElement("function");
     document.appendChild(element);
-    final Element factor = document.createElement("rowFactor");
-    factor.setAttribute("rowId", "7");
-    factor.setAttribute("factor", "1.25");
-    element.appendChild(factor);
-    final Element unavailable = document.createElement("unavailableRow");
-    unavailable.setAttribute("rowId", "8");
-    element.appendChild(unavailable);
-
-    final FeatureRowNormalizationFunction loaded = FeatureRowNormalizationFunction.loadFromXML(element);
-    assertEquals(1.25d, loaded.factors().get(7));
-    assertEquals(FeatureRowNormalizationFunction.LEGACY_UNAVAILABLE_REASON,
-        loaded.unavailableReasons().get(8));
-
-    unavailable.setAttribute("rowId", "7");
     assertThrows(IllegalArgumentException.class,
         () -> FeatureRowNormalizationFunction.loadFromXML(element));
+
+    final FeatureRowNormalizationFunction function = new FeatureRowNormalizationFunction(
+        Map.of(7, 1.25d), Map.of(8, "missing QC"));
+    function.saveToXML(element);
+    element.appendChild(element.getFirstChild().cloneNode(true));
+    assertThrows(IllegalArgumentException.class,
+        () -> FeatureRowNormalizationFunction.loadFromXML(element));
+  }
+
+  @Test
+  void rejectsOverlappingFactorsAndUnavailableReasons() {
+    assertThrows(IllegalArgumentException.class,
+        () -> new FeatureRowNormalizationFunction(Map.of(7, 1.25d), Map.of(7, "missing QC")));
   }
 
   @Test
@@ -81,7 +80,7 @@ class FeatureRowNormalizationFunctionTest {
   @Test
   void rowDependenceAndProtectedIdsPropagateThroughNestedFunctions() {
     final FeatureRowNormalizationFunction rowFunction = new FeatureRowNormalizationFunction(
-        Map.of(5, 2d), Set.of(7));
+        Map.of(5, 2d), Map.of(7, "missing QC"));
     final NormalizationFunction nested = new InterpolatedNormalizationFunction(
         new CompositeNormalizationFunction(List.of(new FactorNormalizationFunction(1d), rowFunction)),
         .5d, new FactorNormalizationFunction(1d), .5d);

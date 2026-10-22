@@ -108,32 +108,6 @@ public final class FeatureQcDriftNormalization {
         globalTargets, availability);
   }
 
-  /**
-   * Compatibility entry point. Version 2 always restores the global target and never applies
-   * scalar batch alignment.
-   */
-  @Deprecated
-  public static @NotNull FeatureQcResult calculate(@NotNull final List<Sample> samples,
-      @NotNull final Map<Integer, Map<String, Double>> allValues, final int minimumQcs,
-      final double bandwidth, final int robustnessIterations, final double maxFactor,
-      final boolean correctBetweenBatches) {
-    return calculate(samples, allValues, minimumQcs, bandwidth, robustnessIterations, maxFactor,
-        correctBetweenBatches, () -> false);
-  }
-
-  @Deprecated
-  public static @NotNull FeatureQcResult calculate(@NotNull final List<Sample> samples,
-      @NotNull final Map<Integer, Map<String, Double>> allValues, final int minimumQcs,
-      final double bandwidth, final int robustnessIterations, final double maxFactor,
-      final boolean correctBetweenBatches, @NotNull final BooleanSupplier canceled) {
-    if (!correctBetweenBatches) {
-      throw new IllegalArgumentException("Feature-QC method version 2 always restores a global "
-          + "feature target. Migrate to FeatureQcSettings and remove correct_between_batches.");
-    }
-    return calculate(samples, allValues, new FeatureQcSettings(bandwidth, robustnessIterations,
-        minimumQcs, maxFactor, .5d), canceled);
-  }
-
   private static @NotNull BatchResult calculateBatch(@NotNull final String batch,
       @NotNull final List<Sample> samples, @NotNull final Map<String, Double> values,
       final double globalTarget, @NotNull final FeatureQcSettings settings,
