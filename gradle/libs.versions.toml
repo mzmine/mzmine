@@ -17,7 +17,7 @@ poi = '5.0.0'
 batik = { require = "1.19" }
 controlsfx = '11.2.4'
 jmzTabm = "1.0.6"
-jna = '5.12.1'
+jna = '5.16.0' # at least the version moeaframework requires, so jna and jna-platform match
 junit = '5.14.0'
 mockito = '5.20.0'
 jackson = '2.18.0'
@@ -26,7 +26,7 @@ graphstream = "2.0"
 djl = "0.26.0"
 mzio = "1.0.0"
 jasper = "7.0.3"
-jfreechart = "1.5.3" # higher versions currently break the spectra plot
+jfreechart = { strictly = "1.5.3" } # higher versions currently break the spectra plot
 
 [libraries]
 # mzio
@@ -59,6 +59,9 @@ jfree-core = { module = "org.jfree:jfreechart", version.ref = "jfreechart" }
 jfree-fx = "org.jfree:org.jfree.chart.fx:2.0.1"
 jfree-fxgraphics = "org.jfree:org.jfree.fxgraphics2d:2.1.1"
 fxcharts = "eu.hansolo.fx:charts:21.0.7"
+# native access, jna and jna-platform must have the same version
+jna-core = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 # web, rest
 okhttp = { module = "com.squareup.okhttp:okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { module = "com.squareup.okhttp:logging-interceptor", version.ref = "okhttp" }
@@ -142,6 +145,7 @@ graphstream = ["graphstream-algo", "graphstream-core", "graphstream-javafx"]
 # chemistry
 cdk = ["cdk-core", "cdk-data", "cdk-formula", "cdk-interfaces", "cdk-io", "cdk-renderawt", "cdk-renderbasic", "cdk-fingerprint", "cdk-sdg", "cdk-silent", "cdk-smiles", "cdk-standard", "cdk-inchi", "cdk-smarts", "cdk-isomorphism"]
 msdk = ["msdk-adap3d", "msdk-mzml", "msdk-netcdf"]
+jna = ["jna-core", "jna-platform"]
 # logging and other utils
 slf4j = ["slf4j-api", "slf4j-jdk14"] # libraries should only use slf4j-api, no other dependencies
 poi = ["poi", "poi-ooxml"]
@@ -150,7 +154,7 @@ junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-dataformat-xml", "jackson-datetime", "jackson-datatype"]
 batik = ["batik-all"]#, "batik-xml-commons-ext"] #, "batik-xml-commons"]
 protobuf-generate = ["protobuf-java", "protobuf-grpc", "protobuf-grpc-stub", "protobuf-grpc-netty"] # only needed for generation
-protobuf = ["protobuf-java","protobuf-grpc", "protobuf-grpc-stub", "protobuf-grpc-netty"]
+protobuf = ["protobuf-java", "protobuf-grpc", "protobuf-grpc-stub", "protobuf-grpc-netty"]
 jasper = ["jasper-main", "jasper-pdf"]
 
 [plugins]

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
@@ -50,29 +51,15 @@ public final class QcBatchNormalization {
   private QcBatchNormalization() {
   }
 
-  public record Sample(@NotNull String id, @NotNull String batch, double order, boolean reference,
+  public record Sample(@NotNull RawDataFile rawDataFile, @NotNull String batch, double order, boolean reference,
                        double metric) {
 
   }
 
-  public record Result(@NotNull Map<String, Double> factors,
+  public record Result(@NotNull Map<RawDataFile, Double> factors,
                        @NotNull Map<String, Double> batchReferenceMedians,
-                       double interBatchReference, @NotNull Set<String> edgeSampleIds) {
+                       double interBatchReference, @NotNull Set<RawDataFile> edgeRawDataFiles) {
 
-  }
-
-  /**
-   * Frozen native interpolation weights, identified only by stable sample IDs. A missing next
-   * reference represents native nearest-QC boundary interpolation.
-   */
-  public record FrozenInterpolation(@NotNull String sampleId, @NotNull String previousReferenceId,
-                                    double previousWeight, @Nullable String nextReferenceId,
-                                    double nextWeight) {
-
-    public static @NotNull FrozenInterpolation single(@NotNull final String sampleId,
-        @NotNull final String referenceId) {
-      return new FrozenInterpolation(sampleId, referenceId, 1d, null, 0d);
-    }
   }
 
   /**
@@ -87,30 +74,31 @@ public final class QcBatchNormalization {
   }
 
   /**
-   * Calculates factors using frozen native interpolation weights for non-reference samples.
+   * Calculates factors using precomputed native interpolation weights for non-reference samples.
    *
    * <p>This overload is intended for callers that resolved {@link MetadataTableUtils}-equivalent
-   * weights while live metadata was available. It never requires raw files or metadata after the
-   * weights have been frozen.
+   * weights against the current project metadata during preparation. It never reads raw files or
+   * metadata after the weights have been captured.
    */
   public static @NotNull Result calculate(@NotNull final List<Sample> samples,
-      @NotNull final Map<String, FrozenInterpolation> frozenInterpolations,
+      @NotNull final Map<RawDataFile, ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile>>
+          precomputedInterpolations,
       final boolean correctBetweenBatches) {
     if (samples.isEmpty()) {
       throw new IllegalArgumentException("At least one sample is required for QC normalization.");
     }
 
     final Map<String, List<Sample>> batches = new LinkedHashMap<>();
-    final Set<String> ids = new LinkedHashSet<>();
+    final Set<RawDataFile> rawDataFiles = new LinkedHashSet<>();
     for (final Sample sample : samples) {
-      validateSample(sample, ids);
+      validateSample(sample, rawDataFiles);
       batches.computeIfAbsent(sample.batch(), ignored -> new ArrayList<>()).add(sample);
     }
-    validateFrozenInterpolations(samples, frozenInterpolations);
+    validatePrecomputedInterpolations(samples, precomputedInterpolations);
 
     final Map<String, Double> batchMedians = new LinkedHashMap<>();
-    final Map<String, Double> factors = new LinkedHashMap<>();
-    final Set<String> edgeSampleIds = new LinkedHashSet<>();
+    final Map<RawDataFile, Double> factors = new LinkedHashMap<>();
+    final Set<RawDataFile> edgeRawDataFiles = new LinkedHashSet<>();
     for (final Map.Entry<String, List<Sample>> entry : batches.entrySet()) {
       final List<Sample> batchSamples = entry.getValue();
       validateDistinctOrders(entry.getKey(), batchSamples);
@@ -120,18 +108,19 @@ public final class QcBatchNormalization {
         throw new IllegalArgumentException("Batch '%s' has no reference sample.".formatted(entry.getKey()));
       }
 
-      final Map<String, Double> referenceMetrics = new LinkedHashMap<>();
-      references.forEach(reference -> referenceMetrics.put(reference.id(), reference.metric()));
-      final ScalarQcBatchNormalization.ReferenceFactors<String> referenceFactors =
+      final Map<RawDataFile, Double> referenceMetrics = new LinkedHashMap<>();
+      references.forEach(reference -> referenceMetrics.put(reference.rawDataFile(), reference.metric()));
+      final ScalarQcBatchNormalization.ReferenceFactors<RawDataFile> referenceFactors =
           ScalarQcBatchNormalization.calculateReferenceFactors(referenceMetrics);
       batchMedians.put(entry.getKey(), referenceFactors.referenceLevel());
 
-      final Map<String, ScalarQcBatchNormalization.ResolvedInterpolation<String>> interpolations =
+      final Map<RawDataFile, ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile>> interpolations =
           new LinkedHashMap<>();
       for (final Sample sample : batchSamples) {
         if (!sample.reference()) {
-          interpolations.put(sample.id(), resolveInterpolation(sample, references, edgeSampleIds,
-              frozenInterpolations.get(sample.id()), frozenInterpolations.isEmpty()));
+          interpolations.put(sample.rawDataFile(), resolveInterpolation(sample, references,
+              edgeRawDataFiles, precomputedInterpolations.get(sample.rawDataFile()),
+              precomputedInterpolations.isEmpty()));
         }
       }
       factors.putAll(ScalarQcBatchNormalization.calculateWithinBatchFactors(
@@ -144,19 +133,19 @@ public final class QcBatchNormalization {
       for (final Map.Entry<String, List<Sample>> entry : batches.entrySet()) {
         final double interBatchFactor = interBatchScales.scales().get(entry.getKey());
         for (final Sample sample : entry.getValue()) {
-          factors.compute(sample.id(), (id, factor) -> factor * interBatchFactor);
+          factors.compute(sample.rawDataFile(), (file, factor) -> factor * interBatchFactor);
         }
       }
     }
 
     validateFactors(factors);
 
-    final Map<String, Double> factorsInSampleOrder = new LinkedHashMap<>();
-    final Set<String> edgesInSampleOrder = new LinkedHashSet<>();
+    final Map<RawDataFile, Double> factorsInSampleOrder = new LinkedHashMap<>();
+    final Set<RawDataFile> edgesInSampleOrder = new LinkedHashSet<>();
     for (final Sample sample : samples) {
-      factorsInSampleOrder.put(sample.id(), factors.get(sample.id()));
-      if (edgeSampleIds.contains(sample.id())) {
-        edgesInSampleOrder.add(sample.id());
+      factorsInSampleOrder.put(sample.rawDataFile(), factors.get(sample.rawDataFile()));
+      if (edgeRawDataFiles.contains(sample.rawDataFile())) {
+        edgesInSampleOrder.add(sample.rawDataFile());
       }
     }
     return new Result(immutableOrderedMap(factorsInSampleOrder), immutableOrderedMap(batchMedians),
@@ -188,22 +177,20 @@ public final class QcBatchNormalization {
     return interBatchReference / batchReferenceMedian;
   }
 
-  private static void validateSample(@NotNull final Sample sample, @NotNull final Set<String> ids) {
-    if (sample.id() == null || sample.id().isBlank()) {
-      throw new IllegalArgumentException("Sample IDs must not be blank.");
-    }
-    if (!ids.add(sample.id())) {
-      throw new IllegalArgumentException("Duplicate sample ID: " + sample.id());
+  private static void validateSample(@NotNull final Sample sample,
+      @NotNull final Set<RawDataFile> rawDataFiles) {
+    if (!rawDataFiles.add(sample.rawDataFile())) {
+      throw new IllegalArgumentException("Duplicate raw data file: " + sample.rawDataFile().getName());
     }
     if (!Double.isFinite(sample.order())) {
-      throw new IllegalArgumentException("Sample order must be finite: " + sample.id());
+      throw new IllegalArgumentException("Sample order must be finite: " + sample.rawDataFile().getName());
     }
     if (sample.batch() == null || sample.batch().isBlank()) {
-      throw new IllegalArgumentException("Sample batch must not be blank: " + sample.id());
+      throw new IllegalArgumentException("Sample batch must not be blank: " + sample.rawDataFile().getName());
     }
     if (sample.reference() && (!Double.isFinite(sample.metric()) || sample.metric() <= 0d)) {
       throw new IllegalArgumentException(
-          "Reference sample metric must be positive and finite: " + sample.id());
+          "Reference sample metric must be positive and finite: " + sample.rawDataFile().getName());
     }
   }
 
@@ -218,36 +205,40 @@ public final class QcBatchNormalization {
     }
   }
 
-  private static void validateFrozenInterpolations(@NotNull final List<Sample> samples,
-      @NotNull final Map<String, FrozenInterpolation> frozenInterpolations) {
-    if (frozenInterpolations.isEmpty()) return;
-    final Set<String> expected = samples.stream().filter(sample -> !sample.reference())
-        .map(Sample::id).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
-    if (!frozenInterpolations.keySet().equals(expected)) {
-      throw new IllegalArgumentException("Frozen interpolations must cover exactly all non-reference samples.");
+  private static void validatePrecomputedInterpolations(@NotNull final List<Sample> samples,
+      @NotNull final Map<RawDataFile, ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile>>
+          precomputedInterpolations) {
+    if (precomputedInterpolations.isEmpty()) return;
+    final Set<RawDataFile> expected = samples.stream().filter(sample -> !sample.reference())
+        .map(Sample::rawDataFile).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+    if (!precomputedInterpolations.keySet().equals(expected)) {
+      throw new IllegalArgumentException(
+          "Precomputed interpolations must cover exactly all non-reference samples.");
     }
   }
 
-  private static @NotNull ScalarQcBatchNormalization.ResolvedInterpolation<String> resolveInterpolation(
+  private static @NotNull ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile> resolveInterpolation(
       @NotNull final Sample sample, @NotNull final List<Sample> references,
-      @NotNull final Set<String> edgeSampleIds, @Nullable final FrozenInterpolation frozen,
+      @NotNull final Set<RawDataFile> edgeRawDataFiles,
+      @Nullable final ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile> precomputed,
       final boolean calculateWeights) {
     if (!calculateWeights) {
-      if (frozen == null || !sample.id().equals(frozen.sampleId())) {
-        throw new IllegalArgumentException("Missing frozen interpolation for sample: " + sample.id());
+      if (precomputed == null) {
+        throw new IllegalArgumentException("Missing precomputed interpolation for sample: "
+            + sample.rawDataFile().getName());
       }
-      return resolveFrozenInterpolation(sample, references, edgeSampleIds, frozen);
+      return resolvePrecomputedInterpolation(sample, references, edgeRawDataFiles, precomputed);
     }
 
     final Sample first = references.getFirst();
     final Sample last = references.getLast();
     if (sample.order() < first.order()) {
-      edgeSampleIds.add(sample.id());
-      return ScalarQcBatchNormalization.ResolvedInterpolation.single(first.id());
+      edgeRawDataFiles.add(sample.rawDataFile());
+      return ScalarQcBatchNormalization.ResolvedInterpolation.single(first.rawDataFile());
     }
     if (sample.order() > last.order()) {
-      edgeSampleIds.add(sample.id());
-      return ScalarQcBatchNormalization.ResolvedInterpolation.single(last.id());
+      edgeRawDataFiles.add(sample.rawDataFile());
+      return ScalarQcBatchNormalization.ResolvedInterpolation.single(last.rawDataFile());
     }
 
     for (int index = 1; index < references.size(); index++) {
@@ -256,49 +247,53 @@ public final class QcBatchNormalization {
       if (sample.order() < next.order()) {
         final double nextWeight = (sample.order() - previous.order()) / (next.order()
             - previous.order());
-        return new ScalarQcBatchNormalization.ResolvedInterpolation<>(previous.id(), 1d - nextWeight,
-            next.id(), nextWeight);
+        return new ScalarQcBatchNormalization.ResolvedInterpolation<>(previous.rawDataFile(),
+            1d - nextWeight, next.rawDataFile(), nextWeight);
       }
     }
-    throw new IllegalStateException("Could not determine QC factor for sample: " + sample.id());
+    throw new IllegalStateException("Could not determine QC factor for sample: "
+        + sample.rawDataFile().getName());
   }
 
-  private static @NotNull ScalarQcBatchNormalization.ResolvedInterpolation<String> resolveFrozenInterpolation(
+  private static @NotNull ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile> resolvePrecomputedInterpolation(
       @NotNull final Sample sample, @NotNull final List<Sample> references,
-      @NotNull final Set<String> edgeSampleIds, @NotNull final FrozenInterpolation frozen) {
-    final Map<String, Sample> referencesById = new LinkedHashMap<>();
-    references.forEach(reference -> referencesById.put(reference.id(), reference));
-    final Sample previous = referencesById.get(frozen.previousReferenceId());
+      @NotNull final Set<RawDataFile> edgeRawDataFiles,
+      @NotNull final ScalarQcBatchNormalization.ResolvedInterpolation<RawDataFile> precomputed) {
+    final Map<RawDataFile, Sample> referencesByFile = new LinkedHashMap<>();
+    references.forEach(reference -> referencesByFile.put(reference.rawDataFile(), reference));
+    final Sample previous = referencesByFile.get(precomputed.previousReference());
     if (previous == null) {
-      throw new IllegalArgumentException("Frozen previous QC is not in sample batch: " + sample.id());
+      throw new IllegalArgumentException("Precomputed previous QC is not in sample batch: "
+          + sample.rawDataFile().getName());
     }
-    if (!Double.isFinite(frozen.previousWeight()) || frozen.previousWeight() < 0d
-        || !Double.isFinite(frozen.nextWeight()) || frozen.nextWeight() < 0d) {
-      throw new IllegalArgumentException("Frozen interpolation weights must be finite and nonnegative: "
-          + sample.id());
+    if (!Double.isFinite(precomputed.previousWeight()) || precomputed.previousWeight() < 0d
+        || !Double.isFinite(precomputed.nextWeight()) || precomputed.nextWeight() < 0d) {
+      throw new IllegalArgumentException("Precomputed interpolation weights must be finite and nonnegative: "
+          + sample.rawDataFile().getName());
     }
-    if (frozen.nextReferenceId() == null) {
-      if (Double.compare(frozen.previousWeight(), 1d) != 0 || Double.compare(frozen.nextWeight(), 0d) != 0) {
-        throw new IllegalArgumentException("Single frozen interpolation must have weights 1 and 0: "
-            + sample.id());
+    if (precomputed.nextReference() == null) {
+      if (Double.compare(precomputed.previousWeight(), 1d) != 0
+          || Double.compare(precomputed.nextWeight(), 0d) != 0) {
+        throw new IllegalArgumentException("Single precomputed interpolation must have weights 1 and 0: "
+            + sample.rawDataFile().getName());
       }
-      edgeSampleIds.add(sample.id());
-      return ScalarQcBatchNormalization.ResolvedInterpolation.single(previous.id());
+      edgeRawDataFiles.add(sample.rawDataFile());
+      return ScalarQcBatchNormalization.ResolvedInterpolation.single(previous.rawDataFile());
     }
-    final Sample next = referencesById.get(frozen.nextReferenceId());
+    final Sample next = referencesByFile.get(precomputed.nextReference());
     if (next == null || next == previous) {
-      throw new IllegalArgumentException("Frozen next QC is not a distinct sample-batch reference: "
-          + sample.id());
+      throw new IllegalArgumentException("Precomputed next QC is not a distinct sample-batch reference: "
+          + sample.rawDataFile().getName());
     }
-    return new ScalarQcBatchNormalization.ResolvedInterpolation<>(previous.id(),
-        frozen.previousWeight(), next.id(), frozen.nextWeight());
+    return new ScalarQcBatchNormalization.ResolvedInterpolation<>(previous.rawDataFile(),
+        precomputed.previousWeight(), next.rawDataFile(), precomputed.nextWeight());
   }
 
-  private static void validateFactors(@NotNull final Map<String, Double> factors) {
-    for (final Map.Entry<String, Double> entry : factors.entrySet()) {
+  private static void validateFactors(@NotNull final Map<RawDataFile, Double> factors) {
+    for (final Map.Entry<RawDataFile, Double> entry : factors.entrySet()) {
       if (entry.getValue() == null || !Double.isFinite(entry.getValue()) || entry.getValue() <= 0d) {
         throw new IllegalArgumentException("QC normalization produced an invalid factor for "
-            + entry.getKey());
+            + entry.getKey().getName());
       }
     }
   }

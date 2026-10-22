@@ -95,6 +95,7 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
    * Extra width so a vertical scroll bar in the compact table does not cover the last column.
    */
   private static final double VERTICAL_SCROLL_BAR_ALLOWANCE = 20d;
+  private static final double MIN_CHART_HEIGHT = 260d;
 
   private final NumberFormat threeDecimals = new DecimalFormat("0.###");
   private final NumberFormat noDecimals = new DecimalFormat("0");
@@ -137,7 +138,9 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     final Rectangle2D screen = Screen.getPrimary().getVisualBounds();
     final double fittedWidth = Math.min(width, screen.getWidth() * 0.9d);
     stage.setWidth(fittedWidth);
-    stage.setHeight(Math.min(fittedWidth * 0.6, screen.getHeight() * 0.6d));
+    final double maximumHeight = screen.getHeight() * 0.6d;
+    stage.setHeight(Math.clamp(fittedWidth * 0.6,
+        Math.min(COMPACT_TABLE_HEIGHT + 70 + MIN_CHART_HEIGHT, maximumHeight), maximumHeight));
   }
 
   @Override
@@ -271,7 +274,7 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
         "Candidate evaluations and best-so-far", "Evaluation number", objectiveName);
     chart.setItemLabelsVisible(false);
     chart.setShowCrosshair(true);
-    chart.setMinHeight(260d);
+    chart.setMinHeight(MIN_CHART_HEIGHT);
     final NumberAxis evaluationAxis = (NumberAxis) chart.getXYPlot().getDomainAxis();
     evaluationAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
     return chart;

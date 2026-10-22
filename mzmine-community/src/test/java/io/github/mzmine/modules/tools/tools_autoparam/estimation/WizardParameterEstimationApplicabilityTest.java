@@ -45,7 +45,7 @@ class WizardParameterEstimationApplicabilityTest {
 
   @ParameterizedTest
   @EnumSource(value = IonInterfaceWizardParameterFactory.class,
-      names = {"DIRECT_INFUSION", "FLOW_INJECT", "MALDI", "LDI", "DESI", "SIMS"})
+      names = {"MALDI", "LDI", "DESI", "SIMS"})
   void unsupportedInterfacesFailBeforeReadingOrReplacingMassLists(
       final @NotNull IonInterfaceWizardParameterFactory ionInterface) {
     final WizardSequence sequence = new WizardSequence();
@@ -61,8 +61,8 @@ class WizardParameterEstimationApplicabilityTest {
 
   @ParameterizedTest
   @EnumSource(value = IonInterfaceWizardParameterFactory.class,
-      names = {"HPLC", "UHPLC", "HILIC", "GC_CI", "GC_EI"})
-  void chromatographyStillPermitsEstimation(
+      names = {"HPLC", "UHPLC", "HILIC", "GC_CI", "GC_EI", "DIRECT_INFUSION", "FLOW_INJECT"})
+  void supportedInterfacesPermitEstimation(
       final @NotNull IonInterfaceWizardParameterFactory ionInterface) {
     final WizardSequence sequence = new WizardSequence();
     sequence.set(WizardPart.ION_INTERFACE, ionInterface.create());

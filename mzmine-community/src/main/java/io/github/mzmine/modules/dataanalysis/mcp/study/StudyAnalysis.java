@@ -269,14 +269,18 @@ public final class StudyAnalysis {
     catch (RuntimeException e) { return new TestResult("test_unavailable", null, null, x.length, y.length, List.of(e.getMessage())); }
   }
 
-  private static @NotNull Map<String, String> pairs(List<Sample> samples, java.util.Set<String> unitIds) {
-    final Map<String, String> result = new LinkedHashMap<>();
+  private static @NotNull Map<String, String> pairs(@NotNull final List<Sample> samples,
+      @NotNull final java.util.Set<String> unitIds) {
+    final Map<String, String> pairToUnit = new LinkedHashMap<>();
+    final Map<String, String> unitToPair = new LinkedHashMap<>();
     for (final Sample sample : samples) if (unitIds.contains(sample.independentUnit())) {
       if (sample.pairId() == null || sample.pairId().isBlank()) return Map.of();
-      final String existing = result.putIfAbsent(sample.pairId(), sample.independentUnit());
-      if (existing != null && !existing.equals(sample.independentUnit())) return Map.of();
+      final String pairedUnit = pairToUnit.putIfAbsent(sample.pairId(), sample.independentUnit());
+      if (pairedUnit != null && !pairedUnit.equals(sample.independentUnit())) return Map.of();
+      final String pair = unitToPair.putIfAbsent(sample.independentUnit(), sample.pairId());
+      if (pair != null && !pair.equals(sample.pairId())) return Map.of();
     }
-    return result;
+    return pairToUnit;
   }
 
   private static @NotNull Map<String, Double> aggregateUnits(List<Sample> samples, List<Measurement> measurements,

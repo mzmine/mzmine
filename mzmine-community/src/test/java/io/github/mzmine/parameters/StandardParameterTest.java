@@ -26,8 +26,8 @@ package io.github.mzmine.parameters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;

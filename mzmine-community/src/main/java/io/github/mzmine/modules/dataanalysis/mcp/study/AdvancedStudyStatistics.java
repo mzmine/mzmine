@@ -37,7 +37,13 @@ public final class AdvancedStudyStatistics {
   private AdvancedStudyStatistics() {
   }
 
-  /** A fixed-effect fit; the covariance matrix is unscaled and must be multiplied by residualVariance. */
+  /**
+   * A fixed-effect fit; the covariance matrix is unscaled and must be multiplied by residualVariance.
+   *
+   * <p>{@code logLikelihood} is the maximized Gaussian maximum-likelihood value when available.
+   * {@code remlCriterion} is minus twice the restricted log likelihood, including its normalizing
+   * constants. Random-intercept fits optimize REML, so their maximum-likelihood value is unavailable.
+   */
   public record Fit(@NotNull String status, double @NotNull [] coefficients,
                     double @NotNull [][] unscaledCovariance, double residualVariance,
                     double residualDf, int observations, int subjects, double randomInterceptVariance,
@@ -47,6 +53,11 @@ public final class AdvancedStudyStatistics {
       coefficients = coefficients.clone();
       unscaledCovariance = copy(unscaledCovariance);
       warnings = List.copyOf(warnings);
+    }
+
+    /** The restricted log likelihood represented by {@link #remlCriterion()}, if it is available. */
+    public double restrictedLogLikelihood() {
+      return Double.isFinite(remlCriterion) ? -0.5d * remlCriterion : Double.NaN;
     }
   }
 
@@ -91,9 +102,14 @@ public final class AdvancedStudyStatistics {
     final RealMatrix pseudoInverse = svd.getSolver().getInverse();
     final RealMatrix inverse = pseudoInverse.multiply(pseudoInverse.transpose());
     final double sigma2 = rss / df;
-    final double criterion = n * (Math.log(2d * Math.PI) + 1d + Math.log(sigma2));
+    final double maximumLikelihoodSigma2 = rss / n;
+    double logDetInformation = 0d;
+    for (final double singular : svd.getSingularValues()) logDetInformation += 2d * Math.log(singular);
+    final double normalizingConstant = Math.log(2d * Math.PI) + 1d;
+    final double logLikelihood = -0.5d * n * (normalizingConstant + Math.log(maximumLikelihoodSigma2));
+    final double criterion = logDetInformation + df * (normalizingConstant + Math.log(sigma2));
     return new Fit("available", beta.toArray(), inverse.getData(), sigma2, df, n, 0, 0d,
-        -0.5d * criterion, criterion, List.of());
+        logLikelihood, criterion, List.of());
   }
 
   /**
@@ -151,11 +167,11 @@ public final class AdvancedStudyStatistics {
     }
     final List<String> warnings = new ArrayList<>();
     warnings.add("Fixed-effect contrast inference uses an asymptotic Wald normal distribution.");
+    warnings.add("Maximum-likelihood log likelihood is unavailable because the random-intercept variance was optimized with REML.");
     if (best.lambda == 0d) warnings.add("The REML optimum is the no-random-intercept boundary.");
     if (best.lambda >= upper * 0.999d) warnings.add("The variance-ratio search reached its upper boundary.");
-    final double logLikelihood = -0.5d * (best.criterion + (n - p) * (Math.log(2d * Math.PI) + 1d));
     return new Fit("available", best.beta, best.inverse, best.sigma2, n - p, n, bySubject.size(),
-        best.lambda * best.sigma2, logLikelihood, best.criterion, warnings);
+        best.lambda * best.sigma2, Double.NaN, best.criterion, warnings);
   }
 
   /** Calculates a requested contrast and its two-sided confidence interval. */
@@ -305,8 +321,9 @@ public final class AdvancedStudyStatistics {
       if (singular > RANK_TOLERANCE * svd.getSingularValues()[0]) logDetInformation += Math.log(singular);
     }
     final double sigma2 = rss / df;
-    return new Profile(lambda, beta, inverse.getData(), sigma2,
-        logDetV + logDetInformation + df * Math.log(sigma2), null);
+    final double remlCriterion = logDetV + logDetInformation + df * (Math.log(2d * Math.PI) + 1d
+        + Math.log(sigma2));
+    return new Profile(lambda, beta, inverse.getData(), sigma2, remlCriterion, null);
   }
 
   private record Profile(double lambda, double[] beta, double[][] inverse, double sigma2, double criterion,

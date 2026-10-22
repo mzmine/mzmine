@@ -570,16 +570,16 @@ public class BatchWizardTab extends SimpleTab {
    */
   private @NotNull HBox createTabHeaderActions() {
     final Button estimate = FxButtons.createButton("Estimate", Source.ESTIMATION.icon(),
-        "Derive wizard parameters from representative files with chromatographic peaks.\n"
-            + "Unavailable for imaging, direct infusion, and flow injection.\n"
+        "Derive wizard parameters from representative files with isotope-supported signals.\n"
+            + "Supports chromatography, direct infusion, and flow injection; unavailable for imaging.\n"
             + "Right click to also show the data file statistics.",
         () -> autoParamActions.estimate(false));
     estimate.setContextMenu(new ContextMenu(
         FxMenuUtil.newMenuItem("Estimate parameters and show statistics",
             () -> autoParamActions.estimate(true))));
     final Button optimize = FxButtons.createButton("Optimize", Source.OPTIMIZATION.icon(),
-        "Optimize the wizard parameters on representative files with chromatographic peaks.\n"
-            + "Unavailable for imaging, direct infusion, and flow injection.\n"
+        "Optimize the wizard parameters on representative files with isotope-supported signals.\n"
+            + "Supports chromatography, direct infusion, and flow injection; unavailable for imaging.\n"
             + "Right click for advanced optimizer settings.",
         () -> autoParamActions.optimize(false));
     optimize.setContextMenu(new ContextMenu(

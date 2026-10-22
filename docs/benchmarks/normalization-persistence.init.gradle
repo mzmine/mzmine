@@ -5,7 +5,14 @@ import org.gradle.api.tasks.JavaExec
 //   :mzmine-community:runNormalizationPersistenceBenchmark
 gradle.beforeProject { project ->
   if (project.path == ':mzmine-community') {
-    ['small': [], 'large': ['--large']].each { label, benchmarkArgs ->
+    [
+        smallMixed       : [],
+        smallAllAvailable: ['--all-available'],
+        largeMixed       : ['--large'],
+        largeAllAvailable: ['--large', '--all-available'],
+        archiveControl   : ['--feature-list-archive'],
+        archiveNormalized: ['--feature-list-archive', '--archive-normalized']
+    ].each { label, benchmarkArgs ->
       project.tasks.register("normalizationPersistence${label.capitalize()}", JavaExec) {
         dependsOn 'testClasses'
         classpath = project.sourceSets.test.runtimeClasspath
@@ -15,7 +22,12 @@ gradle.beforeProject { project ->
       }
     }
     project.tasks.register('runNormalizationPersistenceBenchmark') {
-      dependsOn 'normalizationPersistenceSmall', 'normalizationPersistenceLarge'
+      dependsOn 'normalizationPersistenceSmallMixed',
+          'normalizationPersistenceSmallAllAvailable',
+          'normalizationPersistenceLargeMixed',
+          'normalizationPersistenceLargeAllAvailable',
+          'normalizationPersistenceArchiveControl',
+          'normalizationPersistenceArchiveNormalized'
     }
   }
 }

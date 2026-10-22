@@ -127,10 +127,9 @@ public final class RawDataPreparation {
   public static void requireIsotopeSignals(@NotNull List<DataFileStatistics> statistics) {
     if (statistics.stream().allMatch(stat -> stat.featureStatistics().isEmpty())) {
       throw new IllegalStateException(
-          "No suitable chromatographic isotope traces were found. Parameter estimation requires "
-              + "MS1 scans with resolved chromatographic peaks and correlated isotopes. "
-              + "Check the selected files and polarity. For direct infusion or flow injection, "
-              + "select the matching wizard interface and review the settings without estimation.");
+          "No suitable isotope-supported signals were found for the selected wizard workflow. "
+              + "Parameter estimation requires MS1 isotope evidence. Check the selected files, "
+              + "polarity, and wizard interface.");
     }
   }
 

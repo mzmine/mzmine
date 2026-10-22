@@ -25,6 +25,10 @@ class AdvancedStudyStatisticsTest {
     assertEquals(0.6d, fit.coefficients()[0], 1e-12);
     assertEquals(1d, fit.coefficients()[1], 1e-12);
     assertEquals(1.0666666666666667d, fit.residualVariance(), 1e-12);
+    // RSS=3.2, n=5, p=2, and det(X'X)=50 for this fixture.
+    assertEquals(-5.978974909452315d, fit.logLikelihood(), 1e-12);
+    assertEquals(12.619269768068894d, fit.remlCriterion(), 1e-12);
+    assertEquals(-6.309634884034447d, fit.restrictedLogLikelihood(), 1e-12);
     final var contrast = AdvancedStudyStatistics.contrast(fit, new double[]{0, 1}, .95d);
     assertEquals("ols_t", contrast.inferenceMethod());
     assertEquals(Math.sqrt(0.10666666666666667d), contrast.standardError(), 1e-12);
@@ -48,6 +52,10 @@ class AdvancedStudyStatisticsTest {
     assertEquals(4, fit.subjects());
     assertEquals(.01666681813925491d, fit.residualVariance(), 3e-6d);
     assertEquals(1.566652277030943d, fit.randomInterceptVariance(), 3e-4d);
+    assertTrue(Double.isNaN(fit.logLikelihood()));
+    // Balanced-panel REML optimum: sigma^2=1/60, lambda=94, |V|=189^4, |X'V^-1X|=16/189.
+    assertEquals(10.959024792542177d, fit.remlCriterion(), 1e-8);
+    assertEquals(-.5d * fit.remlCriterion(), fit.restrictedLogLikelihood(), 1e-12);
     final var contrast = AdvancedStudyStatistics.contrast(fit, new double[]{0, 1}, .95d);
     assertEquals("asymptotic_wald_normal", contrast.inferenceMethod());
     assertEquals(Double.POSITIVE_INFINITY, contrast.degreesOfFreedom());

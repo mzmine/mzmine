@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-/** Frozen factors and unavailable outcomes keyed by source feature-row ID. */
+/** Precomputed factors and unavailable outcomes keyed by source feature-row ID. */
 public final class FeatureRowNormalizationFunction implements NormalizationFunction {
 
   public static final String XML_TYPE = "feature_row";

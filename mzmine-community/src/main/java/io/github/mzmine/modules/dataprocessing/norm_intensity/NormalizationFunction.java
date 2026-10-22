@@ -120,7 +120,7 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
 
   /**
    * Resolves a factor in feature-row context. Empty means that this row was not covered by the
-   * frozen reviewed function and must remain without normalized values.
+   * stored function and must remain without normalized values.
    */
   default @NotNull OptionalDouble getNormalizationFactor(@Nullable final FeatureListRow row,
       @NotNull final Double mz, @NotNull final Float rt) {

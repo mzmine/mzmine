@@ -42,15 +42,21 @@ class WizardAutoParamActionsTest {
     final var actions = new WizardAutoParamActions(mock(BatchWizardTab.class));
     final var disabled = actions.createDisabledBinding(selected);
     for (final var ionInterface : new IonInterfaceWizardParameterFactory[]{
-        IonInterfaceWizardParameterFactory.DIRECT_INFUSION,
-        IonInterfaceWizardParameterFactory.FLOW_INJECT,
-        IonInterfaceWizardParameterFactory.MALDI}) {
+        IonInterfaceWizardParameterFactory.MALDI,
+        IonInterfaceWizardParameterFactory.LDI,
+        IonInterfaceWizardParameterFactory.DESI,
+        IonInterfaceWizardParameterFactory.SIMS}) {
       selected.set(ionInterface.create());
       assertTrue(disabled.get(), ionInterface::name);
       selected.set(IonInterfaceWizardParameterFactory.HPLC.create());
       assertFalse(disabled.get());
     }
-    selected.set(IonInterfaceWizardParameterFactory.GC_EI.create());
-    assertFalse(disabled.get());
+    for (final var ionInterface : new IonInterfaceWizardParameterFactory[]{
+        IonInterfaceWizardParameterFactory.GC_EI,
+        IonInterfaceWizardParameterFactory.DIRECT_INFUSION,
+        IonInterfaceWizardParameterFactory.FLOW_INJECT}) {
+      selected.set(ionInterface.create());
+      assertFalse(disabled.get(), ionInterface::name);
+    }
   }
 }

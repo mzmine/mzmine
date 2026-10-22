@@ -88,4 +88,20 @@ class StudyAnalysisTest {
     assertEquals("available", result.status());
     assertEquals(2, result.leftUnits());
   }
+
+  @Test
+  void pairedComparisonRejectsAnIndependentUnitAssignedToMultiplePairs() {
+    final var samples = List.of(
+        new StudyAnalysis.Sample("a1", "before", null, "before_subject1", "subject1"),
+        new StudyAnalysis.Sample("a2", "before", null, "before_subject1", "subject2"),
+        new StudyAnalysis.Sample("b1", "after", null, "after_subject1", "subject1"),
+        new StudyAnalysis.Sample("b2", "after", null, "after_subject2", "subject2"),
+        new StudyAnalysis.Sample("c", "before", null, "before_subject2", "subject3"),
+        new StudyAnalysis.Sample("d", "after", null, "after_subject3", "subject3"));
+    final var result = StudyAnalysis.compare(samples, List.of(new StudyAnalysis.Measurement("a1", 1d),
+        new StudyAnalysis.Measurement("a2", 3d), new StudyAnalysis.Measurement("b1", 5d),
+        new StudyAnalysis.Measurement("b2", 7d), new StudyAnalysis.Measurement("c", 2d),
+        new StudyAnalysis.Measurement("d", 6d)), "before", "after", SignificanceTests.PAIRED_T_TEST);
+    assertEquals("incomplete_pair_mapping", result.status());
+  }
 }

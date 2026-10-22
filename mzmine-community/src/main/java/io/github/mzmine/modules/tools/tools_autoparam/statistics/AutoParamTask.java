@@ -80,6 +80,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class AutoParamTask extends AbstractRawDataFileTask {
 
+  public static final double MAX_CHROMATOGRAPHIC_WIDTH_SHARE = 0.15;
+
   private static final Logger logger = Logger.getLogger(AutoParamTask.class.getName());
 
   private static final List<MZTolerance> tolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
@@ -295,8 +297,8 @@ public class AutoParamTask extends AbstractRawDataFileTask {
         .toArray();
 
     final Double2ObjectArrayMap<List<FeatureWithIsotopeTraces>> mzsToIsotopeTraces = new Double2ObjectArrayMap<>();
+    final Double2ObjectArrayMap<List<FeatureWithIsotopeTraces>> rejectedIsotopeTraces = new Double2ObjectArrayMap<>();
 
-    List<FeatureWithIsotopeTraces> featureWithIsotopeTraces = new ArrayList<>();
     for (MZTolerance tolerance : testedTolerances) {
       if (mergeMobilityScans) {
         mergeFrameMassLists(scans, tolerance);
@@ -324,8 +326,8 @@ public class AutoParamTask extends AbstractRawDataFileTask {
 //                  file.getName(), initialMz, tolerance.toString()));
           continue;
         }
-        featureWithIsotopeTraces.add(envelope);
-        final List<FeatureWithIsotopeTraces> mzResults = mzsToIsotopeTraces.computeIfAbsent(
+        final var target = isBroadSignal(feature) ? rejectedIsotopeTraces : mzsToIsotopeTraces;
+        final List<FeatureWithIsotopeTraces> mzResults = target.computeIfAbsent(
             initialMz, k -> new ArrayList<>());
         mzResults.add(envelope);
       }
@@ -342,8 +344,19 @@ public class AutoParamTask extends AbstractRawDataFileTask {
         .sorted(Comparator.comparingDouble(FeatureStatistics::getMz)).toList();
     final Double referenceInjectionTime = RawDataParameterEstimation.estimateReferenceInjectionTime(
         file, scans, effectiveRtRange);
+
+    // Count each seed once across all tolerances. A seed accepted at any tolerance is kept in the
+    // chromatographic pool and cannot also count as evidence for broad-signal dominance.
+    for (final double mz : mzsToIsotopeTraces.keySet()) {
+      rejectedIsotopeTraces.remove(mz);
+    }
+    final List<FeatureStatistics> rejectedFeatureStats = rejectedIsotopeTraces.values().stream()
+        .map(FeatureStatistics::new).sorted(Comparator.comparingDouble(FeatureStatistics::getMz))
+        .toList();
+    final DataFileStatistics rejectedStatistics = new DataFileStatistics(file, rejectedFeatureStats,
+        null, RawDataParameterEstimation.estimateReferenceInjectionTime(file, scans, null));
     dataFileStats = new DataFileStatistics(file, featureStats, effectiveRtRange,
-        referenceInjectionTime);
+        referenceInjectionTime, rejectedStatistics);
 
     /*final String tolStr = "mz\tabs\trel\n" + Arrays.stream(dataFileStats.getBestTolerances()).map(
         pair -> "%.4f\t%.4f\t%.1f".formatted(pair.mz(), pair.tolerance().getMzTolerance(),
@@ -388,7 +401,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
       final IonTimeSeries<? extends Scan> fullChromatogram = buildingSeries.toIonTimeSeriesWithLeadingAndTrailingZero(
           getMemoryMapStorage(), scans);
 
-      if(fullChromatogram.getNumberOfValues() < 1) {
+      if (fullChromatogram.getNumberOfValues() < 1) {
         continue;
       }
 
@@ -441,14 +454,14 @@ public class AutoParamTask extends AbstractRawDataFileTask {
       final ModularFeature mainFeature = new ModularFeature(dummyFlist, file, peak,
           FeatureStatus.DETECTED);
 
-      // don't use features with long peaks that may just be chromatographic noise
-      if (RangeUtils.rangeLength(mainFeature.getRawDataPointsRTRange())
-          > RangeUtils.rangeLength(file.getDataRTRange()) * 0.15) {
-        continue;
-      }
       mainPeaks.add(mainFeature);
     }
     return mainPeaks;
+  }
+
+  private boolean isBroadSignal(@NotNull ModularFeature feature) {
+    return RangeUtils.rangeLength(feature.getRawDataPointsRTRange())
+        > RangeUtils.rangeLength(file.getDataRTRange()) * MAX_CHROMATOGRAPHIC_WIDTH_SHARE;
   }
 
   /**

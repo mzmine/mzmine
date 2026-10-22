@@ -98,15 +98,15 @@ final class WizardAutoParamActions {
   }
 
   /**
-   * Disables estimation and optimization while a task runs. The parameter estimation needs
-   * chromatographic peaks, so imaging, direct infusion, and flow injection are not supported.
+   * Disables estimation and optimization while a task runs or an imaging interface is selected.
+   * Chromatography, direct infusion, and flow injection use the shared isotope-supported estimator.
    */
   @NotNull BooleanBinding createDisabledBinding(
       @NotNull ReadOnlyObjectProperty<WizardStepParameters> selectedIonInterface) {
     final BooleanBinding unsupportedInterfaceSelected = Bindings.createBooleanBinding(
         () -> selectedIonInterface.get() != null && selectedIonInterface.get()
             .getFactory() instanceof IonInterfaceWizardParameterFactory ionInterface
-            && !ionInterface.isChromatography(), selectedIonInterface);
+            && ionInterface.isImaging(), selectedIonInterface);
     return runningTasks.greaterThan(0).or(unsupportedInterfaceSelected);
   }
 

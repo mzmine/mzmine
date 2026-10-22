@@ -66,6 +66,18 @@ class StudyConfidenceIntervalTest {
         SignificanceTests.MANN_WHITNEY_U_TEST, .95d));
   }
 
+  @Test
+  void pairedIntervalRejectsAnIndependentUnitAssignedToMultiplePairs() {
+    final List<StudyAnalysis.Sample> samples = List.of(
+        sample("l1", "left", "left-subject1", "p1"), sample("l2", "left", "left-subject1", "p2"),
+        sample("r1", "right", "right-subject1", "p1"), sample("r2", "right", "right-subject2", "p2"),
+        sample("l3", "left", "left-subject2", "p3"), sample("r3", "right", "right-subject3", "p3"));
+    final List<StudyAnalysis.Measurement> values = List.of(value("l1", 1), value("l2", 3), value("r1", 5),
+        value("r2", 7), value("l3", 2), value("r3", 6));
+    assertNull(StudyAnalysis.confidenceInterval(samples, values, "left", "right",
+        SignificanceTests.PAIRED_T_TEST, .95d));
+  }
+
   private static StudyAnalysis.Sample sample(final String id, final String condition, final String unit,
       final String pair) {
     return new StudyAnalysis.Sample(id, condition, null, unit, pair);

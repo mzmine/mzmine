@@ -102,7 +102,9 @@ public class CheckListParameter<T extends UniqueIdSupplier> implements
   public @NotNull CheckListView<T> createEditingComponent() {
     final CheckListView<T> view = new CheckListView<>(
         FXCollections.observableArrayList(visibleChoices()));
-    view.setPrefHeight(200);
+    view.setPrefHeight(
+        visibleChoices().size() * 24); // 24 is the magic number for now that equals one line
+    view.setMaxHeight(250);
     return view;
   }
 
