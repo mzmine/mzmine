@@ -43,9 +43,9 @@ public final class FeatureQcDiagnosticsView {
 
   private static @NotNull VBox createDiagnosticsPane(@NotNull final FeatureQcProvenance provenance) {
     final FeatureQcDiagnostics diagnostics = provenance.diagnostics();
-    final Label overview = new Label(("Feature-QC v%d | source revision %s | modeled abundance %s (factor applied to both area and height)\n"
+    final Label overview = new Label(("Feature-QC v%d | modeled abundance %s (factor applied to both area and height)\n"
         + "Solver: %s | coordinate: %s | scale: %s\nSettings: %s\nAvailability: %s").formatted(
-        diagnostics.methodVersion(), provenance.sourceRevision(), provenance.modeledAbundance(),
+        diagnostics.methodVersion(), provenance.modeledAbundance(),
         diagnostics.solver(), diagnostics.coordinatePolicy(), diagnostics.scalePolicy(),
         diagnostics.settings(), diagnostics.availability()));
     overview.setWrapText(true);

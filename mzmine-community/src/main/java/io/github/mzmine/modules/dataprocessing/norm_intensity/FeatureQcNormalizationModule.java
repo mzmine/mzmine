@@ -16,11 +16,10 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import org.jetbrains.annotations.NotNull;
 
-/** Native adapter for the same immutable feature-QC calculation used by reviewed previews. */
+/** Fits feature-specific QC corrections from the native task's prepared batch inputs. */
 public final class FeatureQcNormalizationModule implements NormalizationTypeModule {
 
   @Override public @NotNull String getName() { return "Feature-specific QC LOESS"; }
-  @Override public boolean requiresSourceCopy() { return true; }
   @Override public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FeatureQcNormalizationParameters.class;
   }
@@ -35,7 +34,6 @@ public final class FeatureQcNormalizationModule implements NormalizationTypeModu
         mainParameters, moduleParameters, () -> false, ignored -> { });
   }
 
-  @Override
   public void createAllNormalizationFunctionsToSummary(
       @NotNull final IntensityNormalizationSearchableSummary summary,
       @NotNull final ModularFeatureList featureList, @NotNull final List<SamplesBatch> batches,
@@ -98,7 +96,6 @@ public final class FeatureQcNormalizationModule implements NormalizationTypeModu
         if (Double.isFinite(effective) && effective > 0d) rowValues.put(samples.get(index).id(), effective);
       }
     }
-    final String revision = NormalizationSourceRevision.capture(featureList, metadata, canceled);
     final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, values, settings, canceled);
     for (int index = 0; index < files.size(); index++) {
       checkCanceled(canceled);
@@ -119,7 +116,7 @@ public final class FeatureQcNormalizationModule implements NormalizationTypeModu
       completedFiles.accept(1);
     }
     // decision: never populate SamplesBatch scalar reference levels for feature-QC.
-    summary.featureQc().add(new FeatureQcProvenance(revision, abundance.name(), result.diagnostics()));
+    summary.featureQc().add(new FeatureQcProvenance(abundance.name(), result.diagnostics()));
     if (result.availability().warning() != null) {
       summary.messages().add("QC warning: " + result.availability().warning());
     }

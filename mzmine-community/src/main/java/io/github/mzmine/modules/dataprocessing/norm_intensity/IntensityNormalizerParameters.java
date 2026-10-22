@@ -44,7 +44,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 
 public class IntensityNormalizerParameters extends SimpleParameterSet {
 
@@ -90,7 +89,6 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
       Step 3 of 3: QC-based signal drift correction, applied after metadata normalization (step 1) and %s (step 2).
       Sample-wide methods interpolate reference-sample factors and align batch reference medians.
       Feature-specific QC LOESS fits each feature within each batch against a common median log abundance across all samples after steps 1 and 2; it does not apply additional scalar batch scaling.
-      Feature-specific QC LOESS always creates an output copy, preserving the source; unsupported normalized values remain missing.
       Acquisition dates come from project or data file metadata.""".formatted(
           internalStandardization.getName()),
       NormalizationType.intraBatchDriftNormalizers());
@@ -120,25 +118,10 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
   public static final HiddenParameter<IntensityNormalizationSummary> hiddenNormalizationSummary = new HiddenParameter<>(
       new NormalizationFunctionsParameter());
 
-  public static final HiddenParameter<Boolean> hiddenReviewedFunctions = new HiddenParameter<>(
-      new BooleanParameter("Replay reviewed functions",
-          "Apply the persisted frozen functions without recalculating the historical method.", false));
-
-  /** Stable native-input fingerprint required to replay reviewed functions safely. */
-  public static final HiddenParameter<String> hiddenNativeSourceFingerprint = new HiddenParameter<>(
-      new StringParameter("Native normalization source fingerprint",
-          "Stable fingerprint of raw values and selected metadata used to guard replay.", null, false));
-
-  /** Original reviewed-result provenance, retained independently from the native replay guard. */
-  public static final HiddenParameter<String> hiddenSourceRevision = new HiddenParameter<>(
-      new StringParameter("Normalization source revision",
-          "Source revision reported by the reviewed normalization result.", null, false));
-
   public IntensityNormalizerParameters() {
     super(new Parameter[]{featureLists, suffix, handleOriginal, featureMeasurementType,
             batchIdColumn, metadataNormFactorCol, internalStandardization, normalizationType,
-            hiddenNormalizationSummary, hiddenReviewedFunctions, hiddenNativeSourceFingerprint,
-            hiddenSourceRevision},
+            hiddenNormalizationSummary},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_intensity/norm_intensity.html");
   }
 

@@ -28,6 +28,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createFeatureIntensityParameters;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,7 +38,6 @@ import static org.mockito.Mockito.spy;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -49,7 +49,6 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 class IntensityNormalizerTaskTest {
@@ -204,7 +203,7 @@ class IntensityNormalizerTaskTest {
   }
 
   @Test
-  void processInPlaceCancellationLeavesSourceUntouchedDuringStaging() {
+  void processInPlaceCancellationStopsApplicationWithoutRecordingCompletedNormalization() {
     final RawDataFileImpl qc1 = createRawFile("qc_1", LocalDateTime.of(2026, 1, 1, 10, 0));
     final RawDataFileImpl qc2 = createRawFile("qc_2", LocalDateTime.of(2026, 1, 1, 10, 5));
     final ModularFeatureList source = new ModularFeatureList("flist", null, qc1, qc2);
@@ -215,23 +214,22 @@ class IntensityNormalizerTaskTest {
     final IntensityNormalizerTask task = spy(new IntensityNormalizerTask(project, source,
         buildParams(AbundanceMeasure.Height, OriginalFeatureListOption.PROCESS_IN_PLACE), null,
         Instant.now()));
-    final AtomicInteger cancellationChecks = new AtomicInteger();
     doAnswer(invocation -> {
-      // The initial fingerprint has six checks; this cancels while staged feature values are built.
-      if (cancellationChecks.incrementAndGet() >= 8) {
+      // Cancel after native in-place application has written its first measurement.
+      if (source.streamFeatures().anyMatch(feature -> feature.get(NormalizedHeightType.class) != null)) {
         task.cancel();
         return true;
       }
-      return false;
+      return invocation.callRealMethod();
     }).when(task).isCanceled();
 
     task.run();
 
     assertEquals(TaskStatus.CANCELED, task.getStatus());
-    assertNull(((ModularFeature) source.getFeature(0, qc1)).get(NormalizedAreaType.class));
-    assertNull(((ModularFeature) source.getFeature(0, qc1)).get(NormalizedHeightType.class));
-    assertFalse(source.hasFeatureType(DataTypes.get(NormalizedAreaType.class)));
-    assertFalse(source.hasFeatureType(DataTypes.get(NormalizedHeightType.class)));
+    assertTrue(source.streamFeatures().anyMatch(feature -> feature.get(NormalizedHeightType.class) != null));
+    assertTrue(source.streamFeatures().anyMatch(feature -> feature.get(NormalizedHeightType.class) == null));
+    assertEquals(2f, source.getFeature(0, qc1).getHeight());
+    assertEquals(8f, source.getFeature(0, qc2).getHeight());
     assertEquals(0, source.getAppliedMethods().size());
     assertEquals(1, project.getCurrentFeatureLists().size());
   }

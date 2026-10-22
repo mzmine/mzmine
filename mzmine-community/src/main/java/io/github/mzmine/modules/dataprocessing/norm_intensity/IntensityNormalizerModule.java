@@ -27,20 +27,16 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public class IntensityNormalizerModule implements MZmineProcessingModule {
@@ -68,18 +64,7 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
-      final Task newTask;
-      if (Boolean.TRUE.equals(parameters.getValue(IntensityNormalizerParameters.hiddenReviewedFunctions))) {
-        final var summary = parameters.getValue(IntensityNormalizerParameters.hiddenNormalizationSummary);
-        newTask = IntensityNormalizerTask.createReplayTask(project, featureList,
-            parameters.getValue(IntensityNormalizerParameters.suffix),
-            parameters.getValue(IntensityNormalizerParameters.hiddenSourceRevision), summary,
-            parameters.getValue(IntensityNormalizerParameters.hiddenNativeSourceFingerprint),
-            parameters, IntensityNormalizerModule.class, storage, moduleCallDate);
-      } else {
-        newTask = new IntensityNormalizerTask(project, featureList, parameters, storage, moduleCallDate);
-      }
-      tasks.add(newTask);
+      tasks.add(new IntensityNormalizerTask(project, featureList, parameters, storage, moduleCallDate));
     }
 
     return ExitCode.OK;
@@ -94,30 +79,6 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return IntensityNormalizerParameters.class;
-  }
-
-  /**
-   * Creates the native normalizer task for functions that were calculated from a reviewed
-   * snapshot. The caller must bind every function to the source table's actual raw-data-file
-   * instance before calling this method.
-   */
-  public static @NotNull Task createReviewedTask(final @NotNull MZmineProject project,
-      final @NotNull ModularFeatureList source, final @NotNull String suffix,
-      final @NotNull String sourceRevision, final @NotNull IntensityNormalizationSummary summary,
-      final @NotNull MemoryMapStorage storage, final @NotNull Instant moduleCallDate,
-      final @NotNull BooleanSupplier current) {
-    final IntensityNormalizerParameters parameters = (IntensityNormalizerParameters) new IntensityNormalizerParameters()
-        .cloneParameterSet();
-    parameters.setParameter(IntensityNormalizerParameters.featureLists,
-        new FeatureListsSelection(source));
-    parameters.setParameter(IntensityNormalizerParameters.suffix, suffix);
-    parameters.setParameter(IntensityNormalizerParameters.handleOriginal,
-        OriginalFeatureListOption.KEEP);
-    parameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary, summary);
-    parameters.setParameter(IntensityNormalizerParameters.hiddenReviewedFunctions, true);
-    parameters.setParameter(IntensityNormalizerParameters.hiddenSourceRevision, sourceRevision);
-    return IntensityNormalizerTask.createReviewedTask(project, source, suffix, sourceRevision, summary,
-        parameters, IntensityNormalizerModule.class, storage, moduleCallDate, current);
   }
 
   public static @NotNull IntensityNormalizationSummary getNormalizationFunctionsOfLatestCall(

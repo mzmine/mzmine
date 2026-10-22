@@ -164,12 +164,6 @@ class NormalizationFunctionsParameterTest {
   void hiddenParameterInNormalizerParameterSetPersistsFunctions() throws Exception {
     final IntensityNormalizerParameters parameters = createIntensityParameters("hidden_save",
         AbundanceMeasure.Height, OriginalFeatureListOption.KEEP, List.of(factorFunction));
-    parameters.setParameter(IntensityNormalizerParameters.hiddenReviewedFunctions, true);
-    parameters.setParameter(IntensityNormalizerParameters.hiddenNativeSourceFingerprint,
-        "stable-native-fingerprint");
-    parameters.setParameter(IntensityNormalizerParameters.hiddenSourceRevision,
-        "reviewed-source-revision");
-
     final String xml = ParameterUtils.saveValuesToXMLString(parameters);
     final IntensityNormalizerParameters loaded = createIntensityParameters("placeholder",
         AbundanceMeasure.Area, OriginalFeatureListOption.REMOVE, List.of());
@@ -187,11 +181,6 @@ class NormalizationFunctionsParameterTest {
     assertEquals(factorFile.getName(), rawFunc.rawDataFilePlaceholder().getName());
     assertEquals(factorTimestamp, rawFunc.acquisitionTimestamp());
     assertEquals(FACTOR, loadedFactor.getNormalizationFactor(0d, 0f), 1e-12);
-    assertTrue(loaded.getValue(IntensityNormalizerParameters.hiddenReviewedFunctions));
-    assertEquals("stable-native-fingerprint", loaded.getValue(
-        IntensityNormalizerParameters.hiddenNativeSourceFingerprint));
-    assertEquals("reviewed-source-revision", loaded.getValue(
-        IntensityNormalizerParameters.hiddenSourceRevision));
   }
 
   @Test
@@ -206,7 +195,7 @@ class NormalizationFunctionsParameterTest {
             new FeatureQcRowDiagnostic(3, 6, 6, null, Map.of("batch1", batch))));
     final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
     parameter.setValue(new IntensityNormalizationSummary(List.of(), List.of(), List.of(
-        new FeatureQcProvenance("revision", "Area", diagnostics))));
+        new FeatureQcProvenance("Area", diagnostics))));
 
     final Document document = XMLUtils.newDocument();
     final Element root = document.createElement("normalizationFunctions");

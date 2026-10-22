@@ -487,7 +487,7 @@ public class FeatureDataUtils {
     normalizeAbundances(feature, normalizer, feature.getFeatureList().getFeatureRow(feature));
   }
 
-  /** Applies a row-aware function without treating unreviewed rows as identity-normalized. */
+  /** Applies a row-aware function, preserving missing corrections for unsupported rows. */
   public static void normalizeAbundances(@NotNull final ModularFeature feature,
       @Nullable final NormalizationFunction normalizer, @Nullable final FeatureListRow row) {
     if (normalizer == null) return;

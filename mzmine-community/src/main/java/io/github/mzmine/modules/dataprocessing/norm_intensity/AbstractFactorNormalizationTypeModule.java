@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.MathUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -97,12 +98,12 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
       return new ReferenceFunctions<>(Double.NaN, Map.of());
     }
 
-    final ScalarQcBatchNormalization.ReferenceFactors<T> referenceFactors =
-        ScalarQcBatchNormalization.calculateReferenceFactors(metrics);
-    final Map<T, NormalizationFunction> functions = referenceFactors.factors().entrySet().stream()
+    final double referenceMetric = MathUtils.calcMedian(
+        metrics.values().stream().mapToDouble(Double::doubleValue).toArray());
+    final Map<T, NormalizationFunction> functions = metrics.entrySet().stream()
         .collect(Collectors.toMap(Entry::getKey,
-            entry -> new FactorNormalizationFunction(entry.getValue())));
-    return new ReferenceFunctions<>(referenceFactors.referenceLevel(), functions);
+            entry -> new FactorNormalizationFunction(referenceMetric / entry.getValue())));
+    return new ReferenceFunctions<>(referenceMetric, functions);
   }
 
   /**

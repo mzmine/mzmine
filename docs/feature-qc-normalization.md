@@ -2,8 +2,8 @@
 
 Choose **Feature-specific QC LOESS** as the **Inter-sample correction** in the intensity
 normalizer. Select comparable pooled QC injections in **Reference samples** and supply acquisition
-timestamps through raw-file or project metadata. The method creates a new feature list and preserves
-the source, including when the general original-list option is set to process in place.
+timestamps through raw-file or project metadata. The original-list option selects in-place
+processing, keeping the source with an output copy, or replacing the source with the output copy.
 
 Use the optional **Batch correction metadata column** when the acquisition contains multiple
 analytical batches. Without it, all files form one batch. Each feature gets its own QC drift curve
@@ -63,7 +63,7 @@ batch, missing timestamps, ambiguous sample mappings and invalid settings are er
 ## Reviewing the correction
 
 Open **QC diagnostics** from the applied-methods pane. The saved diagnostics show settings, solver,
-source revision, modeled abundance and overall availability. Select a feature row to inspect:
+modeled abundance and overall availability. Select a feature row to inspect:
 
 - Usable and total QC counts and the usable acquisition interval per batch.
 - Before/after QC RSD using the same usable observations.
@@ -83,11 +83,9 @@ disabled. Renumbering and transformations that change row identity are rejected 
 normalization is active. Removed rows' IDs remain reserved; a new row receives an unprotected ID
 and has no invented QC factor.
 
-MCP previews and native processing use the same calculation for matching inputs and settings. The
-MCP method is version 2 and rejects the old `correct_between_batches` option for feature-QC. The
-sample-wide `qc_batch` method retains that option and its established timestamp interpolation.
-Reviewed application uses the saved factors without refitting. Re-execution verifies the saved
-source fingerprint before creating a normalized copy.
+MCP invokes the native intensity normalizer with these settings. Its `feature_qc_loess_v2` method
+uses the same calculation, output handling and processing history as a GUI run. After normalization,
+the resulting table's stored normalized columns can be shared for downstream analysis.
 
 ## Reference interpretation
 

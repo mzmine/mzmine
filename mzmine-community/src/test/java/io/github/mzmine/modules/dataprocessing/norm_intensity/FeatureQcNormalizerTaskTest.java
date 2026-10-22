@@ -51,7 +51,7 @@ class FeatureQcNormalizerTaskTest {
   }
 
   @Test
-  void processInPlaceRequestStillPublishesCopyAndPersistsFrozenFeatureQcSummary() {
+  void processInPlaceRequestUsesTheOrdinaryNativeLifecycle() {
     final Fixture fixture = fixture(true);
     final IntensityNormalizerTask task = new IntensityNormalizerTask(fixture.project, fixture.source,
         parameters(null), null, Instant.now());
@@ -59,7 +59,7 @@ class FeatureQcNormalizerTaskTest {
     task.run();
 
     assertEquals(TaskStatus.FINISHED, task.getStatus());
-    assertEquals(2, fixture.project.getCurrentFeatureLists().size());
+    assertEquals(1, fixture.project.getCurrentFeatureLists().size());
     assertEquals(1d, task.getFinishedPercentage(), 1e-12);
     final ModularFeatureList output = output(fixture);
     final IntensityNormalizationSummary summary = IntensityNormalizerModule
@@ -96,7 +96,7 @@ class FeatureQcNormalizerTaskTest {
   }
 
   @Test
-  void allSkippedFeatureQcCompletesAndPublishesCopyWithWarning() {
+  void allSkippedFeatureQcCompletesWithWarning() {
     final Fixture fixture = fixture(false);
     final IntensityNormalizerTask task = new IntensityNormalizerTask(fixture.project, fixture.source,
         parameters(null), null, Instant.now());
@@ -202,7 +202,7 @@ class FeatureQcNormalizerTaskTest {
 
   private static ModularFeatureList output(final Fixture fixture) {
     return (ModularFeatureList) fixture.project.getCurrentFeatureLists().stream()
-        .filter(list -> list != fixture.source).findFirst().orElseThrow();
+        .filter(list -> list != fixture.source).findFirst().orElse(fixture.source);
   }
 
   private record Fixture(MZmineProjectImpl project, ModularFeatureList source, List<RawDataFile> files) {

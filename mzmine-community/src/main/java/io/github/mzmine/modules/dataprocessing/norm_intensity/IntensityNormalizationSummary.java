@@ -112,7 +112,6 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
       sb.append("\nFeature-QC v").append(diagnostics.methodVersion())
           .append("; modeled ").append(qc.modeledAbundance())
           .append("; the same factors apply to both area and height.")
-          .append("\nSource revision: ").append(qc.sourceRevision())
           .append("\n").append(diagnostics.solver()).append("; ").append(diagnostics.coordinatePolicy())
           .append("\n").append(diagnostics.scalePolicy())
           .append("\nSettings: ").append(diagnostics.settings())
