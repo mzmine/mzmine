@@ -150,6 +150,12 @@ class SameRangeTask extends AbstractTask {
       processedPeakList.applyRowBindings();
     }
 
+    // canceled while the normalization was applied: the gap-filled copy is not published and the
+    // original stays in the project
+    if (isCanceled()) {
+      return;
+    }
+
     // Append processed feature list to the project
     handleOriginal.reflectNewFeatureListToProject(suffix, project, processedPeakList, peakList);
 

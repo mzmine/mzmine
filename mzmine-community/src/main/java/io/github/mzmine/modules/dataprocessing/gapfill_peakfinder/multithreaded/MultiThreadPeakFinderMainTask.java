@@ -187,6 +187,12 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // adding features
     processedPeakList.applyRowBindings();
 
+    // canceled while the normalization and row bindings were applied: a copy is not published and
+    // the original stays in the project. An in-place list keeps its completed values
+    if (isCanceled()) {
+      return;
+    }
+
     // add / remove or rename the new feature list in project
     originalFeatureListOption.reflectNewFeatureListToProject(suffix, project, processedPeakList,
         peakList);
