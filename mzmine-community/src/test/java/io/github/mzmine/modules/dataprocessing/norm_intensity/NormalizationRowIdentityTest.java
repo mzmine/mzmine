@@ -85,6 +85,23 @@ class NormalizationRowIdentityTest {
   }
 
   @Test
+  void emptyCopyDropsAllFactorsAndReusedIdStaysUnnormalized() {
+    final Fixture fixture = fixture();
+    final ModularFeatureList copy = FeatureListUtils.createCopyWithRows(fixture.list, null, "copy",
+        null, List.of(), false);
+
+    assertNull(copy.getSettings().normalization());
+
+    // a later task adds a new row with the ID of the removed row 5
+    final ModularFeatureListRow reused = addRow(copy, 5, fixture.raw, 30f, null, null);
+    FeatureDataUtils.applyRowDependentIntensityNormalization(copy);
+
+    assertNull(((ModularFeature) reused.getFeature(fixture.raw)).get(NormalizedAreaType.class));
+    // source keeps its own factors
+    assertEquals(Map.of(5, 2d, 7, 4d), rowFactors(fixture.list).factors());
+  }
+
+  @Test
   void mergingRowDependentNormalizationIsBlocked() {
     final Fixture fixture = fixture();
     final RawDataFileImpl otherRaw = createRawFile("other", LocalDateTime.of(2026, 1, 1, 0, 1));

@@ -951,7 +951,8 @@ public class FeatureListUtils {
   /**
    * Copies all input rows into the new feature list, sorted by
    * {@link #getDefaultRowSorter(FeatureList)}: a new feature list is expected to be sorted.
-   * Renumbering in that order.
+   * Renumbering in that order. Row-dependent normalization factors are remapped to the new row
+   * IDs. Without rows to copy, the normalization of the new feature list is removed.
    *
    * @return maps each source row to its copy. Pass this to
    * {@link #transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Function)} to also transfer
@@ -980,7 +981,11 @@ public class FeatureListUtils {
       oldToNewIds.put(row.getID(), copy.getID());
       id++;
     }
-    if (!orderedRows.isEmpty()) {
+    if (orderedRows.isEmpty()) {
+      // no rows, so no normalization applies. Also drops the factors of all removed rows that were
+      // transferred with the settings of the source
+      newFeatureList.setSettings(newFeatureList.getSettings().withNormalization(null));
+    } else {
       NormalizationRowIdentity.remapRowFactors(orderedRows.getFirst().getFeatureList(),
           newFeatureList, oldToNewIds);
     }
