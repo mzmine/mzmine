@@ -4,72 +4,57 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
-import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
-import java.util.Objects;
-import java.util.Set;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-/** Guards row identities captured by directly accessible active normalization state. */
+/**
+ * Row-dependent normalization factors are keyed by feature-list row ID. Normalization runs on
+ * aligned feature lists, so afterward only copying, filtering, renumbering and merging change row
+ * IDs. Copies and filters remap the factors once per task, merging is blocked.
+ */
 public final class NormalizationRowIdentity {
 
-  private NormalizationRowIdentity() {}
-
-  /** Cheap gate before looking at active row-level normalization state. */
-  public static boolean hasNormalizedIntensityColumns(@NotNull final FeatureList featureList) {
-    return featureList.hasFeatureType(NormalizedAreaType.class) || featureList.hasFeatureType(
-        NormalizedHeightType.class);
+  private NormalizationRowIdentity() {
   }
 
-  public static boolean hasActiveRowDependentNormalization(@NotNull final FeatureList featureList) {
-    return featureList.getPreferences().hasActiveRowDependentIntensityNormalization();
+  public static boolean hasRowDependentNormalization(@NotNull final FeatureList flist) {
+    final IntensityNormalizationSummary summary = flist.getSettings().normalization();
+    return summary != null && summary.isRowDependent();
   }
 
-  public static boolean requiresRowIdentityProtection(@NotNull final FeatureList featureList) {
-    return hasNormalizedIntensityColumns(featureList) && hasActiveRowDependentNormalization(
-        featureList);
-  }
-
-  public static @NotNull Set<Integer> protectedRowIds(@NotNull final FeatureList featureList) {
-    return featureList.getPreferences().getActiveNormalizationProtectedRowIds();
-  }
-
-  public static void requireRenumberingAllowed(@NotNull final FeatureList featureList) {
-    if (hasActiveRowDependentNormalization(featureList)) {
-      throw new IllegalStateException("Cannot reset row IDs while active intensity normalization "
-          + "contains row-dependent factors. Filter with row-ID resetting disabled.");
+  /**
+   * Remaps the row factors of a row-dependent normalization after rows were copied, filtered or
+   * renumbered. Does nothing if the source has no row-dependent normalization.
+   *
+   * @param source      the feature list the rows came from, may be the target itself
+   * @param target      the feature list with the new rows
+   * @param oldToNewIds source row ID -> target row ID; rows missing from the map were removed and
+   *                    their factors are dropped
+   */
+  public static void remapRowFactors(@NotNull final FeatureList source,
+      @NotNull final ModularFeatureList target, @NotNull final Map<Integer, Integer> oldToNewIds) {
+    if (!hasRowDependentNormalization(source)) {
+      return;
     }
+    final IntensityNormalizationSummary summary = source.getSettings().normalization();
+    target.setSettings(target.getSettings().withNormalization(summary.remapRowIds(oldToNewIds)));
   }
 
-  public static void requireIdentityPreservingTransformation(@NotNull final FeatureList featureList,
-      @NotNull final String operation) {
-    if (hasActiveRowDependentNormalization(featureList)) {
-      throw new IllegalStateException("Cannot %s while active intensity normalization contains "
-          + "row-dependent factors. This operation changes feature-row identity.".formatted(operation));
-    }
-  }
-
-  /** Rejects a newly allocated ID that is already represented by a frozen row-level outcome. */
-  public static void requireNewRowIdAvailable(@NotNull final FeatureList featureList,
-      final int rowId) {
-    if (requiresRowIdentityProtection(featureList) && protectedRowIds(featureList).contains(rowId)) {
-      throw new IllegalArgumentException("Cannot allocate row ID %d because it is reserved by the "
-          + "active row-dependent intensity normalization.".formatted(rowId));
-    }
-  }
-
-  public static boolean hasSameActiveNormalization(@NotNull final FeatureList source,
-      @NotNull final FeatureList target) {
-    if (source.getPreferences().hasDefinedActiveIntensityNormalization()
-        != target.getPreferences().hasDefinedActiveIntensityNormalization()) {
-      return false;
-    }
-    for (final var rawDataFile : target.getRawDataFiles()) {
-      if (!Objects.equals(source.getPreferences().getActiveNormalizationFunction(rawDataFile),
-          target.getPreferences().getActiveNormalizationFunction(rawDataFile))) {
-        return false;
+  /**
+   * Row IDs of different feature lists collide, so their row-dependent factors cannot be combined.
+   *
+   * @throws IllegalStateException if any feature list has a row-dependent normalization
+   */
+  public static void requireNoRowDependentNormalization(
+      @NotNull final Collection<? extends FeatureList> flists, @NotNull final String operation) {
+    for (final FeatureList flist : flists) {
+      if (hasRowDependentNormalization(flist)) {
+        throw new IllegalStateException(
+            "Cannot %s: feature list %s has a row-dependent intensity normalization.".formatted(
+                operation, flist.getName()));
       }
     }
-    return true;
   }
 }

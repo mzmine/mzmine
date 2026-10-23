@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,7 +14,6 @@ import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -78,16 +78,30 @@ class FeatureRowNormalizationFunctionTest {
   }
 
   @Test
-  void rowDependenceAndProtectedIdsPropagateThroughNestedFunctions() {
+  void rowDependenceAndRemappingPropagateThroughNestedFunctions() {
     final FeatureRowNormalizationFunction rowFunction = new FeatureRowNormalizationFunction(
-        Map.of(5, 2d), Map.of(7, "missing QC"));
+        Map.of(5, 2d, 6, 4d), Map.of(7, "missing QC"));
     final NormalizationFunction nested = new InterpolatedNormalizationFunction(
         new CompositeNormalizationFunction(List.of(new FactorNormalizationFunction(1d), rowFunction)),
         .5d, new FactorNormalizationFunction(1d), .5d);
 
     assertTrue(nested.isRowDependent());
-    assertEquals(Set.of(5, 7), nested.protectedRowIds());
     assertFalse(new FactorNormalizationFunction(1d).isRowDependent());
+
+    // row 6 was removed, 5 and 7 renumbered
+    final NormalizationFunction remapped = nested.remapRowIds(Map.of(5, 1, 7, 2));
+    final InterpolatedNormalizationFunction interpolated = (InterpolatedNormalizationFunction) remapped;
+    final CompositeNormalizationFunction composite = (CompositeNormalizationFunction) interpolated.previousFunction();
+    // the composite moves factor functions to the end, so search the row function
+    final FeatureRowNormalizationFunction remappedRows = composite.functions().stream()
+        .filter(FeatureRowNormalizationFunction.class::isInstance)
+        .map(FeatureRowNormalizationFunction.class::cast).findFirst().orElseThrow();
+    assertEquals(Map.of(1, 2d), remappedRows.factors());
+    assertEquals(Map.of(2, "missing QC"), remappedRows.unavailableReasons());
+    assertEquals(.5d, interpolated.previousWeight());
+
+    final FactorNormalizationFunction constant = new FactorNormalizationFunction(1d);
+    assertSame(constant, constant.remapRowIds(Map.of()));
   }
 
   @Test

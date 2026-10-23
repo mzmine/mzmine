@@ -83,8 +83,9 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
 
   public static @NotNull IntensityNormalizationSummary getNormalizationFunctionsOfLatestCall(
       final @NotNull FeatureList featureList) {
-    final IntensityNormalizationSummary active = featureList.getPreferences()
-        .getActiveIntensityNormalization();
+    // decision: every intensity-normalizer call replaces the normalization in the settings, so the
+    // last one owns re-normalization for newly created features.
+    final IntensityNormalizationSummary active = featureList.getSettings().normalization();
     return active == null ? IntensityNormalizationSummary.EMPTY : active;
   }
 
@@ -114,7 +115,13 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
    */
   public static @NotNull Optional<NormalizationFunction> getNormalizationFunctionsOfLatestCallForFile(
       final @NotNull FeatureList featureList, final @NotNull RawDataFile rawDataFile) {
-    return featureList.getPreferences().getActiveNormalizationFunction(rawDataFile);
+    final IntensityNormalizationSummary summary = featureList.getSettings().normalization();
+    if (summary == null) {
+      return Optional.empty();
+    }
+    return summary.functions().stream()
+        .filter(func -> func.rawDataFilePlaceholder().matches(rawDataFile))
+        .map(RawFileNormalizationFunction::function).findFirst();
   }
 
 }

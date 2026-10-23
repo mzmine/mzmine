@@ -27,14 +27,11 @@ package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationFunctionsParameter;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonTypeRankingParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import org.jetbrains.annotations.NotNull;
@@ -66,16 +63,8 @@ public class FeatureListPreferencesDtoParameters extends SimpleParameterSet {
       Ordered labels shown as tooltips for the row tag checkboxes. The number of labels defines the
       number of checkboxes in the Tags column.""", FeatureListPreferences.DEFAULT_TAG_LABELS);
 
-  /** Active functions only; diagnostic provenance stays with the applied normalizer method. */
-  public static final NormalizationFunctionsParameter activeIntensityNormalization =
-      new NormalizationFunctionsParameter();
-
-  public static final BooleanParameter activeIntensityNormalizationDefined = new BooleanParameter(
-      "Active intensity normalization defined", "Internal persistence marker.", false);
-
   public FeatureListPreferencesDtoParameters() {
-    super(rsdSampleTypes, ionTypeRanking, tagLabels, activeIntensityNormalization,
-        activeIntensityNormalizationDefined);
+    super(rsdSampleTypes, ionTypeRanking, tagLabels);
   }
 
   @Nullable
@@ -98,19 +87,12 @@ public class FeatureListPreferencesDtoParameters extends SimpleParameterSet {
     param.setParameter(rsdSampleTypes, preferences.getRsdSampleTypeFilter());
     param.setParameter(ionTypeRanking, preferences.getIonTypeRanking());
     param.setParameter(tagLabels, preferences.getTagLabels());
-    param.setParameter(activeIntensityNormalization,
-        preferences.getActiveIntensityNormalization() == null ? IntensityNormalizationSummary.EMPTY
-            : preferences.getActiveIntensityNormalization());
-    param.setParameter(activeIntensityNormalizationDefined,
-        preferences.hasDefinedActiveIntensityNormalization());
     return param;
   }
 
   public @NotNull FeatureListPreferences toPreferences() {
-    final IntensityNormalizationSummary normalization = getValue(activeIntensityNormalization);
     return new FeatureListPreferences(getValue(rsdSampleTypes), getValue(ionTypeRanking),
-        getValue(tagLabels), normalization.isEmpty() ? null : normalization,
-        getValue(activeIntensityNormalizationDefined) || !normalization.isEmpty());
+        getValue(tagLabels));
   }
 
   @Override

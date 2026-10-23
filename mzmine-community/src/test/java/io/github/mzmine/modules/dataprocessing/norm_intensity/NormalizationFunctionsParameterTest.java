@@ -231,7 +231,7 @@ class NormalizationFunctionsParameterTest {
 
     assertEquals(3d, IntensityNormalizerModule.getLegacyNormalizationFromAppliedMethods(featureList)
         .get(0).getNormalizationFactor(100d, 5f), 1e-12);
-    featureList.setPreferences(featureList.getPreferences().withActiveIntensityNormalization(
+    featureList.setSettings(featureList.getSettings().withNormalization(
         olderParameters.getValue(IntensityNormalizerParameters.hiddenNormalizationSummary)));
     final IntensityNormalizationSummary summary = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(
         featureList);

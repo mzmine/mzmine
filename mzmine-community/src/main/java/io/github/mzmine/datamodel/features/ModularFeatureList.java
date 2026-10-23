@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.features.settings.FeatureListSettings;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -50,7 +51,6 @@ import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.DataTypeUtils;
@@ -63,9 +63,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
@@ -152,6 +150,12 @@ public class ModularFeatureList implements FeatureList {
    * {@link FeatureListPreferences#createDefault()}
    */
   private volatile @NotNull FeatureListPreferences preferences = FeatureListPreferences.createDefault();
+
+  /**
+   * Settings written by processing modules, never null, defaults to
+   * {@link FeatureListSettings#DEFAULT}
+   */
+  private volatile @NotNull FeatureListSettings settings = FeatureListSettings.DEFAULT;
 
   private final AtomicLong structuralVersion = new AtomicLong(0);
   @Nullable
@@ -546,21 +550,8 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void setRowsApplySort(FeatureListRow... rows) {
     // a row reports the files of its own feature list, so rows of this list never need validation.
-    final Set<Integer> replacementIds = new HashSet<>(rows.length);
-    final boolean protectIdentities = NormalizationRowIdentity.requiresRowIdentityProtection(this);
-    final Set<FeatureListRow> existingRows = Collections.newSetFromMap(new IdentityHashMap<>());
-    if (protectIdentities) {
-      // One membership snapshot avoids rescanning the whole list for each retained row.
-      existingRows.addAll(featureListRows);
-    }
     for (FeatureListRow row : rows) {
       requireRowAssertions(row);
-      if (!replacementIds.add(row.getID())) {
-        throw new IllegalArgumentException("Feature list rows must have unique IDs.");
-      }
-      if (protectIdentities && !existingRows.contains(row)) {
-        NormalizationRowIdentity.requireNewRowIdAvailable(this, row.getID());
-      }
     }
 
     featureListRows.setAll(rows);
@@ -614,37 +605,9 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRow(FeatureListRow row) {
     requireRowAssertions(row);
-    // Normal imports keep their existing allocation behavior. Row-dependent normalization is the
-    // exceptional case that needs an ID conflict check; bulk copy paths validate once instead.
-    if (NormalizationRowIdentity.requiresRowIdentityProtection(this) && containsRowId(row.getID())) {
-      throw new IllegalArgumentException("Feature list already contains row ID %d.".formatted(
-          row.getID()));
-    }
-    NormalizationRowIdentity.requireNewRowIdAvailable(this, row.getID());
     featureListRows.add(row);
     applyRowBindings(row);
   }
-
-  /**
-   * Restores persisted rows before publishing active normalization state. This is deliberately a
-   * separate path from {@link #addRow(FeatureListRow)}: restored IDs are existing identities, not
-   * new allocations.
-   */
-  public void restoreRowsWithExactIds(@NotNull final List<? extends FeatureListRow> rows) {
-    if (!featureListRows.isEmpty()) {
-      throw new IllegalStateException("Persisted rows can only be restored into an empty list.");
-    }
-    for (final FeatureListRow row : rows) {
-      requireRowAssertions(row);
-    }
-    featureListRows.addAll(rows);
-    rows.forEach(this::applyRowBindings);
-  }
-
-  private boolean containsRowId(final int rowId) {
-    return featureListRows.stream().anyMatch(existing -> existing.getID() == rowId);
-  }
-
 
   /**
    * Returns all features overlapping with a retention time range
@@ -1141,7 +1104,17 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void setPreferences(@NotNull final FeatureListPreferences preferences) {
-    this.preferences = preferences.bindActiveNormalizationToRawFiles(getRawDataFiles());
+    this.preferences = preferences;
+  }
+
+  @Override
+  public @NotNull FeatureListSettings getSettings() {
+    return settings;
+  }
+
+  @Override
+  public void setSettings(@NotNull final FeatureListSettings settings) {
+    this.settings = settings;
   }
 
   @Override

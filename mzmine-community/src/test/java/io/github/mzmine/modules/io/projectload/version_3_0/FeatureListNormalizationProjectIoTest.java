@@ -28,124 +28,157 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class FeatureListNormalizationProjectIoTest {
+
+  private static final IntensityNormalizationSummary NO_FUNCTIONS = new IntensityNormalizationSummary(
+      List.of(), List.of("diagnostic message"));
 
   @TempDir
   File tempDir;
 
-  @ParameterizedTest
-  @ValueSource(booleans = {false, true})
-  void restoresExactIdsAndFunctionsFromLegacyOrCurrentState(final boolean persistActive)
-      throws Exception {
-    final RawDataFileImpl savedRaw = new RawDataFileImpl("sample.mzML", null, null);
-    final ModularFeatureList savedList = new ModularFeatureList("list", null, savedRaw);
-    final SimpleScan scan = new SimpleScan(savedRaw, 1, 1, 0f, null, new double[]{100d},
-        new double[]{10d}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
-        Range.closed(0d, 2000d));
-    savedRaw.addScan(scan);
-    savedList.setSelectedScans(savedRaw, List.of(scan));
-    addRow(savedList, savedRaw, 1, 10f);
-    addRow(savedList, savedRaw, 2, 20f);
-    final IntensityNormalizerParameters parameters = (IntensityNormalizerParameters)
-        new IntensityNormalizerParameters().cloneParameterSet();
-    parameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary,
-        new IntensityNormalizationSummary(List.of(new RawFileNormalizationFunction(savedRaw,
-            new FeatureRowNormalizationFunction(Map.of(1, 2d, 2, 3d), Map.of())))));
-    savedList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(IntensityNormalizerModule.class, parameters, Instant.now()));
-    if (persistActive) {
-      savedList.setPreferences(savedList.getPreferences().withActiveIntensityNormalization(
-          new IntensityNormalizationSummary(List.of(new RawFileNormalizationFunction(savedRaw,
-              new FeatureRowNormalizationFunction(Map.of(1, 2d, 2, 3d), Map.of()))))));
-    }
+  @Test
+  void restoresExactIdsAndFunctionsFromSettings() throws Exception {
+    final RawDataFileImpl savedRaw = createRaw();
+    final ModularFeatureList savedList = createList(savedRaw, NO_FUNCTIONS);
+    savedList.setSettings(savedList.getSettings().withNormalization(rowFactors(savedRaw)));
 
-    final File archive = new File(tempDir, "project.mzmine");
-    try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(archive))) {
-      final FeatureListSaveTask saveTask = new FeatureListSaveTask(savedList, out);
-      saveTask.run();
-      assertEquals(TaskStatus.FINISHED, saveTask.getStatus());
-    }
+    final File archive = save(savedList, "project.mzmine");
+    final RawDataFileImpl loadedRaw = createRaw();
+    final ModularFeatureList loadedList = load(archive, loadedRaw);
 
-    final MZmineProjectImpl loadedProject = new MZmineProjectImpl();
-    final RawDataFileImpl loadedRaw = new RawDataFileImpl("sample.mzML", null, null);
-    loadedRaw.addScan(new SimpleScan(loadedRaw, 1, 1, 0f, null, new double[]{100d},
-        new double[]{10d}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
-        Range.closed(0d, 2000d)));
-    loadedProject.addFile(loadedRaw);
-    try (ZipFile zip = new ZipFile(archive)) {
-      final FeatureListLoadTask loadTask = new FeatureListLoadTask(null, loadedProject, zip);
-      loadTask.run();
-      assertEquals(TaskStatus.FINISHED, loadTask.getStatus());
-    }
-
-    final ModularFeatureList loadedList = (ModularFeatureList) loadedProject.getCurrentFeatureLists().getFirst();
     assertEquals(List.of(1, 2), loadedList.getRows().stream()
         .map(ModularFeatureListRow.class::cast).map(ModularFeatureListRow::getID).toList());
-    assertTrue(loadedList.getAppliedMethods().stream()
-        .anyMatch(method -> method.getModule() instanceof IntensityNormalizerModule));
-    assertTrue(loadedList.getPreferences().hasDefinedActiveIntensityNormalization());
-    assertEquals(2, loadedList.getPreferences().getActiveIntensityNormalization().functions().getFirst()
-        .protectedRowIds().size());
+    assertEquals(Map.of(1, 2d, 2, 3d), ((FeatureRowNormalizationFunction) loadedList.getSettings()
+        .normalization().get(0)).factors());
+    assertTrue(IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(loadedList,
+        loadedRaw).isPresent());
+    // the applied method keeps only the diagnostics
+    assertEquals(List.of("diagnostic message"),
+        IntensityNormalizerModule.getLegacyNormalizationFromAppliedMethods(loadedList).messages());
+  }
+
+  @Test
+  void migratesFunctionsFromAppliedMethodOfOldProjects() throws Exception {
+    final RawDataFileImpl savedRaw = createRaw();
+    final ModularFeatureList savedList = createList(savedRaw, rowFactors(savedRaw));
+
+    final File archive = save(savedList, "old-project.mzmine");
+    // projects saved before the settings were introduced have no settings element
+    final File oldArchive = removeSettingsElement(archive);
+    final RawDataFileImpl loadedRaw = createRaw();
+    final ModularFeatureList loadedList = load(oldArchive, loadedRaw);
+
+    final IntensityNormalizationSummary migrated = loadedList.getSettings().normalization();
+    assertEquals(1, migrated.functions().size());
+    assertTrue(migrated.messages().isEmpty());
     assertTrue(IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(loadedList,
         loadedRaw).isPresent());
   }
 
   @Test
-  void preservesExplicitlyClearedNormalizationInsteadOfRestoringLegacyHistory() throws Exception {
-    final RawDataFileImpl savedRaw = new RawDataFileImpl("sample.mzML", null, null);
-    final ModularFeatureList savedList = new ModularFeatureList("list", null, savedRaw);
-    final SimpleScan savedScan = new SimpleScan(savedRaw, 1, 1, 0f, null, new double[]{100d},
-        new double[]{10d}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
-        Range.closed(0d, 2000d));
-    savedRaw.addScan(savedScan);
-    savedList.setSelectedScans(savedRaw, List.of(savedScan));
-    addRow(savedList, savedRaw, 5, 10f);
+  void keepsClearedNormalizationInsteadOfMigratingAppliedMethod() throws Exception {
+    final RawDataFileImpl savedRaw = createRaw();
+    // applied method with functions but the settings were cleared
+    final ModularFeatureList savedList = createList(savedRaw, rowFactors(savedRaw));
 
-    final IntensityNormalizerParameters parameters = (IntensityNormalizerParameters)
-        new IntensityNormalizerParameters().cloneParameterSet();
+    final File archive = save(savedList, "cleared.mzmine");
+    final RawDataFileImpl loadedRaw = createRaw();
+    final ModularFeatureList loadedList = load(archive, loadedRaw);
+
+    assertNull(loadedList.getSettings().normalization());
+    assertFalse(IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(loadedList,
+        loadedRaw).isPresent());
+  }
+
+  private static IntensityNormalizationSummary rowFactors(final RawDataFileImpl raw) {
+    return new IntensityNormalizationSummary(List.of(new RawFileNormalizationFunction(raw,
+        new FeatureRowNormalizationFunction(Map.of(1, 2d, 2, 3d), Map.of()))));
+  }
+
+  private static RawDataFileImpl createRaw() {
+    final RawDataFileImpl raw = new RawDataFileImpl("sample.mzML", null, null);
+    raw.addScan(new SimpleScan(raw, 1, 1, 0f, null, new double[]{100d}, new double[]{10d},
+        MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 2000d)));
+    return raw;
+  }
+
+  private static ModularFeatureList createList(final RawDataFileImpl raw,
+      final IntensityNormalizationSummary appliedMethodSummary) {
+    final ModularFeatureList list = new ModularFeatureList("list", null, raw);
+    list.setSelectedScans(raw, List.of(raw.getScans().getFirst()));
+    addRow(list, raw, 1, 10f);
+    addRow(list, raw, 2, 20f);
+    final IntensityNormalizerParameters parameters = (IntensityNormalizerParameters) new IntensityNormalizerParameters().cloneParameterSet();
     parameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary,
-        new IntensityNormalizationSummary(List.of(new RawFileNormalizationFunction(savedRaw,
-            new FeatureRowNormalizationFunction(Map.of(5, 2d), Map.of())))));
-    savedList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(IntensityNormalizerModule.class, parameters, Instant.now()));
-    savedList.setPreferences(savedList.getPreferences().withActiveIntensityNormalization(null));
+        appliedMethodSummary);
+    list.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(IntensityNormalizerModule.class, parameters,
+            Instant.now()));
+    return list;
+  }
 
-    final File archive = new File(tempDir, "explicit-clear.mzmine");
+  private File save(final ModularFeatureList list, final String name) throws Exception {
+    final File archive = new File(tempDir, name);
     try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(archive))) {
-      final FeatureListSaveTask saveTask = new FeatureListSaveTask(savedList, out);
+      final FeatureListSaveTask saveTask = new FeatureListSaveTask(list, out);
       saveTask.run();
       assertEquals(TaskStatus.FINISHED, saveTask.getStatus());
     }
+    return archive;
+  }
 
+  private static ModularFeatureList load(final File archive, final RawDataFileImpl loadedRaw)
+      throws Exception {
     final MZmineProjectImpl loadedProject = new MZmineProjectImpl();
-    final RawDataFileImpl loadedRaw = new RawDataFileImpl("sample.mzML", null, null);
-    loadedRaw.addScan(new SimpleScan(loadedRaw, 1, 1, 0f, null, new double[]{100d},
-        new double[]{10d}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
-        Range.closed(0d, 2000d)));
     loadedProject.addFile(loadedRaw);
     try (ZipFile zip = new ZipFile(archive)) {
       final FeatureListLoadTask loadTask = new FeatureListLoadTask(null, loadedProject, zip);
       loadTask.run();
       assertEquals(TaskStatus.FINISHED, loadTask.getStatus());
     }
+    return (ModularFeatureList) loadedProject.getCurrentFeatureLists().getFirst();
+  }
 
-    final ModularFeatureList loadedList = (ModularFeatureList) loadedProject.getCurrentFeatureLists().getFirst();
-    assertEquals(List.of(5), loadedList.getRows().stream().map(ModularFeatureListRow.class::cast)
-        .map(ModularFeatureListRow::getID).toList());
-    assertTrue(loadedList.getPreferences().hasDefinedActiveIntensityNormalization());
-    assertNull(loadedList.getPreferences().getActiveIntensityNormalization());
-    assertFalse(IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(loadedList,
-        loadedRaw).isPresent());
+  /**
+   * Copies the archive without the (empty) settings element to simulate an old project.
+   */
+  private File removeSettingsElement(final File archive) throws Exception {
+    final File oldArchive = new File(tempDir, "without-settings-" + archive.getName());
+    final String emptySettings = "<" + CONST.XML_FLIST_SETTINGS_ELEMENT + "/>";
+    boolean removed = false;
+    try (ZipFile zip = new ZipFile(archive);
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(oldArchive))) {
+      final Enumeration<? extends ZipEntry> entries = zip.entries();
+      while (entries.hasMoreElements()) {
+        final ZipEntry entry = entries.nextElement();
+        byte[] bytes;
+        try (InputStream in = zip.getInputStream(entry)) {
+          bytes = in.readAllBytes();
+        }
+        final String content = new String(bytes, StandardCharsets.UTF_8);
+        if (content.contains(emptySettings)) {
+          bytes = content.replace(emptySettings, "").getBytes(StandardCharsets.UTF_8);
+          removed = true;
+        }
+        out.putNextEntry(new ZipEntry(entry.getName()));
+        out.write(bytes);
+        out.closeEntry();
+      }
+    }
+    assertTrue(removed);
+    return oldArchive;
   }
 
   private static void addRow(ModularFeatureList list, RawDataFileImpl raw, int id, float area) {

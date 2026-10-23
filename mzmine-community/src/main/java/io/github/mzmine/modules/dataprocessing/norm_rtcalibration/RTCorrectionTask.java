@@ -45,9 +45,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -203,8 +201,6 @@ class RTCorrectionTask extends AbstractTask {
       ModularFeatureList normalizedFeatureList, ModularFeatureListRow[] standards,
       double[] normalizedStdRTs) {
 
-    final List<FeatureListRow> sourceRows = new ArrayList<>();
-    final Map<FeatureListRow, ModularFeatureListRow> normalizedRows = new IdentityHashMap<>();
     for (FeatureListRow originalRow : originalFeatureList.getRows()) {
       if (isCanceled()) {
         return;
@@ -212,12 +208,9 @@ class RTCorrectionTask extends AbstractTask {
 
       ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList,
           (ModularFeatureListRow) originalRow, standards, normalizedStdRTs);
-      sourceRows.add(originalRow);
-      normalizedRows.put(originalRow, normalizedRow);
+      normalizedFeatureList.addRow(normalizedRow);
       processedRows++;
     }
-    FeatureListUtils.insertCopiedRowsPreservingIdentity(sourceRows, normalizedRows,
-        normalizedFeatureList);
   }
 
   /**

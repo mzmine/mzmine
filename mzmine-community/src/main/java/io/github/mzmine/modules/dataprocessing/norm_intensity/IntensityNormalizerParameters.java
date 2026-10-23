@@ -107,13 +107,16 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
           its common feature target across all batches without additional scalar batch scaling.""".formatted(internalStandardization.getName(), normalizationType.getName())), false);
 
   /**
-   * Holds the result of the normalization in a
-   * {@link io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod} so it can
-   * later be applied to newly added features by gap filling and manual integration. Use
+   * Holds the diagnostics of the normalization (messages and feature-QC provenance) in a
+   * {@link io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod}. The
+   * {@link NormalizationFunction}s are stored in the
+   * {@link io.github.mzmine.datamodel.features.settings.FeatureListSettings} of the feature list so
+   * they can later be applied to newly added features by gap filling and manual integration. Use
    * {@link IntensityNormalizerModule#getNormalizationFunctionsOfLatestCallForFile(FeatureList,
    * RawDataFile)} and
    * {@link IntensityNormalizerModule#getNormalizationFunctionsOfLatestCall(FeatureList)} to extract
-   * these {@link NormalizationFunction}s.
+   * them. Projects saved before the settings were introduced also contain the functions here, see
+   * {@link IntensityNormalizerModule#getLegacyNormalizationFromAppliedMethods(FeatureList)}.
    */
   public static final HiddenParameter<IntensityNormalizationSummary> hiddenNormalizationSummary = new HiddenParameter<>(
       new NormalizationFunctionsParameter());

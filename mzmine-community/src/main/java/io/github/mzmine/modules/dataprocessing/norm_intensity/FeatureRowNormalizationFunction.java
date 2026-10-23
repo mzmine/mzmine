@@ -14,10 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.OptionalDouble;
-import java.util.Set;
 import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,14 +76,27 @@ public final class FeatureRowNormalizationFunction implements NormalizationFunct
 
   @Override public @NotNull String getUniqueID() { return XML_TYPE; }
   @Override public boolean isRowDependent() { return true; }
-  @Override public @NotNull Set<Integer> protectedRowIds() {
-    final Set<Integer> ids = new LinkedHashSet<>(factors.keySet());
-    ids.addAll(unavailableReasons.keySet());
-    return Collections.unmodifiableSet(ids);
+  @Override
+  public @NotNull NormalizationFunction remapRowIds(
+      @NotNull final Map<Integer, Integer> oldToNewIds) {
+    return new FeatureRowNormalizationFunction(remapKeys(factors, oldToNewIds),
+        remapKeys(unavailableReasons, oldToNewIds));
   }
 
-  @Override public boolean protectsRowId(final int rowId) {
-    return factors.containsKey(rowId) || unavailableReasons.containsKey(rowId);
+  /**
+   * @return a map with the new row IDs as keys. Entries of rows that are not in the mapping were
+   * removed and are dropped.
+   */
+  private static <V> @NotNull Map<Integer, V> remapKeys(@NotNull final Map<Integer, V> byRowId,
+      @NotNull final Map<Integer, Integer> oldToNewIds) {
+    final Map<Integer, V> remapped = LinkedHashMap.newLinkedHashMap(byRowId.size());
+    byRowId.forEach((oldId, value) -> {
+      final Integer newId = oldToNewIds.get(oldId);
+      if (newId != null) {
+        remapped.put(newId, value);
+      }
+    });
+    return remapped;
   }
 
   public @NotNull OptionalDouble getFactorForRow(final int rowId) {

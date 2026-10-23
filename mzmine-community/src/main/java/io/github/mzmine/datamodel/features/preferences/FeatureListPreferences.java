@@ -32,21 +32,12 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesDtoParameters;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationFunction;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.RawFileNormalizationFunction;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.List;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -72,19 +63,6 @@ public final class FeatureListPreferences {
   private final @NotNull IonTypeRanking ionTypeRanking;
   private final @NotNull List<String> tagLabels;
 
-  /**
-   * The active normalization functions used by row-producing operations. This deliberately keeps
-   * only the functions needed to apply or protect row-specific outcomes; diagnostic evidence
-   * remains in the applied-method history.
-   */
-  private final @Nullable IntensityNormalizationSummary activeIntensityNormalization;
-  /** Whether normalization state was explicitly written, including an intentional clear. */
-  private final boolean activeIntensityNormalizationDefined;
-  /** Precomputed once with the immutable preferences rather than while inserting every row. */
-  private final @NotNull Set<Integer> activeNormalizationProtectedRowIds;
-  private final @NotNull Map<RawDataFile, NormalizationFunction> activeNormalizationFunctions;
-  private final boolean activeRowDependentIntensityNormalization;
-
   // cached fields not from parameters
   /**
    * Guards all cache fields below. The resolved files are requested for every cell of the RSD
@@ -104,51 +82,9 @@ public final class FeatureListPreferences {
 
   public FeatureListPreferences(@NotNull final SampleTypeFilter rsdSampleTypeFilter,
       @NotNull final IonTypeRanking ionTypeRanking, @NotNull final List<String> tagLabels) {
-    this(rsdSampleTypeFilter, ionTypeRanking, tagLabels, null);
-  }
-
-  public FeatureListPreferences(@NotNull final SampleTypeFilter rsdSampleTypeFilter,
-      @NotNull final IonTypeRanking ionTypeRanking, @NotNull final List<String> tagLabels,
-      @Nullable final IntensityNormalizationSummary activeIntensityNormalization) {
-    this(rsdSampleTypeFilter, ionTypeRanking, tagLabels, activeIntensityNormalization,
-        activeIntensityNormalization != null);
-  }
-
-  public FeatureListPreferences(@NotNull final SampleTypeFilter rsdSampleTypeFilter,
-      @NotNull final IonTypeRanking ionTypeRanking, @NotNull final List<String> tagLabels,
-      @Nullable final IntensityNormalizationSummary activeIntensityNormalization,
-      final boolean activeIntensityNormalizationDefined) {
-    this(rsdSampleTypeFilter, ionTypeRanking, tagLabels, activeIntensityNormalization,
-        activeIntensityNormalizationDefined, Map.of());
-  }
-
-  private FeatureListPreferences(@NotNull final SampleTypeFilter rsdSampleTypeFilter,
-      @NotNull final IonTypeRanking ionTypeRanking, @NotNull final List<String> tagLabels,
-      @Nullable final IntensityNormalizationSummary activeIntensityNormalization,
-      final boolean activeIntensityNormalizationDefined,
-      @NotNull final Map<RawDataFile, NormalizationFunction> activeNormalizationFunctions) {
     this.rsdSampleTypeFilter = rsdSampleTypeFilter;
     this.ionTypeRanking = ionTypeRanking;
     this.tagLabels = List.copyOf(tagLabels);
-    this.activeIntensityNormalization = activeIntensityNormalization == null
-        || activeIntensityNormalization.isEmpty() ? null
-        : new IntensityNormalizationSummary(activeIntensityNormalization.functions());
-    this.activeIntensityNormalizationDefined = activeIntensityNormalizationDefined;
-    final Set<Integer> protectedIds = new LinkedHashSet<>();
-    boolean rowDependent = false;
-    if (this.activeIntensityNormalization != null) {
-      for (final RawFileNormalizationFunction rawFunction :
-          this.activeIntensityNormalization.functions()) {
-        if (rawFunction.isRowDependent()) {
-          rowDependent = true;
-          protectedIds.addAll(rawFunction.protectedRowIds());
-        }
-      }
-    }
-    activeNormalizationProtectedRowIds = Set.copyOf(protectedIds);
-    this.activeNormalizationFunctions = Collections.unmodifiableMap(
-        new IdentityHashMap<>(activeNormalizationFunctions));
-    activeRowDependentIntensityNormalization = rowDependent;
   }
 
   /**
@@ -184,62 +120,6 @@ public final class FeatureListPreferences {
    */
   public @NotNull List<String> getTagLabels() {
     return tagLabels;
-  }
-
-  /**
-   * @return the active functions needed for subsequent row operations, or null if none apply
-   */
-  public @Nullable IntensityNormalizationSummary getActiveIntensityNormalization() {
-    return activeIntensityNormalization;
-  }
-
-  /**
-   * @return true when project state explicitly recorded active normalization, including a clear
-   */
-  public boolean hasDefinedActiveIntensityNormalization() {
-    return activeIntensityNormalizationDefined;
-  }
-
-  public boolean hasActiveRowDependentIntensityNormalization() {
-    return activeRowDependentIntensityNormalization;
-  }
-
-  public @NotNull Set<Integer> getActiveNormalizationProtectedRowIds() {
-    return activeNormalizationProtectedRowIds;
-  }
-
-  public @NotNull Optional<NormalizationFunction> getActiveNormalizationFunction(
-      @NotNull final RawDataFile rawDataFile) {
-    return Optional.ofNullable(activeNormalizationFunctions.get(rawDataFile));
-  }
-
-  /**
-   * Binds active functions to the owning feature list's raw-file instances. This deliberately
-   * avoids the global project lookup in {@code RawDataFilePlaceholder#getMatchingFile()}, which
-   * may resolve a cached wrapper rather than the list's source file during project loading.
-   */
-  public @NotNull FeatureListPreferences bindActiveNormalizationToRawFiles(
-      @NotNull final List<RawDataFile> rawDataFiles) {
-    if (activeIntensityNormalization == null) {
-      return this;
-    }
-    final List<RawFileNormalizationFunction> scopedFunctions = activeIntensityNormalization.functions()
-        .stream().filter(function -> rawDataFiles.stream().anyMatch(
-            rawDataFile -> function.rawDataFilePlaceholder().matches(rawDataFile))).toList();
-    final Map<RawDataFile, NormalizationFunction> functions = new IdentityHashMap<>();
-    for (final RawDataFile rawDataFile : rawDataFiles) {
-      scopedFunctions.stream().filter(function -> function.rawDataFilePlaceholder().matches(rawDataFile))
-          .findFirst().ifPresent(function -> functions.put(rawDataFile, function.function()));
-    }
-    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, tagLabels,
-        new IntensityNormalizationSummary(scopedFunctions), activeIntensityNormalizationDefined,
-        functions);
-  }
-
-  public @NotNull FeatureListPreferences withActiveIntensityNormalization(
-      @Nullable final IntensityNormalizationSummary normalization) {
-    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, tagLabels,
-        normalization, true);
   }
 
   /**
@@ -292,26 +172,22 @@ public final class FeatureListPreferences {
 
   public @NotNull FeatureListPreferences withRsdSampleTypeFilter(
       @NotNull final SampleTypeFilter filter) {
-    return new FeatureListPreferences(filter, ionTypeRanking, tagLabels,
-        activeIntensityNormalization, activeIntensityNormalizationDefined);
+    return new FeatureListPreferences(filter, ionTypeRanking, tagLabels);
   }
 
   public @NotNull FeatureListPreferences withIonTypeRanking(@NotNull final IonTypeRanking ranking) {
-    return new FeatureListPreferences(rsdSampleTypeFilter, ranking, tagLabels,
-        activeIntensityNormalization, activeIntensityNormalizationDefined);
+    return new FeatureListPreferences(rsdSampleTypeFilter, ranking, tagLabels);
   }
 
   public @NotNull FeatureListPreferences withTagLabels(@NotNull final List<String> labels) {
-    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, labels,
-        activeIntensityNormalization, activeIntensityNormalizationDefined);
+    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, labels);
   }
 
   /**
    * @return a copy without the internal cache
    */
   public @NotNull FeatureListPreferences copy() {
-    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, tagLabels,
-        activeIntensityNormalization, activeIntensityNormalizationDefined);
+    return new FeatureListPreferences(rsdSampleTypeFilter, ionTypeRanking, tagLabels);
   }
 
   public void saveToXML(@NotNull final Element element) {
@@ -343,22 +219,17 @@ public final class FeatureListPreferences {
   public boolean equals(final Object o) {
     return o instanceof FeatureListPreferences other && rsdSampleTypeFilter.equals(
         other.rsdSampleTypeFilter) && ionTypeRanking.equals(other.ionTypeRanking)
-        && tagLabels.equals(other.tagLabels) && Objects.equals(activeIntensityNormalization,
-        other.activeIntensityNormalization) && activeIntensityNormalizationDefined
-        == other.activeIntensityNormalizationDefined;
+        && tagLabels.equals(other.tagLabels);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(rsdSampleTypeFilter, ionTypeRanking, tagLabels,
-        activeIntensityNormalization, activeIntensityNormalizationDefined);
+    return Objects.hash(rsdSampleTypeFilter, ionTypeRanking, tagLabels);
   }
 
   @Override
   public String toString() {
     return "FeatureListPreferences{rsdSampleTypeFilter=" + rsdSampleTypeFilter + ", ionTypeRanking="
-        + ionTypeRanking + ", tagLabels=" + tagLabels + ", activeIntensityNormalization="
-        + activeIntensityNormalization + ", activeIntensityNormalizationDefined="
-        + activeIntensityNormalizationDefined + '}';
+        + ionTypeRanking + ", tagLabels=" + tagLabels + '}';
   }
 }

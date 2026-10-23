@@ -30,6 +30,8 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -168,6 +170,40 @@ class IntensityNormalizerTaskTest {
   }
 
   @Test
+  void run_storesFunctionsInSettingsAndDiagnosticsInAppliedMethod() {
+    final RunResult result = runTask(AbundanceMeasure.Height, OriginalFeatureListOption.KEEP);
+    final ModularFeatureList out = result.outputList();
+
+    assertEquals(2, out.getSettings().normalization().functions().size());
+    assertTrue(out.getSettings().normalization().messages().isEmpty());
+    final IntensityNormalizationSummary appliedMethodSummary = out.getAppliedMethods().getFirst()
+        .getParameters().getValue(IntensityNormalizerParameters.hiddenNormalizationSummary);
+    assertTrue(appliedMethodSummary.functions().isEmpty());
+    // the original list is not normalized
+    assertNull(result.original.getSettings().normalization());
+  }
+
+  @Test
+  void run_processInPlaceTwiceReplacesValuesAndSettings() {
+    final RunResult result = runTask(AbundanceMeasure.Height,
+        OriginalFeatureListOption.PROCESS_IN_PLACE);
+    final ModularFeatureList list = result.original;
+    final IntensityNormalizationSummary first = list.getSettings().normalization();
+    final float firstValue = featureNormalizedHeight(list, 0, (RawDataFileImpl) list.getRawDataFile(0));
+
+    final IntensityNormalizerTask second = new IntensityNormalizerTask(result.project, list,
+        buildParams(AbundanceMeasure.Height, OriginalFeatureListOption.PROCESS_IN_PLACE), null,
+        Instant.now());
+    second.run();
+
+    assertEquals(TaskStatus.FINISHED, second.getStatus());
+    assertNotSame(first, list.getSettings().normalization());
+    // same input values, so the same result and not normalized twice
+    assertEquals(firstValue,
+        featureNormalizedHeight(list, 0, (RawDataFileImpl) list.getRawDataFile(0)), 1e-5f);
+  }
+
+  @Test
   void run_keepHandling_addsBothFeatureListsToProject() {
     final RunResult result = runTask(AbundanceMeasure.Height, OriginalFeatureListOption.KEEP);
     assertEquals(2, result.project.getCurrentFeatureLists().size());
@@ -195,7 +231,7 @@ class IntensityNormalizerTaskTest {
       feature.set(NormalizedHeightType.class, 31f);
       feature.set(NormalizedAreaType.class, 41f);
     });
-    featureList.setPreferences(featureList.getPreferences().withActiveIntensityNormalization(
+    featureList.setSettings(featureList.getSettings().withNormalization(
         new IntensityNormalizationSummary(List.of(
             new RawFileNormalizationFunction(s1, new FactorNormalizationFunction(2d))))));
 
@@ -209,7 +245,7 @@ class IntensityNormalizerTaskTest {
     assertEquals(TaskStatus.ERROR, task.getStatus());
     assertTrue(featureList.streamFeatures().allMatch(feature ->
         Float.valueOf(31f).equals(feature.get(NormalizedHeightType.class))));
-    assertEquals(1, featureList.getPreferences().getActiveIntensityNormalization().functions().size());
+    assertEquals(1, featureList.getSettings().normalization().functions().size());
   }
 
   @Test

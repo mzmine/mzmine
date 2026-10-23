@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -77,12 +77,16 @@ public record RawFileNormalizationFunction(@NotNull RawDataFilePlaceholder rawDa
     return function.isRowDependent();
   }
 
-  public @NotNull Set<Integer> protectedRowIds() {
-    return function.protectedRowIds();
-  }
-
-  public boolean protectsRowId(final int rowId) {
-    return function.protectsRowId(rowId);
+  /**
+   * @see NormalizationFunction#remapRowIds(Map)
+   */
+  public @NotNull RawFileNormalizationFunction remapRowIds(
+      @NotNull final Map<Integer, Integer> oldToNewIds) {
+    if (!isRowDependent()) {
+      return this;
+    }
+    return new RawFileNormalizationFunction(rawDataFilePlaceholder, acquisitionTimestamp,
+        function.remapRowIds(oldToNewIds));
   }
 
 

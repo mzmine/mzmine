@@ -94,9 +94,14 @@ public class MergeAlignerTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
-    for (final ModularFeatureList featureList : featureLists) {
-      NormalizationRowIdentity.requireIdentityPreservingTransformation(featureList,
+    // row IDs of the merged lists collide, so row-dependent normalization factors cannot be kept
+    try {
+      NormalizationRowIdentity.requireNoRowDependentNormalization(List.of(featureLists),
           "merge feature lists");
+    } catch (final IllegalStateException e) {
+      setErrorMessage(e.getMessage());
+      setStatus(TaskStatus.ERROR);
+      return;
     }
 
     setStatus(TaskStatus.PROCESSING);
