@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.filter_splitaligned;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -90,6 +91,10 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
           "_" + (sampleGroup.value() != null ? sampleGroup.valueString()
               : sampleGroup.files().getFirst().getName()), getMemoryMapStorage(), false,
           sampleGroup.files(), false, null, null);
+      // decision: the split lists are reprocessed per sample group (e.g., resolve, expand,
+      // align again). An intensity normalization only stays valid on the aligned list it was
+      // calculated for, so it is dropped here instead of in every module that creates new features
+      resultFlist.setSettings(resultFlist.getSettings().withNormalization(null));
 
       for (final FeatureListRow row : flist.getRows()) {
         if (sampleGroup.files().stream().noneMatch(row::hasFeature)) {
@@ -106,7 +111,9 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
             finishedItems.getAndIncrement();
             continue;
           }
-          copiedRow.addFeature(file, new ModularFeature(resultFlist, feature), false);
+          final ModularFeature copiedFeature = new ModularFeature(resultFlist, feature);
+          FeatureDataUtils.clearIntensityNormalization(copiedFeature);
+          copiedRow.addFeature(file, copiedFeature, false);
           finishedItems.getAndIncrement();
         }
 
