@@ -49,6 +49,8 @@ public class NormalizationFunctionsParameter implements
 
   private static final Logger logger = Logger.getLogger(
       NormalizationFunctionsParameter.class.getName());
+  // Serialization format only; the scientific method is recorded in the settings.
+  private static final String QC_PROVENANCE_FORMAT_VERSION = "1";
   private static final ObjectMapper DIAGNOSTICS_JSON = new ObjectMapper();
 
   @NotNull
@@ -161,7 +163,7 @@ public class NormalizationFunctionsParameter implements
     // finally loaded summary
     final List<FeatureQcProvenance> featureQc = new ArrayList<>();
     for (final Element evidence : XMLUtils.streamChildElementsByTagName(xmlElement, "featureQc").toList()) {
-      if (!"2".equals(evidence.getAttribute("version")) || !"json".equals(evidence.getAttribute("encoding"))) {
+      if (!QC_PROVENANCE_FORMAT_VERSION.equals(evidence.getAttribute("version")) || !"json".equals(evidence.getAttribute("encoding"))) {
         throw new IllegalArgumentException("Unsupported feature-QC provenance encoding.");
       }
       try {
@@ -194,7 +196,7 @@ public class NormalizationFunctionsParameter implements
     }
     for (final FeatureQcProvenance provenance : summary.featureQc()) {
       final Element evidence = doc.createElement("featureQc");
-      evidence.setAttribute("version", "2");
+      evidence.setAttribute("version", QC_PROVENANCE_FORMAT_VERSION);
       evidence.setAttribute("encoding", "json");
       try {
         evidence.setTextContent(DIAGNOSTICS_JSON.writeValueAsString(provenance));

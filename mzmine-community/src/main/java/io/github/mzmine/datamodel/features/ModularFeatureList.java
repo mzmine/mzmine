@@ -47,12 +47,10 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.DataTypeUtils;
@@ -67,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
@@ -547,9 +546,19 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void setRowsApplySort(FeatureListRow... rows) {
     // a row reports the files of its own feature list, so rows of this list never need validation.
+    final Set<Integer> replacementIds = new HashSet<>(rows.length);
+    final boolean protectIdentities = NormalizationRowIdentity.requiresRowIdentityProtection(this);
+    final Set<FeatureListRow> existingRows = Collections.newSetFromMap(new IdentityHashMap<>());
+    if (protectIdentities) {
+      // One membership snapshot avoids rescanning the whole list for each retained row.
+      existingRows.addAll(featureListRows);
+    }
     for (FeatureListRow row : rows) {
       requireRowAssertions(row);
-      if (!featureListRows.contains(row)) {
+      if (!replacementIds.add(row.getID())) {
+        throw new IllegalArgumentException("Feature list rows must have unique IDs.");
+      }
+      if (protectIdentities && !existingRows.contains(row)) {
         NormalizationRowIdentity.requireNewRowIdAvailable(this, row.getID());
       }
     }
@@ -605,65 +614,35 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRow(FeatureListRow row) {
     requireRowAssertions(row);
-    final boolean rowDependent = NormalizationRowIdentity.hasActiveRowDependentNormalization(this);
-    // Only row-dependent history reserves IDs. Ordinary imports retain their supplied IDs without
-    // repeatedly scanning all existing rows.
-    final int rowId = rowDependent ? NormalizationRowIdentity.nextUnprotectedRowId(this, row.getID())
-        : row.getID();
-    if (rowDependent && rowId != row.getID()) {
-      row.set(IDType.class, rowId);
-      // A copied/new row may already have normalized values. The newly allocated ID has no frozen
-      // factor, so reapplying the latest summary clears those values instead of retaining a stale one.
-      row.streamFeatures().forEach(feature -> IntensityNormalizerModule
-          .getNormalizationFunctionsOfLatestCallForFile(this, feature.getRawDataFile())
-          .ifPresentOrElse(normalizer -> FeatureDataUtils.normalizeAbundances(feature, normalizer, row),
-              () -> FeatureDataUtils.clearIntensityNormalization(feature)));
+    // Normal imports keep their existing allocation behavior. Row-dependent normalization is the
+    // exceptional case that needs an ID conflict check; bulk copy paths validate once instead.
+    if (NormalizationRowIdentity.requiresRowIdentityProtection(this) && containsRowId(row.getID())) {
+      throw new IllegalArgumentException("Feature list already contains row ID %d.".formatted(
+          row.getID()));
     }
+    NormalizationRowIdentity.requireNewRowIdAvailable(this, row.getID());
     featureListRows.add(row);
     applyRowBindings(row);
   }
 
-  /** Adds a copy only after proving it preserves a source row ID and active normalization. */
-  public void addRowPreservingIdentity(FeatureListRow sourceRow, FeatureListRow row) {
-    addRowsPreservingIdentity(List.of(sourceRow), List.of(row));
-  }
-
   /**
-   * Inserts an identity-preserving copy after validating all mappings and IDs once. This is the
-   * bulk path for copies with row-dependent normalization, avoiding an O(rows squared) scan.
+   * Restores persisted rows before publishing active normalization state. This is deliberately a
+   * separate path from {@link #addRow(FeatureListRow)}: restored IDs are existing identities, not
+   * new allocations.
    */
-  public void addRowsPreservingIdentity(List<? extends FeatureListRow> sourceRows,
-      List<? extends FeatureListRow> rows) {
-    if (sourceRows.size() != rows.size()) {
-      throw new IllegalArgumentException("Source and copied row counts differ.");
+  public void restoreRowsWithExactIds(@NotNull final List<? extends FeatureListRow> rows) {
+    if (!featureListRows.isEmpty()) {
+      throw new IllegalStateException("Persisted rows can only be restored into an empty list.");
     }
-    final FeatureList sourceFeatureList = sourceRows.isEmpty() ? null
-        : sourceRows.getFirst().getFeatureList();
-    final boolean rowDependent = sourceFeatureList != null && (
-        NormalizationRowIdentity.hasActiveRowDependentNormalization(sourceFeatureList)
-        || NormalizationRowIdentity.hasActiveRowDependentNormalization(this));
-    if (!rowDependent) {
-      rows.forEach(this::requireRowAssertions);
-      featureListRows.addAll(rows);
-      rows.forEach(this::applyRowBindings);
-      return;
-    }
-    final Set<Integer> ids = new HashSet<>(featureListRows.size() + rows.size());
-    featureListRows.forEach(existing -> ids.add(existing.getID()));
-    final boolean sameNormalization = NormalizationRowIdentity.hasSameLatestNormalization(
-        sourceFeatureList, this);
-    for (int index = 0; index < rows.size(); index++) {
-      final FeatureListRow sourceRow = sourceRows.get(index);
-      final FeatureListRow row = rows.get(index);
+    for (final FeatureListRow row : rows) {
       requireRowAssertions(row);
-      if (sourceRow.getFeatureList() != sourceFeatureList || sourceRow.getID() != row.getID()
-          || !sameNormalization || !ids.add(row.getID())) {
-        throw new IllegalArgumentException("Copied rows must preserve unique source row IDs and "
-            + "latest normalization identity.");
-      }
     }
     featureListRows.addAll(rows);
     rows.forEach(this::applyRowBindings);
+  }
+
+  private boolean containsRowId(final int rowId) {
+    return featureListRows.stream().anyMatch(existing -> existing.getID() == rowId);
   }
 
 
@@ -1162,7 +1141,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void setPreferences(@NotNull final FeatureListPreferences preferences) {
-    this.preferences = preferences;
+    this.preferences = preferences.bindActiveNormalizationToRawFiles(getRawDataFiles());
   }
 
   @Override

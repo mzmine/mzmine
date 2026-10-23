@@ -109,7 +109,7 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
     }
     for (final FeatureQcProvenance qc : featureQc) {
       final FeatureQcDiagnostics diagnostics = qc.diagnostics();
-      sb.append("\nFeature-QC v").append(diagnostics.methodVersion())
+      sb.append("\n").append(diagnostics.settings().method())
           .append("; modeled ").append(qc.modeledAbundance())
           .append("; the same factors apply to both area and height.")
           .append("\n").append(diagnostics.solver()).append("; ").append(diagnostics.coordinatePolicy())

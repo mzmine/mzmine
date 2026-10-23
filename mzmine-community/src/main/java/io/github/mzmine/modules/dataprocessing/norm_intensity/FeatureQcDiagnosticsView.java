@@ -43,9 +43,9 @@ public final class FeatureQcDiagnosticsView {
 
   private static @NotNull VBox createDiagnosticsPane(@NotNull final FeatureQcProvenance provenance) {
     final FeatureQcDiagnostics diagnostics = provenance.diagnostics();
-    final Label overview = new Label(("Feature-QC v%d | modeled abundance %s (factor applied to both area and height)\n"
+    final Label overview = new Label(("%s | modeled abundance %s (factor applied to both area and height)\n"
         + "Solver: %s | coordinate: %s | scale: %s\nSettings: %s\nAvailability: %s").formatted(
-        diagnostics.methodVersion(), provenance.modeledAbundance(),
+        diagnostics.settings().method(), provenance.modeledAbundance(),
         diagnostics.solver(), diagnostics.coordinatePolicy(), diagnostics.scalePolicy(),
         diagnostics.settings(), diagnostics.availability()));
     overview.setWrapText(true);
@@ -112,18 +112,23 @@ public final class FeatureQcDiagnosticsView {
           .append(batch.boundarySampleCount()).append(", factors ").append(batch.factorCount())
           .append("\nRSD before/after: ").append(batch.beforeQcRsd()).append(" / ")
           .append(batch.afterQcRsd()).append(" (n=").append(batch.rsdObservationCount())
-          .append(")\nLOO log MSE: ").append(batch.leaveOneOutLogMse()).append(" (predictions ")
+          .append(")\nLOO MSE: ").append(batch.leaveOneOutMse()).append(" (").append(batch.validationScale())
+          .append("; predictions ")
           .append(batch.leaveOneOutPredictionCount()).append(", failures ")
           .append(batch.leaveOneOutFailureCount()).append(")\nFactor range: ")
           .append(batch.minimumFactor()).append(" to ").append(batch.maximumFactor());
+      text.append("\nSelected degree/span/neighbors: ").append(batch.selectedDegree())
+          .append(" / ").append(batch.selectedSpan()).append(" / ")
+          .append(batch.selectedNeighborhoodSize()).append("; target: ")
+          .append(batch.correctionTarget());
       if (batch.unavailableReason() != null) text.append("\nOutcome: ").append(batch.unavailableReason());
       if (batch.validationUnavailableReason() != null) text.append("\nValidation: ")
           .append(batch.validationUnavailableReason());
       if (!batch.fitPoints().isEmpty()) {
-        text.append("\nFit points (time, observed log QC, fitted log QC):\n")
+        text.append("\nFit points (coordinate, observed QC, fitted QC in the stated validation scale):\n")
             .append(batch.fitPoints().stream().limit(MAX_VISIBLE_FIT_POINTS)
-                .map(point -> point.time() + ", " + point.observedLogQc() + ", "
-                    + point.fittedLogQc()).collect(java.util.stream.Collectors.joining("\n")));
+                .map(point -> point.coordinate() + ", " + point.observedQc() + ", "
+                    + point.fittedQc()).collect(java.util.stream.Collectors.joining("\n")));
         if (batch.fitPoints().size() > MAX_VISIBLE_FIT_POINTS) {
           text.append("\n… ").append(batch.fitPoints().size() - MAX_VISIBLE_FIT_POINTS)
               .append(" additional fit points are retained in the saved diagnostics.");

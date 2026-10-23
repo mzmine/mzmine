@@ -188,9 +188,10 @@ class NormalizationFunctionsParameterTest {
     final FeatureQcSettings settings = new FeatureQcSettings(.8d, 1, 5, 12d, .4d);
     final FeatureQcBatchDiagnostic batch = new FeatureQcBatchDiagnostic("batch1", 6, 6, 1d,
         6d, 0, 6, null, .1d, .05d, 6, .02d, 6, 0, null, .8d, 1.2d,
-        List.of(new FeatureQcFitPoint(1d, Math.log(10d), Math.log(11d))));
+        List.of(new FeatureQcFitPoint(1d, Math.log(10d), Math.log(11d))), 1, 5, .8d, 10d,
+        "natural log response");
     final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics("solver", "elapsed",
-        "global-log", FeatureQcSettings.METHOD_VERSION, settings, Map.of(3, Math.log(10d)),
+        "global-log", settings, Map.of(3, Math.log(10d)),
         new FeatureQcAvailability(1, 0, 0, 0, 6, 0), Map.of(3,
             new FeatureQcRowDiagnostic(3, 6, 6, null, Map.of("batch1", batch))));
     final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
@@ -208,7 +209,7 @@ class NormalizationFunctionsParameterTest {
   }
 
   @Test
-  void extractionUsesLatestIntensityNormalizerAppliedMethod() {
+  void activeStateOwnsReapplicationAndLegacyHistoryIsAnExplicitFallback() {
     final RawDataFile rawDataFile = RawDataFile.createDummyFile();
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, rawDataFile);
 
@@ -228,18 +229,22 @@ class NormalizationFunctionsParameterTest {
         new SimpleFeatureListAppliedMethod(IntensityNormalizerModule.class, latestParameters,
             Instant.parse("2026-01-01T11:30:00Z")));
 
+    assertEquals(3d, IntensityNormalizerModule.getLegacyNormalizationFromAppliedMethods(featureList)
+        .get(0).getNormalizationFactor(100d, 5f), 1e-12);
+    featureList.setPreferences(featureList.getPreferences().withActiveIntensityNormalization(
+        olderParameters.getValue(IntensityNormalizerParameters.hiddenNormalizationSummary)));
     final IntensityNormalizationSummary summary = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(
         featureList);
     assertNotNull(summary);
     assertEquals(1, summary.size());
     final List<RawFileNormalizationFunction> latestFunctions = summary.functions();
     assertEquals(1, latestFunctions.size());
-    assertEquals(3d, latestFunctions.getFirst().function().getNormalizationFactor(100d, 5f), 1e-12);
+    assertEquals(2d, latestFunctions.getFirst().function().getNormalizationFactor(100d, 5f), 1e-12);
 
     final NormalizationFunction latestForFile = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
         featureList, rawDataFile).get();
     assertNotNull(latestForFile);
-    assertEquals(3d, latestForFile.getNormalizationFactor(100d, 5f), 1e-12);
+    assertEquals(2d, latestForFile.getNormalizationFactor(100d, 5f), 1e-12);
 
     final NormalizationFunction missingFile = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
         featureList, createRawFile("unknown")).orElse(null);

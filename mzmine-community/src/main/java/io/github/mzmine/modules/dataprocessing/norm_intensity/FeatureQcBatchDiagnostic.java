@@ -14,12 +14,17 @@ public record FeatureQcBatchDiagnostic(String batch, int totalQcs, int usableQcs
                                        int boundarySampleCount, int factorCount,
                                        @Nullable FeatureQcUnavailableReason unavailableReason,
                                        @Nullable Double beforeQcRsd, @Nullable Double afterQcRsd,
-                                       int rsdObservationCount, @Nullable Double leaveOneOutLogMse,
+                                       int rsdObservationCount, @Nullable Double leaveOneOutMse,
                                        int leaveOneOutPredictionCount, int leaveOneOutFailureCount,
                                        @Nullable String validationUnavailableReason,
                                        @Nullable Double minimumFactor,
                                        @Nullable Double maximumFactor,
-                                       @NotNull List<FeatureQcFitPoint> fitPoints) {
+                                       @NotNull List<FeatureQcFitPoint> fitPoints,
+                                       @Nullable Integer selectedDegree,
+                                       @Nullable Integer selectedNeighborhoodSize,
+                                       @Nullable Double selectedSpan,
+                                       @Nullable Double correctionTarget,
+                                       @NotNull String validationScale) {
 
   public FeatureQcBatchDiagnostic {
     fitPoints = List.copyOf(fitPoints);

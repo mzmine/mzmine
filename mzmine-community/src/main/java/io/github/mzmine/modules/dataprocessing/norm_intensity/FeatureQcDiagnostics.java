@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 /** Typed diagnostics produced by one immutable feature-QC calculation. */
 public record FeatureQcDiagnostics(@NotNull String solver, @NotNull String coordinatePolicy,
                                    @NotNull String scalePolicy,
-                                   int methodVersion,
                                    @NotNull FeatureQcSettings settings,
                                    @NotNull Map<Integer, Double> globalLogTargets,
                                    @NotNull FeatureQcAvailability availability,

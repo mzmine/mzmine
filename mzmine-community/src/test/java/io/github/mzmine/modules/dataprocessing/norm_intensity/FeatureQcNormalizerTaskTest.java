@@ -64,11 +64,10 @@ class FeatureQcNormalizerTaskTest {
     final ModularFeatureList output = output(fixture);
     final IntensityNormalizationSummary summary = IntensityNormalizerModule
         .getNormalizationFunctionsOfLatestCall(output);
-    assertEquals(1, summary.featureQc().size());
-    assertEquals(FeatureQcSettings.METHOD_VERSION,
-        summary.featureQc().getFirst().diagnostics().methodVersion());
-    assertEquals(FeatureQcSettings.defaults(), summary.featureQc().getFirst().diagnostics().settings());
     assertNotNull(summary.functions().getFirst().function());
+    final IntensityNormalizationSummary appliedSummary = appliedSummary(output);
+    assertEquals(1, appliedSummary.featureQc().size());
+    assertEquals(FeatureQcSettings.defaults(), appliedSummary.featureQc().getFirst().diagnostics().settings());
   }
 
   @Test
@@ -107,8 +106,10 @@ class FeatureQcNormalizerTaskTest {
     assertEquals(1d, task.getFinishedPercentage(), 1e-12);
     final IntensityNormalizationSummary summary = IntensityNormalizerModule
         .getNormalizationFunctionsOfLatestCall(output(fixture));
-    assertFalse(summary.messages().isEmpty());
-    assertFalse(summary.featureQc().getFirst().diagnostics().availability().hasCorrectablePairs());
+    assertNotNull(summary);
+    final IntensityNormalizationSummary appliedSummary = appliedSummary(output(fixture));
+    assertFalse(appliedSummary.messages().isEmpty());
+    assertFalse(appliedSummary.featureQc().getFirst().diagnostics().availability().hasCorrectablePairs());
   }
 
   @Test
@@ -150,11 +151,15 @@ class FeatureQcNormalizerTaskTest {
         List.of(SampleType.values()), StandardUsageType.Nearest, 1d, standards, FieldSeparator.COMMA,
         new MZTolerance(.25, 0d), new RTTolerance(.25f, RTTolerance.Unit.MINUTES),
         new MobilityTolerance(.25f), StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES);
+    final FeatureQcNormalizationParameters featureQcParameters =
+        (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters().cloneParameterSet();
+    featureQcParameters.setParameter(FeatureQcNormalizationParameters.method,
+        FeatureQcMethod.COMMON_SCALE_LOG_LOESS);
     final ParameterSet parameters = IntensityNormalizerParameters.create(
         new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "feature-qc-compose",
         new MetadataNormalizationConfig("feature_qc_compose_dilution", MetadataNormalizationConfig.Mode.divide),
         NormalizationType.StandardCompounds, internalStandard, NormalizationType.FeatureQcLoess,
-        new FeatureQcNormalizationParameters(), "feature_qc_compose_batch", AbundanceMeasure.Area,
+        featureQcParameters, "feature_qc_compose_batch", AbundanceMeasure.Area,
         OriginalFeatureListOption.KEEP, null);
 
     final IntensityNormalizerTask task = new IntensityNormalizerTask(project, source, parameters, null,
@@ -203,6 +208,11 @@ class FeatureQcNormalizerTaskTest {
   private static ModularFeatureList output(final Fixture fixture) {
     return (ModularFeatureList) fixture.project.getCurrentFeatureLists().stream()
         .filter(list -> list != fixture.source).findFirst().orElse(fixture.source);
+  }
+
+  private static IntensityNormalizationSummary appliedSummary(final ModularFeatureList featureList) {
+    return featureList.getAppliedMethods().getLast().getParameters().getValue(
+        IntensityNormalizerParameters.hiddenNormalizationSummary);
   }
 
   private record Fixture(MZmineProjectImpl project, ModularFeatureList source, List<RawDataFile> files) {

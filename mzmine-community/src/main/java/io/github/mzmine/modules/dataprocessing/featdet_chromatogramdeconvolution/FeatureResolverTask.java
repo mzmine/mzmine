@@ -209,6 +209,8 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
+    // A single raw file is the normal resolver input but does not prove that persisted
+    // row-dependent normalization is absent.
     NormalizationRowIdentity.requireIdentityPreservingTransformation(originalFeatureList,
         "resolve chromatograms");
     final Resolver resolver = ((GeneralResolverParameters) parameters).getResolver(parameters,

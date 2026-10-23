@@ -432,22 +432,17 @@ public class RowsFilterTask extends AbstractTask {
           getMemoryMapStorage(), totalRows, totalFeatures);
       // add rows to new list
       int index = 0;
-      final List<FeatureListRow> copiedSources = new ArrayList<>();
-      final List<ModularFeatureListRow> copiedRows = new ArrayList<>();
       for (FeatureListRow row : rowsToAdd) {
         index++;
         ModularFeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
             renumber ? index : row.getID(), (ModularFeatureListRow) row, true);
         if (renumber) {
           newFeatureList.addRow(resetRow);
-        } else {
-          copiedSources.add(row);
-          copiedRows.add(resetRow);
         }
         oldToNew.put(row, resetRow);
       }
       if (!renumber) {
-        newFeatureList.addRowsPreservingIdentity(copiedSources, copiedRows);
+        FeatureListUtils.insertCopiedRowsPreservingIdentity(rowsToAdd, oldToNew, newFeatureList);
       }
       // Sort copied rows after their identity-preserving insertion.
       newFeatureList.setRowsApplySort(oldToNew.values().toArray(FeatureListRow[]::new));

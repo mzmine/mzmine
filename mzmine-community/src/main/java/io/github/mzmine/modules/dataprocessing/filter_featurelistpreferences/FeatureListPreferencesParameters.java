@@ -182,7 +182,9 @@ public class FeatureListPreferencesParameters extends SimpleParameterSet {
             DEFAULTS.getRsdSampleTypeFilter()),
         resolve(getParameter(ionTypeRanking), current.getIonTypeRanking(),
             DEFAULTS.getIonTypeRanking()),
-        resolve(getParameter(tagLabels), current.getTagLabels(), DEFAULTS.getTagLabels()));
+        resolve(getParameter(tagLabels), current.getTagLabels(), DEFAULTS.getTagLabels()),
+        current.getActiveIntensityNormalization(),
+        current.hasDefinedActiveIntensityNormalization());
   }
 
   @Override

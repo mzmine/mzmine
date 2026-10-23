@@ -4,30 +4,39 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.LinkedHashSet;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-/** Guards transformations that would change IDs captured by the active normalization summary. */
+/** Guards row identities captured by directly accessible active normalization state. */
 public final class NormalizationRowIdentity {
 
   private NormalizationRowIdentity() {}
 
+  /** Cheap gate before looking at active row-level normalization state. */
+  public static boolean hasNormalizedIntensityColumns(@NotNull final FeatureList featureList) {
+    return featureList.hasFeatureType(NormalizedAreaType.class) || featureList.hasFeatureType(
+        NormalizedHeightType.class);
+  }
+
   public static boolean hasActiveRowDependentNormalization(@NotNull final FeatureList featureList) {
-    return IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(featureList).functions()
-        .stream().anyMatch(RawFileNormalizationFunction::isRowDependent);
+    return featureList.getPreferences().hasActiveRowDependentIntensityNormalization();
+  }
+
+  public static boolean requiresRowIdentityProtection(@NotNull final FeatureList featureList) {
+    return hasNormalizedIntensityColumns(featureList) && hasActiveRowDependentNormalization(
+        featureList);
   }
 
   public static @NotNull Set<Integer> protectedRowIds(@NotNull final FeatureList featureList) {
-    final Set<Integer> ids = new LinkedHashSet<>();
-    IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(featureList).functions()
-        .forEach(function -> ids.addAll(function.protectedRowIds()));
-    return Set.copyOf(ids);
+    return featureList.getPreferences().getActiveNormalizationProtectedRowIds();
   }
 
   public static void requireRenumberingAllowed(@NotNull final FeatureList featureList) {
     if (hasActiveRowDependentNormalization(featureList)) {
-      throw new IllegalStateException("Cannot reset row IDs while the latest intensity normalization "
+      throw new IllegalStateException("Cannot reset row IDs while active intensity normalization "
           + "contains row-dependent factors. Filter with row-ID resetting disabled.");
     }
   }
@@ -35,7 +44,7 @@ public final class NormalizationRowIdentity {
   public static void requireIdentityPreservingTransformation(@NotNull final FeatureList featureList,
       @NotNull final String operation) {
     if (hasActiveRowDependentNormalization(featureList)) {
-      throw new IllegalStateException("Cannot %s while the latest intensity normalization contains "
+      throw new IllegalStateException("Cannot %s while active intensity normalization contains "
           + "row-dependent factors. This operation changes feature-row identity.".formatted(operation));
     }
   }
@@ -43,36 +52,24 @@ public final class NormalizationRowIdentity {
   /** Rejects a newly allocated ID that is already represented by a frozen row-level outcome. */
   public static void requireNewRowIdAvailable(@NotNull final FeatureList featureList,
       final int rowId) {
-    if (isProtectedRowId(featureList, rowId)) {
+    if (requiresRowIdentityProtection(featureList) && protectedRowIds(featureList).contains(rowId)) {
       throw new IllegalArgumentException("Cannot allocate row ID %d because it is reserved by the "
-          + "latest row-dependent intensity normalization.".formatted(rowId));
+          + "active row-dependent intensity normalization.".formatted(rowId));
     }
   }
 
-  public static int nextUnprotectedRowId(@NotNull final FeatureList featureList,
-      final int candidate) {
-    int next = Math.max(1, candidate);
-    // The normal allocation path already provides an unused ID. Avoid scanning every existing row
-    // for ordinary append/import operations; only a frozen-ID collision needs collision resolution.
-    if (!isProtectedRowId(featureList, next) && !containsRowId(featureList, next)) return next;
-    do {
-      next++;
-    } while (isProtectedRowId(featureList, next) || containsRowId(featureList, next));
-    return next;
-  }
-
-  private static boolean containsRowId(final FeatureList featureList, final int rowId) {
-    return featureList.getRows().stream().anyMatch(row -> row.getID() == rowId);
-  }
-
-  private static boolean isProtectedRowId(final FeatureList featureList, final int rowId) {
-    return IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(featureList).functions()
-        .stream().anyMatch(function -> function.protectsRowId(rowId));
-  }
-
-  public static boolean hasSameLatestNormalization(@NotNull final FeatureList source,
+  public static boolean hasSameActiveNormalization(@NotNull final FeatureList source,
       @NotNull final FeatureList target) {
-    return IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(source).equals(
-        IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(target));
+    if (source.getPreferences().hasDefinedActiveIntensityNormalization()
+        != target.getPreferences().hasDefinedActiveIntensityNormalization()) {
+      return false;
+    }
+    for (final var rawDataFile : target.getRawDataFiles()) {
+      if (!Objects.equals(source.getPreferences().getActiveNormalizationFunction(rawDataFile),
+          target.getPreferences().getActiveNormalizationFunction(rawDataFile))) {
+        return false;
+      }
+    }
+    return true;
   }
 }

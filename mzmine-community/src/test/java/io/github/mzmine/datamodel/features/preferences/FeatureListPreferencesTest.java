@@ -25,9 +25,14 @@
 
 package io.github.mzmine.datamodel.features.preferences;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.identities.iontype.IonPartFrequency;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FactorNormalizationFunction;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.RawFileNormalizationFunction;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesDtoParameters;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesParameters;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -38,6 +43,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomOption;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomValue;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,7 +136,44 @@ class FeatureListPreferencesTest {
     }
     Assertions.assertEquals(List.of(FeatureListPreferencesDtoParameters.rsdSampleTypes.getName(),
         FeatureListPreferencesDtoParameters.ionTypeRanking.getName(),
-        FeatureListPreferencesDtoParameters.tagLabels.getName()), names);
+        FeatureListPreferencesDtoParameters.tagLabels.getName(),
+        FeatureListPreferencesDtoParameters.activeIntensityNormalization.getName(),
+        FeatureListPreferencesDtoParameters.activeIntensityNormalizationDefined.getName()), names);
+  }
+
+  @Test
+  void persistsActiveNormalizationAndExplicitClearDistinctly()
+      throws ParserConfigurationException {
+    final RawDataFileImpl raw = new RawDataFileImpl("sample", null, null);
+    final IntensityNormalizationSummary active = new IntensityNormalizationSummary(List.of(
+        new RawFileNormalizationFunction(raw, new FactorNormalizationFunction(2d))));
+    final FeatureListPreferences preferences = FeatureListPreferences.createDefault()
+        .withActiveIntensityNormalization(active);
+
+    final FeatureListPreferences loadedActive = saveAndLoad(preferences);
+    Assertions.assertTrue(loadedActive.hasDefinedActiveIntensityNormalization());
+    Assertions.assertEquals(1, loadedActive.getActiveIntensityNormalization().functions().size());
+
+    final FeatureListPreferences loadedClear = saveAndLoad(
+        preferences.withActiveIntensityNormalization(null));
+    Assertions.assertTrue(loadedClear.hasDefinedActiveIntensityNormalization());
+    Assertions.assertNull(loadedClear.getActiveIntensityNormalization());
+  }
+
+  @Test
+  void bindsLoadedNormalizationToFeatureListRawFileInstances()
+      throws ParserConfigurationException {
+    final RawDataFileImpl serializedRaw = new RawDataFileImpl("same-name", null, null);
+    final RawDataFileImpl listRaw = new RawDataFileImpl("same-name", null, null);
+    final FeatureListPreferences loaded = saveAndLoad(FeatureListPreferences.createDefault()
+        .withActiveIntensityNormalization(new IntensityNormalizationSummary(List.of(
+            new RawFileNormalizationFunction(serializedRaw, new FactorNormalizationFunction(2d))))));
+    final ModularFeatureList list = new ModularFeatureList("list", null, listRaw);
+
+    list.setPreferences(loaded);
+
+    Assertions.assertTrue(IntensityNormalizerModule
+        .getNormalizationFunctionsOfLatestCallForFile(list, listRaw).isPresent());
   }
 
   @Test

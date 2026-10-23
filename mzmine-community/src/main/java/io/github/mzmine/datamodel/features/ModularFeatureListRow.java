@@ -126,7 +126,8 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
 
   @Override
   public <T> boolean set(final DataType<T> type, final T value) {
-    if (type instanceof IDType && flist.getRows().contains(this)
+    if (type instanceof IDType && NormalizationRowIdentity.hasActiveRowDependentNormalization(flist)
+        && flist.getRows().contains(this)
         && !java.util.Objects.equals(get(IDType.class), value)) {
       NormalizationRowIdentity.requireRenumberingAllowed(flist);
     }

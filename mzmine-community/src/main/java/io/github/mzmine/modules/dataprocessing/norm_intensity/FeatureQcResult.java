@@ -11,7 +11,7 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** Immutable, complete accounting for version 2 feature-QC normalization. */
+/** Immutable, complete accounting for feature-QC normalization. */
 public final class FeatureQcResult {
 
   private final @NotNull List<FeatureQcDriftNormalization.Sample> samples;

@@ -119,17 +119,17 @@ class FeatureQcDriftNormalizationTest {
     assertNull(result.unavailableReason(1, "before"));
     assertEquals(1d, result.rowFactors().get(1).get("before"), 1e-12);
     assertEquals(6, diagnostic.leaveOneOutPredictionCount());
-    assertEquals(0d, diagnostic.leaveOneOutLogMse(), 1e-12);
+    assertEquals(0d, diagnostic.leaveOneOutMse(), 1e-12);
     assertEquals(0d, diagnostic.beforeQcRsd(), 1e-12);
     assertEquals(0d, diagnostic.afterQcRsd(), 1e-12);
     assertEquals(0d, diagnostic.usableQcCoordinateMinimum(), 1e-12);
     assertEquals(5d, diagnostic.usableQcCoordinateMaximum(), 1e-12);
-    assertEquals(FeatureQcSettings.METHOD_VERSION, result.diagnostics().methodVersion());
+    assertEquals(FeatureQcMethod.COMMON_SCALE_LOG_LOESS, result.diagnostics().settings().method());
     assertEquals(12, diagnostic.fitPoints().size());
-    assertEquals(-1d, diagnostic.fitPoints().getFirst().time(), 1e-12);
-    assertNull(diagnostic.fitPoints().getFirst().observedLogQc());
+    assertEquals(-1d, diagnostic.fitPoints().getFirst().coordinate(), 1e-12);
+    assertNull(diagnostic.fitPoints().getFirst().observedQc());
     assertEquals(6, diagnostic.fitPoints().stream()
-        .filter(point -> point.observedLogQc() != null).count());
+        .filter(point -> point.observedQc() != null).count());
   }
 
   @Test
@@ -164,7 +164,7 @@ class FeatureQcDriftNormalizationTest {
         "s4", 100d);
     final FeatureQcBatchDiagnostic batch = FeatureQcDriftNormalization.calculate(samples("A", 5),
         Map.of(1, values), SETTINGS).diagnostics().rows().get(1).batches().get("A");
-    assertNull(batch.leaveOneOutLogMse());
+    assertNull(batch.leaveOneOutMse());
     assertEquals(0, batch.leaveOneOutPredictionCount());
     assertEquals(5, batch.leaveOneOutFailureCount());
   }

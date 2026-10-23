@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /** Fits feature-specific QC corrections from the native task's prepared batch inputs. */
 public final class FeatureQcNormalizationModule implements NormalizationTypeModule {
 
-  @Override public @NotNull String getName() { return "Feature-specific QC LOESS"; }
+  @Override public @NotNull String getName() { return "QC drift correction"; }
   @Override public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FeatureQcNormalizationParameters.class;
   }
@@ -128,7 +128,7 @@ public final class FeatureQcNormalizationModule implements NormalizationTypeModu
           + " feature/batch combinations are unavailable; supported batches remain corrected. "
           + "Review QC diagnostics for coverage and reasons.");
     }
-    summary.messages().add("Feature-QC v2: " + result.availability());
+    summary.messages().add(settings.method() + ": " + result.availability());
   }
 
   private static void checkCanceled(@NotNull final BooleanSupplier canceled) {

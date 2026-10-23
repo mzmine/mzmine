@@ -973,8 +973,6 @@ public class FeatureListUtils {
 
     final Map<FeatureListRow, ModularFeatureListRow> rowMapping = new IdentityHashMap<>(
         rowsToCopy.size());
-    final List<FeatureListRow> copiedSources = new ArrayList<>();
-    final List<ModularFeatureListRow> copiedRows = new ArrayList<>();
     int id = 1;
     for (final FeatureListRow row : orderedRows) {
       if (rowMapping.containsKey(row)) {
@@ -985,17 +983,53 @@ public class FeatureListUtils {
           renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
       if (renumberIDs) {
         newFeatureList.addRow(copy);
-      } else {
-        copiedSources.add(row);
-        copiedRows.add(copy);
       }
       rowMapping.put(row, copy);
       id++;
     }
     if (!renumberIDs) {
-      newFeatureList.addRowsPreservingIdentity(copiedSources, copiedRows);
+      insertCopiedRowsPreservingIdentity(orderedRows, rowMapping, newFeatureList);
     }
     return rowMapping;
+  }
+
+  /**
+   * Validates an identity-preserving copy once, then restores all rows through the target's
+   * explicit exact-identity path. The ordered source list preserves sorting and the caller's
+   * identity map handles deduplication; this method does not infer copies from generic addRow.
+   */
+  public static void insertCopiedRowsPreservingIdentity(
+      @NotNull final Collection<? extends FeatureListRow> orderedSourceRows,
+      @NotNull final Map<FeatureListRow, ? extends ModularFeatureListRow> rowMapping,
+      @NotNull final ModularFeatureList target) {
+    if (orderedSourceRows.isEmpty()) {
+      return;
+    }
+    final FeatureList source = orderedSourceRows.iterator().next().getFeatureList();
+    if (NormalizationRowIdentity.requiresRowIdentityProtection(source)
+        || NormalizationRowIdentity.requiresRowIdentityProtection(target)) {
+      if (!NormalizationRowIdentity.hasSameActiveNormalization(source, target)) {
+        throw new IllegalArgumentException("Copied rows require matching active normalization.");
+      }
+    }
+    final Set<Integer> ids = new HashSet<>(rowMapping.size());
+    final List<ModularFeatureListRow> copiedRows = new ArrayList<>(rowMapping.size());
+    final Set<FeatureListRow> seen = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
+    for (final FeatureListRow sourceRow : orderedSourceRows) {
+      if (!seen.add(sourceRow)) {
+        continue;
+      }
+      final ModularFeatureListRow copiedRow = rowMapping.get(sourceRow);
+      if (copiedRow == null) {
+        throw new IllegalArgumentException("Copied row mapping is incomplete.");
+      }
+      if (sourceRow.getFeatureList() != source || sourceRow.getID() != copiedRow.getID()
+          || !ids.add(copiedRow.getID())) {
+        throw new IllegalArgumentException("Copied rows must preserve unique source row IDs.");
+      }
+      copiedRows.add(copiedRow);
+    }
+    target.restoreRowsWithExactIds(copiedRows);
   }
 
   /**

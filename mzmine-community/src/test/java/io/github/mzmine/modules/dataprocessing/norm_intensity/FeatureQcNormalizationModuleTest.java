@@ -43,8 +43,8 @@ class FeatureQcNormalizationModuleTest {
       assertInstanceOf(FeatureRowNormalizationFunction.class, implicit.get(file));
     }
     assertEquals(1, implicit.featureQc().size());
-    assertEquals(FeatureQcSettings.METHOD_VERSION,
-        implicit.featureQc().getFirst().diagnostics().methodVersion());
+    assertEquals(FeatureQcMethod.DUNN_QC_RLSC,
+        implicit.featureQc().getFirst().diagnostics().settings().method());
   }
 
   @Test

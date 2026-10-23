@@ -17,7 +17,7 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.jetbrains.annotations.NotNull;
 
-/** Fits a separate log-response LOESS curve for every feature and QC batch. */
+/** Fits the selected QC drift-correction method independently for every feature and batch. */
 public final class FeatureQcDriftNormalization {
 
   private static final String SOLVER = "Apache Commons Math 3 LoessInterpolator; local linear regression, "
@@ -40,13 +40,20 @@ public final class FeatureQcDriftNormalization {
   }
 
   /**
-   * Calculates version 2 factors. Inputs include QC and study abundances at the same upstream stage;
+   * Calculates multiplicative correction factors. Inputs include QC and study abundances at the same upstream stage;
    * only positive finite values are modeled or normalized.
    */
   public static @NotNull FeatureQcResult calculate(@NotNull final List<Sample> samples,
       @NotNull final Map<Integer, Map<String, Double>> allValues,
       @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
     validateInputs(samples, allValues, canceled);
+    return calculatePrepared(prepareSamples(samples, settings, canceled), allValues, settings, canceled);
+  }
+
+  private static @NotNull FeatureQcResult calculatePrepared(@NotNull final List<Sample> samples,
+      @NotNull final Map<Integer, Map<String, Double>> allValues,
+      @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
+    final boolean dunn = settings.method() == FeatureQcMethod.DUNN_QC_RLSC;
     final Map<String, List<Sample>> batches = batches(samples, canceled);
     final int totalQcs = countQcs(samples, canceled);
 
@@ -73,14 +80,14 @@ public final class FeatureQcDriftNormalization {
             FeatureQcUnavailableReason.GLOBAL_MISSING_QC_THRESHOLD, Map.of()));
         continue;
       }
-      final double globalTarget = medianLogs(values, canceled);
-      if (!Double.isFinite(globalTarget)) {
+      final double globalTarget = dunn ? Double.NaN : medianLogs(values, canceled);
+      if (!dunn && !Double.isFinite(globalTarget)) {
         unavailableRows.put(rowId, FeatureQcUnavailableReason.NO_POSITIVE_FINITE_INPUT);
         rowDiagnostics.put(rowId, new FeatureQcRowDiagnostic(rowId, totalQcs, usableQcs,
             FeatureQcUnavailableReason.NO_POSITIVE_FINITE_INPUT, Map.of()));
         continue;
       }
-      globalTargets.put(rowId, globalTarget);
+      if (!dunn) globalTargets.put(rowId, globalTarget);
       final Map<String, Double> rowFactors = new LinkedHashMap<>();
       final Set<String> rowBoundaries = new LinkedHashSet<>();
       final Map<String, FeatureQcBatchDiagnostic> batchDiagnostics = new LinkedHashMap<>();
@@ -101,8 +108,13 @@ public final class FeatureQcDriftNormalization {
     }
     final FeatureQcAvailability availability = availability(allValues.keySet(), samples, factors,
         unavailableRows, canceled);
-    final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics(SOLVER, COORDINATE_POLICY,
-        SCALE_POLICY, FeatureQcSettings.METHOD_VERSION, settings, globalTargets, availability,
+    final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics(
+        dunn ? "Dunn 2011: tricube local linear/quadratic regression; LOOCV span/degree selection; "
+            + "bisquare residual reweighting; natural cubic spline; raw response" : SOLVER,
+        dunn ? "ordinal acquisition order within each batch; nearest QC boundary outside fitted range"
+            : COORDINATE_POLICY,
+        dunn ? "divide by fitted QC response, rescale to arithmetic mean of usable QCs in each batch"
+            : SCALE_POLICY, settings, globalTargets, availability,
         rowDiagnostics);
     return new FeatureQcResult(samples, factors, boundaries, unavailableRows, settings, diagnostics,
         globalTargets, availability);
@@ -120,9 +132,13 @@ public final class FeatureQcDriftNormalization {
       return unavailableBatch(batch, qcs, totalQcs, usableQcs,
           FeatureQcUnavailableReason.BATCH_INSUFFICIENT_USABLE_QCS);
     }
-    if (missingFraction >= .5d) {
+    if (settings.method() == FeatureQcMethod.DUNN_QC_RLSC ? missingFraction > .5d
+        : missingFraction >= .5d) {
       return unavailableBatch(batch, qcs, totalQcs, usableQcs,
           FeatureQcUnavailableReason.BATCH_MISSING_QC_THRESHOLD);
+    }
+    if (settings.method() == FeatureQcMethod.DUNN_QC_RLSC) {
+      return calculateDunnBatch(batch, samples, values, qcs, totalQcs, settings, canceled);
     }
     final Fit fit;
     try {
@@ -140,11 +156,11 @@ public final class FeatureQcDriftNormalization {
       for (final Sample sample : samples) {
         checkCanceled(canceled);
         final Prediction prediction = predict(fit, sample.order());
-        if (!Double.isFinite(prediction.logValue())) {
+        if (!Double.isFinite(prediction.value())) {
           return unavailableBatch(batch, qcs, totalQcs, usableQcs,
               FeatureQcUnavailableReason.INVALID_PREDICTION);
         }
-        final double factor = Math.exp(globalTarget - prediction.logValue());
+        final double factor = Math.exp(globalTarget - prediction.value());
         if (!validFactor(factor, settings.maxFactor())) {
           return unavailableBatch(batch, qcs, totalQcs, usableQcs,
               FeatureQcUnavailableReason.FACTOR_OUT_OF_BOUNDS);
@@ -175,7 +191,7 @@ public final class FeatureQcDriftNormalization {
     }
     final List<FeatureQcFitPoint> fitPoints;
     try {
-      fitPoints = fitPoints(fit, qcs, values, samples, canceled);
+      fitPoints = fitPoints(fit, qcs, values, samples, true, canceled);
     } catch (final CancellationException exception) {
       throw exception;
     } catch (final RuntimeException exception) {
@@ -186,8 +202,82 @@ public final class FeatureQcDriftNormalization {
         usableQcs, fit.x()[0], fit.x()[fit.x().length - 1], boundaries.size(), factors.size(), null,
         rsd(before), rsd(after), before.length, validation.mse(), validation.predictionCount(),
         validation.failureCount(), validation.reason(), minimum(factorValues), maximum(factorValues),
-        fitPoints);
+        fitPoints, 1, (int) (settings.bandwidth() * qcs.size()), settings.bandwidth(),
+        Math.exp(globalTarget), "natural log response");
     return new BatchResult(factors, boundaries, diagnostic);
+  }
+
+  /**
+   * Dunn's fitting protocol, with divisive mean-QC rescaling also offered by qcrlscR.
+   * Conditioning-QC exclusion and endpoint clamping are explicit mzmine settings/conventions.
+   */
+  private static @NotNull BatchResult calculateDunnBatch(@NotNull final String batch,
+      @NotNull final List<Sample> samples, @NotNull final Map<String, Double> values,
+      @NotNull final List<Sample> qcs, final int totalQcs,
+      @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
+    final double[] x = new double[qcs.size()];
+    final double[] y = new double[qcs.size()];
+    double target = 0d;
+    for (int i = 0; i < qcs.size(); i++) {
+      x[i] = qcs.get(i).order();
+      y[i] = values.get(qcs.get(i).id());
+      target += y[i] / qcs.size();
+    }
+    final DunnQcRlsc.Fit selected;
+    try {
+      selected = DunnQcRlsc.fit(x, y, settings.robustnessIterations(), canceled);
+    } catch (final CancellationException exception) {
+      throw exception;
+    } catch (final RuntimeException exception) {
+      return unavailableBatch(batch, qcs, totalQcs, qcs.size(), FeatureQcUnavailableReason.FIT_FAILED);
+    }
+    final Fit fit = new Fit(selected.coordinates(), selected.curve());
+    final Map<String, Double> factors = new LinkedHashMap<>();
+    final Set<String> boundaries = new LinkedHashSet<>();
+    for (final Sample sample : samples) {
+      checkCanceled(canceled);
+      final Prediction prediction = predict(fit, sample.order());
+      if (!Double.isFinite(prediction.value()) || prediction.value() <= 0d) {
+        return unavailableBatch(batch, qcs, totalQcs, qcs.size(),
+            FeatureQcUnavailableReason.INVALID_PREDICTION);
+      }
+      final double factor = target / prediction.value();
+      if (!validFactor(factor, settings.maxFactor())) {
+        return unavailableBatch(batch, qcs, totalQcs, qcs.size(),
+            FeatureQcUnavailableReason.FACTOR_OUT_OF_BOUNDS);
+      }
+      factors.put(sample.id(), factor);
+      if (prediction.boundary()) boundaries.add(sample.id());
+    }
+    final double[] after = new double[y.length];
+    for (int i = 0; i < y.length; i++) after[i] = y[i] * factors.get(qcs.get(i).id());
+    final double[] factorValues = factors.values().stream().mapToDouble(Double::doubleValue).toArray();
+    final FeatureQcBatchDiagnostic diagnostic = new FeatureQcBatchDiagnostic(batch, totalQcs,
+        qcs.size(), x[0], x[x.length - 1], boundaries.size(), factors.size(), null, rsd(y),
+        rsd(after), y.length, selected.crossValidationMse(), y.length, 0, null,
+        minimum(factorValues), maximum(factorValues), fitPoints(fit, qcs, values, samples, false,
+        canceled), selected.degree(), selected.neighborhoodSize(), selected.span(), target,
+        "raw response; model-selection LOOCV error, not independent validation");
+    return new BatchResult(factors, boundaries, diagnostic);
+  }
+
+  private static @NotNull List<Sample> prepareSamples(@NotNull final List<Sample> samples,
+      @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
+    final Map<String, Sample> prepared = new LinkedHashMap<>();
+    for (final List<Sample> batch : batches(samples, canceled).values()) {
+      final List<Sample> ordered = new ArrayList<>(batch);
+      ordered.sort(Comparator.comparingDouble(Sample::order));
+      int qcs = 0;
+      for (int index = 0; index < ordered.size(); index++) {
+        checkCanceled(canceled);
+        final Sample sample = ordered.get(index);
+        final boolean reference = sample.qc() && ++qcs > settings.initialQcsToExclude();
+        final double coordinate = settings.method() == FeatureQcMethod.DUNN_QC_RLSC
+            ? index + 1d : sample.order();
+        prepared.put(sample.id(), new Sample(sample.id(), sample.batch(), coordinate, reference));
+      }
+    }
+    return samples.stream().map(sample -> prepared.get(sample.id())).toList();
   }
 
   private static @NotNull BatchResult unavailableBatch(@NotNull final String batch,
@@ -197,7 +287,7 @@ public final class FeatureQcDriftNormalization {
     final Double maximum = usableQcs.isEmpty() ? null : usableQcs.getLast().order();
     return new BatchResult(Map.of(), Set.of(), new FeatureQcBatchDiagnostic(batch, totalQcs,
         usableQcCount, minimum, maximum, 0, 0, reason, null, null, 0, null, 0, 0, null, null,
-        null, List.of()));
+        null, List.of(), null, null, null, null, "not fitted"));
   }
 
   private static @NotNull Fit fit(@NotNull final List<Sample> qcs,
@@ -230,11 +320,11 @@ public final class FeatureQcDriftNormalization {
       final Sample leftOut = retained.remove(omitted);
       try {
         final Prediction prediction = predict(fit(retained, values, settings, canceled), leftOut.order());
-        if (!Double.isFinite(prediction.logValue())) {
+        if (!Double.isFinite(prediction.value())) {
           failures++;
           continue;
         }
-        final double error = Math.log(values.get(leftOut.id())) - prediction.logValue();
+        final double error = Math.log(values.get(leftOut.id())) - prediction.value();
         squaredError += error * error;
         predictions++;
       } catch (final CancellationException exception) {
@@ -258,7 +348,8 @@ public final class FeatureQcDriftNormalization {
 
   private static @NotNull List<FeatureQcFitPoint> fitPoints(@NotNull final Fit fit,
       @NotNull final List<Sample> qcs, @NotNull final Map<String, Double> values,
-      @NotNull final List<Sample> batchSamples, @NotNull final BooleanSupplier canceled) {
+      @NotNull final List<Sample> batchSamples, final boolean logarithmic,
+      @NotNull final BooleanSupplier canceled) {
     final Map<Double, FeatureQcFitPoint> points = new java.util.TreeMap<>();
     double batchMinimum = Double.POSITIVE_INFINITY;
     double batchMaximum = Double.NEGATIVE_INFINITY;
@@ -272,7 +363,8 @@ public final class FeatureQcDriftNormalization {
     for (int index = 0; index < qcs.size(); index++) {
       checkCanceled(canceled);
       final Sample qc = qcs.get(index);
-      addFitPoint(points, fit, qc.order(), Math.log(values.get(qc.id())), canceled);
+      addFitPoint(points, fit, qc.order(), logarithmic ? Math.log(values.get(qc.id()))
+          : values.get(qc.id()), canceled);
       if (index + 1 < qcs.size()) {
         addFitPoint(points, fit, (qc.order() + qcs.get(index + 1).order()) / 2d, null, canceled);
       }
@@ -281,13 +373,13 @@ public final class FeatureQcDriftNormalization {
   }
 
   private static void addFitPoint(@NotNull final Map<Double, FeatureQcFitPoint> points,
-      @NotNull final Fit fit, final double time, final Double observedLogQc,
+      @NotNull final Fit fit, final double time, final Double observedQc,
       @NotNull final BooleanSupplier canceled) {
     checkCanceled(canceled);
     final FeatureQcFitPoint existing = points.get(time);
-    final Double observed = observedLogQc == null && existing != null ? existing.observedLogQc()
-        : observedLogQc;
-    final double fitted = predict(fit, time).logValue();
+    final Double observed = observedQc == null && existing != null ? existing.observedQc()
+        : observedQc;
+    final double fitted = predict(fit, time).value();
     if (!Double.isFinite(fitted)) throw new IllegalArgumentException("Non-finite fit-curve prediction.");
     points.put(time, new FeatureQcFitPoint(time, observed, fitted));
   }
@@ -429,7 +521,7 @@ public final class FeatureQcDriftNormalization {
 
   private record Fit(@NotNull double[] x, @NotNull UnivariateFunction model) {
   }
-  private record Prediction(double logValue, boolean boundary) {
+  private record Prediction(double value, boolean boundary) {
   }
   private record Validation(Double mse, int predictionCount, int failureCount, String reason) {
   }

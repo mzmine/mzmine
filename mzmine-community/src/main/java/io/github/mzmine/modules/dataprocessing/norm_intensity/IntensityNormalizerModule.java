@@ -83,8 +83,17 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
 
   public static @NotNull IntensityNormalizationSummary getNormalizationFunctionsOfLatestCall(
       final @NotNull FeatureList featureList) {
-    // decision: every intensity-normalizer call writes a complete replacement set of normalized
-    // values, so the last one owns re-normalization for newly created features.
+    final IntensityNormalizationSummary active = featureList.getPreferences()
+        .getActiveIntensityNormalization();
+    return active == null ? IntensityNormalizationSummary.EMPTY : active;
+  }
+
+  /**
+   * Reads legacy project history once while loading projects that predate directly persisted
+   * normalization state. Normal runtime code must use {@link #getNormalizationFunctionsOfLatestCall}.
+   */
+  public static @NotNull IntensityNormalizationSummary getLegacyNormalizationFromAppliedMethods(
+      final @NotNull FeatureList featureList) {
     final var methods = featureList.getAppliedMethods();
     for (int index = methods.size() - 1; index >= 0; index--) {
       final FeatureListAppliedMethod method = methods.get(index);
@@ -105,10 +114,7 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
    */
   public static @NotNull Optional<NormalizationFunction> getNormalizationFunctionsOfLatestCallForFile(
       final @NotNull FeatureList featureList, final @NotNull RawDataFile rawDataFile) {
-    IntensityNormalizationSummary summary = getNormalizationFunctionsOfLatestCall(featureList);
-    return summary.functions().stream()
-        .filter(func -> func.rawDataFilePlaceholder().matches(rawDataFile))
-        .map(RawFileNormalizationFunction::function).findFirst();
+    return featureList.getPreferences().getActiveNormalizationFunction(rawDataFile);
   }
 
 }

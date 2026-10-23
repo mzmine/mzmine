@@ -122,8 +122,6 @@ public class ImsExpanderTask extends AbstractTask {
 
   @Override
   public void run() {
-    NormalizationRowIdentity.requireIdentityPreservingTransformation(flist,
-        "expand ion-mobility traces");
     setStatus(TaskStatus.PROCESSING);
     if (flist.getNumberOfRawDataFiles() != 1 || !(flist.getRawDataFile(
         0) instanceof IMSRawDataFile imsFile)) {
@@ -132,7 +130,16 @@ public class ImsExpanderTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
-
+    // Single-file IMS input is the ordinary workflow, but persisted projects can still carry a
+    // row-dependent normalization whose frozen identities expansion would invalidate.
+    try {
+      NormalizationRowIdentity.requireIdentityPreservingTransformation(flist,
+          "expand ion-mobility traces");
+    } catch (final IllegalStateException exception) {
+      setErrorMessage(exception.getMessage());
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
     totalRows = flist.getNumberOfRows();
 
     final ModularFeatureList newFlist = new ModularFeatureList(flist.getName() + SUFFIX,
@@ -220,7 +227,7 @@ public class ImsExpanderTask extends AbstractTask {
         f.set(FeatureDataType.class, expandedTrace.series());
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
         row.addFeature(imsFile, f);
-        newFlist.addRowPreservingIdentity(expandedTrace.oldRow(), row);
+        newFlist.addRow(row);
         createdRows++;
       }
     }

@@ -44,6 +44,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,6 +92,8 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
           "_" + (sampleGroup.value() != null ? sampleGroup.valueString()
               : sampleGroup.files().getFirst().getName()), getMemoryMapStorage(), false,
           sampleGroup.files(), false, null, null);
+      final List<FeatureListRow> copiedSourceRows = new ArrayList<>();
+      final Map<FeatureListRow, ModularFeatureListRow> copiedRows = new IdentityHashMap<>();
 
       for (final FeatureListRow row : flist.getRows()) {
         if (sampleGroup.files().stream().noneMatch(row::hasFeature)) {
@@ -111,8 +115,12 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
         }
 
         copiedRow.applyRowBindings();
-        resultFlist.addRow(copiedRow);
+        copiedSourceRows.add(row);
+        copiedRows.put(row, copiedRow);
       }
+
+      FeatureListUtils.insertCopiedRowsPreservingIdentity(copiedSourceRows, copiedRows,
+          resultFlist);
 
       resultFlists.add(resultFlist);
     }
