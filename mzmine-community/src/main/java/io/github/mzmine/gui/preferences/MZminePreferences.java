@@ -74,7 +74,6 @@ import io.github.mzmine.util.web.proxy.ProxyConfigOption;
 import io.mzio.users.gui.fx.UsersController;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -188,10 +187,9 @@ public class MZminePreferences extends SimpleParameterSet {
       cannot be created, it checks the list from the beginning and uses the first working
       directory with enough space. Changes apply to newly created files.
       The mzmine settings folder (.mzmine in the user directory) cannot be used.
-      The program argument --temp overrides this list, e.g., --temp D:\\temp E:\\temp.
+      The program argument --temp overrides this list, e.g., --temp D:\\temp --temp E:\\temp.
       You may repeat --temp or separate paths with ; (Windows) or : (Linux, macOS).
-      Quote paths with spaces.
-      """, FileAndPathUtil.getTempDirs());
+      Quote paths with spaces.""", FileAndPathUtil.getTempDirs());
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
       "Keep in memory", String.format(
       "Specifies the objects that are kept in memory rather than memory mapping "
@@ -402,15 +400,11 @@ public class MZminePreferences extends SimpleParameterSet {
 
     updateGuiFormat();
 
-    // decision: remove the .mzmine dir from the stored list as temp file cleanup deletes files there
     final File[] tempDirs = getValue(MZminePreferences.tempDirectory);
-    final File[] allowedTempDirs = Arrays.stream(tempDirs)
-        .filter(dir -> !FileAndPathUtil.isInMzmineDir(dir)).toArray(File[]::new);
-    if (allowedTempDirs.length < tempDirs.length) {
-      setParameter(MZminePreferences.tempDirectory, allowedTempDirs.length > 0 ? allowedTempDirs
-          : new File[]{new File(System.getProperty("java.io.tmpdir"))});
-    }
-    FileAndPathUtil.setTempDirs(allowedTempDirs);
+    // internally removes the .mzmine dir from temp directories
+    final File[] actuallySetTemp = FileAndPathUtil.setTempDirs(tempDirs);
+    setParameter(MZminePreferences.tempDirectory, actuallySetTemp);
+
     // delete temp files as soon as possible
     FileAndPathUtil.setEarlyTempFileCleanup(getValue(MZminePreferences.deleteTempFiles));
 

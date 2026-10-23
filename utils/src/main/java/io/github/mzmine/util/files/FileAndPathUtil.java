@@ -685,8 +685,8 @@ public class FileAndPathUtil {
    * accessible, the previous configuration is retained. Configuration and creation use the same
    * blocking lock.
    */
-  public static void setTempDirs(@NotNull final File... paths) {
-    TEMP_DIRECTORIES.setDirectories(paths);
+  public static File @NotNull [] setTempDirs(@NotNull final File... paths) {
+    return TEMP_DIRECTORIES.setDirectories(paths);
   }
 
   /**

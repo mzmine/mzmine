@@ -39,6 +39,7 @@ import java.util.function.ToLongFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Serializes directory configuration, selection, and the complete creation operation, including
@@ -95,8 +96,9 @@ final class TempDirectoryManager {
    * Keeps inaccessible directories in the list, so they are retried on failover, e.g., after a
    * drive was reconnected. The previous configuration is kept if no directory is accessible. The
    * .mzmine dir and its subdirectories are removed, because temp file cleanup deletes files there.
+   * @return the actually set directories
    */
-  synchronized void setDirectories(File... paths) {
+  synchronized File @NotNull [] setDirectories(File... paths) {
     List<File> directories = Arrays.stream(paths).filter(Objects::nonNull)
         .map(File::getAbsoluteFile).distinct().filter(TempDirectoryManager::isAllowed).toList();
     if (directories.isEmpty()) {
@@ -113,11 +115,12 @@ final class TempDirectoryManager {
     if (first == null) {
       logger.warning(
           "No configured temporary directory is accessible. Keeping " + state.directories());
-      return;
+      return state.directories.toArray(File[]::new);
     }
     if (!state.directories().equals(directories)) {
       state = new DirectoryState(directories, first);
     }
+    return state.directories.toArray(File[]::new);
   }
 
   /**

@@ -74,7 +74,6 @@ class ArgsToConfigUtilsTest {
         new String[]{"--temp", first + File.pathSeparator + second, "--temp", first.toString()});
 
     ArgsToConfigUtils.checkAndOverrideArgsTempDir(parser);
-    ArgsToConfigUtils.applyTempDirFromConfiguration();
 
     assertArrayEquals(new File[]{first, second},
         ConfigService.getPreferences().getValue(MZminePreferences.tempDirectory));
