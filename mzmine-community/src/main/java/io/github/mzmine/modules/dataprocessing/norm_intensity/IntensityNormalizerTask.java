@@ -53,7 +53,6 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.objects.ObjectUtils;
 import java.time.Instant;
 import java.util.List;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -197,7 +196,7 @@ class IntensityNormalizerTask extends AbstractTask {
       }
     }
     if (intraBatchCorrectionEnabled) {
-      // The main correction builds functions only; values remain unchanged until the final commit.
+      // The main correction builds functions only; values remain unchanged until application.
       if (normalizationTypeModule instanceof FeatureQcNormalizationModule featureQc) {
         featureQc.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
             sampleBatches, metadata, mainParameters, normalizationTypeModuleParameters,
@@ -217,9 +216,6 @@ class IntensityNormalizerTask extends AbstractTask {
       normalizeSamplesInterBatches(sampleBatches, summary);
     }
     if (isCanceled()) return;
-    // Assemble all persistent state before the irreversible value commit. Once the commit starts,
-    // cancellation no longer interrupts publication: values, active state, and history move
-    // together.
     final ParameterSet appliedMethodParameters = mainParameters.cloneParameterSet(true);
     appliedMethodParameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary,
         summary.toSimpleSummary());
@@ -230,21 +226,19 @@ class IntensityNormalizerTask extends AbstractTask {
             + (internalStandardEnabled ? ", pre: IS" : ""), IntensityNormalizerModule.class,
         appliedMethodParameters, getModuleCallDate());
 
-    // Application is the commit boundary. A cancellation observed before it leaves the previous
-    // values and active state intact; after it returns the matching metadata is always published.
-    if (!applyFunctionsToFeatures(normalizedFeatureList, summary.functions())) return;
-    for (final String message : summary.messages()) {
-      logger.log(message.contains(IntensityNormalizationSummary.WARNING_MARKER) ? Level.WARNING
-          : Level.INFO, message);
-    }
-    // Publish active functions only after normalized values have been committed.
-    // The applied method retains messages and diagnostic evidence. Preferences hold the small
-    // active state that later row operations need without scanning that history.
+    if (isCanceled()) return;
+    // decision: finish values, active preferences, and history even if canceled during application.
+    applyFunctionsToFeatures(normalizedFeatureList, summary.functions());
     normalizedFeatureList.setPreferences(normalizedFeatureList.getPreferences()
         .withActiveIntensityNormalization(new IntensityNormalizationSummary(summary.functions()
             .values().stream().toList())));
     normalizedFeatureList.addDescriptionOfAppliedTask(appliedMethod);
-    // Only publish the completed list after values and provenance agree.
+    for (final String message : summary.messages()) {
+      logger.log(message.contains(IntensityNormalizationSummary.WARNING_MARKER) ? Level.WARNING
+          : Level.INFO, message);
+    }
+    // Canceled copies stay unpublished; in-place lists retain completed values and matching metadata.
+    if (isCanceled()) return;
     handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureList,
         originalFeatureList);
     logger.fine("Finished intensity normalization");
@@ -392,30 +386,12 @@ class IntensityNormalizerTask extends AbstractTask {
   /**
    * Applies the normalization functions to all features in the feature list.
    */
-  private boolean applyFunctionsToFeatures(@NotNull final ModularFeatureList featureList,
+  private void applyFunctionsToFeatures(@NotNull final ModularFeatureList featureList,
       final @NotNull Map<RawDataFile, RawFileNormalizationFunction> fileToFunction) {
 
     if (hasFinishedApplyFunctions) {
       throw new IllegalStateException("Cannot apply functions twice. Should only normalize once.");
     }
-    // Stage every target value first. QC/pre-correction calculations have already populated the
-    // functions; this pass performs no mutation and may still be cancelled safely.
-    final Map<ModularFeature, FeatureDataUtils.NormalizedAbundances> staged = new LinkedHashMap<>();
-    final Map<ModularFeature, FeatureDataUtils.NormalizedAbundances> previous = new LinkedHashMap<>();
-    for (final FeatureListRow row : featureList.getRows()) {
-      if (isCanceled()) return false;
-      for (final RawDataFile raw : featureList.getRawDataFiles()) {
-        final Feature feature = row.getFeature(raw);
-        if (!(feature instanceof ModularFeature mfeature)) continue;
-        previous.put(mfeature, new FeatureDataUtils.NormalizedAbundances(
-            mfeature.get(NormalizedAreaType.class), mfeature.get(NormalizedHeightType.class)));
-        final RawFileNormalizationFunction function = fileToFunction.get(raw);
-        staged.put(mfeature, FeatureDataUtils.calculateNormalizedAbundances(mfeature,
-            function == null ? null : function.function(), row));
-      }
-    }
-    if (isCanceled()) return false;
-
     final NormalizedAreaType normAreaType = DataTypes.get(NormalizedAreaType.class);
     final NormalizedHeightType normHeightType = DataTypes.get(NormalizedHeightType.class);
     if (!featureList.hasFeatureType(normHeightType)) {
@@ -424,24 +400,18 @@ class IntensityNormalizerTask extends AbstractTask {
     if (!featureList.hasFeatureType(normAreaType)) {
       featureList.addFeatureType(normAreaType);
     }
-    // Commit only after every value has been computed. No cancellation checks follow this point:
-    // an interrupted commit is completed with matching active state and history by normalize().
-    try {
-      FeatureDataUtils.clearIntensityNormalization(featureList);
-      staged.forEach((feature, normalized) -> {
-        feature.set(NormalizedAreaType.class, normalized.area());
-        feature.set(NormalizedHeightType.class, normalized.height());
-      });
-    } catch (final RuntimeException exception) {
-      previous.forEach((feature, normalized) -> {
-        feature.set(NormalizedAreaType.class, normalized.area());
-        feature.set(NormalizedHeightType.class, normalized.height());
-      });
-      throw exception;
+    FeatureDataUtils.clearIntensityNormalization(featureList);
+    for (final FeatureListRow row : featureList.getRows()) {
+      for (final RawDataFile raw : featureList.getRawDataFiles()) {
+        final Feature feature = row.getFeature(raw);
+        if (!(feature instanceof ModularFeature mfeature)) continue;
+        final RawFileNormalizationFunction function = fileToFunction.get(raw);
+        FeatureDataUtils.normalizeAbundances(mfeature,
+            function == null ? null : function.function(), row);
+      }
     }
     processedFiles += fileToFunction.size();
     hasFinishedApplyFunctions = true;
-    return true;
   }
 
 }
