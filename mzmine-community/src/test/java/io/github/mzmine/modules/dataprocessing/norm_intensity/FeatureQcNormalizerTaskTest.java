@@ -8,6 +8,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -15,6 +16,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
@@ -97,6 +99,10 @@ class FeatureQcNormalizerTaskTest {
   @Test
   void allSkippedFeatureQcCompletesWithWarning() {
     final Fixture fixture = fixture(false);
+    fixture.source.streamFeatures().forEach(feature -> {
+      feature.set(NormalizedAreaType.class, 88f);
+      feature.set(NormalizedHeightType.class, 77f);
+    });
     final IntensityNormalizerTask task = new IntensityNormalizerTask(fixture.project, fixture.source,
         parameters(null), null, Instant.now());
 
@@ -110,6 +116,10 @@ class FeatureQcNormalizerTaskTest {
     final IntensityNormalizationSummary appliedSummary = appliedSummary(output(fixture));
     assertFalse(appliedSummary.messages().isEmpty());
     assertFalse(appliedSummary.featureQc().getFirst().diagnostics().availability().hasCorrectablePairs());
+    output(fixture).streamFeatures().forEach(feature -> {
+      assertNull(feature.get(NormalizedAreaType.class));
+      assertNull(feature.get(NormalizedHeightType.class));
+    });
   }
 
   @Test
