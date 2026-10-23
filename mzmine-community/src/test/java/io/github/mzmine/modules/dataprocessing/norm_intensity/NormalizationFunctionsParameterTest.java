@@ -185,13 +185,13 @@ class NormalizationFunctionsParameterTest {
 
   @Test
   void roundtripPreservesTypedFeatureQcProvenanceExactly() throws Exception {
-    final FeatureQcSettings settings = new FeatureQcSettings(.8d, 1, 5, 12d, .4d);
+    final FeatureQcSettings settings = new FeatureQcSettings(false, .8d, 2, 1, 5, 12d, .4d, 0);
     final FeatureQcBatchDiagnostic batch = new FeatureQcBatchDiagnostic("batch1", 6, 6, 1d,
         6d, 0, 6, null, .1d, .05d, 6, .02d, 6, 0, null, .8d, 1.2d,
-        List.of(new FeatureQcFitPoint(1d, Math.log(10d), Math.log(11d))), 1, 5, .8d, 10d,
-        "natural log response");
-    final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics("solver", "elapsed",
-        "global-log", settings, Map.of(3, Math.log(10d)),
+        List.of(new FeatureQcFitPoint(1d, 10d, 11d)), 1, 5, .8d, 10d,
+        "raw response");
+    final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics("solver", "injection order",
+        "batch QC mean", settings,
         new FeatureQcAvailability(1, 0, 0, 0, 6, 0), Map.of(3,
             new FeatureQcRowDiagnostic(3, 6, 6, null, Map.of("batch1", batch))));
     final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();

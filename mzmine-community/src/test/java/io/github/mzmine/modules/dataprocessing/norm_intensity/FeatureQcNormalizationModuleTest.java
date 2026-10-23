@@ -16,6 +16,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
@@ -27,6 +28,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 class FeatureQcNormalizationModuleTest {
+
+  @Test
+  void nativeParametersPreserveFixedSmoothingAcrossXmlRoundtrip() throws Exception {
+    final var parameters = (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters()
+        .cloneParameterSet();
+    parameters.setParameter(FeatureQcNormalizationParameters.automaticSmoothing, false);
+    parameters.setParameter(FeatureQcNormalizationParameters.bandwidth, .6d);
+    parameters.setParameter(FeatureQcNormalizationParameters.polynomialDegree, 2);
+    parameters.setParameter(FeatureQcNormalizationParameters.initialQcsToExclude, 3);
+    final String xml = ParameterUtils.saveValuesToXMLString(parameters);
+    final var loaded = (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters()
+        .cloneParameterSet();
+    ParameterUtils.loadValuesFromXMLString(loaded, xml);
+    assertEquals(parameters.settings(), loaded.settings());
+    assertFalse(loaded.settings().automaticSmoothing());
+  }
 
   @Test
   void implicitAndExplicitSingleBatchProduceExactSameFunctions() {
@@ -43,8 +60,7 @@ class FeatureQcNormalizationModuleTest {
       assertInstanceOf(FeatureRowNormalizationFunction.class, implicit.get(file));
     }
     assertEquals(1, implicit.featureQc().size());
-    assertEquals(FeatureQcMethod.DUNN_QC_RLSC,
-        implicit.featureQc().getFirst().diagnostics().settings().method());
+    assertTrue(implicit.featureQc().getFirst().diagnostics().settings().automaticSmoothing());
   }
 
   @Test

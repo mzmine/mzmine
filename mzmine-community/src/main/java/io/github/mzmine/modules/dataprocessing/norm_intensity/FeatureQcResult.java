@@ -21,16 +21,13 @@ public final class FeatureQcResult {
   private final @NotNull Map<Integer, FeatureQcUnavailableReason> unavailableRows;
   private final @NotNull FeatureQcSettings settings;
   private final @NotNull FeatureQcDiagnostics diagnostics;
-  private final @NotNull Map<Integer, Double> globalLogTargets;
   private final @NotNull FeatureQcAvailability availability;
 
   FeatureQcResult(@NotNull final List<FeatureQcDriftNormalization.Sample> samples,
       @NotNull final Map<Integer, Map<String, Double>> rowFactors,
       @NotNull final Map<Integer, Set<String>> boundarySampleIds,
       @NotNull final Map<Integer, FeatureQcUnavailableReason> unavailableRows,
-      @NotNull final FeatureQcSettings settings, @NotNull final FeatureQcDiagnostics diagnostics,
-      @NotNull final Map<Integer, Double> globalLogTargets,
-      @NotNull final FeatureQcAvailability availability) {
+      @NotNull final FeatureQcDiagnostics diagnostics) {
     this.samples = List.copyOf(samples);
     final Map<String, FeatureQcDriftNormalization.Sample> byId = new LinkedHashMap<>();
     this.samples.forEach(sample -> byId.put(sample.id(), sample));
@@ -40,7 +37,6 @@ public final class FeatureQcResult {
     this.unavailableRows = Map.copyOf(unavailableRows);
     this.settings = diagnostics.settings();
     this.diagnostics = diagnostics;
-    this.globalLogTargets = diagnostics.globalLogTargets();
     this.availability = diagnostics.availability();
   }
 
@@ -50,7 +46,6 @@ public final class FeatureQcResult {
   public @NotNull Map<Integer, FeatureQcUnavailableReason> unavailableRows() { return unavailableRows; }
   public @NotNull FeatureQcSettings settings() { return settings; }
   public @NotNull FeatureQcDiagnostics diagnostics() { return diagnostics; }
-  public @NotNull Map<Integer, Double> globalLogTargets() { return globalLogTargets; }
   public @NotNull FeatureQcAvailability availability() { return availability; }
 
   /** Resolves compact global or per-batch unavailable states without materializing a status matrix. */

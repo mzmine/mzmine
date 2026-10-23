@@ -10,12 +10,10 @@ import org.jetbrains.annotations.NotNull;
 public record FeatureQcDiagnostics(@NotNull String solver, @NotNull String coordinatePolicy,
                                    @NotNull String scalePolicy,
                                    @NotNull FeatureQcSettings settings,
-                                   @NotNull Map<Integer, Double> globalLogTargets,
                                    @NotNull FeatureQcAvailability availability,
                                    @NotNull Map<Integer, FeatureQcRowDiagnostic> rows) {
 
   public FeatureQcDiagnostics {
-    globalLogTargets = Map.copyOf(globalLogTargets);
     rows = Map.copyOf(rows);
   }
 }

@@ -3,22 +3,21 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/** Settings shared by the selectable feature-specific QC correction methods. */
+/** Settings for feature-specific QC-RLSC with automatic or fixed smoothing. */
 public class FeatureQcNormalizationParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<FeatureQcMethod> method = new ComboParameter<>(
-      "QC correction method", "QC-RLSC selects linear/quadratic fits and bandwidth by leave-one-out "
-      + "validation on raw response versus injection order. Common-scale log LOESS uses a fixed "
-      + "bandwidth versus acquisition time and a global median-log target.",
-      FeatureQcMethod.values(), FeatureQcMethod.DUNN_QC_RLSC);
+  public static final BooleanParameter automaticSmoothing = new BooleanParameter(
+      "Automatic smoothing", "Select the LOESS bandwidth and linear or quadratic degree by "
+      + "leave-one-out cross-validation for each feature and batch. Disable to use the fixed "
+      + "bandwidth and polynomial degree below. Both use the same raw-response QC-RLSC pipeline.", true);
 
   public static final IntegerParameter initialQcsToExclude = new IntegerParameter(
       "Initial QC injections to exclude", "Exclude this many initial reference injections per batch "
@@ -30,9 +29,13 @@ public class FeatureQcNormalizationParameters extends SimpleParameterSet {
       "Reference samples", "Select comparable pooled QC samples used to fit each feature's drift.",
       SampleTypeFilter.of(SampleType.QC));
   public static final DoubleParameter bandwidth = new DoubleParameter("LOESS bandwidth",
-      "Common-scale log LOESS only: fraction of usable QCs in each local linear fit. "
-      + "QC-RLSC selects its bandwidth automatically.",
+      "Fixed smoothing only: fraction of usable QCs in each local fit, rounded up to a whole "
+      + "neighborhood. At least polynomial degree + 2 neighbors are needed. Automatic smoothing "
+      + "selects the bandwidth instead.",
       new DecimalFormat("0.###"), .75, 0d, 1d);
+  public static final IntegerParameter polynomialDegree = new IntegerParameter("Polynomial degree",
+      "Fixed smoothing only: 1 for local linear or 2 for local quadratic fitting. "
+      + "Automatic smoothing selects the degree instead.", 1, 1, 2);
   public static final IntegerParameter robustnessIterations = new IntegerParameter(
       "Robustness iterations", "Number of robust reweighting iterations in the native LOESS solver.",
       2, 0, Integer.MAX_VALUE);
@@ -44,13 +47,12 @@ public class FeatureQcNormalizationParameters extends SimpleParameterSet {
       new DecimalFormat("0.###"), 10d, 1d, Double.MAX_VALUE);
   public static final DoubleParameter globalMissingQcThreshold = new DoubleParameter(
       "Global missing QC fraction", "Skip a feature globally if its missing QC fraction exceeds this "
-      + "value. QC-RLSC allows at most 50% missing QCs per batch; common-scale log LOESS "
-      + "requires strictly less than 50%.",
+      + "value. QC-RLSC allows at most 50% missing QCs per batch.",
       new DecimalFormat("0.###"), .5, 0d, 1d);
 
   public FeatureQcNormalizationParameters() {
-    super(method, sampleTypes, initialQcsToExclude, bandwidth, robustnessIterations, minimumQcs, maxFactor,
-        globalMissingQcThreshold);
+    super(automaticSmoothing, sampleTypes, initialQcsToExclude, bandwidth, polynomialDegree,
+        robustnessIterations, minimumQcs, maxFactor, globalMissingQcThreshold);
   }
 
   @Override
@@ -67,7 +69,8 @@ public class FeatureQcNormalizationParameters extends SimpleParameterSet {
   }
 
   public @NotNull FeatureQcSettings settings() {
-    return new FeatureQcSettings(getValue(method), getValue(bandwidth), getValue(robustnessIterations),
+    return new FeatureQcSettings(getValue(automaticSmoothing), getValue(bandwidth),
+        getValue(polynomialDegree), getValue(robustnessIterations),
         getValue(minimumQcs), getValue(maxFactor), getValue(globalMissingQcThreshold),
         getValue(initialQcsToExclude));
   }

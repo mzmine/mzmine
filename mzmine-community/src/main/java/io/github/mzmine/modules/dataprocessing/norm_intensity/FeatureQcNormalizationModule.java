@@ -128,7 +128,7 @@ public final class FeatureQcNormalizationModule implements NormalizationTypeModu
           + " feature/batch combinations are unavailable; supported batches remain corrected. "
           + "Review QC diagnostics for coverage and reasons.");
     }
-    summary.messages().add(settings.method() + ": " + result.availability());
+    summary.messages().add(settings.description() + ": " + result.availability());
   }
 
   private static void checkCanceled(@NotNull final BooleanSupplier canceled) {

@@ -113,7 +113,7 @@ class FeatureQcNormalizerTaskTest {
   }
 
   @Test
-  void metadataAndInternalStandardAreComposedForAllBatchesBeforeGlobalFeatureTarget()
+  void metadataAndInternalStandardAreComposedBeforeFixedQcRlsc()
       throws Exception {
     final MZmineProjectImpl project = new MZmineProjectImpl();
     ProjectService.getProjectManager().setCurrentProject(project);
@@ -153,8 +153,7 @@ class FeatureQcNormalizerTaskTest {
         new MobilityTolerance(.25f), StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES);
     final FeatureQcNormalizationParameters featureQcParameters =
         (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters().cloneParameterSet();
-    featureQcParameters.setParameter(FeatureQcNormalizationParameters.method,
-        FeatureQcMethod.COMMON_SCALE_LOG_LOESS);
+    featureQcParameters.setParameter(FeatureQcNormalizationParameters.automaticSmoothing, false);
     final ParameterSet parameters = IntensityNormalizerParameters.create(
         new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "feature-qc-compose",
         new MetadataNormalizationConfig("feature_qc_compose_dilution", MetadataNormalizationConfig.Mode.divide),
@@ -169,12 +168,12 @@ class FeatureQcNormalizerTaskTest {
     assertEquals(TaskStatus.FINISHED, task.getStatus());
     final ModularFeatureList output = (ModularFeatureList) project.getCurrentFeatureLists().stream()
         .filter(list -> list != source).findFirst().orElseThrow();
-    // Raw analytes differ 2x by batch. Metadata and IS make their effective pre-QC values 15 and
-    // 30, so the shared global log target is sqrt(15 * 30), not a per-batch raw target.
-    final float expected = (float) Math.sqrt(15d * 30d);
-    for (final RawDataFile file : files) {
-      assertEquals(expected, ((ModularFeature) output.findRowByID(2).getFeature(file))
-          .get(NormalizedAreaType.class), 1e-3f);
+    // Metadata and internal standards produce effective values of 15 and 30. Fixed QC-RLSC
+    // preserves each batch's QC mean, exactly as automatic QC-RLSC does.
+    for (int i = 0; i < files.size(); i++) {
+      assertEquals(i < 5 ? 15f : 30f,
+          ((ModularFeature) output.findRowByID(2).getFeature(files.get(i)))
+              .get(NormalizedAreaType.class), 1e-3f);
     }
   }
 

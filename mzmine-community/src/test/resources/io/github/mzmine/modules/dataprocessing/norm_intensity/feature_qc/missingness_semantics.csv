@@ -1,5 +1,0 @@
-case,total_A,usable_A,total_B,usable_B,global_eligible,batch_A_eligible
-global_equality,5,5,5,0,TRUE,TRUE
-global_above,5,5,6,0,FALSE,TRUE
-batch_equality,10,5,10,10,TRUE,FALSE
-batch_below,11,6,5,5,TRUE,TRUE

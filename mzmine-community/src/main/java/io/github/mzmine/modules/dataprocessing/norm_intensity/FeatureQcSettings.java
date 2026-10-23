@@ -5,19 +5,21 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import org.jetbrains.annotations.NotNull;
 
-/** Immutable settings; the method identifies the scientific procedure, not a release number. */
-public record FeatureQcSettings(@NotNull FeatureQcMethod method, double bandwidth,
+/** Settings for one QC-RLSC pipeline, with automatic or fixed smoothing. */
+public record FeatureQcSettings(boolean automaticSmoothing, double bandwidth, int polynomialDegree,
                                 int robustnessIterations, int minimumUsableQcs,
                                 double maxFactor, double globalMissingQcThreshold,
                                 int initialQcsToExclude) {
 
   public FeatureQcSettings {
-    java.util.Objects.requireNonNull(method, "QC correction method");
     if (initialQcsToExclude < 0) {
       throw new IllegalArgumentException("initial_qcs_to_exclude must be nonnegative.");
     }
     if (!Double.isFinite(bandwidth) || bandwidth <= 0d || bandwidth > 1d) {
       throw new IllegalArgumentException("bandwidth must be in (0, 1].");
+    }
+    if (polynomialDegree < 1 || polynomialDegree > 2) {
+      throw new IllegalArgumentException("polynomial_degree must be 1 or 2.");
     }
     if (robustnessIterations < 0) {
       throw new IllegalArgumentException("robustness_iterations must be nonnegative.");
@@ -35,13 +37,10 @@ public record FeatureQcSettings(@NotNull FeatureQcMethod method, double bandwidt
   }
 
   public static @NotNull FeatureQcSettings defaults() {
-    return new FeatureQcSettings(FeatureQcMethod.DUNN_QC_RLSC, .75d, 2, 5, 10d, .5d, 0);
+    return new FeatureQcSettings(true, .75d, 1, 2, 5, 10d, .5d, 0);
   }
 
-  /** Explicit fixed-bandwidth log method, also used by its numerical reference fixtures. */
-  public FeatureQcSettings(final double bandwidth, final int robustnessIterations,
-      final int minimumUsableQcs, final double maxFactor, final double globalMissingQcThreshold) {
-    this(FeatureQcMethod.COMMON_SCALE_LOG_LOESS, bandwidth, robustnessIterations, minimumUsableQcs,
-        maxFactor, globalMissingQcThreshold, 0);
+  public @NotNull String description() {
+    return automaticSmoothing ? "QC-RLSC (automatic smoothing)" : "QC-RLSC (fixed smoothing)";
   }
 }

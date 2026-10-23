@@ -45,7 +45,7 @@ public final class FeatureQcDiagnosticsView {
     final FeatureQcDiagnostics diagnostics = provenance.diagnostics();
     final Label overview = new Label(("%s | modeled abundance %s (factor applied to both area and height)\n"
         + "Solver: %s | coordinate: %s | scale: %s\nSettings: %s\nAvailability: %s").formatted(
-        diagnostics.settings().method(), provenance.modeledAbundance(),
+        diagnostics.settings().description(), provenance.modeledAbundance(),
         diagnostics.solver(), diagnostics.coordinatePolicy(), diagnostics.scalePolicy(),
         diagnostics.settings(), diagnostics.availability()));
     overview.setWrapText(true);

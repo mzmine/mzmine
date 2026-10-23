@@ -23,8 +23,7 @@ class DunnQcNormalizationTest {
     }
     final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
         FeatureQcSettings.defaults());
-    assertEquals(FeatureQcMethod.DUNN_QC_RLSC, result.settings().method());
-    assertTrue(result.globalLogTargets().isEmpty());
+    assertTrue(result.settings().automaticSmoothing());
     for (final double factor : result.rowFactors().get(1).values()) assertEquals(1d, factor, 1e-10);
     final var diagnostic = result.diagnostics().rows().get(1).batches().get("B");
     assertEquals(200d, diagnostic.correctionTarget(), 1e-10);
@@ -63,8 +62,7 @@ class DunnQcNormalizationTest {
       samples.add(new FeatureQcDriftNormalization.Sample("s" + i, "A", i, true));
       values.put("s" + i, i < 2 ? 8000d : 100d);
     }
-    final FeatureQcSettings settings = new FeatureQcSettings(FeatureQcMethod.DUNN_QC_RLSC,
-        .75d, 2, 5, 10d, .5d, 2);
+    final FeatureQcSettings settings = new FeatureQcSettings(true, .75d, 1, 2, 5, 10d, .5d, 2);
     final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), settings);
     final var batch = result.diagnostics().rows().get(1).batches().get("A");
     assertEquals(6, batch.totalQcs());
@@ -75,7 +73,7 @@ class DunnQcNormalizationTest {
   }
 
   @Test
-  void dunnAllowsHalfTheQcsMissingWhileFixedLogModeKeepsItsOriginalRule() {
+  void automaticAndFixedSmoothingShareTheSameMissingnessRule() {
     final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
     final Map<String, Double> values = new LinkedHashMap<>();
     for (int i = 0; i < 10; i++) {
@@ -85,8 +83,8 @@ class DunnQcNormalizationTest {
     final FeatureQcResult dunn = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
         FeatureQcSettings.defaults());
     assertEquals(10, dunn.rowFactors().get(1).size());
-    final FeatureQcResult log = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
-        new FeatureQcSettings(.75d, 2, 5, 10d, .5d));
-    assertTrue(log.rowFactors().isEmpty());
+    final FeatureQcResult fixed = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
+        new FeatureQcSettings(false, .75d, 1, 2, 5, 10d, .5d, 0));
+    assertEquals(dunn.rowFactors(), fixed.rowFactors());
   }
 }
