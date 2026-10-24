@@ -667,23 +667,31 @@ public class FileAndPathUtil {
     }
   }
 
+  /**
+   * @return the current temp directory, the first writable configured directory or the default
+   * java temp directory if none is writable
+   */
   public static File getTempDir() {
     return TEMP_DIRECTORIES.getDirectory();
   }
 
   /**
-   * Returns a snapshot of the configured directories in priority order.
+   * Returns a snapshot of the configured directories in priority order, without the default java
+   * temp directory that is only used as runtime fallback.
    */
   public static File[] getTempDirs() {
     return TEMP_DIRECTORIES.getDirectories();
   }
 
   /**
-   * Sets directories in priority order, creating missing directories. An empty list restores the
-   * default temporary directory. The .mzmine dir and its subdirectories are never used, see
-   * {@link #isInMzmineDir(File)}. Inaccessible directories stay in the list for failover; if none is
-   * accessible, the previous configuration is retained. Configuration and creation use the same
-   * blocking lock.
+   * Sets directories in priority order. An empty list restores the default temporary directory.
+   * The .mzmine dir and its subdirectories are never used, see {@link #isInMzmineDir(File)}.
+   * Inaccessible directories stay in the list for failover. If no directory is writable, the
+   * default java temp directory is used until a configured directory works again, without adding it
+   * to the list. An unchanged list returns without disk access. Configuration does not wait for a
+   * running temp file creation.
+   *
+   * @return the configured directories, excluding those in the mzmine settings folder
    */
   public static File @NotNull [] setTempDirs(@NotNull final File... paths) {
     return TEMP_DIRECTORIES.setDirectories(paths);

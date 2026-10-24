@@ -401,7 +401,7 @@ public class MZminePreferences extends SimpleParameterSet {
     updateGuiFormat();
 
     final File[] tempDirs = getValue(MZminePreferences.tempDirectory);
-    // internally removes the .mzmine dir from temp directories
+    // removes the .mzmine dir, returns without disk access if the list did not change
     final File[] actuallySetTemp = FileAndPathUtil.setTempDirs(tempDirs);
     setParameter(MZminePreferences.tempDirectory, actuallySetTemp);
 

@@ -27,6 +27,7 @@ package io.github.mzmine.main;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -80,8 +81,10 @@ class ArgsToConfigUtilsTest {
     assertArrayEquals(new File[]{first, second},
         ConfigService.getPreferences().getValue(MZminePreferences.tempDirectory));
     assertArrayEquals(new File[]{first, second}, FileAndPathUtil.getTempDirs());
+    assertEquals(first, FileAndPathUtil.getTempDir());
     assertTrue(first.isDirectory());
-    assertTrue(second.isDirectory());
+    // lower priority directories are only created when needed
+    assertFalse(second.exists());
   }
 
   @Test
