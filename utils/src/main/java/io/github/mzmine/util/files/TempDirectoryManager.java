@@ -25,10 +25,12 @@
 
 package io.github.mzmine.util.files;
 
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +40,7 @@ import java.util.Objects;
 import java.util.function.ToLongFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,6 +79,9 @@ final class TempDirectoryManager {
    * Makes sure the .mzmine folder is never used
    */
   private static boolean isAllowed(File directory) {
+    if (directory == null || (directory.exists() && directory.isFile())) {
+      return false;
+    }
     if (FileAndPathUtil.isInMzmineDir(directory)) {
       logger.warning(
           "The mzmine settings folder cannot be used as temporary directory: " + directory);
@@ -94,31 +100,43 @@ final class TempDirectoryManager {
 
   /**
    * Keeps inaccessible directories in the list, so they are retried on failover, e.g., after a
-   * drive was reconnected. The previous configuration is kept if no directory is accessible. The
+   * drive was reconnected. If no directory was accessible, then the default java temp directory will be added. The
    * .mzmine dir and its subdirectories are removed, because temp file cleanup deletes files there.
-   * @return the actually set directories
+   *
+   * @return the actually set directories, excluding those in the mzmine settings folder
    */
   synchronized File @NotNull [] setDirectories(File... paths) {
+    final File defaultDir = defaultDirectory();
+
     List<File> directories = Arrays.stream(paths).filter(Objects::nonNull)
-        .map(File::getAbsoluteFile).distinct().filter(TempDirectoryManager::isAllowed).toList();
+        .map(File::getAbsoluteFile).distinct().filter(TempDirectoryManager::isAllowed)
+        .collect(CollectionUtils.toArrayList());
     if (directories.isEmpty()) {
-      directories = Stream.of(defaultDirectory()).filter(TempDirectoryManager::isAllowed).toList();
+      // none was allowed so add default dir
+      directories.add(defaultDir);
     }
+    boolean anyAccessible = false;
     for (File directory : directories) {
       try {
         Files.createDirectories(directory.toPath());
+        anyAccessible = true;
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot create temporary directory " + directory, e);
       }
     }
-    final File first = directories.stream().filter(File::isDirectory).findFirst().orElse(null);
-    if (first == null) {
+
+    if (!anyAccessible) {
+      // add default java temp as last priority in case no directory was accessible
+      // maybe others were disconnected and may come online later so we keep them
+      if (!directories.contains(defaultDir)) {
+        directories.add(defaultDir);
+      }
       logger.warning(
-          "No configured temporary directory is accessible. Keeping " + state.directories());
-      return state.directories.toArray(File[]::new);
+          "No configured temporary directory is accessible. Adding the default temp directory: "
+              + defaultDir.getAbsolutePath());
     }
     if (!state.directories().equals(directories)) {
-      state = new DirectoryState(directories, first);
+      state = new DirectoryState(directories, directories.getFirst());
     }
     return state.directories.toArray(File[]::new);
   }
@@ -131,9 +149,8 @@ final class TempDirectoryManager {
    */
   synchronized <T> T create(long requiredSpace, TempFileOperation<T> operation) throws IOException {
     final DirectoryState snapshot = state;
-    final IOException failure = new IOException(
-        "Cannot create a temporary file in any configured directory: %s. Directories need %d GB of usable space beyond the requested size.".formatted(
-            snapshot.directories(), MIN_USABLE_SPACE / 1_000_000_000L));
+
+    List<Exception> failures = new ArrayList<>();
 
     // keeps priority order so ties choose the earlier directory
     final Map<File, Long> lowSpace = new LinkedHashMap<>();
@@ -150,11 +167,11 @@ final class TempDirectoryManager {
         final long space = usableSpace.applyAsLong(directory);
         if (space < requiredSpace + MIN_USABLE_SPACE) {
           lowSpace.put(directory, space);
-          throw new IOException("Only %d bytes usable in %s".formatted(space, directory));
+          continue;
         }
         return createIn(snapshot, directory, operation);
       } catch (IOException e) {
-        failure.addSuppressed(e);
+        failures.add(e);
       }
     }
 
@@ -167,9 +184,19 @@ final class TempDirectoryManager {
       try {
         return createIn(snapshot, fallback, operation);
       } catch (IOException e) {
-        failure.addSuppressed(e);
+        failures.add(e);
       }
     }
+
+    final String lowSpaceWarning = lowSpace.entrySet().stream()
+        .map(e -> "Only %d bytes usable in %s".formatted(e.getValue(), e.getKey()))
+        .collect(Collectors.joining("\n"));
+
+    final IOException failure = new IOException("""
+        Cannot create a temporary file in any configured directory: %s. Directories need %d GB of usable space beyond the requested size.
+        %s""".formatted(snapshot.directories(), MIN_USABLE_SPACE / 1_000_000_000L,
+        lowSpaceWarning));
+    failures.forEach(failure::addSuppressed);
     throw failure;
   }
 

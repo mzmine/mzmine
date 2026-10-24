@@ -55,8 +55,10 @@ class ArgsToConfigUtilsTest {
   void saveConfiguration() {
     previousPreferences = ConfigService.getPreferences().getValue(MZminePreferences.tempDirectory);
     previousDirectories = FileAndPathUtil.getTempDirs();
-    ConfigService.getPreferences().setParameter(MZminePreferences.tempDirectory,
-        new File[]{root.resolve("preference-directory").toFile()});
+    final File[] tempDirs = {root.resolve("preference-directory").toFile()};
+    ConfigService.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirs);
+    // actually apply to temp dir
+    final File[] actuallySetTemp = FileAndPathUtil.setTempDirs(tempDirs);
   }
 
   @AfterEach
@@ -136,13 +138,13 @@ class ArgsToConfigUtilsTest {
   }
 
   @Test
-  void unusableOverridesKeepTheConfiguredPreference() throws Exception {
+  void unusableOverridesChangeToJavaDefaultTemp() throws Exception {
     File invalid = Files.createFile(root.resolve("file")).toFile();
 
     ArgsToConfigUtils.checkAndOverrideArgsTempDir(
         new MZmineCoreArgumentParser(new String[]{"--temp", invalid.toString()}));
 
-    assertArrayEquals(new File[]{root.resolve("preference-directory").toFile()},
+    assertArrayEquals(new File[]{new File(System.getProperty("java.io.tmpdir")).getAbsoluteFile()},
         ConfigService.getPreferences().getValue(MZminePreferences.tempDirectory));
   }
 }
