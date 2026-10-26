@@ -414,7 +414,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_TDF -> // ims files are big, use own storage
           new TDFImportTask(project, file, storage, module, parameters, moduleCallDate);
       // MS
-      case MZML, MZML_IMS ->
+      case MZML ->
           new MSDKmzMLImportTask(project, file, scanProcessorConfig, module, parameters,
               moduleCallDate, storage);
       case MZXML -> new MzXMLImportTask(project, file, scanProcessorConfig, module, parameters,
@@ -468,7 +468,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case IMZML -> new ImzMLImportTask(project, file, scanProcessorConfig, module, parameters,
           moduleCallDate, storage);
       // MS
-      case MZML, MZML_IMS ->
+      case MZML ->
           new MSDKmzMLImportTask(project, file, null, scanProcessorConfig, module, parameters,
               moduleCallDate, storage);
       case MZXML -> new MzXMLImportTask(project, file, scanProcessorConfig, module, parameters,

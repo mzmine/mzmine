@@ -25,7 +25,9 @@
 package io.github.mzmine.parameters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -121,6 +123,19 @@ class StandardParameterTest {
             new RTTolerance(0.3f, RTTolerance.Unit.MINUTES)) //
     );
     return tests;
+  }
+
+  @Test
+  void numericValueComparisonHandlesAnEmptyValueInEitherParameter() {
+    final DoubleParameter filled = new DoubleParameter("number", "", new DecimalFormat("0.0"), 5d);
+    final DoubleParameter empty = filled.cloneParameter();
+    empty.setValue(null);
+
+    assertFalse(filled.valueEquals(empty));
+    assertFalse(empty.valueEquals(filled));
+    assertTrue(empty.valueEquals(empty.cloneParameter()));
+    assertTrue(filled.valueEquals(filled.cloneParameter()));
+    assertFalse(filled.valueEquals(null));
   }
 
   @Test
