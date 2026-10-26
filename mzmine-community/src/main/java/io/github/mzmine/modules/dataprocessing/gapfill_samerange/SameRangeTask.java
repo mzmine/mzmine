@@ -144,6 +144,11 @@ class SameRangeTask extends AbstractTask {
       return;
     }
 
+    // Add task description to peakList
+    processedPeakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range",
+            SameRangeGapFillerModule.class, parameters, getModuleCallDate()));
+
     // row-dependent normalization needs the row of a feature, which is only set when the feature
     // is added. Apply once to all features and update the row bindings again
     if (NormalizationRowIdentity.applyRowDependentIntensityNormalization(processedPeakList)) {
@@ -161,11 +166,6 @@ class SameRangeTask extends AbstractTask {
 
     // Add quality parameters to peaks
     //QualityParameters.calculateQualityParameters(processedPeakList);
-
-    // Add task description to peakList
-    processedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range",
-            SameRangeGapFillerModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
