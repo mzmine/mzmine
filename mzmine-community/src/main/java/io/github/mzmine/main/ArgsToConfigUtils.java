@@ -37,6 +37,7 @@ import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,17 +81,27 @@ class ArgsToConfigUtils {
   }
 
   static void checkAndOverrideArgsTempDir(MZmineCoreArgumentParser argsParser) {
-    // override temp directory
-    final File tempDirectory = argsParser.getTempDirectory();
-    if (tempDirectory != null) {
-      // needs to be accessible
-      if (FileAndPathUtil.createDirectory(tempDirectory)) {
-        ConfigService.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
+    final File[] tempDirectories = argsParser.getTempDirectories();
+    if (tempDirectories == null) {
+      return;
+    }
+
+    final var usableDirectories = new ArrayList<File>();
+    for (File directory : tempDirectories) {
+      if (FileAndPathUtil.isInMzmineDir(directory)) {
+        logger.warning("The mzmine settings folder cannot be used as temp file directory: "
+            + directory.getAbsolutePath());
+      } else if (FileAndPathUtil.createDirectory(directory) && directory.isDirectory()) {
+        usableDirectories.add(directory);
       } else {
         logger.log(Level.WARNING,
             "Cannot create or access temp file directory that was set via program argument: "
-                + tempDirectory.getAbsolutePath());
+                + directory.getAbsolutePath());
       }
+    }
+    if (!usableDirectories.isEmpty()) {
+      ConfigService.getPreferences()
+          .setParameter(MZminePreferences.tempDirectory, usableDirectories.toArray(File[]::new));
     }
   }
 
@@ -251,30 +262,9 @@ class ArgsToConfigUtils {
   }
 
   static void applyTempDirFromConfiguration() {
-    final File tempDir = ConfigService.getConfiguration().getPreferences()
+    final File[] tempDirs = ConfigService.getConfiguration().getPreferences()
         .getParameter(MZminePreferences.tempDirectory).getValue();
-    if (tempDir == null) {
-      logger.warning(
-          () -> "Invalid temporary directory. Defaulting to system temp directory. %s".formatted(
-              System.getProperty("java.io.tmpdir")));
-      return;
-    }
-
-    if (!tempDir.exists()) {
-      if (!tempDir.mkdirs()) {
-        logger.warning(
-            () -> "Could not create temporary directory %s. Defaulting to system temp directory. %s".formatted(
-                tempDir.getAbsolutePath(), System.getProperty("java.io.tmpdir")));
-        return;
-      }
-    }
-
-    if (tempDir.isDirectory()) {
-      FileAndPathUtil.setTempDir(tempDir.getAbsoluteFile());
-      logger.finest(() -> "Default temporary directory is %s".formatted(
-          System.getProperty("java.io.tmpdir")));
-      logger.finest(() -> "Working temporary directory is %s".formatted(
-          FileAndPathUtil.getTempDir().toString()));
-    }
+    FileAndPathUtil.setTempDirs(tempDirs);
+    logger.finest(() -> "Working temporary directory is " + FileAndPathUtil.getTempDir());
   }
 }
