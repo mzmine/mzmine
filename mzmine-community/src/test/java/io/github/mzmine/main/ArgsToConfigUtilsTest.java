@@ -27,6 +27,7 @@ package io.github.mzmine.main;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -55,8 +56,10 @@ class ArgsToConfigUtilsTest {
   void saveConfiguration() {
     previousPreferences = ConfigService.getPreferences().getValue(MZminePreferences.tempDirectory);
     previousDirectories = FileAndPathUtil.getTempDirs();
-    ConfigService.getPreferences().setParameter(MZminePreferences.tempDirectory,
-        new File[]{root.resolve("preference-directory").toFile()});
+    final File[] tempDirs = {root.resolve("preference-directory").toFile()};
+    ConfigService.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirs);
+    // actually apply to temp dir
+    final File[] actuallySetTemp = FileAndPathUtil.setTempDirs(tempDirs);
   }
 
   @AfterEach
@@ -74,13 +77,14 @@ class ArgsToConfigUtilsTest {
         new String[]{"--temp", first + File.pathSeparator + second, "--temp", first.toString()});
 
     ArgsToConfigUtils.checkAndOverrideArgsTempDir(parser);
-    ArgsToConfigUtils.applyTempDirFromConfiguration();
 
     assertArrayEquals(new File[]{first, second},
         ConfigService.getPreferences().getValue(MZminePreferences.tempDirectory));
     assertArrayEquals(new File[]{first, second}, FileAndPathUtil.getTempDirs());
+    assertEquals(first, FileAndPathUtil.getTempDir());
     assertTrue(first.isDirectory());
-    assertTrue(second.isDirectory());
+    // lower priority directories are only created when needed
+    assertFalse(second.exists());
   }
 
   @Test
@@ -137,13 +141,13 @@ class ArgsToConfigUtilsTest {
   }
 
   @Test
-  void unusableOverridesKeepTheConfiguredPreference() throws Exception {
+  void unusableOverridesChangeToJavaDefaultTemp() throws Exception {
     File invalid = Files.createFile(root.resolve("file")).toFile();
 
     ArgsToConfigUtils.checkAndOverrideArgsTempDir(
         new MZmineCoreArgumentParser(new String[]{"--temp", invalid.toString()}));
 
-    assertArrayEquals(new File[]{root.resolve("preference-directory").toFile()},
+    assertArrayEquals(new File[]{new File(System.getProperty("java.io.tmpdir")).getAbsoluteFile()},
         ConfigService.getPreferences().getValue(MZminePreferences.tempDirectory));
   }
 }

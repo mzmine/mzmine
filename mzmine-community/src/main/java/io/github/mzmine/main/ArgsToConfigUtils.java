@@ -37,7 +37,6 @@ import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,7 +65,6 @@ class ArgsToConfigUtils {
 
     // parse args temp dir after config was loaded, so we can override
     checkAndOverrideArgsTempDir(argsParser);
-    applyTempDirFromConfiguration();
     TmpFileCleanup.runCleanup(); // clean temp files in new dir
 
     checkAndOverrideArgsUser(argsParser);
@@ -85,24 +83,13 @@ class ArgsToConfigUtils {
     if (tempDirectories == null) {
       return;
     }
-
-    final var usableDirectories = new ArrayList<File>();
-    for (File directory : tempDirectories) {
-      if (FileAndPathUtil.isInMzmineDir(directory)) {
-        logger.warning("The mzmine settings folder cannot be used as temp file directory: "
-            + directory.getAbsolutePath());
-      } else if (FileAndPathUtil.createDirectory(directory) && directory.isDirectory()) {
-        usableDirectories.add(directory);
-      } else {
-        logger.log(Level.WARNING,
-            "Cannot create or access temp file directory that was set via program argument: "
-                + directory.getAbsolutePath());
-      }
-    }
-    if (!usableDirectories.isEmpty()) {
+    // set and get actual temp directories, excluding .mzmine folder
+    final File[] usableDirectories = FileAndPathUtil.setTempDirs(tempDirectories);
+    if (usableDirectories.length > 0) {
       ConfigService.getPreferences()
-          .setParameter(MZminePreferences.tempDirectory, usableDirectories.toArray(File[]::new));
+          .setParameter(MZminePreferences.tempDirectory, usableDirectories);
     }
+    logger.finest(() -> "Working temporary directory is " + FileAndPathUtil.getTempDir());
   }
 
   static void checkAndHandleArgsUserLoginOptions(MZmineCoreArgumentParser argsParser) {
@@ -261,10 +248,4 @@ class ArgsToConfigUtils {
     return false;
   }
 
-  static void applyTempDirFromConfiguration() {
-    final File[] tempDirs = ConfigService.getConfiguration().getPreferences()
-        .getParameter(MZminePreferences.tempDirectory).getValue();
-    FileAndPathUtil.setTempDirs(tempDirs);
-    logger.finest(() -> "Working temporary directory is " + FileAndPathUtil.getTempDir());
-  }
 }
