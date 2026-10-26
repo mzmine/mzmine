@@ -80,13 +80,6 @@ public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterS
   }
 
   @Override
-  public @NotNull Map<String, Parameter<?>> getNameParameterMap() {
-    final Map<String, Parameter<?>> parameters = super.getNameParameterMap();
-    parameters.put("Override adducts", getParameter(adductLibrary));
-    return parameters;
-  }
-
-  @Override
   public void handleLoadedParameters(@NotNull final Map<String, Parameter<?>> loadedParams,
       final int loadedVersion) {
     super.handleLoadedParameters(loadedParams, loadedVersion);

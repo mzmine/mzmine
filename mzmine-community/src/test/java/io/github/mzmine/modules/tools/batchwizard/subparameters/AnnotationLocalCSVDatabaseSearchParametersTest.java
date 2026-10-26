@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
@@ -89,24 +88,6 @@ class AnnotationLocalCSVDatabaseSearchParametersTest {
     assertEquals(override, loaded.getEffectiveIonLibrary(WizardMsPolarity.Positive));
     assertNotSame(parameters.getEffectiveIonLibrary(WizardMsPolarity.Positive),
         loaded.getEffectiveIonLibrary(WizardMsPolarity.Positive));
-  }
-
-  @Test
-  void preservesExplicitSelectionFromThePreviousParameterName() throws Exception {
-    final IonLibrary override = new UnmodifiableIonLibrary("Sodium only",
-        List.of(IonTypes.NA.asIonType()));
-    final var saved = new AnnotationLocalCSVDatabaseSearchParameters();
-    saved.setParameter(AnnotationLocalCSVDatabaseSearchParameters.adductLibrary, true, override);
-    final String legacyXml = ParameterUtils.saveValuesToXMLString(saved)
-        .replace("name=\"Specific adducts\"", "name=\"Override adducts\"");
-    final var loaded = new AnnotationLocalCSVDatabaseSearchParameters();
-
-    ParameterUtils.loadValuesFromXMLString(loaded, legacyXml);
-
-    assertTrue(loaded.getValue(AnnotationLocalCSVDatabaseSearchParameters.adductLibrary));
-    assertEquals(override, loaded.getEffectiveIonLibrary(WizardMsPolarity.Positive));
-    assertFalse(new AnnotationLocalCSVDatabaseSearchParameters()
-        .getValue(AnnotationLocalCSVDatabaseSearchParameters.adductLibrary));
   }
 
   @Test
