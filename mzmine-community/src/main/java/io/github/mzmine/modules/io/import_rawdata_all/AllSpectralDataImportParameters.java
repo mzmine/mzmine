@@ -118,6 +118,12 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   @Override
   public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, _ -> {});
+  }
+
+  /** Uses the same native dialog while allowing callers to retain its pending review. */
+  public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired,
+      final @NotNull java.util.function.Consumer<ParameterSetupDialog> reviewOpened) {
     assert Platform.isFxApplicationThread();
 
     if ((parameters == null) || (parameters.length == 0)) {
@@ -133,6 +139,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
     final Subscription fileNameSubscription = fileNamesComponent.textProperty()
         .subscribe(_ -> updateMetadataSelectedFiles(metadataParameters, fileNamesComponent));
     try {
+      reviewOpened.accept(dialog);
       dialog.showAndWait();
     } finally {
       fileNameSubscription.unsubscribe();

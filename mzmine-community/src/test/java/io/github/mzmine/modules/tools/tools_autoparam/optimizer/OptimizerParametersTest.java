@@ -36,6 +36,8 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import testutils.MZmineTestUtil;
 
 class OptimizerParametersTest {
@@ -43,6 +45,22 @@ class OptimizerParametersTest {
   @BeforeAll
   static void initialize() {
     MZmineTestUtil.startMzmineCore();
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {1, 4})
+  void simpleSetupKeepsSmallSelectionsWithinIterationBounds(final int selectedCount) {
+    final SimpleOptimizerParameters simple = (SimpleOptimizerParameters) new SimpleOptimizerParameters()
+        .cloneParameterSet();
+    final var selected = List.copyOf(simple.getValue(SimpleOptimizerParameters.paramToOptimize)
+        .subList(0, selectedCount));
+    simple.setParameter(SimpleOptimizerParameters.paramToOptimize, selected);
+
+    final OptimizerParameters parameters = OptimizerParameters.create(simple);
+    Assertions.assertEquals(selected, parameters.getValue(OptimizerParameters.paramToOptimize));
+    Assertions.assertEquals(OptimizerParameters.MIN_ITERATIONS,
+        parameters.getValue(OptimizerParameters.iterations));
+    Assertions.assertFalse(parameters.getValue(OptimizerParameters.evaluateInitialUserSettings));
   }
 
   @Test

@@ -36,6 +36,7 @@ import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.ShutDownHook;
+import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -115,10 +116,12 @@ public final class MZmineCore {
   public static void main(final String[] args) {
     try {
       printDebugInfo(args);
+      DeepLinkRouter.queueLaunchArguments(args);
 
-      final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
+      final String[] launchArguments = DeepLinkRouter.withoutDeepLinkArguments(args);
+      final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(launchArguments);
       getInstance().startUp(argsParser);
-      launchBatchOrGui(args, argsParser);
+      launchBatchOrGui(launchArguments, argsParser);
 
     } catch (Exception ex) {
       StartupSplash.hide();

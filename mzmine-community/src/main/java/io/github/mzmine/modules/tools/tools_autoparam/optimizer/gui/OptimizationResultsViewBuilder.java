@@ -40,10 +40,8 @@ import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
-import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OrdinalIntegerVariable;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
@@ -82,12 +80,11 @@ import org.jfree.chart.axis.NumberAxis;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.objective.Minimize;
 import org.moeaframework.core.objective.Objective;
-import org.moeaframework.core.variable.RealVariable;
-import org.moeaframework.core.variable.Variable;
 
 public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationResultModel> {
 
   private static final String SOURCE_ESTIMATE = "Raw data estimate";
+  private static final String SOURCE_INITIAL_USER_SETTINGS = "Initial user settings";
   private static final String SOURCE_FRONT = "Front";
   private static final String SOURCE_EVALUATED = "Evaluated";
   /**
@@ -103,18 +100,18 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
   private final NumberFormat threeDecimals = new DecimalFormat("0.###");
   private final NumberFormat noDecimals = new DecimalFormat("0");
 
-  private final Runnable onAcceptPressed;
-  private final Runnable openInBatch;
+  private final @Nullable Runnable onAcceptPressed;
+  private final @Nullable Runnable openInBatch;
   private final Runnable onExportPressed;
-  private final Runnable quickRun;
+  private final @Nullable Runnable quickRun;
   @Nullable
   private final Runnable stopSearch;
   @Nullable
   private final Stage stage;
 
   protected OptimizationResultsViewBuilder(@NotNull OptimizationResultModel model,
-      @NotNull Runnable onAcceptPressed, @NotNull Runnable openInBatch,
-      @NotNull Runnable onExportPressed, @NotNull Runnable quickRun, @Nullable Runnable stopSearch,
+      @Nullable Runnable onAcceptPressed, @Nullable Runnable openInBatch,
+      @NotNull Runnable onExportPressed, @Nullable Runnable quickRun, @Nullable Runnable stopSearch,
       @Nullable final Stage stage) {
     super(model);
     this.onAcceptPressed = onAcceptPressed;
@@ -141,8 +138,9 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
     final Rectangle2D screen = Screen.getPrimary().getVisualBounds();
     final double fittedWidth = Math.min(width, screen.getWidth() * 0.9d);
     stage.setWidth(fittedWidth);
-    stage.setHeight(Math.clamp(fittedWidth * 0.6, COMPACT_TABLE_HEIGHT + 70 + MIN_CHART_HEIGHT,
-        screen.getHeight() * 0.6d));
+    final double maximumHeight = screen.getHeight() * 0.6d;
+    stage.setHeight(Math.clamp(fittedWidth * 0.6,
+        Math.min(COMPACT_TABLE_HEIGHT + 70 + MIN_CHART_HEIGHT, maximumHeight), maximumHeight));
   }
 
   @Override
@@ -174,10 +172,11 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
           solutionTable);
       borderPane.setCenter(content);
     } else {
-      // decision: the compact table only holds the estimate and the front, so a fixed height of
-      // roughly two rows plus header and scroll bar leaves the space to the chart
-      solutionTable.setPrefHeight(COMPACT_TABLE_HEIGHT);
-      solutionTable.setMinHeight(COMPACT_TABLE_HEIGHT);
+      // decision: reserve an extra row for the optional initial-settings comparison while keeping
+      // the compact table small enough to leave space for the chart.
+      final double additionalHeight = model.getInitialUserSettingsSolution() != null ? 35d : 0d;
+      solutionTable.setPrefHeight(COMPACT_TABLE_HEIGHT + additionalHeight);
+      solutionTable.setMinHeight(COMPACT_TABLE_HEIGHT + additionalHeight);
       final BorderPane content = new BorderPane(progressChart);
       content.setBottom(solutionTable);
       borderPane.setCenter(content);
@@ -189,24 +188,36 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
       }
     }
 
-    final Button acceptButton = FxButtons.createButton("Apply to wizard", FxIcons.CHECK_CIRCLE,
-        null, onAcceptPressed);
-    final Button batchButton = FxButtons.createButton("Open in batch", FxIcons.BATCH, null,
-        openInBatch);
     final Button exportButton = FxButtons.createButton("Export to .csv", FxIcons.FILE, null,
         onExportPressed);
-    final Button quickRunButton = FxButtons.createButton("Quick run & annotate", FxIcons.BATCH,
-        null, quickRun);
 
     final BooleanBinding noUsableSelection = model.optimizationRunningProperty()
-        .or(model.selectedSolutionProperty().isNull());
-    acceptButton.disableProperty().bind(noUsableSelection);
-    batchButton.disableProperty().bind(noUsableSelection);
-    quickRunButton.disableProperty().bind(noUsableSelection);
+        .or(model.selectedSolutionProperty().isNull()).or(Bindings.createBooleanBinding(
+            () -> model.getSelectedSolution() == model.getInitialUserSettingsSolution(),
+            model.selectedSolutionProperty(), model.initialUserSettingsSolutionProperty()));
     exportButton.disableProperty().bind(Bindings.isEmpty(model.getDisplayedSolutions()));
 
     final ButtonBar buttonBar = new ButtonBar();
-    buttonBar.getButtons().addAll(exportButton, batchButton, quickRunButton, acceptButton);
+    buttonBar.getButtons().add(exportButton);
+    // decision: only expose actions whose caller supplied an implementation.
+    if (openInBatch != null) {
+      final Button button = FxButtons.createButton("Open in batch", FxIcons.BATCH, null,
+          openInBatch);
+      button.disableProperty().bind(noUsableSelection);
+      buttonBar.getButtons().add(button);
+    }
+    if (quickRun != null) {
+      final Button button = FxButtons.createButton("Quick run & annotate", FxIcons.BATCH, null,
+          quickRun);
+      button.disableProperty().bind(noUsableSelection);
+      buttonBar.getButtons().add(button);
+    }
+    if (onAcceptPressed != null) {
+      final Button button = FxButtons.createButton("Apply", FxIcons.CHECK_CIRCLE, null,
+          onAcceptPressed);
+      button.disableProperty().bind(noUsableSelection);
+      buttonBar.getButtons().add(button);
+    }
     borderPane.setBottom(buttonBar);
 
     if (stopSearch != null) {
@@ -335,7 +346,8 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
 
     final TableColumn<Solution, String> sourceCol = TableColumns.createColumn("Source", 130,
         s -> new ReadOnlyStringWrapper(s == model.getSinglePassSolution() ? SOURCE_ESTIMATE
-            : model.isOnFront(s) ? SOURCE_FRONT : SOURCE_EVALUATED));
+            : s == model.getInitialUserSettingsSolution() ? SOURCE_INITIAL_USER_SETTINGS
+                : model.isOnFront(s) ? SOURCE_FRONT : SOURCE_EVALUATED));
     solutionTable.getColumns().add(sourceCol);
 
     // origin and evaluation index are diagnostics of the search, not of the solution itself
@@ -353,35 +365,11 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
       solutionTable.getColumns().add(indexCol);
     }
 
-    for (int i = 0; i < template.getNumberOfVariables(); i++) {
-      final Variable variable = template.getVariable(i);
-      final int finalI = i;
-      switch (variable) {
-        // decision: the ordinal case must precede RealVariable, which it extends
-        case OrdinalIntegerVariable v -> {
-          final IndexedParameter<?> parameter = model.getParameters().get(i);
-          if (parameter.parameter().searchDomain() instanceof ChoiceSearchDomain<?>) {
-            final TableColumn<Solution, String> col = TableColumns.createColumn(v.getName(), 120,
-                200, ColumnAlignment.RIGHT, String::compareTo, s -> new ReadOnlyStringWrapper(
-                    parameter.value(s).toString()));
-            solutionTable.getColumns().add(col);
-          } else {
-            final TableColumn<Solution, Number> col = TableColumns.createColumn(v.getName(), 120,
-                noDecimals, ColumnAlignment.RIGHT,
-                s -> new ReadOnlyIntegerWrapper(OrdinalIntegerVariable.getInt(s, finalI)));
-            solutionTable.getColumns().add(col);
-          }
-        }
-        case RealVariable v -> {
-          final TableColumn<Solution, Number> col = TableColumns.createColumn(v.getName(), 120,
-              threeDecimals, ColumnAlignment.RIGHT,
-              s -> new ReadOnlyDoubleWrapper(((RealVariable) s.getVariable(finalI)).getValue()));
-          solutionTable.getColumns().add(col);
-        }
-        default -> {
-
-        }
-      }
+    for (final IndexedParameter<?> parameter : model.getParameters()) {
+      final TableColumn<Solution, String> col = TableColumns.createColumn(
+          parameter.parameter().definition().name(), 120, 200, ColumnAlignment.RIGHT,
+          String::compareTo, s -> new ReadOnlyStringWrapper(parameter.formatValue(s)));
+      solutionTable.getColumns().add(col);
     }
 
     TableColumn<Solution, Number> preferredSortColumn = null;

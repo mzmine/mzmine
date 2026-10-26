@@ -25,9 +25,16 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
+
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
@@ -52,6 +59,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -112,6 +120,21 @@ class WizardOptimizationProblemParameterTest {
   }
 
   @Test
+  void candidateKeepsTheInitialDataSettings() {
+    final WizardSequence sequence = fullSequence();
+    sequence.get(WizardPart.DATA_IMPORT).orElseThrow()
+        .setParameter(DataImportWizardParameters.extractMetadata, true);
+    final ParameterEstimationContext context = ParameterEstimationTestData.context(sequence);
+    final WizardOptimizationProblem problem = problem(context, PreparedParameterSet.prepare(context),
+        List.of(ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT));
+
+    final WizardSequence candidate = problem.createWizardSequenceFromSolution(problem.newSolution());
+
+    Assertions.assertTrue(candidate.get(WizardPart.DATA_IMPORT).orElseThrow()
+        .getValue(DataImportWizardParameters.extractMetadata));
+  }
+
+  @Test
   void noPolarityFilterKeepsTheWizardIonMode() {
     final ParameterEstimationContext context = context();
     final WizardOptimizationProblem problem = problem(context,
@@ -125,12 +148,56 @@ class WizardOptimizationProblemParameterTest {
     Assertions.assertEquals(WizardMsPolarity.Negative, msPolarity(wizard));
   }
 
+  @Test
+  void completedBatchProgressIncludesInitialUserSettingsOutsideTheSearchBudget() {
+    final ParameterEstimationContext context = context();
+    try (final var evaluators = mockConstruction(OptimizationBatchEvaluator.class,
+        (evaluator, _) -> when(evaluator.evaluate(any(), any(), anyBoolean(), any()))
+            .thenAnswer(invocation -> invocation.<IntSupplier>getArgument(3).getAsInt()));
+        final WizardOptimizationProblem problem = problem(context,
+            PreparedParameterSet.prepare(context),
+            List.of(ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT))) {
+      final Solution estimate = problem.newSolution();
+      problem.evaluate(estimate);
+      Assertions.assertEquals(1, problem.getCompletedBatchExecutionCount());
+
+      problem.evaluateInitialUserSettings(fullSequence());
+      Assertions.assertEquals(2, problem.getCompletedBatchExecutionCount());
+      Assertions.assertEquals(2, problem.getBatchExecutionCount());
+      Assertions.assertEquals(1, problem.getEvaluatedSolutions().size(),
+          "Initial user settings remain separate from optimizer observations");
+      Assertions.assertThrows(IllegalStateException.class,
+          () -> problem.evaluateInitialUserSettings(fullSequence()));
+      Assertions.assertEquals(2, problem.getBatchExecutionCount());
+
+      problem.evaluate(problem.newSolution());
+      Assertions.assertEquals(2, problem.getCompletedBatchExecutionCount(),
+          "A cached estimate does not execute another batch");
+      Assertions.assertEquals(2, problem.getBatchExecutionCount());
+      Assertions.assertEquals(1, problem.getSearchBatchExecutionCount());
+
+      doAnswer(invocation -> {
+        invocation.<IntSupplier>getArgument(3).getAsInt();
+        throw new IllegalStateException("Failed trial");
+      }).when(evaluators.constructed().getFirst()).evaluate(any(), any(), anyBoolean(), any());
+      final Solution failedTrial = problem.newSolution();
+      final var variable = (org.moeaframework.core.variable.RealVariable) failedTrial.getVariable(0);
+      variable.setValue(variable.getValue() == variable.getUpperBound()
+          ? variable.getLowerBound() : variable.getUpperBound());
+      Assertions.assertThrows(IllegalStateException.class,
+          () -> problem.evaluate(failedTrial));
+      Assertions.assertEquals(2, problem.getCompletedBatchExecutionCount());
+      Assertions.assertEquals(3, problem.getBatchExecutionCount());
+    }
+  }
+
   private static @NotNull WizardOptimizationProblem problem(
       @NotNull ParameterEstimationContext context, @NotNull PreparedParameterSet prepared,
       @NotNull List<ParameterDefinition<?>> selected) {
     final ParameterSet parameters = OptimizerParameters.create(
         List.of(OptimizationMetrics.IPO_ISOTOPE_SCORE), 30);
     parameters.setParameter(OptimizerParameters.paramToOptimize, selected);
+    parameters.setParameter(OptimizerParameters.evaluateInitialUserSettings, true);
     return new WizardOptimizationProblem(context, prepared, parameters,
         new AtomicReference<>(TaskStatus.PROCESSING), 30, () -> false);
   }
@@ -180,6 +247,19 @@ class WizardOptimizationProblemParameterTest {
           .getValue(IonInterfaceHplcWizardParameters.interSampleRTTolerance)
           .getToleranceInMinutes());
     }
+  }
+
+  @Test
+  void retainsImmutableEvidenceForTheFixedEstimateBaseline() {
+    final ParameterEstimationContext context = context();
+    final PreparedParameterSet prepared = PreparedParameterSet.prepare(context);
+    final WizardOptimizationProblem problem = problem(context, prepared,
+        List.of(ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT));
+
+    Assertions.assertEquals(context.analysis().files().size(), problem.getEstimationFileCount());
+    Assertions.assertEquals(prepared.parameters().size(), problem.getEstimationEvidence().size());
+    Assertions.assertThrows(UnsupportedOperationException.class,
+        () -> problem.getEstimationEvidence().clear());
   }
 
   @Test

@@ -26,9 +26,11 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class IntegrationDashboardTab extends SimpleTab {
 
@@ -51,4 +53,10 @@ public class IntegrationDashboardTab extends SimpleTab {
     controller.setFeatureList(featureLists.isEmpty() ? null
         : (ModularFeatureList) featureLists.stream().toList().getFirst());
   }
+
+  /** Selects a row for review and its manual-integration plots. */
+  public void selectRow(final @NotNull FeatureListRow row) {
+    controller.selectRow(row);
+  }
+
 }

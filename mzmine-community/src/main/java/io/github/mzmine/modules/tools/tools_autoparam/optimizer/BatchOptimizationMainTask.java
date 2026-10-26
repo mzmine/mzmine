@@ -69,10 +69,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import javafx.scene.Scene;
-import javafx.scene.layout.Region;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.moeaframework.algorithm.AbstractAlgorithm;
@@ -121,7 +117,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
    * Set once the optimization finished, so a headless caller can read the estimate, the front and
    * every evaluated solution back.
    */
-  private @Nullable OptimizationOutcome outcome;
+  private volatile @Nullable OptimizationOutcome outcome;
   private final long randomSeed;
   /**
    * Settings fixed by the pre-classification, see {@link PreclassificationParameters}. Null for
@@ -143,7 +139,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
   @Nullable
   private AbstractAlgorithm optimizer;
   @Nullable
-  private WizardOptimizationProblem problem;
+  private volatile WizardOptimizationProblem problem;
 
   /**
    * @param files             the files that were pre-classified, see
@@ -203,8 +199,14 @@ public class BatchOptimizationMainTask extends AbstractTask {
         OptimizerParameters.MIN_ITERATIONS);
 
     addTaskStatusListener((_, newStatus, _) -> {
-      if (newStatus == TaskStatus.CANCELED && optimizer != null && !optimizer.isTerminated()) {
-        optimizer.terminate();
+      if (newStatus == TaskStatus.CANCELED) {
+        if (optimizer != null && !optimizer.isTerminated()) {
+          optimizer.terminate();
+        }
+        final WizardOptimizationProblem currentProblem = problem;
+        if (currentProblem != null) {
+          currentProblem.cancel();
+        }
       }
     });
   }
@@ -215,6 +217,18 @@ public class BatchOptimizationMainTask extends AbstractTask {
    */
   public @Nullable OptimizationOutcome getOutcome() {
     return outcome;
+  }
+
+  /** Full batches reserved for execution, including a currently running batch. */
+  public int getBatchExecutionCount() {
+    final WizardOptimizationProblem current = problem;
+    return current == null ? 0 : current.getBatchExecutionCount();
+  }
+
+  /** Completed full batch evaluations; cached proposals do not increment this count. */
+  public int getCompletedEvaluationCount() {
+    final WizardOptimizationProblem current = problem;
+    return current == null ? 0 : current.getCompletedBatchExecutionCount();
   }
 
   /**
@@ -235,14 +249,14 @@ public class BatchOptimizationMainTask extends AbstractTask {
       return "Parameter optimization: " + Objects.requireNonNullElse(step, "preparing");
     }
     return "Parameter optimization: full batch %d/%d".formatted(
-        currentProblem.getBatchExecutionCount(), totalBatchExecutions);
+        currentProblem.getBatchExecutionCount(), currentProblem.getMaxBatchExecutions());
   }
 
   @Override
   public double getFinishedPercentage() {
     final WizardOptimizationProblem currentProblem = problem;
     return currentProblem != null ? Math.min(1d,
-        (double) currentProblem.getBatchExecutionCount() / totalBatchExecutions) : 0d;
+        (double) currentProblem.getBatchExecutionCount() / currentProblem.getMaxBatchExecutions()) : 0d;
   }
 
   /**
@@ -279,7 +293,17 @@ public class BatchOptimizationMainTask extends AbstractTask {
 
   @Override
   public void run() {
+    if (isCanceled()) {
+      return;
+    }
     setStatus(TaskStatus.PROCESSING);
+
+    try {
+      WizardParameterEstimationResult.requireSupportedWorkflow(sequence);
+    } catch (IllegalArgumentException exception) {
+      error(exception.getMessage());
+      return;
+    }
 
     // store all in ram while optimizing
     MemoryMapStorage.setStoreAllInRam(true);
@@ -310,6 +334,9 @@ public class BatchOptimizationMainTask extends AbstractTask {
         importedFiles, benchmarkFeatures, sequence, runPreclassification, presetConfirmation,
         getMemoryMapStorage(), () -> getStatus() != TaskStatus.PROCESSING);
     if (estimation == null) {
+      if (getStatus() == TaskStatus.PROCESSING) {
+        error("Parameter estimation ended without a result.");
+      }
       return;
     }
     final List<DataFileStatistics> stats = estimation.statistics();
@@ -326,6 +353,12 @@ public class BatchOptimizationMainTask extends AbstractTask {
         estimationContext, singlePassEstimates, params, externalStatus, totalBatchExecutions,
         stopSearchRequested::get);
     problem = optimizationProblem;
+    if (getStatus() == TaskStatus.CANCELED) {
+      optimizationProblem.cancel();
+      optimizationProblem.close();
+      initialMemoryOption.enforceToMemoryMapping();
+      return;
+    }
     preparationStep = null;
     final boolean showExtendedStatistics = params.getValue(
         OptimizerParameters.showExtendedStatistics);
@@ -336,150 +369,202 @@ public class BatchOptimizationMainTask extends AbstractTask {
               estimationContext.massDetectorType()))));
     }
     final AtomicReference<OptimizationResultsController> resultsController = new AtomicReference<>();
-    final AtomicReference<NondominatedPopulation> completedResult = new AtomicReference<>();
-
     final Solution singlePassSolution = optimizationProblem.newSolution();
-
-    // decision: always derive and evaluate the raw data estimate, also when it is not used to
-    // warm-start the optimizer, so the results table can always show it next to the optimized
-    // solutions and the logged comparison is meaningful in both cases
-    SolutionOrigin.ESTIMATE.applyTo(singlePassSolution);
-    optimizationProblem.evaluate(singlePassSolution);
-    // decision: without features every score is 0, so the search has nothing to improve on
-    if (singlePassSolution.getAttribute(
-        WizardOptimizationProblem.ATTR_TOTAL_FEATURES) instanceof Number features
-        && features.longValue() == 0) {
-      error("""
-          The batch with the raw data estimates produced no features, the optimization was \
-          stopped. Check the selected files and the wizard settings, e.g., the minimum feature \
-          height.""");
-      return;
-    }
-
-    // decision: derive the shape rejection limit from the estimate's own measured rate, so the
-    // limit adapts to the dataset instead of being an absolute guess
-    if (params.getValue(OptimizerParameters.maxShapeRejectionFactor)) {
-      final double factor = params.getEmbeddedParameterValue(
-          OptimizerParameters.maxShapeRejectionFactor);
-      final Object measured = singlePassSolution.getAttribute(
-          ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT);
-      final double baseline = measured instanceof Number n ? n.doubleValue() : 0d;
-      // assumption: a floor keeps a near-perfect baseline from making everything infeasible
-      optimizationProblem.setShapeRejectionLimitPercent(
-          Math.max(baseline * factor, MIN_SHAPE_REJECTION_LIMIT));
-    }
-
-    if (tab != null) {
-      optimizationProblem.setEvaluationListener(_ -> {
-        final OptimizationResultsController controller = resultsController.get();
-        if (controller != null) {
-          controller.refreshEvaluatedSolutions();
-        }
-      });
-      showLiveResultsWindow(tab, optimizationProblem, singlePassSolution, showExtendedStatistics,
-          resultsController, completedResult);
-    }
-
-    // created after the estimate, so start solutions use the final shape rejection limit
-    final OptimizerAlgorithmModule optimizerModule = params.getValue(OptimizerParameters.optimizers)
-        .getModuleInstance();
-    optimizer = optimizerModule.createAlgorithm(optimizationProblem,
-        OptimizerParameters.getSelectedOptimizerParameters(params));
-
-    logger.info("Starting %s with a batch budget of %d".formatted(optimizerModule.getName(),
-        totalBatchExecutions));
-    final String presetText =
-        presets.isEmpty() ? "" : "Presets:\n%s\n".formatted(presets.describe());
-    NotificationService.show(NotificationType.INFO, "Starting optimizer", """
-        Using %s with %d full batch executions.
-        %sEstimates:
-        %s""".formatted(optimizerModule.getName(), totalBatchExecutions, presetText,
-        singlePassEstimates.describe()));
+    @Nullable Solution initialUserSettingsSolution = null;
 
     try {
-      final int maxProposals = Math.multiplyExact(totalBatchExecutions, PROPOSAL_BUDGET_MULTIPLIER);
-      optimizer.run(new TaskStatusTerminationCondition(totalBatchExecutions, maxProposals,
-          optimizationProblem::getBatchExecutionCount, this::getStatus, stopSearchRequested::get));
-    } catch (BatchExecutionLimitReachedException e) {
-      // MOEA checks termination between generations, so the problem stops a partial generation at
-      // the exact full-batch boundary.
-      logger.fine(e.getMessage());
-      optimizer.terminate();
-    } catch (OptimizationSearchStoppedException e) {
-      logger.info(e.getMessage());
-      if (!optimizer.isTerminated()) {
-        optimizer.terminate();
+      // decision: always derive and evaluate the raw data estimate, also when it is not used to
+      // warm-start the optimizer, so the results table can always show it next to the optimized
+      // solutions and the logged comparison is meaningful in both cases
+      SolutionOrigin.ESTIMATE.applyTo(singlePassSolution);
+      optimizationProblem.evaluate(singlePassSolution);
+      // decision: without features every score is 0, so the search has nothing to improve on
+      if (singlePassSolution.getAttribute(
+          WizardOptimizationProblem.ATTR_TOTAL_FEATURES) instanceof Number features
+          && features.longValue() == 0) {
+        error("""
+            The batch with the raw data estimates produced no features, the optimization was \
+            stopped. Check the selected files and the wizard settings, e.g., the minimum feature \
+            height.""");
+        return;
       }
-    } catch (RuntimeException e) {
-      if (getStatus() != TaskStatus.CANCELED && getStatus() != TaskStatus.ERROR) {
-        throw e;
+
+      // decision: derive the shape rejection limit from the estimate's own measured rate, so the
+      // limit adapts to the dataset instead of being an absolute guess
+      if (params.getValue(OptimizerParameters.maxShapeRejectionFactor)) {
+        final double factor = params.getEmbeddedParameterValue(
+            OptimizerParameters.maxShapeRejectionFactor);
+        final Object measured = singlePassSolution.getAttribute(
+            ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT);
+        final double baseline = measured instanceof Number n ? n.doubleValue() : 0d;
+        // assumption: a floor keeps a near-perfect baseline from making everything infeasible
+        optimizationProblem.setShapeRejectionLimitPercent(
+            Math.max(baseline * factor, MIN_SHAPE_REJECTION_LIMIT));
+      }
+
+      if (params.getValue(OptimizerParameters.evaluateInitialUserSettings)) {
+        // decision: this is an explicitly requested extra batch, outside the unchanged estimate
+        // and search budget. It preserves the user's full original Data settings.
+        initialUserSettingsSolution = optimizationProblem.evaluateInitialUserSettings(sequence);
+      }
+
+      if (tab != null) {
+        optimizationProblem.setEvaluationListener(_ -> {
+          final OptimizationResultsController controller = resultsController.get();
+          if (controller != null) {
+            controller.refreshEvaluatedSolutions();
+          }
+        });
+        showLiveResultsWindow(tab, optimizationProblem, singlePassSolution,
+            initialUserSettingsSolution, showExtendedStatistics, resultsController);
+      }
+
+      // created after the estimate, so start solutions use the final shape rejection limit
+      final OptimizerAlgorithmModule optimizerModule = params.getValue(OptimizerParameters.optimizers)
+          .getModuleInstance();
+      optimizer = optimizerModule.createAlgorithm(optimizationProblem,
+          OptimizerParameters.getSelectedOptimizerParameters(params));
+
+      logger.info("Starting %s with a search budget of %d%s".formatted(optimizerModule.getName(),
+          totalBatchExecutions, initialUserSettingsSolution == null ? ""
+              : " plus one initial-user-settings comparison batch"));
+      final String presetText =
+          presets.isEmpty() ? "" : "Presets:\n%s\n".formatted(presets.describe());
+      NotificationService.show(NotificationType.INFO, "Starting optimizer", """
+          Using %s with %d full batch executions%s.
+          %sEstimates:
+          %s""".formatted(optimizerModule.getName(), totalBatchExecutions,
+          initialUserSettingsSolution == null ? ""
+              : " plus one initial-user-settings comparison batch", presetText,
+          singlePassEstimates.describe()));
+
+      try {
+        final int maxProposals = Math.multiplyExact(totalBatchExecutions, PROPOSAL_BUDGET_MULTIPLIER);
+        optimizer.run(new TaskStatusTerminationCondition(totalBatchExecutions, maxProposals,
+            optimizationProblem::getSearchBatchExecutionCount, this::getStatus,
+            stopSearchRequested::get));
+      } catch (BatchExecutionLimitReachedException e) {
+        // MOEA checks termination between generations, so the problem stops a partial generation at
+        // the exact full-batch boundary.
+        logger.fine(e.getMessage());
+        optimizer.terminate();
+      } catch (OptimizationSearchStoppedException e) {
+        logger.info(e.getMessage());
+        if (!optimizer.isTerminated()) {
+          optimizer.terminate();
+        }
+      } catch (RuntimeException e) {
+        if (getStatus() != TaskStatus.CANCELED && getStatus() != TaskStatus.ERROR) {
+          throw e;
+        }
+      }
+
+      if (getStatus() != TaskStatus.PROCESSING) {
+        return;
+      }
+
+      final NondominatedPopulation result = collectSearchResult(optimizationProblem);
+
+      // log comparison: single-pass estimate versus the best optimizer result
+      OptimizationResultLogger.logResults(singlePassSolution, singlePassEstimates,
+          optimizationProblem.getEnabledMetrics());
+      OptimizationResultLogger.logComparison(singlePassSolution, result,
+          optimizationProblem.getEnabledMetrics());
+
+      publishOutcome(new OptimizationOutcome(singlePassEstimates, singlePassSolution,
+          initialUserSettingsSolution == null ? null : sequence.copy(), initialUserSettingsSolution,
+          result, optimizationProblem), resultsController);
+    } catch (RuntimeException exception) {
+      if (!isCanceled()) {
+        error("Parameter optimization failed: " + exception.getMessage(), exception);
       }
     } finally {
-      initialMemoryOption.enforceToMemoryMapping();
+      try {
+        // Completed evaluations remain usable after cancellation or an error, even when the
+        // failure occurred before the algorithm entered its search loop.
+        if (outcome == null && optimizationProblem.getCompletedBatchExecutionCount() > 0) {
+          publishOutcome(new OptimizationOutcome(singlePassEstimates, singlePassSolution,
+              initialUserSettingsSolution == null ? null : sequence.copy(), initialUserSettingsSolution,
+              collectSearchResult(optimizationProblem), optimizationProblem), resultsController);
+        }
+      } finally {
+        try {
+          optimizationProblem.close();
+        } finally {
+          initialMemoryOption.enforceToMemoryMapping();
+        }
+      }
     }
+  }
 
-    // A hard budget stop can interrupt a generation after some offspring were evaluated but before
-    // the algorithm incorporated them. Build the result from every completed observation so those
-    // expensive final batches cannot be lost.
-    final NondominatedPopulation result = new NondominatedPopulation();
-    try {
-      result.addAll(optimizer.getResult());
-    } catch (NullPointerException e) {
-      // silent. stopping before initial iterations are done throws an npe
-    }
-    result.addAll(optimizationProblem.getEvaluatedSolutions());
-
-    // log comparison: single-pass estimate versus the best optimizer result
-    OptimizationResultLogger.logResults(singlePassSolution, singlePassEstimates,
-        optimizationProblem.getEnabledMetrics());
-    OptimizationResultLogger.logComparison(singlePassSolution, result,
-        optimizationProblem.getEnabledMetrics());
-
-    outcome = new OptimizationOutcome(singlePassEstimates, singlePassSolution, result,
-        optimizationProblem);
-    completedResult.set(result);
-    optimizationProblem.setEvaluationListener(null);
+  /** Resolve task status before scheduling UI completion; AbstractTask preserves terminal states. */
+  private void publishOutcome(final @NotNull OptimizationOutcome completed,
+      final @NotNull AtomicReference<OptimizationResultsController> resultsController) {
+    setStatus(TaskStatus.FINISHED);
+    outcome = completed;
+    completed.problem().setEvaluationListener(null);
     final OptimizationResultsController controller = resultsController.get();
     if (controller != null) {
-      controller.completeOptimization(result);
+      finishResultsView(controller, completed);
     }
+  }
 
-    setStatus(TaskStatus.FINISHED);
+  private void finishResultsView(final @NotNull OptimizationResultsController controller,
+      final @NotNull OptimizationOutcome completed) {
+    if (getStatus() == TaskStatus.FINISHED) {
+      controller.completeOptimization(completed.front());
+    } else {
+      controller.finishOptimization(completed.front(), getStatus());
+    }
   }
 
   private void showLiveResultsWindow(@NotNull BatchWizardTab resultTab,
       @NotNull WizardOptimizationProblem optimizationProblem, @NotNull Solution singlePassSolution,
-      final boolean showExtendedStatistics,
-      @NotNull AtomicReference<OptimizationResultsController> resultsController,
-      @NotNull AtomicReference<NondominatedPopulation> completedResult) {
+      @Nullable Solution initialUserSettingsSolution, final boolean showExtendedStatistics,
+      @NotNull AtomicReference<OptimizationResultsController> resultsController) {
     FxThread.runLater(() -> {
-      final Stage stage = new Stage();
-      final OptimizationResultsController controller = new OptimizationResultsController(resultTab,
-          optimizationProblem, singlePassSolution, showExtendedStatistics, stage,
-          this::requestStopSearch);
+      final OptimizationResultsController controller = OptimizationResultsController.showResultsWindow(
+          resultTab, optimizationProblem, singlePassSolution, initialUserSettingsSolution,
+          showExtendedStatistics, this::requestStopSearch, null);
       resultsController.set(controller);
       controller.refreshEvaluatedSolutions();
-      final NondominatedPopulation alreadyCompleted = completedResult.get();
+      final OptimizationOutcome alreadyCompleted = outcome;
       if (alreadyCompleted != null) {
-        controller.completeOptimization(alreadyCompleted);
+        finishResultsView(controller, alreadyCompleted);
       }
-
-      final Region region = controller.buildView();
-      // the controller binds the title to the progress
-      stage.initOwner(MZmineCore.getDesktop().getMainWindow());
-      final Scene scene = new Scene(region);
-      ConfigService.getConfiguration().getTheme().apply(scene.getStylesheets());
-      stage.setScene(scene);
-      stage.show();
-      final double screenWidth = Screen.getPrimary().getBounds().getWidth();
-      final double screenHeight = Screen.getPrimary().getBounds().getHeight();
-      // the compact view sizes the stage to its table columns when shown
-      if (showExtendedStatistics) {
-        stage.setWidth(Math.min(1400d, screenWidth * 0.9d));
-        stage.setHeight(Math.min(900d, screenHeight * 0.85d));
-      }
-      stage.centerOnScreen();
     });
+  }
+
+  /**
+   * Combines the algorithm's available result with every completed observation. A hard budget or
+   * cancellation can happen after a batch completed but before the algorithm incorporated it.
+   */
+  private @NotNull NondominatedPopulation collectSearchResult(
+      @NotNull WizardOptimizationProblem optimizationProblem) {
+    final NondominatedPopulation optimizerResults = new NondominatedPopulation();
+    final AbstractAlgorithm currentOptimizer = optimizer;
+    if (currentOptimizer != null) {
+      try {
+        optimizerResults.addAll(currentOptimizer.getResult());
+      } catch (NullPointerException e) {
+        // Stopping during algorithm initialization can leave its result unavailable.
+        logger.fine("Optimizer stopped before its initial population was complete.");
+      }
+    }
+    return createSearchFront(optimizerResults, optimizationProblem.getEvaluatedSolutions());
+  }
+
+  static @NotNull NondominatedPopulation createSearchFront(
+      @NotNull Iterable<@NotNull Solution> optimizerResults,
+      @NotNull Iterable<@NotNull Solution> evaluatedSolutions) {
+    final NondominatedPopulation result = new NondominatedPopulation();
+    for (final Solution solution : optimizerResults) {
+      result.add(solution);
+    }
+    for (final Solution solution : evaluatedSolutions) {
+      result.add(solution);
+    }
+    return result;
   }
 
 }

@@ -25,10 +25,12 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.population.NondominatedPopulation;
 
@@ -40,14 +42,19 @@ import org.moeaframework.core.population.NondominatedPopulation;
  * @param estimates        the prepared parameter baseline, before any optimization
  * @param estimateSolution the evaluated estimate, so its scores can be compared against the
  *                         optimized solutions
+ * @param initialUserSettings detached wizard settings used for the initial-user-settings baseline, or null when
+ *                         the comparison is disabled
+ * @param initialUserSettingsSolution scored initial-user-settings baseline, or null when the comparison is disabled; it is
+ *                         never part of {@code front}
  * @param front            non-dominated result across every completed observation
  * @param problem          the problem, which holds every evaluated solution in evaluation order
  */
 public record OptimizationOutcome(@NotNull PreparedParameterSet estimates,
                                   @NotNull Solution estimateSolution,
+                                  @Nullable WizardSequence initialUserSettings,
+                                  @Nullable Solution initialUserSettingsSolution,
                                   @NotNull NondominatedPopulation front,
                                   @NotNull WizardOptimizationProblem problem) {
-
   /**
    * Every solution that was evaluated, in evaluation order, including infeasible ones.
    */

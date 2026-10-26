@@ -33,6 +33,10 @@ import io.github.mzmine.javafx.components.factories.FxListViews;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcDiagnosticsView;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerParameters;
 import io.github.mzmine.parameters.Parameter;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -98,6 +102,14 @@ public class FeatureListSummaryViewBuilder extends FxViewBuilder<FeatureListSumm
     return sb.toString();
   }
 
+  private static @NotNull IntensityNormalizationSummary normalizationSummary(
+      @Nullable final FeatureListAppliedMethod method) {
+    if (method == null || !(method.getModule() instanceof IntensityNormalizerModule)) {
+      return IntensityNormalizationSummary.EMPTY;
+    }
+    return method.getParameters().getValue(IntensityNormalizerParameters.hiddenNormalizationSummary);
+  }
+
   @Override
   public Region build() {
     final Label title = FxLabels.newLabel(Styles.BOLD_TITLE, model.titleProperty());
@@ -133,8 +145,16 @@ public class FeatureListSummaryViewBuilder extends FxViewBuilder<FeatureListSumm
     final Button btnOpenInBatchQueue = FxButtons.createButton("Open in batch queue", null,
         onOpenInBatchQueue);
     final Button exportButton = FxButtons.createButton("Export", null, onExport);
+    final Button qcDiagnostics = FxButtons.createButton("QC diagnostics", null, () -> {
+      final IntensityNormalizationSummary summary = normalizationSummary(
+          lvAppliedMethods.getSelectionModel().getSelectedItem());
+      FeatureQcDiagnosticsView.show(summary.featureQc());
+    });
+    qcDiagnostics.setDisable(true);
+    lvAppliedMethods.getSelectionModel().selectedItemProperty().addListener((_, _, selected) ->
+        qcDiagnostics.setDisable(normalizationSummary(selected).featureQc().isEmpty()));
     final ButtonBar buttonBar = new ButtonBar();
-    buttonBar.getButtons().addAll(btnOpenInBatchQueue, exportButton);
+    buttonBar.getButtons().addAll(btnOpenInBatchQueue, exportButton, qcDiagnostics);
 
     final GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
     grid.setPadding(FxLayout.DEFAULT_PADDING_INSETS);

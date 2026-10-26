@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
-
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
@@ -100,16 +98,16 @@ final class WizardAutoParamActions {
   }
 
   /**
-   * Disables estimation and optimization while a task runs. The parameter estimation needs
-   * chromatographic traces, so spatial imaging (MALDI, LDI, DESI, SIMS) is not supported.
+   * Disables estimation and optimization while a task runs or an imaging interface is selected.
+   * Chromatography, direct infusion, and flow injection use the shared isotope-supported estimator.
    */
   @NotNull BooleanBinding createDisabledBinding(
       @NotNull ReadOnlyObjectProperty<WizardStepParameters> selectedIonInterface) {
-    final BooleanBinding imagingSelected = Bindings.createBooleanBinding(
+    final BooleanBinding unsupportedInterfaceSelected = Bindings.createBooleanBinding(
         () -> selectedIonInterface.get() != null && selectedIonInterface.get()
             .getFactory() instanceof IonInterfaceWizardParameterFactory ionInterface
             && ionInterface.isImaging(), selectedIonInterface);
-    return runningTasks.greaterThan(0).or(imagingSelected);
+    return runningTasks.greaterThan(0).or(unsupportedInterfaceSelected);
   }
 
   /**
@@ -126,7 +124,7 @@ final class WizardAutoParamActions {
           "Estimation and optimization will apply processing and alter wizard settings.",
           FxTextFlows.newTextFlow(FxTexts.text("""
               Running parameter estimation or optimization will apply multiple mass detection steps to imported and already imported raw data.
-              
+
               - Present mass detection results will be overridden.
               - Current wizard settings will be altered as a result of estimation
               - Present parameter customisation in the advanced mode will be dropped""")),
@@ -145,8 +143,7 @@ final class WizardAutoParamActions {
     if (input == null) {
       return;
     }
-    preclassify(input, ESTIMATE_ERROR,
-        preclassification -> startEstimation(input, preclassification, showStatistics));
+    startEstimation(input, showStatistics);
   }
 
   /**
@@ -172,35 +169,22 @@ final class WizardAutoParamActions {
   }
 
   /**
-   * The representative files of the data import step, see
-   * {@link RawDataPreparation#selectOptimizerInputFiles(File[])}. Selected once, so the random
-   * selection does not change between pre-classification and run.
+   * The representative files of the data import step. Selected once, so the random selection does
+   * not change between pre-classification and run.
    *
    * @return the files, null after showing an error if there are too few
    */
   private @Nullable InputFiles selectInputFiles(@NotNull String errorTitle, int minFiles) {
     wizard.updateAllParametersFromUi();
-    final WizardStepParameters importStep = wizard.getSequence().get(DATA_IMPORT).orElse(null);
-    if (importStep == null) {
-      DialogLoggerUtil.showErrorDialog(errorTitle, "The wizard has no data import step.");
+    try {
+      final RawDataPreparation.WizardAnalysisInput input =
+          RawDataPreparation.selectWizardAnalysisInput(wizard.getSequence(), minFiles,
+              RawDataPreparation.AnalysisInputSelectionMode.REPRESENTATIVE);
+      return new InputFiles(input.analysisFiles(), input.metadataFile());
+    } catch (IllegalStateException e) {
+      DialogLoggerUtil.showErrorDialog(errorTitle, e.getMessage());
       return null;
     }
-    final File[] allFiles = importStep.getValue(DataImportWizardParameters.fileNames);
-    if (allFiles == null || allFiles.length == 0) {
-      DialogLoggerUtil.showErrorDialog(errorTitle,
-          "Select at least one raw data file in the Data Import step first.");
-      return null;
-    }
-    final File[] files = RawDataPreparation.selectOptimizerInputFiles(allFiles);
-    if (files.length < minFiles) {
-      DialogLoggerUtil.showErrorDialog(errorTitle, """
-          This requires at least %d raw data files. Those data files need to be comparable (same \
-          instrument, same method, similar or same sample).""".formatted(minFiles));
-      return null;
-    }
-    final File metadataFile = importStep.getOptionalValue(DataImportWizardParameters.metadataFile)
-        .orElse(null);
-    return new InputFiles(files, metadataFile);
   }
 
   /**
@@ -248,17 +232,14 @@ final class WizardAutoParamActions {
     return dialog.getExitCode() == ExitCode.OK ? resolved.parameters() : null;
   }
 
-  /**
-   * @param preclassification the settings fixed by the pre-classification, see
-   *                          {@link PreclassificationParameters}
-   */
-  private void startEstimation(@NotNull InputFiles input, @NotNull ParameterSet preclassification,
-      final boolean showStatistics) {
-    // keep edits made while the pre-classification was running
+  private void startEstimation(@NotNull InputFiles input, final boolean showStatistics) {
+    // Copy on the JavaFX thread, so the background task never reads the live wizard.
     wizard.updateAllParametersFromUi();
     final WizardParameterEstimationTask task = new WizardParameterEstimationTask(
         MemoryMapStorage.forRawDataFile(), Instant.now(), input.files(), input.metadataFile(),
-        wizard.getSequence().copy(), preclassification, wizard::confirmAndSwitchPresets,
+        wizard.getSequence().copy(),
+        resolution -> resolvePreclassification(resolution, ESTIMATE_ERROR),
+        wizard::confirmAndSwitchPresets,
         result -> applyEstimation(result, showStatistics));
     startTask(task, ESTIMATE_ERROR);
   }

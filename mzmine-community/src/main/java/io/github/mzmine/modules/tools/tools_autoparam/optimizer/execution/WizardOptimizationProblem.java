@@ -28,14 +28,18 @@ package io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BatchParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.BenchmarkFeatureLoader;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationEvidence;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ValueOrigin;
@@ -51,18 +55,23 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SearchSca
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
@@ -78,7 +87,7 @@ import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.core.variable.Variable;
 import org.moeaframework.problem.AbstractProblem;
 
-public class WizardOptimizationProblem extends AbstractProblem implements SearchScaleProvider {
+public class WizardOptimizationProblem extends AbstractProblem implements SearchScaleProvider, AutoCloseable {
 
   /**
    * Position of a solution in the evaluation order, so the results table can show convergence.
@@ -132,8 +141,15 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * space. Selected optimizer variables are applied afterwards and therefore take precedence.
    */
   private final @NotNull PreparedParameterSet preparedParameters;
+  /**
+   * Aggregate diagnostics for the fixed estimate baseline. Candidate evaluations intentionally do
+   * not replace this evidence because they do not re-measure the raw data.
+   */
+  private final @NotNull Map<String, ParameterEstimationEvidence> estimationEvidence;
+  private final int estimationFileCount;
   private final @NotNull List<FeatureRecord> fileOnlyBenchmarkFeatures;
   private final @NotNull BatchExecutionBudget batchExecutionBudget;
+  private final boolean evaluatesInitialUserSettings;
   private final @NotNull ElapsedTimeTracker elapsedTimeTracker = new ElapsedTimeTracker();
   /**
    * Every completed proposal in evaluation order, including cache hits. Keeping them lets the
@@ -168,6 +184,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    */
   private volatile @Nullable Consumer<Solution> evaluationListener;
   private final AtomicInteger completedBatchExecutions = new AtomicInteger();
+  private final AtomicBoolean initialUserSettingsEvaluated = new AtomicBoolean();
 
   public WizardOptimizationProblem(@NotNull ParameterEstimationContext estimationContext,
       @NotNull PreparedParameterSet prepared, @NotNull ParameterSet param,
@@ -191,6 +208,7 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
     fileOnlyBenchmarkFeatures = BenchmarkFeatureParameters.loadBenchmarkFeatures(param);
     batchExecutionBudget = new BatchExecutionBudget(maxBatchExecutions);
+    evaluatesInitialUserSettings = param.getValue(OptimizerParameters.evaluateInitialUserSettings);
     target = Objects.requireNonNull(BenchmarkFeatureLoader.fromStatistics(stats));
     this.paramToOptimize = List.copyOf(paramToOptimize);
     this.stopSearchRequestedSupplier = stopSearchRequestedSupplier;
@@ -199,10 +217,14 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     initialSequence = estimationContext.sequence();
     final File[] files = stats.stream().map(DataFileStatistics::file)
         .map(RawDataFile::getAbsoluteFilePath).toArray(File[]::new);
-    batchEvaluator = new OptimizationBatchEvaluator(files, enabledMetrics,
-        new MetricContext(target), fileOnlyBenchmarkFeatures, externalStatus);
+    batchEvaluator = new OptimizationBatchEvaluator(files, enabledMetrics, new MetricContext(target),
+        fileOnlyBenchmarkFeatures, externalStatus);
 
     preparedParameters = prepared;
+    estimationEvidence = prepared.parameters().stream().collect(Collectors.toUnmodifiableMap(
+        parameter -> parameter.definition().id(),
+        parameter -> ParameterEstimationEvidence.describe(estimationContext, parameter)));
+    estimationFileCount = stats.size();
     indexedParameters = IndexedParameter.bind(preparedParameters, paramToOptimize);
   }
 
@@ -286,6 +308,121 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     notifyEvaluationCompleted(solution);
   }
 
+  /**
+   * Scores the wizard settings captured before estimation without translating them through the
+   * optimizer search domain. In particular, this avoids clamping user values that lie outside that
+   * domain.
+   * <p>
+   * This baseline is intentionally absent from {@link #evaluatedSolutions} and the cache: it is a
+   * separately labelled comparison, not an optimizer observation or a rankable candidate. Its
+   * batch is explicitly outside the configured estimate and search budget.
+   *
+   * @param initialUserSettings wizard settings captured before the task began
+   * @return the scored initial-user-settings baseline
+   */
+  public @NotNull Solution evaluateInitialUserSettings(
+      @NotNull WizardSequence initialUserSettings) {
+    if (!evaluatesInitialUserSettings) {
+      throw new IllegalStateException("Initial user settings comparison is disabled.");
+    }
+    if (!initialUserSettingsEvaluated.compareAndSet(false, true)) {
+      throw new IllegalStateException("Initial user settings may only be evaluated once.");
+    }
+    if (stopSearchRequestedSupplier.getAsBoolean()) {
+      throw new OptimizationSearchStoppedException();
+    }
+    final Solution initial = newInitialUserSettingsSolution(initialUserSettings);
+    SolutionOrigin.INITIAL_USER_SETTINGS.applyTo(initial);
+    final int batchExecutionIndex = batchEvaluator.evaluate(copyForEvaluation(initialUserSettings),
+        initial, getNumberOfConstraints() > 0, batchExecutionBudget::reserveAdditional);
+    completedBatchExecutions.incrementAndGet();
+    initial.setAttribute(ATTR_CACHE_HIT, false);
+    initial.setAttribute(ATTR_BATCH_EXECUTION_INDEX, batchExecutionIndex);
+    initial.setAttribute(ATTR_ELAPSED_OPTIMIZATION_SECONDS, elapsedTimeTracker.elapsedSeconds());
+    return initial;
+  }
+
+  /**
+   * Creates a scored comparison row without optimizer variables. Its values are a snapshot of the
+   * native wizard and generated batch queue, so the table and CSV never report clamped estimates
+   * as the user's initial settings.
+   */
+  private @NotNull Solution newInitialUserSettingsSolution(
+      @NotNull WizardSequence initialUserSettings) {
+    final Solution initial = new Solution(0, getNumberOfObjectives(), getNumberOfConstraints());
+    if (getNumberOfConstraints() > 0) {
+      initial.setConstraint(0, new LessThanOrEqual(ShapeScoreDiagnostic.ATTR_REMOVE_PERCENT,
+          shapeRejectionLimitPercent));
+    }
+    int objectiveIndex = 0;
+    for (final SweepMetric metric : enabledMetrics) {
+      initial.setObjective(objectiveIndex++, metric.objective());
+    }
+    initial.setAttribute(IndexedParameter.ATTR_DISPLAY_VALUES,
+        new LinkedHashMap<>(initialUserSettingsDisplayValues(initialUserSettings)));
+    return initial;
+  }
+
+  /**
+   * Snapshots display values only for the initial user batch comparison, not optimizer candidates.
+   */
+  private @NotNull Map<String, String> initialUserSettingsDisplayValues(
+      @NotNull WizardSequence initialUserSettings) {
+    final Map<String, String> values = new LinkedHashMap<>();
+    final boolean hasBatchParameters = indexedParameters.stream()
+        .anyMatch(parameter -> parameter.parameter().definition() instanceof BatchParameterDefinition<?>);
+    final BatchQueue queue = hasBatchParameters ? createInitialSettingsQueue(initialUserSettings)
+        : null;
+    for (final IndexedParameter<?> parameter : indexedParameters) {
+      final String value = switch (parameter.parameter().definition()) {
+        case WizardParameterDefinition<?> definition -> parameter.formatNativeValue(
+            initialUserSettings.get(definition.part()).orElseThrow().getValue(definition.parameter()));
+        case BatchParameterDefinition<?> definition -> effectiveBatchParameterValue(parameter,
+            Objects.requireNonNull(queue), definition);
+      };
+      values.put(parameter.parameter().definition().id(), value);
+    }
+    return values;
+  }
+
+  /**
+   * Builds the same native queue that is evaluated, including enabled customization overrides,
+   * solely to snapshot effective advanced-parameter values for the non-applicable baseline row.
+   */
+  private @NotNull BatchQueue createInitialSettingsQueue(@NotNull WizardSequence initialUserSettings) {
+    return batchEvaluator.createEvaluationQueue(copyForEvaluation(initialUserSettings));
+  }
+
+  /**
+   * Formats an effective batch parameter only for the initial user batch comparison.
+   */
+  private static @NotNull String effectiveBatchParameterValue(@NotNull IndexedParameter<?> indexed,
+      @NotNull BatchQueue queue, @NotNull BatchParameterDefinition<?> definition) {
+    final List<ParameterSet> matching = queue.stream()
+        .filter(step -> step.getModule().getClass().getName().equals(definition.moduleClassName()))
+        .map(MZmineProcessingStep::getParameterSet).toList();
+    final List<ParameterSet> scoped = switch (definition.scope()) {
+      case ALL -> matching;
+      case FIRST -> matching.isEmpty() ? List.of() : List.of(matching.getFirst());
+      case LAST -> matching.isEmpty() ? List.of() : List.of(matching.getLast());
+    };
+    final List<String> values = scoped.stream()
+        .map(parameters -> findParameter(parameters, definition.parameterName()))
+        .filter(Objects::nonNull).map(parameter -> indexed.formatNativeValue(parameter.getValue()))
+        .distinct().toList();
+    return switch (values.size()) {
+      case 0 -> "not present in generated batch";
+      case 1 -> values.getFirst();
+      default -> "varies by batch step: " + String.join("; ", values);
+    };
+  }
+
+  private static @Nullable Parameter<?> findParameter(@NotNull ParameterSet parameters,
+      @NotNull String name) {
+    return Arrays.stream(parameters.getParameters())
+        .filter(parameter -> parameter.getName().equals(name)).findFirst().orElse(null);
+  }
+
   @Override
   public @NotNull SearchScale searchScale(int parameterIndex) {
     return indexedParameters.get(parameterIndex).parameter().searchDomain().searchScale();
@@ -301,6 +438,20 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
   public @NotNull List<IndexedParameter<?>> getIndexedParameters() {
     return indexedParameters;
+  }
+
+  /**
+   * Aggregate evidence for the fixed raw-data estimate baseline, keyed by parameter definition ID.
+   */
+  public @NotNull Map<String, ParameterEstimationEvidence> getEstimationEvidence() {
+    return estimationEvidence;
+  }
+
+  /**
+   * Number of files from which the fixed estimate baseline was prepared.
+   */
+  public int getEstimationFileCount() {
+    return estimationFileCount;
   }
 
   private void notifyEvaluationCompleted(@NotNull Solution solution) {
@@ -354,20 +505,27 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
   }
 
   /**
-   * Creates a wizard sequence from the solution. The wizard sequence also stores the parameters for
-   * the respective steps. The new sequence is ALWAYS created from the
-   * {@link WizardStepParameters#createDefaultParameterPreset()}, so potentially bad user-entered
-   * parameters are ignored.
+   * Creates a detached candidate from preset defaults and the prepared optimization baseline, then
+   * applies the solution's parameter values.
+   * <p>
+   * The complete original Data configuration is copied instead of reset to defaults, so candidates
+   * and the optional scored initial-user-settings comparison use the same import and metadata
+   * extraction settings. The evaluator replaces the raw-file selection on this temporary sequence
+   * with the fixed analysis files before building the batch. The live wizard's full file selection
+   * remains unchanged.
    *
-   * @param solution The current solution (stores the variables we pipe into the wizard parameters)
-   * @return The WizardSequence with the parameter values applied from the solution.
+   * @param solution the candidate's optimization variables
+   * @return a detached wizard sequence with the candidate's parameter values
    */
   public @NotNull WizardSequence createWizardSequenceFromSolution(@NotNull Solution solution) {
 
     final WizardSequence wizardSequence = new WizardSequence();
 
-    final WizardStepParameters dataParam = initialSequence.get(WizardPart.DATA_IMPORT).get()
-        .getFactory().create();
+    // decision: candidates keep the same full Data settings as the initial-user baseline. The
+    // evaluator replaces only the fixed selected raw files immediately before queue creation.
+    final WizardStepParameters sourceData = initialSequence.get(WizardPart.DATA_IMPORT).orElseThrow();
+    final WizardStepParameters dataParam = sourceData.getFactory().create();
+    ParameterUtils.copyParameters(sourceData, dataParam);
     final WizardStepParameters lcParam = initialSequence.get(WizardPart.ION_INTERFACE).get()
         .createDefaultParameterPreset().getFactory().create();
     final WizardStepParameters filterParam = initialSequence.get(WizardPart.FILTER).get()
@@ -397,12 +555,23 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
       parameter.applyToWizard(solution, wizardSequence);
     }
 
-    if (workflowParam.getNameParameterMap()
-        .get(WorkflowDdaWizardParameters.exportPath.getName()) instanceof OptionalParameter<?>) {
-      workflowParam.setParameter(WorkflowDdaWizardParameters.exportPath, false);
-    }
+    disableExportPath(workflowParam);
 
     return wizardSequence;
+  }
+
+  static @NotNull WizardSequence copyForEvaluation(@NotNull WizardSequence source) {
+    final WizardSequence copy = source.copy();
+    final WizardStepParameters workflow = copy.get(WizardPart.WORKFLOW).orElseThrow();
+    disableExportPath(workflow);
+    return copy;
+  }
+
+  private static void disableExportPath(@NotNull WizardStepParameters workflow) {
+    if (workflow.getNameParameterMap()
+        .get(WorkflowDdaWizardParameters.exportPath.getName()) instanceof OptionalParameter<?>) {
+      workflow.setParameter(WorkflowDdaWizardParameters.exportPath, false);
+    }
   }
 
   /**
@@ -526,6 +695,11 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
     return batchExecutionBudget.count();
   }
 
+  /** Number of batches consumed from the configured estimate and search budget. */
+  public int getSearchBatchExecutionCount() {
+    return batchExecutionBudget.searchCount();
+  }
+
   /**
    * Number of uncached full batches that finished with a score, including the raw-data estimate.
    * Lower than {@link #getBatchExecutionCount()} while a batch runs.
@@ -535,10 +709,11 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
   }
 
   /**
-   * @return the full batch budget, including the raw-data estimate
+   * @return all full batches expected for this run, including the optional initial-user-settings
+   *     comparison batch
    */
   public int getMaxBatchExecutions() {
-    return batchExecutionBudget.maximum();
+    return batchExecutionBudget.maximum() + (evaluatesInitialUserSettings ? 1 : 0);
   }
 
   public @NotNull List<FeatureRecord> getAllTargets() {
@@ -551,6 +726,16 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
 
   public @NotNull List<SweepMetric> getEnabledMetrics() {
     return enabledMetrics;
+  }
+
+  @Override
+  public void close() {
+    batchEvaluator.close();
+  }
+
+  /** Requests cancellation without blocking a caller such as the JavaFX status listener. */
+  public void cancel() {
+    batchEvaluator.cancel();
   }
 
 }

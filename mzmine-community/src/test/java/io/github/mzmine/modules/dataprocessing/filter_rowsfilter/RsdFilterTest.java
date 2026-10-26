@@ -33,12 +33,16 @@ import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListTestUtils;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -74,5 +78,68 @@ class RsdFilterTest {
     Assertions.assertEquals(rawFiles.subList(0, 2), filter.getGroupDataFiles());
     Assertions.assertEquals(2, filter.dataTable().getFeatureRow(0).countOriginalMissingValues());
     Assertions.assertFalse(filter.matches(row, 0));
+  }
+
+  @Test
+  void testAppliedMethodRecordsConfiguredRsdGrouping() {
+    final List<RawDataFileImpl> files = FeatureListTestUtils.createRawFiles(3, "sample",
+        LocalDateTime.of(2026, 1, 1, 0, 0), Duration.ofMinutes(1));
+    final List<RawDataFile> rawFiles = List.copyOf(files);
+    final ModularFeatureList featureList = new ModularFeatureList("feature list", null,
+        rawFiles.toArray(RawDataFile[]::new));
+    FeatureListTestUtils.addRow(featureList, 1, rawFiles, Arrays.asList(100f, 101f, 300f));
+
+    final MZmineProjectImpl project = new MZmineProjectImpl();
+    ProjectService.getProjectManager().setCurrentProject(project);
+    final MetadataTable metadata = ProjectService.getMetadata();
+    final MetadataColumn<String> sampleTypeColumn = metadata.getSampleTypeColumn();
+    metadata.setValue(sampleTypeColumn, rawFiles.get(0), SampleType.QC.toString());
+    metadata.setValue(sampleTypeColumn, rawFiles.get(1), SampleType.QC.toString());
+    metadata.setValue(sampleTypeColumn, rawFiles.get(2), SampleType.SAMPLE.toString());
+    project.addFeatureList(featureList);
+
+    final ParameterSet parameters = configuredRowsFilter(true);
+    final RowsFilterTask task = new RowsFilterTask(project, featureList, parameters, null,
+        Instant.now());
+    task.run();
+    Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());
+    final String description = featureList.getAppliedMethods().getLast().getDescription();
+    final Metadata1GroupSelection qcSelection = parameters.getParameter(RowsFilterParameters.cvFilter)
+        .getEmbeddedParameters().getValue(RsdFilterParameters.grouping);
+    Assertions.assertEquals("Filtering feature list rows (RSD group: \"%s\" in metadata column \"%s\")".formatted(
+        qcSelection.groupStr(), qcSelection.columnName()), description);
+
+    // Metadata may change after the task; the applied method keeps the configured grouping text.
+    metadata.setValue(sampleTypeColumn, rawFiles.get(0), SampleType.SAMPLE.toString());
+    Assertions.assertEquals(description, featureList.getAppliedMethods().getLast().getDescription());
+  }
+
+  @Test
+  void testAppliedMethodDoesNotAddRsdGroupingWhenRsdFilterIsDisabled() {
+    final var files = FeatureListTestUtils.createRawFiles(2, "sample",
+        LocalDateTime.of(2026, 1, 1, 0, 0), Duration.ofMinutes(1));
+    final List<RawDataFile> rawFiles = List.copyOf(files);
+    final ModularFeatureList featureList = new ModularFeatureList("feature list", null,
+        rawFiles.toArray(RawDataFile[]::new));
+    FeatureListTestUtils.addRow(featureList, 1, rawFiles, Arrays.asList(100f, 101f));
+    final MZmineProjectImpl project = new MZmineProjectImpl();
+    ProjectService.getProjectManager().setCurrentProject(project);
+    project.addFeatureList(featureList);
+
+    final RowsFilterTask task = new RowsFilterTask(project, featureList,
+        configuredRowsFilter(false), null, Instant.now());
+    task.run();
+
+    Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());
+    Assertions.assertEquals("Filtering feature list rows",
+        featureList.getAppliedMethods().getLast().getDescription());
+  }
+
+  private static ParameterSet configuredRowsFilter(boolean enableRsdFilter) {
+    final ParameterSet parameters = RowsFilterParameters.createDefaultAllOff();
+    parameters.setParameter(RowsFilterParameters.handleOriginal,
+        OriginalFeatureListOption.PROCESS_IN_PLACE);
+    parameters.setParameter(RowsFilterParameters.cvFilter, enableRsdFilter);
+    return parameters;
   }
 }
