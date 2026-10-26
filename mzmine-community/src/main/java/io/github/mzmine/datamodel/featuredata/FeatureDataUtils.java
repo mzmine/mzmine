@@ -54,7 +54,6 @@ import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormaliza
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationFunction;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
@@ -419,7 +418,7 @@ public class FeatureDataUtils {
       IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
               feature.getFeatureList(), feature.getRawDataFile())
           .ifPresentOrElse(normalizer -> normalizeAbundances(feature, normalizer),
-              () -> clearIntensityNormalization(feature));
+              () -> clearIntensityNormalizationFromFeature(feature));
     }
   }
 
@@ -522,7 +521,7 @@ public class FeatureDataUtils {
     final OptionalDouble resolved = normalizer.getNormalizationFactor(row, feature.getMZ(),
         feature.getRT());
     if (resolved.isEmpty()) {
-      clearIntensityNormalization(feature);
+      clearIntensityNormalizationFromFeature(feature);
       return;
     }
     final double factor = resolved.getAsDouble();
@@ -560,32 +559,13 @@ public class FeatureDataUtils {
   }
 
   /**
-   * Re-applies a row-dependent normalization after features were added to rows, e.g., by gap
-   * filling. Row-dependent normalization is skipped for new features that are not in their row yet,
-   * see {@link #normalizeAbundances(ModularFeature, NormalizationFunction)}. Row bindings are not
-   * applied.
-   *
-   * @return true if the feature list has a row-dependent normalization and it was applied. Then the
-   * row bindings need to be applied afterward.
-   */
-  public static boolean applyRowDependentIntensityNormalization(@NotNull final FeatureList flist) {
-    if (!NormalizationRowIdentity.hasRowDependentNormalization(flist)) {
-      return false;
-    }
-    final IntensityNormalizationSummary normalization = flist.getSettings().normalization();
-    applyIntensityNormalization(flist,
-        normalization.toSearchableSummary(flist.getRawDataFiles()));
-    return true;
-  }
-
-  /**
    * Reset all {@link NormalizedAreaType} and {@link NormalizedHeightType}
    */
-  public static void clearIntensityNormalization(FeatureList flist) {
-    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalization);
+  public static void clearIntensityNormalizationFromFeature(FeatureList flist) {
+    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalizationFromFeature);
   }
 
-  public static void clearIntensityNormalization(ModularFeature feature) {
+  public static void clearIntensityNormalizationFromFeature(ModularFeature feature) {
     feature.set(NormalizedAreaType.class, null);
     feature.set(NormalizedHeightType.class, null);
   }

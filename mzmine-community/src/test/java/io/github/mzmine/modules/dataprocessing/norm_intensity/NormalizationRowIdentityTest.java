@@ -79,7 +79,7 @@ class NormalizationRowIdentityTest {
 
     // a later task adds a new row with the ID of the removed row 5
     final ModularFeatureListRow reused = addRow(copy, 5, fixture.raw, 30f, null, null);
-    FeatureDataUtils.applyRowDependentIntensityNormalization(copy);
+    NormalizationRowIdentity.applyRowDependentIntensityNormalization(copy);
 
     assertNull(((ModularFeature) reused.getFeature(fixture.raw)).get(NormalizedAreaType.class));
   }
@@ -94,11 +94,26 @@ class NormalizationRowIdentityTest {
 
     // a later task adds a new row with the ID of the removed row 5
     final ModularFeatureListRow reused = addRow(copy, 5, fixture.raw, 30f, null, null);
-    FeatureDataUtils.applyRowDependentIntensityNormalization(copy);
+    NormalizationRowIdentity.applyRowDependentIntensityNormalization(copy);
 
     assertNull(((ModularFeature) reused.getFeature(fixture.raw)).get(NormalizedAreaType.class));
     // source keeps its own factors
     assertEquals(Map.of(5, 2d, 7, 4d), rowFactors(fixture.list).factors());
+  }
+
+  @Test
+  void deletingRowsInPlaceDropsTheirFactors() {
+    final Fixture fixture = fixture();
+    // like the delete rows module, removing rows drops their factors
+    fixture.list.removeRows(List.of(fixture.list.findRowByID(5)));
+
+    assertEquals(Map.of(7, 4d), rowFactors(fixture.list).factors());
+    assertEquals(Map.of(), rowFactors(fixture.list).unavailableReasons());
+
+    // a later task adds a new row with the ID of the deleted row 5
+    final ModularFeatureListRow reused = addRow(fixture.list, 5, fixture.raw, 30f, null, null);
+    NormalizationRowIdentity.applyRowDependentIntensityNormalization(fixture.list);
+    assertNull(((ModularFeature) reused.getFeature(fixture.raw)).get(NormalizedAreaType.class));
   }
 
   @Test
@@ -121,7 +136,7 @@ class NormalizationRowIdentityTest {
     final ModularFeatureListRow row = (ModularFeatureListRow) fixture.list.findRowByID(7);
     final RawDataFileImpl raw = fixture.raw;
     final ModularFeature feature = (ModularFeature) row.getFeature(raw);
-    FeatureDataUtils.clearIntensityNormalization(feature);
+    FeatureDataUtils.clearIntensityNormalizationFromFeature(feature);
 
     // like gap filling: the new feature is normalized before it is added to its row
     final ModularFeature newFeature = new ModularFeature(fixture.list, feature);
@@ -132,7 +147,7 @@ class NormalizationRowIdentityTest {
     assertNull(newFeature.get(NormalizedAreaType.class));
 
     row.addFeature(raw, newFeature, false);
-    assertTrue(FeatureDataUtils.applyRowDependentIntensityNormalization(fixture.list));
+    assertTrue(NormalizationRowIdentity.applyRowDependentIntensityNormalization(fixture.list));
 
     assertEquals(20f * 4f, newFeature.get(NormalizedAreaType.class), 1e-4);
     assertEquals(20f * 4f, newFeature.get(NormalizedHeightType.class), 1e-4);
@@ -153,7 +168,7 @@ class NormalizationRowIdentityTest {
             .orElseThrow());
 
     assertEquals(30f, newFeature.get(NormalizedAreaType.class), 1e-4);
-    assertFalse(FeatureDataUtils.applyRowDependentIntensityNormalization(list));
+    assertFalse(NormalizationRowIdentity.applyRowDependentIntensityNormalization(list));
   }
 
   /**

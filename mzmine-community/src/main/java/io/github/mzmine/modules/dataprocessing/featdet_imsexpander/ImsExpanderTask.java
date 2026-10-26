@@ -52,6 +52,7 @@ import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -136,6 +137,8 @@ public class ImsExpanderTask extends AbstractTask {
         getMemoryMapStorage(), imsFile);
     // do not transfer types add them later
     FeatureListUtils.transferMetadata(flist, newFlist, false);
+    // expanded features have new intensities, an earlier normalization does not apply to them
+    NormalizationRowIdentity.removeIntensityNormalization(newFlist);
     DataTypeUtils.addDefaultIonMobilityTypeColumns(newFlist);
 
     desc = "Mobility expanding feature list " + flist.getName();

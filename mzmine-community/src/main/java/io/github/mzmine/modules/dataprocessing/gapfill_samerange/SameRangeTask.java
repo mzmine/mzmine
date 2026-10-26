@@ -29,7 +29,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -50,6 +49,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -146,7 +146,7 @@ class SameRangeTask extends AbstractTask {
 
     // row-dependent normalization needs the row of a feature, which is only set when the feature
     // is added. Apply once to all features and update the row bindings again
-    if (FeatureDataUtils.applyRowDependentIntensityNormalization(processedPeakList)) {
+    if (NormalizationRowIdentity.applyRowDependentIntensityNormalization(processedPeakList)) {
       processedPeakList.applyRowBindings();
     }
 

@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -50,6 +49,7 @@ import io.github.mzmine.taskcontrol.utils.TaskResultSummary.ErrorMessageHandling
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.mzio.links.MzioMZmineLinks;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -180,7 +180,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
     // row-dependent normalization needs the row of a feature, which is only set when the feature
     // is added. Apply once to all features before the row bindings
-    FeatureDataUtils.applyRowDependentIntensityNormalization(processedPeakList);
+    NormalizationRowIdentity.applyRowDependentIntensityNormalization(processedPeakList);
 
     // update all rows by row bindings (average values)
     // this needs to be done after all tasks finish because values were not updated when

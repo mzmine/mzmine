@@ -40,7 +40,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -91,9 +90,10 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
           "_" + (sampleGroup.value() != null ? sampleGroup.valueString()
               : sampleGroup.files().getFirst().getName()), getMemoryMapStorage(), false,
           sampleGroup.files(), false, null, null);
-      // decision: the split lists are reprocessed per sample group (e.g., resolve, expand,
-      // align again). An intensity normalization only stays valid on the aligned list it was
-      // calculated for, so it is dropped here instead of in every module that creates new features
+      // decision: reprocessing policy. Splitting itself does not invalidate the normalization, but
+      // split lists are meant to be reprocessed per sample group (e.g., resolve, expand, align
+      // again), which creates features with new intensities. The normalization is dropped here once
+      // instead of in every module that creates new features. Normalize again after alignment
       resultFlist.setSettings(resultFlist.getSettings().withNormalization(null));
 
       for (final FeatureListRow row : flist.getRows()) {
@@ -112,7 +112,7 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
             continue;
           }
           final ModularFeature copiedFeature = new ModularFeature(resultFlist, feature);
-          FeatureDataUtils.clearIntensityNormalization(copiedFeature);
+          FeatureDataUtils.clearIntensityNormalizationFromFeature(copiedFeature);
           copiedRow.addFeature(file, copiedFeature, false);
           finishedItems.getAndIncrement();
         }

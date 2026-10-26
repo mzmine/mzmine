@@ -50,6 +50,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -666,6 +667,7 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
+    NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
   }
 
   /**
@@ -691,6 +693,7 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
+    NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
   }
 
   /**
@@ -716,6 +719,8 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
+    // a later row that reuses a removed row ID must not get its normalization factor
+    NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
   }
 
   /**

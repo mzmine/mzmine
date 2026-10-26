@@ -416,7 +416,7 @@ class IntensityNormalizerTask extends AbstractTask {
     final NormalizedHeightType normHeightType = DataTypes.get(NormalizedHeightType.class);
     if (featureList.hasFeatureType(normAreaType) || featureList.hasFeatureType(normHeightType)) {
       // clear old normalization, e.g., when normalizing in place again
-      FeatureDataUtils.clearIntensityNormalization(featureList);
+      FeatureDataUtils.clearIntensityNormalizationFromFeature(featureList);
     } else {
       // add as feature types and row type will be added as binding
       featureList.addFeatureType(normHeightType);
