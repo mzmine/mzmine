@@ -30,7 +30,7 @@ import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
-import java.util.Set;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -101,14 +101,15 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
     return false;
   }
 
-  /** Row IDs embedded in this function and therefore reserved from later reuse. */
-  default @NotNull Set<Integer> protectedRowIds() {
-    return Set.of();
-  }
-
-  /** Fast single-ID check used by row allocators; implementations must not materialize all IDs. */
-  default boolean protectsRowId(final int rowId) {
-    return false;
+  /**
+   * Remaps row-dependent factors after feature-list rows were copied, filtered or renumbered.
+   *
+   * @param oldToNewIds old row ID -> new row ID. Factors of rows missing from the map are dropped.
+   * @return this function if it is not row dependent, otherwise a remapped copy
+   */
+  default @NotNull NormalizationFunction remapRowIds(
+      @NotNull final Map<Integer, Integer> oldToNewIds) {
+    return this;
   }
 
   /**

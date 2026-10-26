@@ -63,7 +63,6 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
@@ -122,16 +121,6 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     this(flist, flist.getRowsSchema());
     // set ID
     this.set(IDType.class, id);
-  }
-
-  @Override
-  public <T> boolean set(final DataType<T> type, final T value) {
-    if (type instanceof IDType && NormalizationRowIdentity.hasActiveRowDependentNormalization(flist)
-        && flist.getRows().contains(this)
-        && !java.util.Objects.equals(get(IDType.class), value)) {
-      NormalizationRowIdentity.requireRenumberingAllowed(flist);
-    }
-    return super.set(type, value);
   }
 
   /**

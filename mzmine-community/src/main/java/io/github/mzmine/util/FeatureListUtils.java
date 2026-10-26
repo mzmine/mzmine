@@ -69,6 +69,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -659,9 +660,6 @@ public class FeatureListUtils {
    * @param featureList target list
    */
   public static void sortByDefault(FeatureList featureList, boolean renumberIDs) {
-    if (renumberIDs) {
-      NormalizationRowIdentity.requireRenumberingAllowed(featureList);
-    }
     featureList.applyDefaultRowsSorting();
 
     if (!renumberIDs) {
@@ -867,9 +865,6 @@ public class FeatureListUtils {
       @Nullable String fullTitle, final @Nullable String suffix, final MemoryMapStorage storage,
       boolean copyRows, List<RawDataFile> dataFiles, boolean renumberIDs,
       final @Nullable Integer totalRows, final @Nullable Integer totalFeatures) {
-    if (renumberIDs) {
-      NormalizationRowIdentity.requireRenumberingAllowed(featureList);
-    }
     if (StringUtils.isBlank(fullTitle) && StringUtils.isBlank(suffix)) {
       throw new IllegalArgumentException("Either suffix or fullTitle need a value");
     }
@@ -929,9 +924,6 @@ public class FeatureListUtils {
       @Nullable final String fullTitle, @Nullable final String suffix,
       @Nullable final MemoryMapStorage storage,
       @NotNull final Collection<? extends FeatureListRow> rowsToKeep, final boolean renumberIDs) {
-    if (renumberIDs) {
-      NormalizationRowIdentity.requireRenumberingAllowed(source);
-    }
     final int totalFeatures = rowsToKeep.stream().mapToInt(FeatureListRow::getNumberOfFeatures)
         .sum();
     final ModularFeatureList target = createCopy(source, fullTitle, suffix, storage, false,
@@ -959,7 +951,8 @@ public class FeatureListUtils {
   /**
    * Copies all input rows into the new feature list, sorted by
    * {@link #getDefaultRowSorter(FeatureList)}: a new feature list is expected to be sorted.
-   * Renumbering in that order.
+   * Renumbering in that order. Row-dependent normalization factors are remapped to the new row
+   * IDs. Without rows to copy, the normalization of the new feature list is removed.
    *
    * @return maps each source row to its copy. Pass this to
    * {@link #transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Function)} to also transfer
@@ -973,6 +966,8 @@ public class FeatureListUtils {
 
     final Map<FeatureListRow, ModularFeatureListRow> rowMapping = new IdentityHashMap<>(
         rowsToCopy.size());
+    // row-dependent normalization factors are keyed by row ID
+    final Map<Integer, Integer> oldToNewIds = HashMap.newHashMap(rowsToCopy.size());
     int id = 1;
     for (final FeatureListRow row : orderedRows) {
       if (rowMapping.containsKey(row)) {
@@ -981,55 +976,20 @@ public class FeatureListUtils {
       }
       ModularFeatureListRow copy = new ModularFeatureListRow(newFeatureList,
           renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
-      if (renumberIDs) {
-        newFeatureList.addRow(copy);
-      }
+      newFeatureList.addRow(copy);
       rowMapping.put(row, copy);
+      oldToNewIds.put(row.getID(), copy.getID());
       id++;
     }
-    if (!renumberIDs) {
-      insertCopiedRowsPreservingIdentity(orderedRows, rowMapping, newFeatureList);
+    if (orderedRows.isEmpty()) {
+      // no rows, so no normalization applies. Also drops the factors of all removed rows that were
+      // transferred with the settings of the source
+      newFeatureList.setSettings(newFeatureList.getSettings().withNormalization(null));
+    } else {
+      NormalizationRowIdentity.remapRowFactors(orderedRows.getFirst().getFeatureList(),
+          newFeatureList, oldToNewIds);
     }
     return rowMapping;
-  }
-
-  /**
-   * Validates an identity-preserving copy once, then restores all rows through the target's
-   * explicit exact-identity path. The ordered source list preserves sorting and the caller's
-   * identity map handles deduplication; this method does not infer copies from generic addRow.
-   */
-  public static void insertCopiedRowsPreservingIdentity(
-      @NotNull final Collection<? extends FeatureListRow> orderedSourceRows,
-      @NotNull final Map<FeatureListRow, ? extends ModularFeatureListRow> rowMapping,
-      @NotNull final ModularFeatureList target) {
-    if (orderedSourceRows.isEmpty()) {
-      return;
-    }
-    final FeatureList source = orderedSourceRows.iterator().next().getFeatureList();
-    if (NormalizationRowIdentity.requiresRowIdentityProtection(source)
-        || NormalizationRowIdentity.requiresRowIdentityProtection(target)) {
-      if (!NormalizationRowIdentity.hasSameActiveNormalization(source, target)) {
-        throw new IllegalArgumentException("Copied rows require matching active normalization.");
-      }
-    }
-    final Set<Integer> ids = new HashSet<>(rowMapping.size());
-    final List<ModularFeatureListRow> copiedRows = new ArrayList<>(rowMapping.size());
-    final Set<FeatureListRow> seen = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
-    for (final FeatureListRow sourceRow : orderedSourceRows) {
-      if (!seen.add(sourceRow)) {
-        continue;
-      }
-      final ModularFeatureListRow copiedRow = rowMapping.get(sourceRow);
-      if (copiedRow == null) {
-        throw new IllegalArgumentException("Copied row mapping is incomplete.");
-      }
-      if (sourceRow.getFeatureList() != source || sourceRow.getID() != copiedRow.getID()
-          || !ids.add(copiedRow.getID())) {
-        throw new IllegalArgumentException("Copied rows must preserve unique source row IDs.");
-      }
-      copiedRows.add(copiedRow);
-    }
-    target.restoreRowsWithExactIds(copiedRows);
   }
 
   /**
@@ -1101,10 +1061,8 @@ public class FeatureListUtils {
     if (sources.isEmpty()) {
       throw new IllegalArgumentException("No source feature list");
     }
-    if (sources.size() > 1 && sources.stream()
-        .anyMatch(NormalizationRowIdentity::hasActiveRowDependentNormalization)) {
-      throw new IllegalStateException("Cannot merge feature lists while a source has a latest "
-          + "row-dependent intensity normalization. Its frozen row IDs cannot be remapped.");
+    if (sources.size() > 1) {
+      NormalizationRowIdentity.requireNoRowDependentNormalization(sources, "merge feature lists");
     }
     final FeatureList source = sources.getFirst();
 
@@ -1115,6 +1073,7 @@ public class FeatureListUtils {
     FeatureListUtils.transferSelectedScans(target, sources);
     target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
     target.setPreferences(source.getPreferences().copy());
+    target.setSettings(source.getSettings().copy());
   }
 
   /**

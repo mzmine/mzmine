@@ -28,10 +28,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -53,7 +50,6 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.objects.ObjectUtils;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -121,7 +117,8 @@ class IntensityNormalizerTask extends AbstractTask {
     normalizationTypeModule = normalizationType.getModuleInstance();
     normalizationTypeModuleParameters = normalizationTypeWithParameters.parameters();
 
-    handleOriginal = parameters.getParameter(IntensityNormalizerParameters.handleOriginal).getValue();
+    handleOriginal = parameters.getParameter(IntensityNormalizerParameters.handleOriginal)
+        .getValue();
     totalFiles = originalFeatureList.getNumberOfRawDataFiles();
 
     // Pre-normalization: metadata (optional)
@@ -142,8 +139,8 @@ class IntensityNormalizerTask extends AbstractTask {
         .map(String::strip).filter(StringUtils::hasValue).orElse(null);
     batchIdEnabled = batchIdColumn != null;
 
-    this.interBatchCorrectionEnabled = intraBatchCorrectionEnabled
-        && normalizationType != NormalizationType.FeatureQcLoess;
+    this.interBatchCorrectionEnabled =
+        intraBatchCorrectionEnabled && normalizationType != NormalizationType.FeatureQcLoess;
 
     // 1+ for applying the functions at the end
     totalNormalizationSteps = 1 + ObjectUtils.countTrue(byMetadataEnabled, internalStandardEnabled,
@@ -160,7 +157,9 @@ class IntensityNormalizerTask extends AbstractTask {
   }
 
   public void run() {
-    if (isCanceled()) return;
+    if (isCanceled()) {
+      return;
+    }
     setStatus(TaskStatus.PROCESSING);
     try {
       normalize();
@@ -183,20 +182,26 @@ class IntensityNormalizerTask extends AbstractTask {
     if (byMetadataEnabled) {
       // First compose sample-specific metadata factors into every later correction.
       normalizeByMetadataColumn(summary, metadata);
-      if (isCanceled()) return;
+      if (isCanceled()) {
+        return;
+      }
     }
     if (internalStandardEnabled) {
       // Then add internal-standard corrections, resolved once before batches are processed.
       selectInternalStandards(summary);
-      if (isCanceled()) return;
+      if (isCanceled()) {
+        return;
+      }
       for (final SamplesBatch batch : sampleBatches) {
         applyInternalStandardization(batch, summary, metadata);
         processedFiles += batch.size();
-        if (isCanceled()) return;
+        if (isCanceled()) {
+          return;
+        }
       }
     }
     if (intraBatchCorrectionEnabled) {
-      // The main correction builds functions only; values remain unchanged until application.
+      // The main correction builds functions only; values remain unchanged until the final commit.
       if (normalizationTypeModule instanceof FeatureQcNormalizationModule featureQc) {
         featureQc.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
             sampleBatches, metadata, mainParameters, normalizationTypeModuleParameters,
@@ -204,41 +209,53 @@ class IntensityNormalizerTask extends AbstractTask {
       } else {
         for (final SamplesBatch batch : sampleBatches) {
           normalizationTypeModule.createAllNormalizationFunctionsToSummary(summary,
-              normalizedFeatureList, batch, metadata, mainParameters, normalizationTypeModuleParameters);
+              normalizedFeatureList, batch, metadata, mainParameters,
+              normalizationTypeModuleParameters);
           processedFiles += batch.size();
-          if (isCanceled()) return;
+          if (isCanceled()) {
+            return;
+          }
         }
       }
     }
-    if (isCanceled()) return;
+    if (isCanceled()) {
+      return;
+    }
     if (interBatchCorrectionEnabled && sampleBatches.size() > 1) {
       // Scalar methods may additionally align their already-corrected batch reference metrics.
       normalizeSamplesInterBatches(sampleBatches, summary);
     }
-    if (isCanceled()) return;
-    final ParameterSet appliedMethodParameters = mainParameters.cloneParameterSet(true);
-    appliedMethodParameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary,
-        summary.toSimpleSummary());
-    final SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
-        "Intensity normalization by " + normalizationType
-            + (batchIdEnabled ? " (batch-aware; column %s)".formatted(batchIdColumn) : "")
-            + (byMetadataEnabled ? ", pre: metadata (%s)".formatted(byMetadataColumn) : "")
-            + (internalStandardEnabled ? ", pre: IS" : ""), IntensityNormalizerModule.class,
-        appliedMethodParameters, getModuleCallDate());
-
-    if (isCanceled()) return;
-    // decision: finish values, active preferences, and history even if canceled during application.
-    applyFunctionsToFeatures(normalizedFeatureList, summary.functions());
-    normalizedFeatureList.setPreferences(normalizedFeatureList.getPreferences()
-        .withActiveIntensityNormalization(new IntensityNormalizationSummary(summary.functions()
-            .values().stream().toList())));
-    normalizedFeatureList.addDescriptionOfAppliedTask(appliedMethod);
+    // last cancel check: applying the functions is a single cheap pass that always runs to the end,
+    // so values, settings and applied method always match
+    if (isCanceled()) {
+      return;
+    }
+    applyFunctionsToFeatures(normalizedFeatureList, summary);
     for (final String message : summary.messages()) {
       logger.log(message.contains(IntensityNormalizationSummary.WARNING_MARKER) ? Level.WARNING
           : Level.INFO, message);
     }
-    // Canceled copies stay unpublished; in-place lists retain completed values and matching metadata.
-    if (isCanceled()) return;
+
+    // decision: the functions are stored once in the settings, the applied method keeps only the
+    // diagnostics (messages and feature-QC provenance) for the applied methods pane
+    final IntensityNormalizationSummary simpleSummary = summary.toSimpleSummary();
+    normalizedFeatureList.setSettings(
+        normalizedFeatureList.getSettings().withNormalization(simpleSummary.withFunctionsOnly()));
+    final ParameterSet appliedMethodParameters = mainParameters.cloneParameterSet(true);
+    appliedMethodParameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary,
+        simpleSummary.withDiagnosticsOnly());
+    normalizedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
+        "Intensity normalization by " + normalizationType + (batchIdEnabled
+            ? " (batch-aware; column %s)".formatted(batchIdColumn) : "") + (byMetadataEnabled
+            ? ", pre: metadata (%s)".formatted(byMetadataColumn) : "") + (internalStandardEnabled
+            ? ", pre: IS" : ""), IntensityNormalizerModule.class, appliedMethodParameters,
+        getModuleCallDate()));
+
+    // canceled while applying: an in-place list keeps the complete values and matching settings,
+    // a copy is not published and the original stays in the project
+    if (isCanceled()) {
+      return;
+    }
     handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureList,
         originalFeatureList);
     logger.fine("Finished intensity normalization");
@@ -281,7 +298,9 @@ class IntensityNormalizerTask extends AbstractTask {
           sampleBatch.size(), sampleBatch.getGroupMetadataValueStr(), normFactor));
 
       for (RawDataFile raw : sampleBatch.getRaws()) {
-        if (isCanceled()) return;
+        if (isCanceled()) {
+          return;
+        }
         // add and merge function into summary
         summary.addMergeFunction(raw, fileFunction);
         processedFiles++;
@@ -376,9 +395,8 @@ class IntensityNormalizerTask extends AbstractTask {
   }
 
   private void prepareNormalizedFeatureList() {
-    // Preparation creates the destination but leaves existing normalized values untouched.
-    // Function construction and validation can therefore fail or cancel without changing an
-    // in-place list.
+    // existing normalized values are only replaced when the functions are applied, so cancelling
+    // while the functions are built leaves an in-place list unchanged
     normalizedFeatureList = handleOriginal.isProcessInPlace() ? originalFeatureList
         : FeatureListUtils.createCopy(originalFeatureList, suffix, storage, true);
   }
@@ -387,31 +405,27 @@ class IntensityNormalizerTask extends AbstractTask {
    * Applies the normalization functions to all features in the feature list.
    */
   private void applyFunctionsToFeatures(@NotNull final ModularFeatureList featureList,
-      final @NotNull Map<RawDataFile, RawFileNormalizationFunction> fileToFunction) {
+      final @NotNull IntensityNormalizationSearchableSummary summary) {
 
     if (hasFinishedApplyFunctions) {
       throw new IllegalStateException("Cannot apply functions twice. Should only normalize once.");
     }
+    hasFinishedApplyFunctions = true;
+
     final NormalizedAreaType normAreaType = DataTypes.get(NormalizedAreaType.class);
     final NormalizedHeightType normHeightType = DataTypes.get(NormalizedHeightType.class);
-    if (!featureList.hasFeatureType(normHeightType)) {
+    if (featureList.hasFeatureType(normAreaType) || featureList.hasFeatureType(normHeightType)) {
+      // clear old normalization, e.g., when normalizing in place again
+      FeatureDataUtils.clearIntensityNormalizationFromFeature(featureList);
+    } else {
+      // add as feature types and row type will be added as binding
       featureList.addFeatureType(normHeightType);
-    }
-    if (!featureList.hasFeatureType(normAreaType)) {
       featureList.addFeatureType(normAreaType);
     }
-    FeatureDataUtils.clearIntensityNormalization(featureList);
-    for (final FeatureListRow row : featureList.getRows()) {
-      for (final RawDataFile raw : featureList.getRawDataFiles()) {
-        final Feature feature = row.getFeature(raw);
-        if (!(feature instanceof ModularFeature mfeature)) continue;
-        final RawFileNormalizationFunction function = fileToFunction.get(raw);
-        FeatureDataUtils.normalizeAbundances(mfeature,
-            function == null ? null : function.function(), row);
-      }
-    }
-    processedFiles += fileToFunction.size();
-    hasFinishedApplyFunctions = true;
+
+    // decision: no cancel checks in this loop, see normalize()
+    FeatureDataUtils.applyIntensityNormalization(featureList, summary);
+    processedFiles += summary.size();
   }
 
 }

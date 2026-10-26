@@ -1,9 +1,9 @@
 # QC normalization persistence benchmark
 
-These measurements describe the 2026-10-22 history-only persistence layout. Active functions are
-now also persisted in feature-list preferences, so the archive sizes and timings below do not
-measure the current combined preferences/history layout. That layout needs a fresh benchmark
-before these numbers can be used as its performance baseline.
+These measurements describe the 2026-10-22 history-only persistence layout. The functions are now
+persisted once in the feature-list settings and the applied method keeps only messages and
+feature-QC diagnostics. The function payload is the same, so the sizes below should be close, but
+the current layout has not been benchmarked yet.
 
 `FeatureRowNormalizationFunction` persists each raw-file function as one packed XML payload. The
 benchmark has two independent measurements:

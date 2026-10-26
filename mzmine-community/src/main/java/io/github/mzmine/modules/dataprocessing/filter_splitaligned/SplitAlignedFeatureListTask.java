@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.filter_splitaligned;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -39,13 +40,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.IdentityHashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,8 +90,11 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
           "_" + (sampleGroup.value() != null ? sampleGroup.valueString()
               : sampleGroup.files().getFirst().getName()), getMemoryMapStorage(), false,
           sampleGroup.files(), false, null, null);
-      final List<FeatureListRow> copiedSourceRows = new ArrayList<>();
-      final Map<FeatureListRow, ModularFeatureListRow> copiedRows = new IdentityHashMap<>();
+      // decision: reprocessing policy. Splitting itself does not invalidate the normalization, but
+      // split lists are meant to be reprocessed per sample group (e.g., resolve, expand, align
+      // again), which creates features with new intensities. The normalization is dropped here once
+      // instead of in every module that creates new features. Normalize again after alignment
+      resultFlist.setSettings(resultFlist.getSettings().withNormalization(null));
 
       for (final FeatureListRow row : flist.getRows()) {
         if (sampleGroup.files().stream().noneMatch(row::hasFeature)) {
@@ -110,17 +111,15 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
             finishedItems.getAndIncrement();
             continue;
           }
-          copiedRow.addFeature(file, new ModularFeature(resultFlist, feature), false);
+          final ModularFeature copiedFeature = new ModularFeature(resultFlist, feature);
+          FeatureDataUtils.clearIntensityNormalizationFromFeature(copiedFeature);
+          copiedRow.addFeature(file, copiedFeature, false);
           finishedItems.getAndIncrement();
         }
 
         copiedRow.applyRowBindings();
-        copiedSourceRows.add(row);
-        copiedRows.put(row, copiedRow);
+        resultFlist.addRow(copiedRow);
       }
-
-      FeatureListUtils.insertCopiedRowsPreservingIdentity(copiedSourceRows, copiedRows,
-          resultFlist);
 
       resultFlists.add(resultFlist);
     }

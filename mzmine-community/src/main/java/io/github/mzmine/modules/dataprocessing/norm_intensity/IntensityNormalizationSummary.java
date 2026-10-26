@@ -25,9 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.settings.FeatureListSettings;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -101,9 +105,10 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
    */
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder(
-        "%d normalized files, %d messages, %d of them warnings".formatted(functions.size(),
-            messages.size(), countWarnings()));
+    // the applied method only keeps the diagnostics, the functions are in the feature list settings
+    final StringBuilder sb = new StringBuilder(functions.isEmpty() ? ""
+        : "%d normalized files, ".formatted(functions.size()));
+    sb.append("%d messages, %d of them warnings".formatted(messages.size(), countWarnings()));
     for (final String message : messages) {
       sb.append("\n").append(message);
     }
@@ -125,5 +130,57 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
    */
   public long countWarnings() {
     return messages.stream().filter(msg -> msg.contains(WARNING_MARKER)).count();
+  }
+
+  /**
+   * @return true if any function resolves its factor by feature-list row ID
+   */
+  public boolean isRowDependent() {
+    return functions.stream().anyMatch(RawFileNormalizationFunction::isRowDependent);
+  }
+
+  /**
+   * @return only the functions, without messages and feature-QC provenance. This is the active
+   * normalization state of a feature list, see {@link FeatureListSettings}.
+   */
+  public @NotNull IntensityNormalizationSummary withFunctionsOnly() {
+    return new IntensityNormalizationSummary(functions, List.of(), List.of());
+  }
+
+  /**
+   * @return only messages and feature-QC provenance, without the functions. Kept in the applied
+   * method as diagnostics, the functions are stored once in the {@link FeatureListSettings}.
+   */
+  public @NotNull IntensityNormalizationSummary withDiagnosticsOnly() {
+    return new IntensityNormalizationSummary(List.of(), messages, featureQc);
+  }
+
+  /**
+   * @param oldToNewIds old row ID -> new row ID. Factors of rows missing from the map are dropped.
+   * @see NormalizationFunction#remapRowIds(Map)
+   */
+  public @NotNull IntensityNormalizationSummary remapRowIds(
+      @NotNull final Map<Integer, Integer> oldToNewIds) {
+    return new IntensityNormalizationSummary(
+        functions.stream().map(function -> function.remapRowIds(oldToNewIds)).toList(), messages,
+        featureQc);
+  }
+
+  /**
+   * Resolves the functions for the given files once for fast lookups. Matches the placeholders
+   * against the given files instead of {@link RawDataFilePlaceholder#getMatchingFile()}, which may
+   * resolve a cached wrapper instead of the source file of a feature list during project loading.
+   *
+   * @param files usually the raw data files of the feature list. Files without a function are not
+   *              part of the result.
+   */
+  public @NotNull IntensityNormalizationSearchableSummary toSearchableSummary(
+      @NotNull final List<RawDataFile> files) {
+    final Map<RawDataFile, RawFileNormalizationFunction> byFile = HashMap.newHashMap(files.size());
+    for (final RawDataFile file : files) {
+      functions.stream().filter(function -> function.rawDataFilePlaceholder().matches(file))
+          .findFirst().ifPresent(function -> byFile.put(file, function));
+    }
+    return new IntensityNormalizationSearchableSummary(Map.copyOf(byFile), messages, featureQc);
   }
 }

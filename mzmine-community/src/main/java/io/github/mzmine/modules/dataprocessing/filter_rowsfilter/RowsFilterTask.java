@@ -62,6 +62,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -267,10 +268,6 @@ public class RowsFilterTask extends AbstractTask {
     if (!isCanceled()) {
 
       try {
-        // Must happen before filtering, copying, publishing, or in-place mutation.
-        if (renumber) {
-          NormalizationRowIdentity.requireRenumberingAllowed(origFeatureList);
-        }
         setStatus(TaskStatus.PROCESSING);
         logger.info("Filtering feature list rows");
 
@@ -409,9 +406,15 @@ public class RowsFilterTask extends AbstractTask {
       }
     }
 
+    // row-dependent normalization factors are keyed by row ID: map old to new IDs, removed rows are
+    // not mapped and their factors are dropped
+    final Map<Integer, Integer> oldToNewIds = HashMap.newHashMap(rowsToAdd.size());
     final ModularFeatureList newFeatureList;
     if (processInCurrentList) {
       newFeatureList = (ModularFeatureList) featureList;
+      // capture the old IDs before they are overwritten by renumbering
+      final Map<FeatureListRow, Integer> oldIds = new IdentityHashMap<>(rowsToAdd.size());
+      rowsToAdd.forEach(row -> oldIds.put(row, row.getID()));
       newFeatureList.setRowsApplySort(rowsToAdd.toArray(FeatureListRow[]::new));
       if (renumber) {
         for (int i = 0; i < newFeatureList.getNumberOfRows(); i++) {
@@ -421,6 +424,7 @@ public class RowsFilterTask extends AbstractTask {
         // rows are reused in place — map each surviving row to itself
         for (final FeatureListRow row : rowsToAdd) {
           oldToNew.put(row, (ModularFeatureListRow) row);
+          oldToNewIds.put(oldIds.get(row), row.getID());
         }
     } else {
       final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
@@ -436,17 +440,13 @@ public class RowsFilterTask extends AbstractTask {
         index++;
         ModularFeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
             renumber ? index : row.getID(), (ModularFeatureListRow) row, true);
-        if (renumber) {
-          newFeatureList.addRow(resetRow);
-        }
-        oldToNew.put(row, resetRow);
+          oldToNew.put(row, resetRow);
+          oldToNewIds.put(row.getID(), resetRow.getID());
       }
-      if (!renumber) {
-        FeatureListUtils.insertCopiedRowsPreservingIdentity(rowsToAdd, oldToNew, newFeatureList);
-      }
-      // Sort copied rows after their identity-preserving insertion.
+      // set all new rows at once
       newFeatureList.setRowsApplySort(oldToNew.values().toArray(FeatureListRow[]::new));
     }
+    NormalizationRowIdentity.remapRowFactors(featureList, newFeatureList, oldToNewIds);
 
     // The relationship maps and the ion identity networks reference rows directly and are keyed by
     // row ID, so they have to be rebuilt against the rows of the result: relations of filtered rows

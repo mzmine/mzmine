@@ -111,11 +111,13 @@ shared development revision number.
 
 ## Subsequent processing
 
-Active correction functions are stored directly with the feature-list preferences. Historical
-processing evidence is retained in the applied method. Copying and loading preserve row identities;
-filtering is supported with **Reset row IDs** disabled. IDs reserved by row-dependent outcomes cannot
-be reused for unrelated new rows. A genuinely new row with an unused, unreserved ID may remain
-unnormalized; the task adding it decides whether it can apply a meaningful correction.
+Active correction functions are stored once in the feature-list settings. The applied method keeps
+only the processing evidence (messages and feature-QC diagnostics). Row-specific factors are keyed
+by row ID: copying, filtering and **Reset row IDs** remap them to the new IDs and drop the factors
+of removed rows, so a later row that reuses a removed ID stays unnormalized. Merging feature lists
+with row-specific factors is rejected because their row IDs collide. Gap filling applies the
+row-specific factors once to all new features at the end of the task; any other task that adds new
+rows or features decides whether it can apply a meaningful correction.
 
 The native API uses `inter_sample.method: "feature_qc"`. `automatic_smoothing` defaults to `true`.
 Set it to `false` to supply `bandwidth` and `polynomial_degree`; omitted fixed settings default to
