@@ -49,8 +49,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Serializes directory selection and the complete creation operation, including memory mapping.
- * Getters read an immutable snapshot without locking. Existing files keep using their original
- * drive after a directory switch.
+ * Getters read an immutable snapshot without locking, {@link #getDirectory()} additionally checks
+ * write access. Existing files keep using their original drive after a directory switch.
  * <p>
  * The default java temp directory is a runtime fallback while no configured directory works. It is
  * never added to the configured directories, so it is not saved to the preferences and not used for
@@ -136,7 +136,20 @@ final class TempDirectoryManager {
     }
   }
 
+  /**
+   * Checks write access on every call, because callers use the directory directly without failover,
+   * e.g., as the working directory of external tools. Free space is not checked.
+   *
+   * @return the first writable configured directory, otherwise the default directory
+   */
   @NotNull File getDirectory() {
+    return firstWritableDirectory(state.get().directories());
+  }
+
+  /**
+   * @return the directory that {@link #create(long, TempFileOperation)} tries first
+   */
+  @NotNull File getCurrentDirectory() {
     return state.get().currentDirectory();
   }
 

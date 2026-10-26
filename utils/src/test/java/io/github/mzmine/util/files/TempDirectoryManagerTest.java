@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,7 +83,7 @@ class TempDirectoryManagerTest {
 
     assertEquals(List.of(first.toPath(), unwritable.toPath(), available.toPath()), attempted);
     assertEquals(available.toPath(), file.getParent());
-    assertEquals(available, manager.getDirectory());
+    assertEquals(available, manager.getCurrentDirectory());
     // subsequent requests try the current directory first
     attempted.clear();
     manager.create(0, dir -> attempted.add(dir));
@@ -100,7 +101,7 @@ class TempDirectoryManagerTest {
 
     assertEquals(first.toPath(), manager.create(0, dir -> dir));
     assertEquals(second.toPath(), manager.create(size, dir -> dir));
-    assertEquals(second, manager.getDirectory());
+    assertEquals(second, manager.getCurrentDirectory());
   }
 
   @Test
@@ -111,15 +112,15 @@ class TempDirectoryManagerTest {
     var manager = new TempDirectoryManager(space::get);
     manager.setDirectories(first, second);
     manager.create(0, dir -> dir);
-    assertEquals(second, manager.getDirectory());
+    assertEquals(second, manager.getCurrentDirectory());
 
     manager.setDirectories(first, second);
-    assertEquals(second, manager.getDirectory());
+    assertEquals(second, manager.getCurrentDirectory());
     space.put(first, MIN_USABLE_SPACE);
     space.put(second, 0L);
 
     assertEquals(first.toPath(), manager.create(0, dir -> dir));
-    assertEquals(first, manager.getDirectory());
+    assertEquals(first, manager.getCurrentDirectory());
   }
 
   @Test
@@ -132,7 +133,7 @@ class TempDirectoryManagerTest {
     manager.setDirectories(first, second, third);
 
     assertEquals(second.toPath(), manager.create(2500, dir -> dir));
-    assertEquals(second, manager.getDirectory());
+    assertEquals(second, manager.getCurrentDirectory());
   }
 
   @Test
@@ -144,7 +145,7 @@ class TempDirectoryManagerTest {
     manager.setDirectories(configured);
 
     assertEquals(configured.toPath(), manager.create(1000, dir -> dir));
-    assertEquals(configured, manager.getDirectory());
+    assertEquals(configured, manager.getCurrentDirectory());
   }
 
   @Test
@@ -156,7 +157,7 @@ class TempDirectoryManagerTest {
     manager.setDirectories(configured);
 
     assertEquals(defaultDirectory.toPath(), manager.create(1000, dir -> dir));
-    assertEquals(defaultDirectory, manager.getDirectory());
+    assertEquals(defaultDirectory, manager.getCurrentDirectory());
     assertArrayEquals(new File[]{configured}, manager.getDirectories());
   }
 
@@ -174,7 +175,7 @@ class TempDirectoryManagerTest {
     assertTrue(failure.getMessage().contains("10 GB"));
     assertTrue(failure.getMessage().contains("Only 1000 bytes usable in " + first));
     assertTrue(failure.getMessage().contains("Only 1000 bytes usable in " + defaultDirectory));
-    assertEquals(first, manager.getDirectory());
+    assertEquals(first, manager.getCurrentDirectory());
   }
 
   @Test
@@ -192,7 +193,7 @@ class TempDirectoryManagerTest {
     });
 
     assertEquals(second.toPath(), result);
-    assertEquals(second, manager.getDirectory());
+    assertEquals(second, manager.getCurrentDirectory());
   }
 
   @Test
@@ -211,7 +212,7 @@ class TempDirectoryManagerTest {
 
     assertEquals(List.of(first.toPath(), second.toPath(), defaultDirectory.toPath()), attempted);
     assertEquals(3, failure.getSuppressed().length);
-    assertEquals(first, manager.getDirectory());
+    assertEquals(first, manager.getCurrentDirectory());
   }
 
   @Test
@@ -228,7 +229,7 @@ class TempDirectoryManagerTest {
     // files are removed, inaccessible directories are kept for a later reconnect
     assertArrayEquals(new File[]{second, nested, third}, configured);
     assertArrayEquals(configured, manager.getDirectories());
-    assertEquals(second, manager.getDirectory());
+    assertEquals(second, manager.getCurrentDirectory());
     assertTrue(second.isDirectory());
   }
 
@@ -243,7 +244,7 @@ class TempDirectoryManagerTest {
     manager.setDirectories(disconnected, readOnly, writable);
 
     assertArrayEquals(new File[]{disconnected, readOnly, writable}, manager.getDirectories());
-    assertEquals(writable, manager.getDirectory());
+    assertEquals(writable, manager.getCurrentDirectory());
   }
 
   @Test
@@ -258,27 +259,59 @@ class TempDirectoryManagerTest {
 
     assertArrayEquals(new File[]{disconnected, readOnly}, configured);
     assertArrayEquals(configured, manager.getDirectories());
-    assertEquals(defaultDirectory, manager.getDirectory());
+    assertEquals(defaultDirectory, manager.getCurrentDirectory());
   }
 
   @Test
-  void defaultDirectoryIsOnlyUsedUntilAConfiguredDirectoryIsReconnected() throws IOException {
+  void defaultDirectoryIsKeptAfterReconnectUntilItRunsLow() throws IOException {
     File disconnected = disconnectedDirectory("drive");
     File defaultDirectory = root.resolve("default").toFile();
-    var manager = new TempDirectoryManager(defaultDirectory, _ -> MIN_USABLE_SPACE,
+    Map<File, Long> space = new HashMap<>(Map.of(defaultDirectory, MIN_USABLE_SPACE));
+    var manager = new TempDirectoryManager(defaultDirectory,
+        dir -> space.getOrDefault(dir, MIN_USABLE_SPACE),
         TempDirectoryManagerTest::isDirectoryAfterCreation);
     manager.setDirectories(disconnected);
-    assertEquals(defaultDirectory, manager.getDirectory());
+    assertEquals(defaultDirectory, manager.getCurrentDirectory());
 
     assertEquals(defaultDirectory.toPath(), manager.create(0, dir -> dir));
-    assertEquals(defaultDirectory, manager.getDirectory());
+    assertEquals(defaultDirectory, manager.getCurrentDirectory());
     assertArrayEquals(new File[]{disconnected}, manager.getDirectories());
 
     // reconnect
     Files.delete(disconnected.getParentFile().toPath());
-
-    assertEquals(disconnected.toPath(), manager.create(0, dir -> dir));
     assertEquals(disconnected, manager.getDirectory());
+
+    // decision: like any current directory, the default is kept while it has enough space
+    assertEquals(defaultDirectory.toPath(), manager.create(0, dir -> dir));
+    assertEquals(defaultDirectory, manager.getCurrentDirectory());
+
+    space.put(defaultDirectory, 0L);
+    assertEquals(disconnected.toPath(), manager.create(0, dir -> dir));
+    assertEquals(disconnected, manager.getCurrentDirectory());
+  }
+
+  @Test
+  void directoryChecksWriteAccessOnEveryCall() {
+    File first = root.resolve("first").toFile();
+    File second = root.resolve("second").toFile();
+    File defaultDirectory = root.resolve("default").toFile();
+    Set<File> writable = new HashSet<>(Set.of(first, second, defaultDirectory));
+    var manager = new TempDirectoryManager(defaultDirectory, _ -> MIN_USABLE_SPACE,
+        writable::contains);
+    manager.setDirectories(first, second);
+    assertEquals(first, manager.getDirectory());
+
+    // e.g., the drive was disconnected or became read-only after the configuration
+    writable.remove(first);
+    assertEquals(second, manager.getDirectory());
+    // does not change where temp files are created
+    assertEquals(first, manager.getCurrentDirectory());
+
+    writable.remove(second);
+    assertEquals(defaultDirectory, manager.getDirectory());
+
+    writable.add(first);
+    assertEquals(first, manager.getDirectory());
   }
 
   private static boolean isDirectoryAfterCreation(File directory) {
@@ -324,7 +357,7 @@ class TempDirectoryManagerTest {
     File first = root.resolve("first").toFile();
     File second = root.resolve("second").toFile();
     var manager = new TempDirectoryManager();
-    File defaultDirectory = manager.getDirectory();
+    File defaultDirectory = manager.getCurrentDirectory();
     File[] configured = {first, second, first};
     manager.setDirectories(configured);
     configured[0] = root.resolve("other").toFile();
@@ -333,7 +366,7 @@ class TempDirectoryManagerTest {
 
     assertArrayEquals(new File[]{first, second}, manager.getDirectories());
     manager.setDirectories();
-    assertEquals(defaultDirectory, manager.getDirectory());
+    assertEquals(defaultDirectory, manager.getCurrentDirectory());
     assertArrayEquals(new File[]{defaultDirectory}, manager.getDirectories());
   }
 
@@ -368,7 +401,7 @@ class TempDirectoryManagerTest {
       try {
         assertTrue(creating.await(5, TimeUnit.SECONDS));
         executor.submit(() -> manager.setDirectories(second)).get(5, TimeUnit.SECONDS);
-        assertEquals(second, manager.getDirectory());
+        assertEquals(second, manager.getCurrentDirectory());
         assertArrayEquals(new File[]{second}, manager.getDirectories());
 
         var anotherCreation = executor.submit(() -> {
@@ -381,7 +414,7 @@ class TempDirectoryManagerTest {
         release.countDown();
         assertEquals(first.toPath(), creation.get(5, TimeUnit.SECONDS));
         // the finished failover must not overwrite the new configuration
-        assertEquals(second, manager.getDirectory());
+        assertEquals(second, manager.getCurrentDirectory());
         assertEquals(second.toPath(), anotherCreation.get(5, TimeUnit.SECONDS));
       } finally {
         release.countDown();

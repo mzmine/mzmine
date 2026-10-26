@@ -668,8 +668,10 @@ public class FileAndPathUtil {
   }
 
   /**
-   * @return the current temp directory, the first writable configured directory or the default
-   * java temp directory if none is writable
+   * Checks write access on every call, because the directory is used without failover. Free space
+   * is not checked, prefer the create methods of this class for temp files.
+   *
+   * @return the first writable configured temp directory, otherwise the default java temp directory
    */
   public static File getTempDir() {
     return TEMP_DIRECTORIES.getDirectory();
