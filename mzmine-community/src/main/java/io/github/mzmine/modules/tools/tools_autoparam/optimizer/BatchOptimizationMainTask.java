@@ -298,6 +298,13 @@ public class BatchOptimizationMainTask extends AbstractTask {
     }
     setStatus(TaskStatus.PROCESSING);
 
+    try {
+      WizardParameterEstimationResult.requireSupportedWorkflow(sequence);
+    } catch (IllegalArgumentException exception) {
+      error(exception.getMessage());
+      return;
+    }
+
     // store all in ram while optimizing
     MemoryMapStorage.setStoreAllInRam(true);
     // restore to initial value on change

@@ -27,20 +27,16 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public class IntensityNormalizerModule implements MZmineProcessingModule {
@@ -68,9 +64,7 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new IntensityNormalizerTask(project, featureList, parameters, storage,
-          moduleCallDate);
-      tasks.add(newTask);
+      tasks.add(new IntensityNormalizerTask(project, featureList, parameters, storage, moduleCallDate));
     }
 
     return ExitCode.OK;
@@ -87,32 +81,20 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
     return IntensityNormalizerParameters.class;
   }
 
-  /**
-   * Creates the native normalizer task for functions that were calculated from a reviewed
-   * snapshot. The caller must bind every function to the source table's actual raw-data-file
-   * instance before calling this method.
-   */
-  public static @NotNull Task createReviewedTask(final @NotNull MZmineProject project,
-      final @NotNull ModularFeatureList source, final @NotNull String suffix,
-      final @NotNull String sourceRevision, final @NotNull IntensityNormalizationSummary summary,
-      final @NotNull MemoryMapStorage storage, final @NotNull Instant moduleCallDate,
-      final @NotNull BooleanSupplier current) {
-    final IntensityNormalizerParameters parameters = (IntensityNormalizerParameters) new IntensityNormalizerParameters()
-        .cloneParameterSet();
-    parameters.setParameter(IntensityNormalizerParameters.featureLists,
-        new FeatureListsSelection(source));
-    parameters.setParameter(IntensityNormalizerParameters.suffix, suffix);
-    parameters.setParameter(IntensityNormalizerParameters.handleOriginal,
-        OriginalFeatureListOption.KEEP);
-    parameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary, summary);
-    return IntensityNormalizerTask.createReviewedTask(project, source, suffix, sourceRevision, summary,
-        parameters, IntensityNormalizerModule.class, storage, moduleCallDate, current);
-  }
-
   public static @NotNull IntensityNormalizationSummary getNormalizationFunctionsOfLatestCall(
       final @NotNull FeatureList featureList) {
-    // decision: every intensity-normalizer call writes a complete replacement set of normalized
-    // values, so the last one owns re-normalization for newly created features.
+    // decision: every intensity-normalizer call replaces the normalization in the settings, so the
+    // last one owns re-normalization for newly created features.
+    final IntensityNormalizationSummary active = featureList.getSettings().normalization();
+    return active == null ? IntensityNormalizationSummary.EMPTY : active;
+  }
+
+  /**
+   * Reads legacy project history once while loading projects that predate directly persisted
+   * normalization state. Normal runtime code must use {@link #getNormalizationFunctionsOfLatestCall}.
+   */
+  public static @NotNull IntensityNormalizationSummary getLegacyNormalizationFromAppliedMethods(
+      final @NotNull FeatureList featureList) {
     final var methods = featureList.getAppliedMethods();
     for (int index = methods.size() - 1; index >= 0; index--) {
       final FeatureListAppliedMethod method = methods.get(index);
@@ -133,7 +115,10 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
    */
   public static @NotNull Optional<NormalizationFunction> getNormalizationFunctionsOfLatestCallForFile(
       final @NotNull FeatureList featureList, final @NotNull RawDataFile rawDataFile) {
-    IntensityNormalizationSummary summary = getNormalizationFunctionsOfLatestCall(featureList);
+    final IntensityNormalizationSummary summary = featureList.getSettings().normalization();
+    if (summary == null) {
+      return Optional.empty();
+    }
     return summary.functions().stream()
         .filter(func -> func.rawDataFilePlaceholder().matches(rawDataFile))
         .map(RawFileNormalizationFunction::function).findFirst();

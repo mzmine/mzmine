@@ -42,7 +42,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public record IntensityNormalizationSearchableSummary(
     @NotNull Map<RawDataFile, RawFileNormalizationFunction> functions,
-    @NotNull List<String> messages) {
+    @NotNull List<String> messages,
+    @NotNull List<FeatureQcProvenance> featureQc) {
+
+  public IntensityNormalizationSearchableSummary(
+      @NotNull final Map<RawDataFile, RawFileNormalizationFunction> functions,
+      @NotNull final List<String> messages) {
+    this(functions, messages, new ArrayList<>());
+  }
 
   /**
    * instance with immutable maps and lists
@@ -61,7 +68,7 @@ public record IntensityNormalizationSearchableSummary(
 
   public IntensityNormalizationSummary toSimpleSummary() {
     return new IntensityNormalizationSummary(List.copyOf(functions.values()),
-        List.copyOf(messages));
+        List.copyOf(messages), List.copyOf(featureQc));
   }
 
   /**

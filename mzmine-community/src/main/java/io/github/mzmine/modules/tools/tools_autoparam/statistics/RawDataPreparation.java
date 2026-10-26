@@ -127,7 +127,9 @@ public final class RawDataPreparation {
   public static void requireIsotopeSignals(@NotNull List<DataFileStatistics> statistics) {
     if (statistics.stream().allMatch(stat -> stat.featureStatistics().isEmpty())) {
       throw new IllegalStateException(
-          "Unable to detect potential isotopes. Parameter estimation not possible.");
+          "No suitable isotope-supported signals were found for the selected wizard workflow. "
+              + "Parameter estimation requires MS1 isotope evidence. Check the selected files, "
+              + "polarity, and wizard interface.");
     }
   }
 

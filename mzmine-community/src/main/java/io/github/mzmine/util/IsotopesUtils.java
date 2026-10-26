@@ -25,7 +25,6 @@
 
 package io.github.mzmine.util;
 
-import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -304,8 +303,10 @@ public class IsotopesUtils {
 
       // Compute theoretical m/z value representing the difference between possible isotope
       // candidate newMz and possible isotope difference
-      double theoreticalMz = newMz - isotopeMzDiff;
-      Range<Double> theoreticalMzTolRange = mzTolerance.getToleranceRange(theoreticalMz);
+      final double theoreticalMz = newMz - isotopeMzDiff;
+      final double theoreticalMzTol = mzTolerance.getMzToleranceForMass(theoreticalMz);
+      final double upperLimit = theoreticalMz + theoreticalMzTol;
+      final double lowerLimit = theoreticalMz - theoreticalMzTol;
 
       // Go left over m/z's of previously detected peaks and check whether current peak is an
       // isotope of one of them
@@ -319,13 +320,13 @@ public class IsotopesUtils {
         double realMz = knownMzs.getDouble(mzIndex);
 
         // Do not go left further if the theoretical m/z is higher than real
-        if (Doubles.compare(theoreticalMzTolRange.lowerEndpoint(), realMz) > 0) {
+        if (lowerLimit > realMz) {
           break;
         }
 
         // If the theoretical and real m/z values are equal up to tolerance, then m/z of the mzIndex
         // peak corresponds to the mass of the isotope
-        if (theoreticalMzTolRange.contains(realMz)) {
+        if (realMz <= upperLimit) {
           return true;
         }
       }
@@ -343,8 +344,10 @@ public class IsotopesUtils {
 
       // Compute theoretical m/z value representing the difference between possible isotope
       // candidate newMz and possible isotope difference
-      double theoreticalMz = newMz - isotopeMzDiff;
-      Range<Double> theoreticalMzTolRange = mzTolerance.getToleranceRange(theoreticalMz);
+      final double theoreticalMz = newMz - isotopeMzDiff;
+      final double theoreticalMzTol = mzTolerance.getMzToleranceForMass(theoreticalMz);
+      final double upperLimit = theoreticalMz + theoreticalMzTol;
+      final double lowerLimit = theoreticalMz - theoreticalMzTol;
 
       // Go left over m/z's of previously detected peaks and check whether current peak is an
       // isotope of one of them
@@ -358,13 +361,13 @@ public class IsotopesUtils {
         double realMz = knownMzs.get(mzIndex).getMZ();
 
         // Do not go left further if the theoretical m/z is higher than real
-        if (Doubles.compare(theoreticalMzTolRange.lowerEndpoint(), realMz) > 0) {
+        if (lowerLimit > realMz) {
           break;
         }
 
         // If the theoretical and real m/z values are equal up to tolerance, then m/z of the mzIndex
         // peak corresponds to the mass of the isotope
-        if (theoreticalMzTolRange.contains(realMz)) {
+        if (realMz <= upperLimit) {
           return true;
         }
       }
@@ -385,9 +388,10 @@ public class IsotopesUtils {
 
       // Compute theoretical m/z value representing the difference between possible isotope
       // candidate newMz and possible isotope difference
-      double theoreticalMz = newMz + isotopeMzDiff;
-
-      Range<Double> theoreticalMzTolRange = mzTolerance.getToleranceRange(theoreticalMz);
+      final double theoreticalMz = newMz + isotopeMzDiff;
+      final double theoreticalMzTol = mzTolerance.getMzToleranceForMass(theoreticalMz);
+      final double upperLimit = theoreticalMz + theoreticalMzTol;
+      final double lowerLimit = theoreticalMz - theoreticalMzTol;
 
       // Go left over m/z's of previously detected peaks and check whether current peak is an
       // isotope of one of them
@@ -401,13 +405,13 @@ public class IsotopesUtils {
         double realMz = knownMzs.get(mzIndex).getMZ();
 
         // Do not go left further if the theoretical m/z is higher than real
-        if (realMz > theoreticalMzTolRange.upperEndpoint()) {
+        if (realMz > upperLimit) {
           break;
         }
 
         // If the theoretical and real m/z values are equal up to tolerance, then m/z of the mzIndex
         // peak corresponds to the mass of the isotope
-        if (theoreticalMzTolRange.contains(realMz)) {
+        if (lowerLimit <= realMz && realMz <= upperLimit) {
           return true;
         }
       }
@@ -476,7 +480,7 @@ public class IsotopesUtils {
         }
       }
     }
-    candidates.sort(mzSorter);
+    // candidates.sort(mzSorter);
     return candidates;
   }
 

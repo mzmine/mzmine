@@ -32,6 +32,8 @@ public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModu
   ByFeatureIntensity("By feature abundances", "feature_intensity_normalization",
       FeatureIntensityNormalizationModule.class), //
   TotalRawSignal("Spectral TIC", "spectral_tic", TotalRawSignalNormalizationTypeModule.class), //
+  FeatureQcLoess("QC drift correction", "feature_qc",
+      FeatureQcNormalizationModule.class), //
   MetadataColumn("Metadata column (weight, dilution, ...)", "metadata_column",
       MetadataColumnNormalizationTypeModule.class),  //
   StandardCompounds("Internal standard compounds", "internal_standard_compounds",
@@ -60,7 +62,7 @@ public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModu
    * @return all normalizers that correct intra batch drift
    */
   public static NormalizationType[] intraBatchDriftNormalizers() {
-    return new NormalizationType[]{NoNormalization, ByFeatureIntensity, TotalRawSignal};
+    return new NormalizationType[]{NoNormalization, ByFeatureIntensity, TotalRawSignal, FeatureQcLoess};
   }
 
   @Override

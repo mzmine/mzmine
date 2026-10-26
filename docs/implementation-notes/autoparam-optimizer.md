@@ -11,6 +11,20 @@ Detailed measurements and rejected algorithm pilots are recorded in
 
 ## Decisions
 
+- Raw-data statistics retain isotope-supported peaks rejected only because they span more than
+  15% of the run. Each seed counts once across tolerances; a seed accepted at any tolerance is
+  excluded from the rejected pool. Offer the flow-injection preset for HPLC, UHPLC, or HILIC only
+  when every representative file has at least three retained broad signals and at least 80% of
+  its isotope-supported seeds are broad. Broadness alone does not distinguish FI from DI, so
+  this suggestion uses FI and preserves an explicitly selected DI preset.
+- Confirm the preset before enforcing the absence-of-isotopes error. Accepting DI/FI selects the
+  retained broad feature objects for all estimates and the statistics dashboard, without repeating
+  extraction or changing the statistics-task API. Recompute aggregate and cross-file measurements
+  for that pool, using the full-run injection-time reference and no LC crop range. Declining keeps
+  chromatographic statistics, including the error if that pool has no isotope evidence. Headless
+  runs keep their selected presets. Flat DI traces still require the existing isotope-shape test;
+  this rescue does not infer isotopes from broadness or introduce an alternative validation rule.
+
 - Retain deterministic pattern search for single-objective optimization and MOEA/D for genuine
   multi-objective searches. Pattern search is the default optimizer.
 - GP-ARD, multivariate TPE, and standalone Sobol search were removed after matched pilot runs did

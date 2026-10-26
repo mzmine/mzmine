@@ -87,8 +87,9 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
   public static final ModuleOptionsEnumComboParameter<NormalizationType> normalizationType = new ModuleOptionsEnumComboParameter<>(
       "Inter-sample correction", """
       Step 3 of 3: QC-based signal drift correction, applied after metadata normalization (step 1) and %s (step 2).
-      Corrects intra-batch drift using reference samples (e.g., pooled QCs) and then aligns batch medians to the global reference median for inter-batch correction.
-      Non-reference samples receive interpolated correction factors based on acquisition date entered in the project or data file metadata.""".formatted(
+      Sample-wide methods interpolate reference-sample factors and align batch reference medians.
+      Feature-specific QC LOESS fits each feature within each batch against a common median log abundance across all samples after steps 1 and 2; it does not apply additional scalar batch scaling.
+      Acquisition dates come from project or data file metadata.""".formatted(
           internalStandardization.getName()),
       NormalizationType.intraBatchDriftNormalizers());
 
@@ -102,17 +103,20 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
           Metadata column identifying the analytical batch (samples measured under comparable conditions).
           When set, samples are split into batches before applying steps 2 (%s) and 3 (%s), \
           so that reference samples (e.g., pooled QCs) and interpolation are batch-specific.
-          After intra-batch correction, a final inter-batch normalization aligns the median \
-          reference-sample signal of each batch to the global reference median.""".formatted(internalStandardization.getName(), normalizationType.getName())), false);
+          Sample-wide methods then align batch reference medians. Feature-specific QC LOESS uses \
+          its common feature target across all batches without additional scalar batch scaling.""".formatted(internalStandardization.getName(), normalizationType.getName())), false);
 
   /**
-   * Holds the result of the normalization in a
-   * {@link io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod} so it can
-   * later be applied to newly added features by gap filling and manual integration. Use
+   * Holds the diagnostics of the normalization (messages and feature-QC provenance) in a
+   * {@link io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod}. The
+   * {@link NormalizationFunction}s are stored in the
+   * {@link io.github.mzmine.datamodel.features.settings.FeatureListSettings} of the feature list so
+   * they can later be applied to newly added features by gap filling and manual integration. Use
    * {@link IntensityNormalizerModule#getNormalizationFunctionsOfLatestCallForFile(FeatureList,
    * RawDataFile)} and
    * {@link IntensityNormalizerModule#getNormalizationFunctionsOfLatestCall(FeatureList)} to extract
-   * these {@link NormalizationFunction}s.
+   * them. Projects saved before the settings were introduced also contain the functions here, see
+   * {@link IntensityNormalizerModule#getLegacyNormalizationFromAppliedMethods(FeatureList)}.
    */
   public static final HiddenParameter<IntensityNormalizationSummary> hiddenNormalizationSummary = new HiddenParameter<>(
       new NormalizationFunctionsParameter());

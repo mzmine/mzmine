@@ -570,14 +570,16 @@ public class BatchWizardTab extends SimpleTab {
    */
   private @NotNull HBox createTabHeaderActions() {
     final Button estimate = FxButtons.createButton("Estimate", Source.ESTIMATION.icon(),
-        "Derive wizard parameters from the same representative files used for optimization.\n"
+        "Derive wizard parameters from representative files with isotope-supported signals.\n"
+            + "Supports chromatography, direct infusion, and flow injection; unavailable for imaging.\n"
             + "Right click to also show the data file statistics.",
         () -> autoParamActions.estimate(false));
     estimate.setContextMenu(new ContextMenu(
         FxMenuUtil.newMenuItem("Estimate parameters and show statistics",
             () -> autoParamActions.estimate(true))));
     final Button optimize = FxButtons.createButton("Optimize", Source.OPTIMIZATION.icon(),
-        "Optimize the wizard parameters on representative files.\n"
+        "Optimize the wizard parameters on representative files with isotope-supported signals.\n"
+            + "Supports chromatography, direct infusion, and flow injection; unavailable for imaging.\n"
             + "Right click for advanced optimizer settings.",
         () -> autoParamActions.optimize(false));
     optimize.setContextMenu(new ContextMenu(
@@ -893,13 +895,13 @@ public class BatchWizardTab extends SimpleTab {
    * The final product of the wizard is the batch
    */
   public void createBatch() {
-    final BatchQueue queue = prepareBatchQueue();
-    if (queue == null) {
-      return;
-    }
-    BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
-        .getModuleParameters(BatchModeModule.class);
     try {
+      final BatchQueue queue = prepareBatchQueue();
+      if (queue == null) {
+        return;
+      }
+      final BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
+          .getModuleParameters(BatchModeModule.class);
       batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
       // highlights are only relevant until the batch is built
@@ -908,8 +910,9 @@ public class BatchWizardTab extends SimpleTab {
         MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
       }
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Cannot create batch" + e.getMessage(), e);
-      DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
+      logger.log(Level.WARNING, "Cannot create batch: " + e.getMessage(), e);
+      DialogLoggerUtil.showErrorDialog("Cannot create batch",
+          Objects.requireNonNullElse(e.getMessage(), e.getClass().getSimpleName()));
     }
   }
 
@@ -924,22 +927,24 @@ public class BatchWizardTab extends SimpleTab {
       throw new IllegalStateException(
           "Wizard batch preparation must run on the JavaFX application thread.");
     }
-    final WizardSequence currentSequence = updateAllParametersFromUiAndCheckErrors();
-    if (currentSequence == null) {
-      return null;
-    }
-    final Optional<WizardStepParameters> workflow = currentSequence.get(WORKFLOW);
-    if (workflow.isEmpty()) {
-      DialogLoggerUtil.showErrorDialog("Cannot create batch",
-          "A workflow must be selected to create a batch.");
-      return null;
-    }
     try {
+      // Control readback and validation can fail before the batch builder is reached.
+      final WizardSequence currentSequence = updateAllParametersFromUiAndCheckErrors();
+      if (currentSequence == null) {
+        return null;
+      }
+      final Optional<WizardStepParameters> workflow = currentSequence.get(WORKFLOW);
+      if (workflow.isEmpty()) {
+        DialogLoggerUtil.showErrorDialog("Cannot create batch",
+            "A workflow must be selected to create a batch.");
+        return null;
+      }
       return ((WorkflowWizardParameterFactory) workflow.get().getFactory()).getBatchBuilder(
           currentSequence).createQueue().clone();
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Cannot create batch" + e.getMessage(), e);
-      DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
+      logger.log(Level.WARNING, "Cannot create batch: " + e.getMessage(), e);
+      DialogLoggerUtil.showErrorDialog("Cannot create batch",
+          Objects.requireNonNullElse(e.getMessage(), e.getClass().getSimpleName()));
       return null;
     }
   }

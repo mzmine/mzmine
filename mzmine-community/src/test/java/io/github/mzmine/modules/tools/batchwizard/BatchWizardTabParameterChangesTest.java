@@ -25,27 +25,37 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 
 import fxinitializer.InitJavaFX;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.HeadLessDesktop;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.tools.batchwizard.WizardParameterChanges.Source;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
-/** Tests that reviewed partial sequences use the same marker state as native auto-parameter runs. */
+/** Tests reviewed parameter markers and wizard control readback during batch preparation. */
 @DisabledOnOs(OS.LINUX)
 class BatchWizardTabParameterChangesTest {
 
@@ -120,6 +130,52 @@ class BatchWizardTabParameterChangesTest {
           .get(WizardPart.CUSTOMIZATION).orElseThrow();
       assertTrue(ParameterUtils.equalValues(expected, actual));
     });
+  }
+
+  @Test
+  void correctedBlankNumericValueCanBeReadRepeatedly() throws Exception {
+    runOnFxAndWait(() -> {
+      final BatchWizardTab wizard = new BatchWizardTab();
+      final WizardSequence sequence = massSpectrometerStep(wizard);
+      sequence.get(WizardPart.MS).orElseThrow()
+          .setParameter(MassSpectrometerWizardParameters.minimumFeatureHeight, null);
+      // A preset change rebuilds the panes while the numeric field is still empty.
+      wizard.applyPartialSequence(sequence);
+      final ParameterSetupPane pane = massSpectrometerPane(wizard);
+      pane.getComponentForParameter(MassSpectrometerWizardParameters.minimumFeatureHeight)
+          .setText("2500");
+
+      assertDoesNotThrow(wizard::updateAllParametersFromUi);
+      assertEquals(2500d, wizard.snapshotSequence().get(WizardPart.MS).orElseThrow()
+          .getValue(MassSpectrometerWizardParameters.minimumFeatureHeight));
+      assertDoesNotThrow(wizard::updateAllParametersFromUi);
+    });
+  }
+
+  @Test
+  void batchPreparationReportsControlReadbackFailures() throws Exception {
+    runOnFxAndWait(() -> {
+      final BatchWizardTab wizard = spy(new BatchWizardTab());
+      doThrow(new IllegalArgumentException("Invalid numeric input"))
+          .when(wizard).updateAllParametersFromUi();
+      try (final var dialogs = mockStatic(DialogLoggerUtil.class)) {
+        assertNull(wizard.prepareBatchQueue());
+        dialogs.verify(() -> DialogLoggerUtil.showErrorDialog("Cannot create batch",
+            "Invalid numeric input"));
+      }
+    });
+  }
+
+  @SuppressWarnings("unchecked")
+  private static @NotNull ParameterSetupPane massSpectrometerPane(final @NotNull BatchWizardTab wizard) {
+    try {
+      final Field panesField = BatchWizardTab.class.getDeclaredField("paramPaneMap");
+      panesField.setAccessible(true);
+      final var panes = (Map<WizardStepParameters, ParameterSetupPane>) panesField.get(wizard);
+      return panes.get(wizard.getSequence().get(WizardPart.MS).orElseThrow());
+    } catch (ReflectiveOperationException e) {
+      throw new AssertionError(e);
+    }
   }
 
   private static WizardSequence changedMassSpectrometerStep(final BatchWizardTab wizard) {

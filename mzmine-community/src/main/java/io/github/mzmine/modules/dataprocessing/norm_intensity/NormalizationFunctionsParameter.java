@@ -42,12 +42,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NormalizationFunctionsParameter implements
     UserParameter<IntensityNormalizationSummary, Label> {
 
   private static final Logger logger = Logger.getLogger(
       NormalizationFunctionsParameter.class.getName());
+  // Serialization format only; the scientific method is recorded in the settings.
+  private static final String QC_PROVENANCE_FORMAT_VERSION = "1";
+  private static final ObjectMapper DIAGNOSTICS_JSON = new ObjectMapper();
 
   @NotNull
   private IntensityNormalizationSummary summary = new IntensityNormalizationSummary(
@@ -157,7 +161,18 @@ public class NormalizationFunctionsParameter implements
     }
 
     // finally loaded summary
-    summary = new IntensityNormalizationSummary(functions, messages);
+    final List<FeatureQcProvenance> featureQc = new ArrayList<>();
+    for (final Element evidence : XMLUtils.streamChildElementsByTagName(xmlElement, "featureQc").toList()) {
+      if (!QC_PROVENANCE_FORMAT_VERSION.equals(evidence.getAttribute("version")) || !"json".equals(evidence.getAttribute("encoding"))) {
+        throw new IllegalArgumentException("Unsupported feature-QC provenance encoding.");
+      }
+      try {
+        featureQc.add(DIAGNOSTICS_JSON.readValue(evidence.getTextContent(), FeatureQcProvenance.class));
+      } catch (final java.io.IOException exception) {
+        throw new IllegalArgumentException("Invalid feature-QC provenance.", exception);
+      }
+    }
+    summary = new IntensityNormalizationSummary(functions, messages, featureQc);
   }
 
   @Override
@@ -178,6 +193,17 @@ public class NormalizationFunctionsParameter implements
       final Element msgElement = doc.createElement("msg");
       msgElement.setTextContent(message);
       messagesElement.appendChild(msgElement);
+    }
+    for (final FeatureQcProvenance provenance : summary.featureQc()) {
+      final Element evidence = doc.createElement("featureQc");
+      evidence.setAttribute("version", QC_PROVENANCE_FORMAT_VERSION);
+      evidence.setAttribute("encoding", "json");
+      try {
+        evidence.setTextContent(DIAGNOSTICS_JSON.writeValueAsString(provenance));
+      } catch (final java.io.IOException exception) {
+        throw new IllegalArgumentException("Cannot persist feature-QC provenance.", exception);
+      }
+      xmlElement.appendChild(evidence);
     }
 
   }

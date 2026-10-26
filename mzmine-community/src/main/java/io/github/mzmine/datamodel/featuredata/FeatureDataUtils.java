@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -49,6 +50,8 @@ import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSearchableSummary;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationFunction;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -59,6 +62,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -414,7 +418,7 @@ public class FeatureDataUtils {
       IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
               feature.getFeatureList(), feature.getRawDataFile())
           .ifPresentOrElse(normalizer -> normalizeAbundances(feature, normalizer),
-              () -> clearIntensityNormalization(feature));
+              () -> clearIntensityNormalizationFromFeature(feature));
     }
   }
 
@@ -481,25 +485,87 @@ public class FeatureDataUtils {
     return smallestDelta;
   }
 
+  /**
+   * Normalizes a single feature, e.g., while its data is recalculated. A row-dependent function
+   * needs the row of the feature. New features are not added to their row while their data is
+   * calculated, e.g., during gap filling: the row bindings would be triggered for every value and
+   * multiple threads add features to the same row. Row-dependent normalization is skipped then and
+   * the task that adds the features applies it once at the end with
+   * {@link #applyIntensityNormalization(FeatureList, IntensityNormalizationSearchableSummary)}.
+   */
   public static void normalizeAbundances(@NotNull ModularFeature feature,
       @Nullable final NormalizationFunction normalizer) {
     if (normalizer == null) {
       return;
     }
+    // O(1) instead of searching the row in the feature list
+    final FeatureListRow row = feature.getRow();
+    if (row == null && normalizer.isRowDependent()) {
+      return;
+    }
+    normalizeAbundances(feature, normalizer, row);
+  }
 
-    final double factor = normalizer.getNormalizationFactor(feature.getMZ(), feature.getRT());
-    feature.set(NormalizedAreaType.class, (float) (feature.getArea() * factor));
-    feature.set(NormalizedHeightType.class, (float) (feature.getHeight() * factor));
+  /**
+   * Applies any normalization function. Row-dependent functions resolve their factor by the row,
+   * all other functions ignore it. Clears the normalized values if the function has no factor for
+   * this feature, e.g., a row without a row-specific factor.
+   *
+   * @param row the row of the feature, only required for row-dependent functions
+   */
+  public static void normalizeAbundances(@NotNull final ModularFeature feature,
+      @Nullable final NormalizationFunction normalizer, @Nullable final FeatureListRow row) {
+    if (normalizer == null) {
+      return;
+    }
+    final OptionalDouble resolved = normalizer.getNormalizationFactor(row, feature.getMZ(),
+        feature.getRT());
+    if (resolved.isEmpty()) {
+      clearIntensityNormalizationFromFeature(feature);
+      return;
+    }
+    final double factor = resolved.getAsDouble();
+    feature.set(NormalizedAreaType.class, scaleFiniteAbundance(feature.getArea(), factor));
+    feature.set(NormalizedHeightType.class, scaleFiniteAbundance(feature.getHeight(), factor));
+  }
+
+  private static @Nullable Float scaleFiniteAbundance(@Nullable final Float measured,
+      final double factor) {
+    if (measured == null || !Float.isFinite(measured)) return null;
+    final float normalized = (float) (measured * factor);
+    return Float.isFinite(normalized) ? normalized : null;
+  }
+
+  /**
+   * Applies the normalization functions to all features of the files in the summary. Used by the
+   * intensity normalizer and to re-apply row-dependent normalization after features were added,
+   * e.g., by gap filling. No cancel checks: once started this pass always runs to the end so that
+   * the values match the normalization settings of the feature list.
+   *
+   * @param summary build once with
+   *                {@link IntensityNormalizationSummary#toSearchableSummary(List)} for the raw data
+   *                files of the feature list
+   */
+  public static void applyIntensityNormalization(@NotNull final FeatureList flist,
+      @NotNull final IntensityNormalizationSearchableSummary summary) {
+    final var functions = summary.functions().entrySet();
+    for (final FeatureListRow row : flist.getRows()) {
+      for (final var entry : functions) {
+        if (row.getFeature(entry.getKey()) instanceof ModularFeature feature) {
+          normalizeAbundances(feature, entry.getValue().function(), row);
+        }
+      }
+    }
   }
 
   /**
    * Reset all {@link NormalizedAreaType} and {@link NormalizedHeightType}
    */
-  public static void clearIntensityNormalization(FeatureList flist) {
-    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalization);
+  public static void clearIntensityNormalizationFromFeature(FeatureList flist) {
+    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalizationFromFeature);
   }
 
-  private static void clearIntensityNormalization(ModularFeature feature) {
+  public static void clearIntensityNormalizationFromFeature(ModularFeature feature) {
     feature.set(NormalizedAreaType.class, null);
     feature.set(NormalizedHeightType.class, null);
   }

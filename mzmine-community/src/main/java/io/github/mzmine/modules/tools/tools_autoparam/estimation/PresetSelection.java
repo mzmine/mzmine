@@ -34,9 +34,11 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonIterfaceGroup;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.AutoParamTask;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.MzToleranceSearchOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.RawDataParameterEstimation;
@@ -73,6 +75,11 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
    */
   private static final List<IonInterfaceWizardParameterFactory> FWHM_PRESETS = List.of(
       IonInterfaceWizardParameterFactory.HPLC, IonInterfaceWizardParameterFactory.UHPLC);
+
+  // Conservative rescue: every sampled file needs several distinct isotope-supported broad
+  // signals dominating its supported signals. Counts are per seed, not tolerance.
+  private static final int MIN_BROAD_SIGNALS = 3;
+  private static final double MIN_BROAD_SIGNAL_SHARE = 0.8;
 
   /**
    * Only these mass spectrometers are told apart by the injection time. Low res., Orbitrap Astral
@@ -113,7 +120,11 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
                 currentFactory(sequence, WizardPart.IMS, IonMobilityWizardParameterFactory.class),
                 IonMobilityWizardParameterFactory.NO_IMS);
 
-    final PresetChange massSpectrometer = selectMassSpectrometer(analysis, sequence,
+    final List<DataFileStatistics> msFiles =
+        newIonInterface != null && newIonInterface.group() == IonIterfaceGroup.DIRECT_AND_FLOW
+            ? analysis.files().stream().map(DataFileStatistics::forDirectInfusion).toList()
+            : analysis.files();
+    final PresetChange massSpectrometer = selectMassSpectrometer(msFiles, sequence,
         newIonMobility);
     if (massSpectrometer != null) {
       changes.add(massSpectrometer);
@@ -152,13 +163,29 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
   }
 
   /**
-   * Selects the chromatography preset with the default FWHM closest to the estimated FWHM.
+   * Offers flow injection when isotope-supported broad signals dominate every file. Otherwise,
+   * selects the chromatography preset with the closest default FWHM.
    */
   static @Nullable PresetChange selectIonInterface(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence) {
     final WizardStepParameters step = sequence.get(WizardPart.ION_INTERFACE).orElse(null);
-    if (step == null || !(step.getFactory() instanceof IonInterfaceWizardParameterFactory current)
-        || !FWHM_PRESETS.contains(current)) {
+    if (step == null
+        || !(step.getFactory() instanceof IonInterfaceWizardParameterFactory current)) {
+      return null;
+    }
+    if ((FWHM_PRESETS.contains(current) || current == IonInterfaceWizardParameterFactory.HILIC)
+        && !analysis.files().isEmpty() && analysis.files().stream()
+        .allMatch(PresetSelection::broadSignalsDominate)) {
+      return new PresetChange(WizardPart.ION_INTERFACE, current,
+          IonInterfaceWizardParameterFactory.FLOW_INJECT,
+          ("At least %s of the isotope-supported signals in every file span more than %s of "
+              + "the run (at least %d distinct signals per file). These broad signals suggest "
+              + "flow injection and will be used for estimation if you switch presets.").formatted(
+              ConfigService.getConfiguration().getPercentFormat().format(MIN_BROAD_SIGNAL_SHARE),
+              ConfigService.getConfiguration().getPercentFormat()
+                  .format(AutoParamTask.MAX_CHROMATOGRAPHIC_WIDTH_SHARE), MIN_BROAD_SIGNALS));
+    }
+    if (!FWHM_PRESETS.contains(current)) {
       return null;
     }
     final Double estimated = RawDataParameterEstimation.estimateFwhm(analysis.fwhms());
@@ -181,6 +208,16 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
     }
     return new PresetChange(WizardPart.ION_INTERFACE, current, closest,
         "estimated FWHM %s min".formatted(ConfigService.getGuiFormats().rt(estimated)));
+  }
+
+  private static boolean broadSignalsDominate(@NotNull DataFileStatistics statistics) {
+    final DataFileStatistics rejected = statistics.rejectedStatistics();
+    if (rejected == null) {
+      return false;
+    }
+    final int broad = rejected.featureStatistics().size();
+    final int narrow = statistics.featureStatistics().size();
+    return broad >= MIN_BROAD_SIGNALS && broad >= MIN_BROAD_SIGNAL_SHARE * (broad + narrow);
   }
 
   /**
@@ -268,11 +305,16 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
    */
   static @Nullable PresetChange selectMassSpectrometer(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence, @NotNull IonMobilityWizardParameterFactory ionMobility) {
-    final MZTolerance estimatedTolerance = RawDataParameterEstimation.estimateMzTolerance(
-        analysis.files());
+    return selectMassSpectrometer(analysis.files(), sequence, ionMobility);
+  }
+
+  private static @Nullable PresetChange selectMassSpectrometer(
+      @NotNull List<DataFileStatistics> files, @NotNull WizardSequence sequence,
+      @NotNull IonMobilityWizardParameterFactory ionMobility) {
+    final MZTolerance estimatedTolerance = RawDataParameterEstimation.estimateMzTolerance(files);
     // assumption: the representative files stem from the same instrument, so a single file with
     // injection times is enough
-    final boolean injectionTimes = analysis.files().stream().map(DataFileStatistics::file)
+    final boolean injectionTimes = files.stream().map(DataFileStatistics::file)
         .filter(Objects::nonNull)
         .anyMatch(file -> !isBrukerTdf(file) && hasMs1InjectionTimes(file));
     return selectMassSpectrometer(estimatedTolerance, injectionTimes, sequence, ionMobility);

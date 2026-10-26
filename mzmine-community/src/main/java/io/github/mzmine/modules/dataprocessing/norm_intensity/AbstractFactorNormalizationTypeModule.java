@@ -98,11 +98,10 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
       return new ReferenceFunctions<>(Double.NaN, Map.of());
     }
 
-    // batch median qc metric - used to correct this batch and later inter batch correction
     final double referenceMetric = MathUtils.calcMedian(
         metrics.values().stream().mapToDouble(Double::doubleValue).toArray());
-    final Map<T, NormalizationFunction> functions = metrics.entrySet().stream().collect(
-        Collectors.toMap(Entry::getKey,
+    final Map<T, NormalizationFunction> functions = metrics.entrySet().stream()
+        .collect(Collectors.toMap(Entry::getKey,
             entry -> new FactorNormalizationFunction(referenceMetric / entry.getValue())));
     return new ReferenceFunctions<>(referenceMetric, functions);
   }

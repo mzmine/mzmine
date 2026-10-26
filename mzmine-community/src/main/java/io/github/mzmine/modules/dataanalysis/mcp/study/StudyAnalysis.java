@@ -53,6 +53,58 @@ public final class StudyAnalysis {
                            int leftUnits, int rightUnits, @NotNull List<String> warnings) {
   }
 
+  public record ConfidenceInterval(double lower, double upper, double standardError,
+                                   double degreesOfFreedom, double confidenceLevel) { }
+
+  /** Pointwise t interval for the same independent-unit mean difference used by the test. */
+  public static @Nullable ConfidenceInterval confidenceInterval(final @NotNull List<Sample> samples,
+      final @NotNull List<Measurement> measurements, final @NotNull String leftCondition,
+      final @NotNull String rightCondition, final @NotNull SignificanceTests test,
+      final double confidenceLevel) {
+    if (!Double.isFinite(confidenceLevel) || confidenceLevel <= 0d || confidenceLevel >= 1d) {
+      throw new IllegalArgumentException("confidence_level must be between zero and one");
+    }
+    final Map<String, Double> units = aggregateUnits(samples, measurements, sampleMap(samples));
+    final Map<String, Double> left = unitsForCondition(samples, units, leftCondition);
+    final Map<String, Double> right = unitsForCondition(samples, units, rightCondition);
+    if (left.size() < 2 || right.size() < 2) return null;
+    final double[] statistics = switch (test) {
+      case PAIRED_T_TEST -> {
+        final Map<String, String> leftPairs = pairs(samples, left.keySet());
+        final Map<String, String> rightPairs = pairs(samples, right.keySet());
+        if (leftPairs.size() < 2 || !leftPairs.keySet().equals(rightPairs.keySet())) yield null;
+        final double[] differences = leftPairs.keySet().stream().sorted()
+            .mapToDouble(pair -> left.get(leftPairs.get(pair)) - right.get(rightPairs.get(pair))).toArray();
+        yield new double[]{mean(differences), new DescriptiveStatistics(differences).getVariance()
+            / differences.length, differences.length - 1d};
+      }
+      case WELCHS_T_TEST, STUDENTS_T_TEST -> {
+        final double[] x = values(left), y = values(right);
+        final double vx = new DescriptiveStatistics(x).getVariance();
+        final double vy = new DescriptiveStatistics(y).getVariance();
+        final double variance;
+        final double df;
+        if (test == SignificanceTests.STUDENTS_T_TEST) {
+          df = x.length + y.length - 2d;
+          variance = ((x.length - 1d) * vx + (y.length - 1d) * vy) / df * (1d / x.length + 1d / y.length);
+        } else {
+          final double a = vx / x.length, b = vy / y.length;
+          variance = a + b;
+          df = variance * variance / (a * a / (x.length - 1d) + b * b / (y.length - 1d));
+        }
+        yield new double[]{mean(x) - mean(y), variance, df};
+      }
+      case MANN_WHITNEY_U_TEST, ONE_WAY_ANOVA -> null;
+    };
+    if (statistics == null) return null;
+    final double effect = statistics[0], variance = statistics[1], df = statistics[2];
+    if (!Double.isFinite(variance) || variance <= 0d || !Double.isFinite(df) || df <= 0d) return null;
+    final double standardError = Math.sqrt(variance);
+    final double margin = new org.apache.commons.math3.distribution.TDistribution(df)
+        .inverseCumulativeProbability((1d + confidenceLevel) / 2d) * standardError;
+    return new ConfidenceInterval(effect - margin, effect + margin, standardError, df, confidenceLevel);
+  }
+
   /** Aggregates technical repeat samples by condition/time/independent unit and rejects ambiguous mappings. */
   public static @NotNull List<TrajectoryPoint> trajectories(@NotNull List<Sample> samples,
       @NotNull List<Measurement> measurements) {
@@ -217,14 +269,18 @@ public final class StudyAnalysis {
     catch (RuntimeException e) { return new TestResult("test_unavailable", null, null, x.length, y.length, List.of(e.getMessage())); }
   }
 
-  private static @NotNull Map<String, String> pairs(List<Sample> samples, java.util.Set<String> unitIds) {
-    final Map<String, String> result = new LinkedHashMap<>();
+  private static @NotNull Map<String, String> pairs(@NotNull final List<Sample> samples,
+      @NotNull final java.util.Set<String> unitIds) {
+    final Map<String, String> pairToUnit = new LinkedHashMap<>();
+    final Map<String, String> unitToPair = new LinkedHashMap<>();
     for (final Sample sample : samples) if (unitIds.contains(sample.independentUnit())) {
       if (sample.pairId() == null || sample.pairId().isBlank()) return Map.of();
-      final String existing = result.putIfAbsent(sample.pairId(), sample.independentUnit());
-      if (existing != null && !existing.equals(sample.independentUnit())) return Map.of();
+      final String pairedUnit = pairToUnit.putIfAbsent(sample.pairId(), sample.independentUnit());
+      if (pairedUnit != null && !pairedUnit.equals(sample.independentUnit())) return Map.of();
+      final String pair = unitToPair.putIfAbsent(sample.independentUnit(), sample.pairId());
+      if (pair != null && !pair.equals(sample.pairId())) return Map.of();
     }
-    return result;
+    return pairToUnit;
   }
 
   private static @NotNull Map<String, Double> aggregateUnits(List<Sample> samples, List<Measurement> measurements,

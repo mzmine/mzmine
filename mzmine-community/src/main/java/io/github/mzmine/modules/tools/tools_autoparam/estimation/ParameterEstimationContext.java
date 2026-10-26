@@ -41,7 +41,8 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Wizard context for interpreting measurements; construction performs no processing.
+ * Wizard context for interpreting measurements. A DI/FI preset selects the retained broad signals
+ * and re-derives their aggregate measurements without repeating signal extraction.
  */
 public final class ParameterEstimationContext {
 
@@ -59,7 +60,7 @@ public final class ParameterEstimationContext {
   private ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence, @NotNull PresetSelection presetSelection,
       @NotNull ParameterSet preclassification) {
-    this.analysis = analysis;
+    this.analysis = analysis.forSequence(sequence);
     this.sequence = sequence;
     this.presetSelection = presetSelection;
     this.preclassification = preclassification;
@@ -101,6 +102,7 @@ public final class ParameterEstimationContext {
       @NotNull RawDataAnalysis analysis, @NotNull WizardSequence sequence,
       @NotNull ParameterSet preclassification,
       @NotNull Predicate<@NotNull PresetSelection> confirmation) {
+    analysis = analysis.forSequence(sequence);
     final PresetSelection fitting = PresetSelection.select(analysis, sequence);
     // also reaches headless runs, which never confirm
     if (fitting.hasWarnings()) {

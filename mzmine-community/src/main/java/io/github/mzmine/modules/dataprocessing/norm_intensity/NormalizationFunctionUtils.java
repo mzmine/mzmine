@@ -111,8 +111,8 @@ public class NormalizationFunctionUtils {
           if (previousFunction instanceof FactorNormalizationFunction prev
               && nextFunction instanceof FactorNormalizationFunction next) {
             // special case where simple factor functions can be turned into a new simple function
-            final double factor =
-                next.factor() * w.nextRun().weight() + prev.factor() * w.previousRun().weight();
+            final double factor = prev.factor() * w.previousRun().weight()
+                                  + next.factor() * w.nextRun().weight();
             yield new FactorNormalizationFunction(factor);
           } else {
             // saves both functions to interpolate, works for all cases

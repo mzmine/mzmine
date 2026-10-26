@@ -124,6 +124,14 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
     return value;
   }
 
+  /**
+   * Returns a detached copy of the native display format. Its precision describes rendering,
+   * not a restriction on values accepted by this parameter.
+   */
+  public @NotNull NumberFormat getNumberFormat() {
+    return (NumberFormat) format.clone();
+  }
+
   @Override
   public void loadValueFromXML(final Element xmlElement) {
 

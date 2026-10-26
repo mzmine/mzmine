@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ArrayUtils;
-import io.github.mzmine.util.MathUtils;
 import java.util.Arrays;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +106,7 @@ public final class FeatureIntensityNormalizationModule extends
       case MEDIAN -> MathUtils.calcMedian(finiteAbundances);
       case AVERAGE -> MathUtils.calcAvg(finiteAbundances);
       case SUM_TIC -> ArrayUtils.sum(finiteAbundances);
-      case MAX -> ArrayUtils.max(finiteAbundances).orElseThrow();
+      case MAX -> ArrayUtils.max(finiteAbundances).orElse(0d);
     };
   }
 }

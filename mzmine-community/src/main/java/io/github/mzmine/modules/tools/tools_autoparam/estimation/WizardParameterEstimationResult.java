@@ -27,7 +27,9 @@ package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
@@ -48,6 +50,22 @@ import org.jetbrains.annotations.Nullable;
 public record WizardParameterEstimationResult(@NotNull ParameterEstimationContext context,
                                               @NotNull PreparedParameterSet estimates) {
 
+  public static final String UNSUPPORTED_WORKFLOW_MESSAGE =
+      "Parameter estimation and optimization do not support imaging workflows. Review the wizard "
+          + "settings and proceed to batch review without estimation or optimization for imaging.";
+
+  /**
+   * Rejects unsupported workflows before importing files or replacing their mass lists.
+   */
+  public static void requireSupportedWorkflow(final @NotNull WizardSequence sequence) {
+    sequence.get(WizardPart.ION_INTERFACE).ifPresent(step -> {
+      if (step.getFactory() instanceof IonInterfaceWizardParameterFactory ionInterface
+          && ionInterface.isImaging()) {
+        throw new IllegalArgumentException(UNSUPPORTED_WORKFLOW_MESSAGE);
+      }
+    });
+  }
+
   /**
    * Computes the per-file statistics and the cross-file analysis of the imported files, offers the
    * presets that fit the raw data, and prepares all estimates. No batch is run.
@@ -61,12 +79,14 @@ public record WizardParameterEstimationResult(@NotNull ParameterEstimationContex
    * @param canceled           checked between the steps
    * @return the estimates, null if canceled
    * @throws IllegalStateException if no file was imported or no file contains isotope signals
+   * @throws IllegalArgumentException if the selected ion interface is unsupported
    */
   public static @Nullable WizardParameterEstimationResult estimate(
       @NotNull List<RawDataFile> importedFiles, @Nullable List<FeatureRecord> benchmarkFeatures,
       @NotNull WizardSequence sequence, @NotNull ParameterSet preclassification,
       @NotNull Predicate<@NotNull PresetSelection> presetConfirmation,
       @Nullable MemoryMapStorage storage, @NotNull BooleanSupplier canceled) {
+    requireSupportedWorkflow(sequence);
     if (importedFiles.isEmpty()) {
       throw new IllegalStateException("None of the selected raw data files could be imported.");
     }
@@ -74,9 +94,16 @@ public record WizardParameterEstimationResult(@NotNull ParameterEstimationContex
         .toScanPolaritySelection();
     final List<DataFileStatistics> statistics = RawDataPreparation.computeFileStatistics(
         importedFiles, benchmarkFeatures, storage, polarity);
-    RawDataPreparation.requireIsotopeSignals(statistics);
     if (canceled.getAsBoolean()) {
       return null;
+    }
+
+    // There is nothing to rescue if neither pool contains isotope evidence. Avoid offering
+    // unrelated preset changes for data that cannot be estimated at all.
+    if (statistics.stream().allMatch(
+        stat -> stat.featureStatistics().isEmpty() && (stat.rejectedStatistics() == null
+            || stat.rejectedStatistics().featureStatistics().isEmpty()))) {
+      RawDataPreparation.requireIsotopeSignals(statistics);
     }
 
     final RawDataAnalysis analysis = RawDataAnalysis.analyze(statistics);
@@ -88,6 +115,8 @@ public record WizardParameterEstimationResult(@NotNull ParameterEstimationContex
     if (canceled.getAsBoolean()) {
       return null;
     }
+    // Preset confirmation may select the isotope-supported peaks rejected as too broad for LC.
+    RawDataPreparation.requireIsotopeSignals(context.analysis().files());
     return new WizardParameterEstimationResult(context, PreparedParameterSet.prepare(context));
   }
 
