@@ -85,9 +85,10 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
   /**
    * Relative location of the search executable inside a NIST installation. The default install
    * puts it below MSSEARCH ({@code NIST26\MSSEARCH\MSPepSearch}), an install to a custom directory
-   * directly below the installation ({@code NIST26\MSPepSearch}). In both layouts the libraries
-   * stay in MSSEARCH, see {@link #libraryDirectory()}. The 64 bit build is preferred; the 32 bit
-   * build is the fallback for older installations.
+   * directly below the installation ({@code NIST26\MSPepSearch}) and has no MSSEARCH directory.
+   * In both layouts the libraries are siblings of the MSPepSearch directory, see
+   * {@link #libraryDirectory()}. The 64 bit build is preferred; the 32 bit build is the fallback
+   * for older installations.
    */
   private static final String[] EXECUTABLES = {"MSPepSearch/MSPepSearch64.exe",
       "MSSEARCH/MSPepSearch/MSPepSearch64.exe", "MSPepSearch/MSPepSearch.exe",
@@ -286,18 +287,14 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
   }
 
   /**
-   * @return the directory holding the libraries. The installer always puts them into MSSEARCH,
-   * wherever MSPepSearch was installed to. Falls back to the installation directory itself if it
-   * has no MSSEARCH directory, e.g. if it is the MSSEARCH directory.
+   * @return the directory holding the libraries: the one that contains the MSPepSearch directory,
+   * which is MSSEARCH in a default install and the installation itself in a custom one. Falls back
+   * to the installation directory if MSPepSearch cannot be found.
    */
   @Nullable File libraryDirectory() {
 
-    if (nistDirectory == null) {
-      return null;
-    }
-
-    final File mssearch = new File(nistDirectory, "MSSEARCH");
-    return mssearch.isDirectory() ? mssearch : nistDirectory;
+    final File executable = executable();
+    return executable == null ? nistDirectory : executable.getParentFile().getParentFile();
   }
 
   /**
