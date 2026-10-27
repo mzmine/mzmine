@@ -192,7 +192,7 @@ public final class MZmineCore {
           try {
             if (DesktopService.hasTerminalInput()) {
               UsersController.getInstance()
-                  .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+                  .loginOrRegisterConsoleBlocking(LoginOptions.CLI_TOKEN);
               if (CurrentUserService.isValid()) {
                 // login was successful
                 return;
@@ -267,7 +267,7 @@ public final class MZmineCore {
       try {
         logger.info("User login required.");
         UsersController.getInstance()
-            .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+            .loginOrRegisterConsoleBlocking(LoginOptions.CLI_TOKEN);
       } catch (Exception ex) {
         getDesktop().displayMessage(
             "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
@@ -600,7 +600,7 @@ public final class MZmineCore {
       // basically a headless check when DesktopService is not initialized (always headless at this point)
       return;
     }
-    if (argsParser.isCliLogin() || argsParser.isCliLoginPassword()) {
+    if (argsParser.isCliLogin() || argsParser.isCliLoginToken()) {
       return;
     }
     if (argsParser.isKeepRunningAfterBatch()) {
