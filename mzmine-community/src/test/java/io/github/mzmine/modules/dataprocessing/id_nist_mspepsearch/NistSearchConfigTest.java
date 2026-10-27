@@ -217,6 +217,43 @@ class NistSearchConfigTest {
   }
 
   @Test
+  @DisplayName("A default install keeps MSPepSearch and the libraries below MSSEARCH")
+  void defaultInstallLayout() throws IOException {
+
+    final Path install = Files.createDirectory(root.resolve("NIST26"));
+    final Path mssearch = Files.createDirectory(install.resolve("MSSEARCH"));
+    Files.createDirectories(mssearch.resolve("MSPepSearch"));
+    Files.createFile(mssearch.resolve("MSPepSearch/MSPepSearch64.exe"));
+    Files.createDirectory(mssearch.resolve("mainlib"));
+    Files.createFile(mssearch.resolve("mainlib/alphanam.in6"));
+
+    final NistSearchConfig config = config(install.toFile(), NistSearchMode.GC_EI_IDENTITY);
+    assertTrue(config.validate().isEmpty(), () -> "unexpected problems: " + config.validate());
+    assertEquals(List.of("mainlib"), config.libraryNames());
+
+    // a path saved for MS Search points at MSSEARCH and is mapped to the installation
+    assertEquals(install.toFile(), NistSearchConfig.toInstallation(mssearch.toFile()));
+  }
+
+  @Test
+  @DisplayName("MSPepSearch installed next to MSSEARCH still finds the libraries in MSSEARCH")
+  void customMsPepSearchLayout() throws IOException {
+
+    final Path install = Files.createDirectory(root.resolve("NIST26"));
+    Files.createDirectories(install.resolve("MSPepSearch"));
+    Files.createFile(install.resolve("MSPepSearch/MSPepSearch64.exe"));
+    final Path mssearch = Files.createDirectory(install.resolve("MSSEARCH"));
+    Files.createDirectory(mssearch.resolve("mainlib"));
+    Files.createFile(mssearch.resolve("mainlib/alphanam.in6"));
+
+    final NistSearchConfig config = config(install.toFile(), NistSearchMode.GC_EI_IDENTITY);
+    assertTrue(config.validate().isEmpty(), () -> "unexpected problems: " + config.validate());
+    assertEquals(List.of("mainlib"), config.libraryNames());
+
+    assertEquals(install.toFile(), NistSearchConfig.toInstallation(mssearch.toFile()));
+  }
+
+  @Test
   @DisplayName("The retention index library is never searched - it holds no spectra")
   void retentionIndexLibraryIsNeverSearched() {
 

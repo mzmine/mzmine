@@ -46,7 +46,8 @@ import org.jetbrains.annotations.Nullable;
  * and hands it to {@link NistPepSearchTask}, so that nothing else of the engine has to be visible.
  * The libraries are not part of it - they follow from the search type, see {@link #libraries()}.
  *
- * @param nistDirectory      the NIST installation directory, e.g. {@code D:\NIST26}.
+ * @param nistDirectory      the NIST installation directory, e.g. {@code D:\NIST26}. MSPepSearch
+ *                           may sit directly below it or below its MSSEARCH directory.
  * @param mode               the search type, which also decides which libraries are searched.
  *                           {@link NistSearchMode#AUTO} has to be resolved against the feature
  *                           list before the search runs, see {@link #resolveMode(FeatureList)}.
@@ -82,11 +83,15 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
   public static final int MAX_MATCH_FACTOR = 999;
 
   /**
-   * Relative location of the search executable inside a NIST installation. The 64 bit build is
-   * preferred; the 32 bit build is the fallback for older installations.
+   * Relative location of the search executable inside a NIST installation. The default install
+   * puts it below MSSEARCH ({@code NIST26\MSSEARCH\MSPepSearch}), an install to a custom directory
+   * directly below the installation ({@code NIST26\MSPepSearch}). In both layouts the libraries
+   * stay in MSSEARCH, see {@link #libraryDirectory()}. The 64 bit build is preferred; the 32 bit
+   * build is the fallback for older installations.
    */
   private static final String[] EXECUTABLES = {"MSPepSearch/MSPepSearch64.exe",
-      "MSPepSearch/MSPepSearch.exe"};
+      "MSSEARCH/MSPepSearch/MSPepSearch64.exe", "MSPepSearch/MSPepSearch.exe",
+      "MSSEARCH/MSPepSearch/MSPepSearch.exe"};
 
   /**
    * The search types {@link NistSearchMode#AUTO} resolves to. Validation has to accept an
@@ -194,6 +199,11 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
     // MSSEARCH sits one level below the installation, allow one more for unusual layouts
     for (int level = 0; level <= 2 && directory != null; level++) {
       if (findExecutable(directory) != null) {
+        // a default install has MSPepSearch inside MSSEARCH, report the installation above it
+        final File parent = directory.getParentFile();
+        if (directory.getName().equalsIgnoreCase("MSSEARCH") && findExecutable(parent) != null) {
+          return parent;
+        }
         return directory;
       }
       directory = directory.getParentFile();
@@ -223,8 +233,8 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
 
     if (findExecutable(nistDirectory) == null) {
       return List.of(
-          "MSPepSearch was not found in " + nistDirectory + ". Expected " + EXECUTABLES[0]
-              + " inside the NIST installation directory.");
+          "MSPepSearch was not found in " + nistDirectory + ". Expected " + EXECUTABLES[0] + " or "
+              + EXECUTABLES[1] + " inside the NIST installation directory.");
     }
 
     // the automatic type is only decided once the feature list is known, so the installation is
@@ -242,7 +252,7 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
     if (libraries().isEmpty()) {
       return List.of(
           "No %s library was found in %s. The %s search needs a library such as %s.".formatted(
-              mode.requiredLibraryContent(), nistDirectory, mode,
+              mode.requiredLibraryContent(), libraryDirectory(), mode,
               mode.isHighResolution() ? "hr_msms_nist" : "mainlib"));
     }
 
@@ -276,6 +286,21 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
   }
 
   /**
+   * @return the directory holding the libraries. The installer always puts them into MSSEARCH,
+   * wherever MSPepSearch was installed to. Falls back to the installation directory itself if it
+   * has no MSSEARCH directory, e.g. if it is the MSSEARCH directory.
+   */
+  @Nullable File libraryDirectory() {
+
+    if (nistDirectory == null) {
+      return null;
+    }
+
+    final File mssearch = new File(nistDirectory, "MSSEARCH");
+    return mssearch.isDirectory() ? mssearch : nistDirectory;
+  }
+
+  /**
    * The libraries of the installation that fit the search type, reduced to what MSPepSearch
    * accepts: at most one main library, at most one replicate library and at most
    * {@link #MAX_LIBRARIES} in total.
@@ -291,7 +316,7 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
     boolean mainUsed = false;
     boolean replicateUsed = false;
 
-    for (final NistLibrary library : NistLibrary.discover(nistDirectory)) {
+    for (final NistLibrary library : NistLibrary.discover(libraryDirectory())) {
 
       if (library.content() != required) {
         continue;
