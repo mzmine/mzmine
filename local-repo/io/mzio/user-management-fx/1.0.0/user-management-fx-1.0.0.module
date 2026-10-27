@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 65377,
-          "sha512": "89b0a6117fc11e8b809058838fd099b08faa242e2a91719b4f320c880c92b0d753a463b5c42de2124df34adb0c198cbcfc74669b519dda057e36cfa1d362664f",
-          "sha256": "63ff07cd97a22617d6e31958636f435c9e2fe2a3a419289a3ae4b6964b340467",
-          "sha1": "577ff38ddd33f0d6ea19a52032ab8e88ee8c7afa",
-          "md5": "ecd6823c7963a844a54e5c03f2d4cd6a"
+          "size": 64974,
+          "sha512": "8f590096d37c3fd553c0a81a4a726b24cf4ef565902e9b2158da7a921c96e7d7b387a6170f66cf95b54f148449b63313dd7f3e5a23dc067cff39c07162bd20c2",
+          "sha256": "e337a1f9e5841775a10874e85f183a71dbeaf08bca09ea66d688e1179c2c2aa0",
+          "sha1": "0940cb54243d69338f38ec6b096ac47aa520af78",
+          "md5": "00c13eb91c868973f617fc70f732347e"
         }
       ]
     },
@@ -167,11 +167,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 65377,
-          "sha512": "89b0a6117fc11e8b809058838fd099b08faa242e2a91719b4f320c880c92b0d753a463b5c42de2124df34adb0c198cbcfc74669b519dda057e36cfa1d362664f",
-          "sha256": "63ff07cd97a22617d6e31958636f435c9e2fe2a3a419289a3ae4b6964b340467",
-          "sha1": "577ff38ddd33f0d6ea19a52032ab8e88ee8c7afa",
-          "md5": "ecd6823c7963a844a54e5c03f2d4cd6a"
+          "size": 64974,
+          "sha512": "8f590096d37c3fd553c0a81a4a726b24cf4ef565902e9b2158da7a921c96e7d7b387a6170f66cf95b54f148449b63313dd7f3e5a23dc067cff39c07162bd20c2",
+          "sha256": "e337a1f9e5841775a10874e85f183a71dbeaf08bca09ea66d688e1179c2c2aa0",
+          "sha1": "0940cb54243d69338f38ec6b096ac47aa520af78",
+          "md5": "00c13eb91c868973f617fc70f732347e"
         }
       ]
     }
