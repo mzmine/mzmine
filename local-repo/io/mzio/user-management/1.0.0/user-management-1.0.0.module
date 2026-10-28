@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 26,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 8261,
-          "sha512": "f91ac280b7d5dd37361ce66bdff55d333737e2501dcf6e9df3f90852cb6d84b753593ec02207e92b3b9f9b118d8199b2970f6957a727482f7a419104b4437fd1",
-          "sha256": "3fb7a736a5fe064dd895c451654d52dec102c38a79d79eefdcfaf267ce0e585b",
-          "sha1": "30a2c7ee2ce4a661f743c98be72b7a16f35640f6",
-          "md5": "3a89d12aa12118964d15562d229692e9"
+          "size": 8343,
+          "sha512": "d135f15d0a1181d50e3ec69713a59312b4c6ed309500b44db1f101109de1e9d734f397af3ea3338f6adadcf6546e07e515730fac3cbabe896468a62e1ba2cce5",
+          "sha256": "6e542057af2c1a009b5a279cd4446de5396e644e007e762fedb1212cb8f95fa6",
+          "sha1": "85079d3550ae1dcca6e4ea0cc691d3f88b68de57",
+          "md5": "0ef745fe85f7df8bf751ea894b4c479d"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 26,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -71,11 +71,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 8261,
-          "sha512": "f91ac280b7d5dd37361ce66bdff55d333737e2501dcf6e9df3f90852cb6d84b753593ec02207e92b3b9f9b118d8199b2970f6957a727482f7a419104b4437fd1",
-          "sha256": "3fb7a736a5fe064dd895c451654d52dec102c38a79d79eefdcfaf267ce0e585b",
-          "sha1": "30a2c7ee2ce4a661f743c98be72b7a16f35640f6",
-          "md5": "3a89d12aa12118964d15562d229692e9"
+          "size": 8343,
+          "sha512": "d135f15d0a1181d50e3ec69713a59312b4c6ed309500b44db1f101109de1e9d734f397af3ea3338f6adadcf6546e07e515730fac3cbabe896468a62e1ba2cce5",
+          "sha256": "6e542057af2c1a009b5a279cd4446de5396e644e007e762fedb1212cb8f95fa6",
+          "sha1": "85079d3550ae1dcca6e4ea0cc691d3f88b68de57",
+          "md5": "0ef745fe85f7df8bf751ea894b4c479d"
         }
       ]
     }
