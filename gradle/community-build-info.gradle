@@ -78,6 +78,8 @@ abstract class GenerateCommunityBuildInfo extends DefaultTask {
 final def generateCommunityBuildInfo = tasks.register(
         'generateCommunityBuildInfo', GenerateCommunityBuildInfo) {
     checkout.set(rootProject.layout.projectDirectory)
+    // Read the final project version lazily; the configuration cache stores
+    // this provider's computed String value.
     packageVersion.set(providers.provider { project.version.toString() })
     outputDirectory.set(layout.buildDirectory.dir('generated/community-build-info'))
 }
