@@ -29,11 +29,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -90,8 +92,13 @@ class MsPepSearchCommandTest {
   }
 
   private List<String> build(final NistSearchConfig config, final Integer mwForLoss) {
+    return build(config, mwForLoss, PolarityType.UNKNOWN);
+  }
+
+  private List<String> build(final NistSearchConfig config, final Integer mwForLoss,
+      final PolarityType polarity) {
     return MsPepSearchCommand.build(config, executable, queryFile, outputFile, root.toFile(),
-        mwForLoss);
+        mwForLoss, polarity);
   }
 
   /**
@@ -170,6 +177,34 @@ class MsPepSearchCommandTest {
         List.of("/OutPrecursorMZ", "/OutDeltaPrecursorMZ", "/OutPrecursorType", "/OutInstrType",
             "/OutCE")));
     assertFalse(command.contains("/OutMW"));
+  }
+
+  @Test
+  @DisplayName("A positive or negative run only returns hits of its polarity, in every search type")
+  void knownPolarityIsMatched() {
+
+    for (final NistSearchMode mode : NistSearchMode.searchTypes()) {
+      for (final PolarityType polarity : List.of(PolarityType.POSITIVE, PolarityType.NEGATIVE)) {
+        final List<String> command = build(config(mode), 278, polarity);
+        assertTrue(command.contains("/MatchPolarity"),
+            () -> mode + ", " + polarity + ": " + command);
+      }
+    }
+  }
+
+  @Test
+  @DisplayName("A run of unknown polarity is unfiltered - MSPepSearch would treat it as positive")
+  void unknownPolarityIsNotMatched() {
+
+    final List<PolarityType> unknown = Arrays.asList(PolarityType.UNKNOWN, PolarityType.NEUTRAL,
+        PolarityType.ANY, null);
+    for (final NistSearchMode mode : NistSearchMode.searchTypes()) {
+      for (final PolarityType polarity : unknown) {
+        final List<String> command = build(config(mode), 278, polarity);
+        assertFalse(command.contains("/MatchPolarity"),
+            () -> mode + ", " + polarity + ": " + command);
+      }
+    }
   }
 
   @Test
@@ -258,7 +293,7 @@ class MsPepSearchCommandTest {
     final File spacedQuery = new File(spaced, "query file.msp");
 
     final List<String> command = MsPepSearchCommand.build(config(NistSearchMode.GC_EI_IDENTITY),
-        executable, spacedQuery, outputFile, spaced, null);
+        executable, spacedQuery, outputFile, spaced, null, null);
 
     assertTrue(command.contains(spacedQuery.getAbsolutePath()));
     assertEquals(spacedQuery.getAbsolutePath(), valueAfter(command, "/INP"));

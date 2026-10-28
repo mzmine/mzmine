@@ -65,7 +65,6 @@ class ArgsToConfigUtils {
 
     // parse args temp dir after config was loaded, so we can override
     checkAndOverrideArgsTempDir(argsParser);
-    applyTempDirFromConfiguration();
     TmpFileCleanup.runCleanup(); // clean temp files in new dir
 
     checkAndOverrideArgsUser(argsParser);
@@ -80,18 +79,17 @@ class ArgsToConfigUtils {
   }
 
   static void checkAndOverrideArgsTempDir(MZmineCoreArgumentParser argsParser) {
-    // override temp directory
-    final File tempDirectory = argsParser.getTempDirectory();
-    if (tempDirectory != null) {
-      // needs to be accessible
-      if (FileAndPathUtil.createDirectory(tempDirectory)) {
-        ConfigService.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
-      } else {
-        logger.log(Level.WARNING,
-            "Cannot create or access temp file directory that was set via program argument: "
-                + tempDirectory.getAbsolutePath());
-      }
+    final File[] tempDirectories = argsParser.getTempDirectories();
+    if (tempDirectories == null) {
+      return;
     }
+    // set and get actual temp directories, excluding .mzmine folder
+    final File[] usableDirectories = FileAndPathUtil.setTempDirs(tempDirectories);
+    if (usableDirectories.length > 0) {
+      ConfigService.getPreferences()
+          .setParameter(MZminePreferences.tempDirectory, usableDirectories);
+    }
+    logger.finest(() -> "Working temporary directory is " + FileAndPathUtil.getTempDir());
   }
 
   static void checkAndHandleArgsUserLoginOptions(MZmineCoreArgumentParser argsParser) {
@@ -241,31 +239,4 @@ class ArgsToConfigUtils {
     return false;
   }
 
-  static void applyTempDirFromConfiguration() {
-    final File tempDir = ConfigService.getConfiguration().getPreferences()
-        .getParameter(MZminePreferences.tempDirectory).getValue();
-    if (tempDir == null) {
-      logger.warning(
-          () -> "Invalid temporary directory. Defaulting to system temp directory. %s".formatted(
-              System.getProperty("java.io.tmpdir")));
-      return;
-    }
-
-    if (!tempDir.exists()) {
-      if (!tempDir.mkdirs()) {
-        logger.warning(
-            () -> "Could not create temporary directory %s. Defaulting to system temp directory. %s".formatted(
-                tempDir.getAbsolutePath(), System.getProperty("java.io.tmpdir")));
-        return;
-      }
-    }
-
-    if (tempDir.isDirectory()) {
-      FileAndPathUtil.setTempDir(tempDir.getAbsoluteFile());
-      logger.finest(() -> "Default temporary directory is %s".formatted(
-          System.getProperty("java.io.tmpdir")));
-      logger.finest(() -> "Working temporary directory is %s".formatted(
-          FileAndPathUtil.getTempDir().toString()));
-    }
-  }
 }
