@@ -446,7 +446,7 @@ public abstract class AbstractWorkspace implements Workspace {
         () -> UserAuthStore.removeUserFile(CurrentUserService.getUser()));
     addMenuItem(menu, "Open users directory", getWorkspaceMenuHelper()::openUsersDirectory);
     addMenuItem(menu, "Manage user online",
-        () -> DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl()));
+        () -> DesktopService.getDesktop().openWebPage(MzioMZmineLinks.ACCOUNT_CONSOLE.getUrl()));
     return menu;
   }
 

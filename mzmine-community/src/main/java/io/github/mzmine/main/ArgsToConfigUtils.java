@@ -95,18 +95,9 @@ class ArgsToConfigUtils {
   static void checkAndHandleArgsUserLoginOptions(MZmineCoreArgumentParser argsParser) {
     final boolean isCliBatchProcessing = argsParser.getBatchFile() != null;
 
-    // login user by cli direct password
-    if (argsParser.isCliLoginPassword()) {
-      if (commandLineLogin(isCliBatchProcessing, LoginOptions.CONSOLE_ENTER_CREDENTIALS)) {
-        return;
-      }
-    }
-
-    // login user if cli option
-    if (argsParser.isCliLogin()) {
-      if (commandLineLogin(isCliBatchProcessing, LoginOptions.CONSOLE)) {
-        return;
-      }
+    // login user by cli-token
+    if (argsParser.isCliLoginToken()) {
+      commandLineLogin(isCliBatchProcessing, LoginOptions.CLI_TOKEN);
     }
   }
 
