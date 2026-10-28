@@ -59,6 +59,8 @@ semver {
     properties = versionFile.toString()
 }
 
+apply from: "$rootDir/gradle/community-build-info.gradle"
+
 catalog {
     versionCatalog {
         from(files("$rootDir/gradle/libs.versions.toml"))
