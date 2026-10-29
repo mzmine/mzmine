@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
  */
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
-import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.QcRlsc;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.QcRlsc;
 import org.jetbrains.annotations.NotNull;
 
 /** Settings for one QC drift correction pipeline, with QC-RLSC or manual LOESS smoothing. */

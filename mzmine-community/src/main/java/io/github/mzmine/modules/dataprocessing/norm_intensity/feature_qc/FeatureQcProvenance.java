@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
 import org.jetbrains.annotations.NotNull;
 

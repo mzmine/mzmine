@@ -26,7 +26,9 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static java.util.Objects.requireNonNullElse;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcProvenance;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.XMLUtils;
@@ -42,7 +44,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NormalizationFunctionsParameter implements
     UserParameter<IntensityNormalizationSummary, Label> {

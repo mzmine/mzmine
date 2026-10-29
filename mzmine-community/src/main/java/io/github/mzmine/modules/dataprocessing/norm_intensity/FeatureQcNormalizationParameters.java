@@ -1,5 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSettings;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothingOptions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;

@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
  */
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.ManualLoess;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.QcRlsc;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.ManualLoess;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.QcRlsc;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcProvenance;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

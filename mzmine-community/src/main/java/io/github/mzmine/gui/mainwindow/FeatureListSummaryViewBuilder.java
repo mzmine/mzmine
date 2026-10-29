@@ -33,7 +33,7 @@ import io.github.mzmine.javafx.components.factories.FxListViews;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcDiagnosticsView;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcDiagnosticsView;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizationSummary;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerParameters;

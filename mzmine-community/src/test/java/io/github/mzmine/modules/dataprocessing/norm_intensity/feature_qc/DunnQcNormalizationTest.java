@@ -1,8 +1,8 @@
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.ManualLoess;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.ManualLoess;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
