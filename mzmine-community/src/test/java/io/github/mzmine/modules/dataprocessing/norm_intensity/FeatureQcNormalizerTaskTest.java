@@ -5,6 +5,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createFeature;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
+import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.setCurrentProjectWithFiles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -150,6 +151,7 @@ class FeatureQcNormalizerTaskTest {
     source.addRow(standard);
     source.addRow(analyte);
     project.addFeatureList(source);
+    setCurrentProjectWithFiles(project, files);
     final StringMetadataColumn batch = new StringMetadataColumn("feature_qc_compose_batch", "batch");
     final DoubleMetadataColumn dilution = new DoubleMetadataColumn("feature_qc_compose_dilution", "dilution");
     project.getProjectMetadata().addColumn(batch);
@@ -215,6 +217,7 @@ class FeatureQcNormalizerTaskTest {
     row.applyRowBindings();
     source.addRow(row);
     project.addFeatureList(source);
+    setCurrentProjectWithFiles(project, files);
     return new Fixture(project, source, files);
   }
 

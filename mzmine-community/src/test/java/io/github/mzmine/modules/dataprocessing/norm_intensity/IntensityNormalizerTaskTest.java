@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.addRow;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createFeatureIntensityParameters;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
+import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.setCurrentProjectWithFiles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -47,6 +48,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -56,16 +58,26 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 class IntensityNormalizerTaskTest {
 
-  // File names starting with "qc_" are auto-detected as SampleType.QC via SampleType.ofString,
-  // so no metadata table setup is needed. Both files are reference files, which means the
-  // interpolation code path in IntensityNormalizerTask.run() is never entered, and
-  // ProjectService.getMetadata() is called but the empty singleton metadata is harmless.
+  // File names starting with "qc_" are auto-detected as SampleType.QC when the files are registered
+  // in the project metadata, see NormIntensityTestUtils.setCurrentProjectWithFiles. Both files are
+  // reference files, which means the interpolation code path in IntensityNormalizerTask.run() is
+  // never entered.
+
+  /**
+   * Feature lists get a name that is unique in the current project when they are created, so start
+   * every test with an empty current project instead of the project of the previous test.
+   */
+  @BeforeEach
+  void useEmptyCurrentProject() {
+    ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+  }
 
   /**
    * Builds a parameter set for average intensity normalization with the given abundance measure.
@@ -95,6 +107,7 @@ class IntensityNormalizerTaskTest {
     addRow(featureList, 2, qc1, 6f, qc2, 8f);
 
     final MZmineProjectImpl project = new MZmineProjectImpl();
+    setCurrentProjectWithFiles(project, featureList.getRawDataFiles());
     project.addFeatureList(featureList);
 
     final IntensityNormalizerTask task = new IntensityNormalizerTask(project, featureList,
@@ -246,6 +259,7 @@ class IntensityNormalizerTaskTest {
             List.of(new RawFileNormalizationFunction(s1, new FactorNormalizationFunction(2d))))));
 
     final MZmineProjectImpl project = new MZmineProjectImpl();
+    setCurrentProjectWithFiles(project, featureList.getRawDataFiles());
     project.addFeatureList(featureList);
 
     final IntensityNormalizerTask task = new IntensityNormalizerTask(project, featureList,
@@ -272,6 +286,7 @@ class IntensityNormalizerTaskTest {
       feature.set(NormalizedAreaType.class, 88f);
     });
     final MZmineProjectImpl project = new MZmineProjectImpl();
+    setCurrentProjectWithFiles(project, source.getRawDataFiles());
     project.addFeatureList(source);
     final IntensityNormalizerTask task = new IntensityNormalizerTask(project, source,
         buildParams(AbundanceMeasure.Height, OriginalFeatureListOption.PROCESS_IN_PLACE), null,
@@ -295,6 +310,7 @@ class IntensityNormalizerTaskTest {
   void processInPlaceCancellationDuringApplicationCompletesValuesAndSettings() {
     final ModularFeatureList source = previouslyNormalizedList();
     final MZmineProjectImpl project = new MZmineProjectImpl();
+    setCurrentProjectWithFiles(project, source.getRawDataFiles());
     project.addFeatureList(source);
     final IntensityNormalizerTask task = new IntensityNormalizerTask(project, source,
         buildParams(AbundanceMeasure.Height, OriginalFeatureListOption.PROCESS_IN_PLACE), null,
@@ -323,6 +339,7 @@ class IntensityNormalizerTaskTest {
       @NotNull final OriginalFeatureListOption handling) {
     final ModularFeatureList source = previouslyNormalizedList();
     final MZmineProjectImpl project = new MZmineProjectImpl();
+    setCurrentProjectWithFiles(project, source.getRawDataFiles());
     project.addFeatureList(source);
     final ParameterSet parameters = spy(buildParams(AbundanceMeasure.Height, handling));
     final AtomicReference<IntensityNormalizerTask> task = new AtomicReference<>();

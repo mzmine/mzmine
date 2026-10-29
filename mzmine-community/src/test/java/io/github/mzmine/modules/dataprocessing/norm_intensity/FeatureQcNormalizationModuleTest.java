@@ -5,6 +5,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createFeature;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
+import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.metadataWithFiles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -19,7 +20,6 @@ import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.Feature
 import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothingOptions;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcUnavailableReason;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.ManualLoessSmoothingParameters;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -135,7 +135,7 @@ class FeatureQcNormalizationModuleTest {
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         fixture.files.size());
     module.createAllNormalizationFunctionsToSummary(summary, fixture.list, batches,
-        new MetadataTable(), parameters(), new FeatureQcNormalizationParameters(), () -> false,
+        metadataWithFiles(fixture.files), parameters(), new FeatureQcNormalizationParameters(), () -> false,
         completed);
     return summary;
   }
