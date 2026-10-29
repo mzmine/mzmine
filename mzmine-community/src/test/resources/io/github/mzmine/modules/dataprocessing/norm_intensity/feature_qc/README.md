@@ -9,7 +9,7 @@ implementation and does not establish R or qcrlscR equivalence.
 predictions and factors against that fixture. It also checks that fixed smoothing reproduces the
 automatically selected curve when given the same span and degree, without calculating a LOOCV
 score. Closed-form linear/quadratic cases, robustness, singular neighborhoods and cancellation
-exercise the shared fitter. Pipeline tests cover per-batch QC means, injection order, conditioning-QC
+exercise the shared fitter. Pipeline tests cover the common QC median target across batches, injection order, conditioning-QC
 exclusion, missingness thresholds, unsupported batches, boundaries and factor limits.
 
 ## QC-RLSC numerical-core benchmark

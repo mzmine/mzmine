@@ -3,6 +3,9 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcDriftNormalization;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcProvenance;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcResult;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.parameters.ParameterSet;
@@ -19,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /** Fits feature-specific QC corrections from the native task's prepared batch inputs. */
 public final class FeatureQcNormalizationModule implements NormalizationTypeModule {
 
-  @Override public @NotNull String getName() { return "QC drift correction"; }
+  @Override public @NotNull String getName() { return NormalizationType.FeatureQcLoess.toString(); }
   @Override public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FeatureQcNormalizationParameters.class;
   }

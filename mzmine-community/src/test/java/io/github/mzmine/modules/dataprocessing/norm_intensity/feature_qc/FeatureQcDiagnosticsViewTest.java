@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2026 The mzmine Development Team
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

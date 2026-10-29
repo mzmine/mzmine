@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
  */
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.ManualLoess;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,11 +19,10 @@ import org.junit.jupiter.api.Test;
 
 class FeatureQcDriftNormalizationTest {
 
-  private static final FeatureQcSettings FIXED = new FeatureQcSettings(false, .75d, 1, 2,
-      5, 10d, .5d, 0);
+  private static final FeatureQcSettings FIXED = new FeatureQcSettings(new ManualLoess(.75d, 1, 2), 5, 10d, .5d);
 
   @Test
-  void fixedSmoothingPreservesEachBatchQcMeanAndIgnoresStudyAbundances() {
+  void fixedSmoothingAlignsBatchesToCommonQcMedianAndIgnoresStudyAbundances() {
     final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
     final Map<String, Double> values = new LinkedHashMap<>();
     for (int index = 0; index < 5; index++) {
@@ -36,10 +36,16 @@ class FeatureQcDriftNormalizationTest {
 
     final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), FIXED);
 
-    for (final double factor : result.rowFactors().get(1).values()) assertEquals(1d, factor, 1e-12);
+    // median(5 x 10, 5 x 20) = 15 is the common target of both batches
+    final Map<String, Double> factors = result.rowFactors().get(1);
+    for (int index = 0; index < 5; index++) {
+      assertEquals(1.5d, factors.get("a" + index), 1e-12);
+      assertEquals(.75d, factors.get("b" + index), 1e-12);
+    }
+    assertEquals(1.5d, factors.get("study"), 1e-12);
     final var batches = result.diagnostics().rows().get(1).batches();
-    assertEquals(10d, batches.get("A").correctionTarget());
-    assertEquals(20d, batches.get("B").correctionTarget());
+    assertEquals(15d, batches.get("A").correctionTarget());
+    assertEquals(15d, batches.get("B").correctionTarget());
     assertEquals(1, result.availability().fullyCorrectedRows());
   }
 
@@ -62,16 +68,15 @@ class FeatureQcDriftNormalizationTest {
   }
 
   @Test
-  void fixedQuadraticSmoothingCorrectsRawResponsesToTheArithmeticQcMean() {
+  void fixedQuadraticSmoothingCorrectsRawResponsesToTheQcMedian() {
     final List<FeatureQcDriftNormalization.Sample> samples = samples("A", 9);
     final Map<String, Double> values = new LinkedHashMap<>();
-    double target = 0d;
     for (int i = 0; i < 9; i++) {
-      final double value = 100d + i * i;
-      values.put("s" + i, value);
-      target += value / 9d;
+      values.put("s" + i, 100d + i * i);
     }
-    final var settings = new FeatureQcSettings(false, 1d, 2, 0, 5, 10d, .5d, 0);
+    // median of 100 + i^2 for i = 0..8
+    final double target = 116d;
+    final var settings = new FeatureQcSettings(new ManualLoess(1d, 2, 0), 5, 10d, .5d);
     final var result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), settings);
     for (final var sample : samples) {
       assertEquals(target, values.get(sample.id()) * result.rowFactors().get(1).get(sample.id()), 1e-8);
@@ -180,7 +185,7 @@ class FeatureQcDriftNormalizationTest {
   @Test
   void rejectsExcessiveFactorsAndDoesNotTreatCancellationAsFitFailure() {
     final Map<String, Double> values = Map.of("s0", 10d, "s1", 20d, "s2", 30d, "s3", 40d, "s4", 50d);
-    final var settings = new FeatureQcSettings(false, 1d, 1, 0, 5, 2d, .5d, 0);
+    final var settings = new FeatureQcSettings(new ManualLoess(1d, 1, 0), 5, 2d, .5d);
     final var result = FeatureQcDriftNormalization.calculate(samples("A", 5), Map.of(1, values), settings);
     assertEquals(FeatureQcUnavailableReason.FACTOR_OUT_OF_BOUNDS, result.unavailableReason(1, "s0"));
     assertThrows(java.util.concurrent.CancellationException.class,
@@ -194,7 +199,7 @@ class FeatureQcDriftNormalizationTest {
         Map.of(1, Map.of("study", 10d)), FIXED);
     assertEquals(FeatureQcUnavailableReason.NO_QC_REFERENCES, noQc.unavailableRows().get(1));
     final var noInput = FeatureQcDriftNormalization.calculate(samples("A", 5), Map.of(2, Map.of()),
-        new FeatureQcSettings(false, .75d, 1, 2, 5, 10d, 1d, 0));
+        new FeatureQcSettings(new ManualLoess(.75d, 1, 2), 5, 10d, 1d));
     assertEquals(FeatureQcUnavailableReason.BATCH_INSUFFICIENT_USABLE_QCS,
         noInput.unavailableReason(2, "s0"));
   }

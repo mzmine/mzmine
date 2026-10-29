@@ -14,6 +14,11 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSettings;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothingOptions;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcUnavailableReason;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.ManualLoessSmoothingParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -30,19 +35,25 @@ import org.junit.jupiter.api.Test;
 class FeatureQcNormalizationModuleTest {
 
   @Test
-  void nativeParametersPreserveFixedSmoothingAcrossXmlRoundtrip() throws Exception {
+  void nativeParametersPreserveManualLoessAcrossXmlRoundtrip() throws Exception {
     final var parameters = (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters()
         .cloneParameterSet();
-    parameters.setParameter(FeatureQcNormalizationParameters.automaticSmoothing, false);
-    parameters.setParameter(FeatureQcNormalizationParameters.bandwidth, .6d);
-    parameters.setParameter(FeatureQcNormalizationParameters.polynomialDegree, 2);
-    parameters.setParameter(FeatureQcNormalizationParameters.initialQcsToExclude, 3);
+    parameters.getParameter(FeatureQcNormalizationParameters.smoothing)
+        .setValue(FeatureQcSmoothingOptions.MANUAL_LOESS,
+            ManualLoessSmoothingParameters.create(.6d, 2, 3));
     final String xml = ParameterUtils.saveValuesToXMLString(parameters);
     final var loaded = (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters()
         .cloneParameterSet();
     ParameterUtils.loadValuesFromXMLString(loaded, xml);
     assertEquals(parameters.settings(), loaded.settings());
-    assertFalse(loaded.settings().automaticSmoothing());
+    assertEquals(new FeatureQcSmoothing.ManualLoess(.6d, 2, 3), loaded.settings().smoothing());
+  }
+
+  @Test
+  void qcRlscIsTheDefaultWithFixedRobustnessIterations() {
+    final FeatureQcSettings settings = new FeatureQcNormalizationParameters().settings();
+    assertEquals(FeatureQcSmoothing.QcRlsc.DEFAULT, settings.smoothing());
+    assertEquals(2, settings.robustnessIterations());
   }
 
   @Test

@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
  */
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.ManualLoess;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -25,7 +26,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** One QC-RLSC pipeline for every feature and batch, with automatic or fixed smoothing. */
+/** One QC drift correction pipeline for every feature and batch, with QC-RLSC or manual LOESS smoothing. */
 public final class FeatureQcDriftNormalization {
 
   private static final double WEIGHT_EPSILON = 1e-14;
@@ -55,7 +56,7 @@ public final class FeatureQcDriftNormalization {
       @NotNull final Map<Integer, Map<String, Double>> allValues,
       @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
     validateInputs(samples, allValues, canceled);
-    return calculatePrepared(prepareSamples(samples, settings, canceled), allValues, settings, canceled);
+    return calculatePrepared(prepareSamples(samples, canceled), allValues, settings, canceled);
   }
 
   private static @NotNull FeatureQcResult calculatePrepared(@NotNull final List<Sample> samples,
@@ -72,7 +73,8 @@ public final class FeatureQcDriftNormalization {
       checkCanceled(canceled);
       final int rowId = row.getKey();
       final Map<String, Double> values = row.getValue();
-      final int usableQcs = usableQcs(samples, values, canceled).size();
+      final List<Sample> allUsableQcs = usableQcs(samples, values, canceled);
+      final int usableQcs = allUsableQcs.size();
       if (totalQcs == 0) {
         unavailableRows.put(rowId, FeatureQcUnavailableReason.NO_QC_REFERENCES);
         rowDiagnostics.put(rowId, new FeatureQcRowDiagnostic(rowId, 0, 0,
@@ -86,12 +88,18 @@ public final class FeatureQcDriftNormalization {
             FeatureQcUnavailableReason.GLOBAL_MISSING_QC_THRESHOLD, Map.of()));
         continue;
       }
+      // decision: Dunn 2011 divides by the fitted QC curve, which aligns all batches to the same QC
+      // level. Rescaling every batch to one common target keeps this alignment and the abundance
+      // scale. A per-batch target would restore the batch offsets. Without usable QCs, every batch
+      // fails the minimum usable QC check before the target is used
+      final double target = allUsableQcs.isEmpty() ? Double.NaN : median(allUsableQcs.stream()
+          .mapToDouble(sample -> values.get(sample.id())).toArray());
       final Map<String, Double> rowFactors = new LinkedHashMap<>();
       final Set<String> rowBoundaries = new LinkedHashSet<>();
       final Map<String, FeatureQcBatchDiagnostic> batchDiagnostics = new LinkedHashMap<>();
       for (final Map.Entry<String, List<Sample>> batch : batches.entrySet()) {
         checkCanceled(canceled);
-        final BatchResult result = calculateBatch(batch.getKey(), batch.getValue(), values,
+        final BatchResult result = calculateBatch(batch.getKey(), batch.getValue(), values, target,
             settings, canceled);
         batchDiagnostics.put(batch.getKey(), result.diagnostic());
         if (result.diagnostic().successful()) {
@@ -109,16 +117,20 @@ public final class FeatureQcDriftNormalization {
     final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics(
         "Tricube local linear/quadratic regression; bisquare residual reweighting; natural cubic "
             + "spline; raw response; " + (settings.automaticSmoothing()
-            ? "Dunn 2011 LOOCV span/degree selection" : "fixed span and degree, no LOOCV search"),
+            ? "Dunn 2011 LOOCV span/degree selection" : "manual span and degree, no LOOCV search"),
         "ordinal acquisition order within each batch; nearest QC boundary outside fitted range",
-        "divide by fitted QC response, rescale to arithmetic mean of usable QCs in each batch",
+        "divide by fitted QC response, rescale to median of usable QCs across all batches",
         settings, availability, rowDiagnostics);
     return new FeatureQcResult(samples, factors, boundaries, unavailableRows, diagnostics);
   }
 
+  /**
+   * @param target the common correction target of this feature across all batches
+   */
   private static @NotNull BatchResult calculateBatch(@NotNull final String batch,
       @NotNull final List<Sample> samples, @NotNull final Map<String, Double> values,
-      @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
+      final double target, @NotNull final FeatureQcSettings settings,
+      @NotNull final BooleanSupplier canceled) {
     final List<Sample> qcs = usableQcs(samples, values, canceled);
     final int totalQcs = countQcs(samples, canceled);
     final int usableQcs = qcs.size();
@@ -132,12 +144,10 @@ public final class FeatureQcDriftNormalization {
     }
     final double[] x = new double[usableQcs];
     final double[] y = new double[usableQcs];
-    double target = 0d;
     for (int i = 0; i < usableQcs; i++) {
       checkCanceled(canceled);
       x[i] = qcs.get(i).order();
       y[i] = values.get(qcs.get(i).id());
-      target += y[i] / usableQcs;
     }
     final Fit fit;
     try {
@@ -183,26 +193,27 @@ public final class FeatureQcDriftNormalization {
     final FeatureQcBatchDiagnostic diagnostic = new FeatureQcBatchDiagnostic(batch, totalQcs,
         usableQcs, x[0], x[x.length - 1], boundaries.size(), factors.size(), null, rsd(y),
         rsd(after), y.length, fit.crossValidationMse(), settings.automaticSmoothing() ? y.length : 0,
-        0, settings.automaticSmoothing() ? null : "fixed smoothing; cross-validation not performed",
+        0, settings.automaticSmoothing() ? null : "manual LOESS; cross-validation not performed",
         minimum(factorValues), maximum(factorValues), points, fit.degree(), fit.neighborhoodSize(),
         fit.span(), target, "raw response; " + (settings.automaticSmoothing()
-        ? "model-selection LOOCV error, not independent validation" : "fixed smoothing, no LOOCV score"));
+        ? "model-selection LOOCV error, not independent validation" : "manual LOESS, no LOOCV score"));
     return new BatchResult(factors, boundaries, diagnostic);
   }
 
+  /**
+   * Replaces the acquisition order by the ordinal position within each batch.
+   */
   private static @NotNull List<Sample> prepareSamples(@NotNull final List<Sample> samples,
-      @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
+      @NotNull final BooleanSupplier canceled) {
     final Map<String, Sample> prepared = new LinkedHashMap<>();
     for (final List<Sample> batch : batches(samples, canceled).values()) {
       final List<Sample> ordered = new ArrayList<>(batch);
       ordered.sort(Comparator.comparingDouble(Sample::order));
-      int qcs = 0;
       for (int index = 0; index < ordered.size(); index++) {
         checkCanceled(canceled);
         final Sample sample = ordered.get(index);
-        final boolean reference = sample.qc() && ++qcs > settings.initialQcsToExclude();
         final double coordinate = index + 1d;
-        prepared.put(sample.id(), new Sample(sample.id(), sample.batch(), coordinate, reference));
+        prepared.put(sample.id(), new Sample(sample.id(), sample.batch(), coordinate, sample.qc()));
       }
     }
     return samples.stream().map(sample -> prepared.get(sample.id())).toList();
@@ -427,8 +438,15 @@ public final class FeatureQcDriftNormalization {
     }
     final Geometry geometry = Geometry.create(x);
     Candidate best = null;
-    // decision: fixed smoothing bypasses the entire candidate/fold search.
-    if (settings.automaticSmoothing()) {
+    // decision: manual LOESS bypasses the entire candidate/fold search.
+    if (settings.smoothing() instanceof ManualLoess manual) {
+      // Avoid promoting k/n to k+1 neighbors because of multiplication roundoff (e.g. 7/25).
+      final int neighbors = (int) Math.ceil(Math.nextDown(manual.bandwidth() * x.length));
+      if (neighbors < manual.polynomialDegree() + 2) {
+        throw new IllegalArgumentException("Manual LOESS needs at least degree + 2 neighbors");
+      }
+      best = new Candidate(manual.polynomialDegree(), neighbors, Double.NaN);
+    } else {
       for (int degree = 1; degree <= 2; degree++) {
         // degree + 2 allows a zero-weight boundary neighbor. Distance ties can remove more
         // support; each local fit still checks the actual rank and positive weights.
@@ -450,13 +468,6 @@ public final class FeatureQcDriftNormalization {
         throw new IllegalArgumentException("No QC-RLSC candidate produced a complete finite "
             + "leave-one-out score");
       }
-    } else {
-      // Avoid promoting k/n to k+1 neighbors because of multiplication roundoff (e.g. 7/25).
-      final int neighbors = (int) Math.ceil(Math.nextDown(settings.bandwidth() * x.length));
-      if (neighbors < settings.polynomialDegree() + 2) {
-        throw new IllegalArgumentException("Fixed smoothing needs at least degree + 2 neighbors");
-      }
-      best = new Candidate(settings.polynomialDegree(), neighbors, Double.NaN);
     }
 
     final double[] fittedAtKnots = smoothAtKnots(geometry, normalizedY, best.degree,

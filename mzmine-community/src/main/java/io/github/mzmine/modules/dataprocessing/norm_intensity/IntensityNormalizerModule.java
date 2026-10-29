@@ -30,12 +30,18 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,7 +70,8 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
-      tasks.add(new IntensityNormalizerTask(project, featureList, parameters, storage, moduleCallDate));
+      tasks.add(
+          new IntensityNormalizerTask(project, featureList, parameters, storage, moduleCallDate));
     }
 
     return ExitCode.OK;
@@ -91,21 +98,27 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
 
   /**
    * Reads legacy project history once while loading projects that predate directly persisted
-   * normalization state. Normal runtime code must use {@link #getNormalizationFunctionsOfLatestCall}.
+   * normalization state. Normal runtime code must use
+   * {@link #getNormalizationFunctionsOfLatestCall}.
    */
   public static @NotNull IntensityNormalizationSummary getLegacyNormalizationFromAppliedMethods(
       final @NotNull FeatureList featureList) {
     final var methods = featureList.getAppliedMethods();
     for (int index = methods.size() - 1; index >= 0; index--) {
       final FeatureListAppliedMethod method = methods.get(index);
-      if (method == null) continue;
+      if (method == null) {
+        continue;
+      }
       final IntensityNormalizationSummary summary;
       if (method.getModule() instanceof IntensityNormalizerModule) {
-        summary = method.getParameters().getValue(IntensityNormalizerParameters.hiddenNormalizationSummary);
+        summary = method.getParameters()
+            .getValue(IntensityNormalizerParameters.hiddenNormalizationSummary);
       } else {
         summary = null;
       }
-      if (summary != null) return summary;
+      if (summary != null) {
+        return summary;
+      }
     }
     return IntensityNormalizationSummary.EMPTY;
   }
@@ -124,4 +137,19 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
         .map(RawFileNormalizationFunction::function).findFirst();
   }
 
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(ModuleOrderRecommendation.of("Normalisation must be applied after alignment",
+            ModuleOrderRule.mustRunAfter(
+                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))),
+
+        ModuleOrderRecommendation.of("Normalisation must be applied after Gap filling",
+            ModuleOrderRule.mustRunAfter(
+                ModuleCategoryOrderCondition.of(MZmineModuleCategory.GAPFILLING))),
+
+        ModuleOrderRecommendation.of("Normalisation must be applied after duplicate filtering",
+            ModuleOrderRule.mustRunAfter(DuplicateFilterModule.class)));
+
+  }
 }

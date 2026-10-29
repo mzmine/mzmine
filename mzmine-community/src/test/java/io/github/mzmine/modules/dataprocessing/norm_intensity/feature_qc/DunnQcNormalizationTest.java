@@ -1,7 +1,8 @@
-package io.github.mzmine.modules.dataprocessing.norm_intensity;
+package io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.ManualLoess;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.Test;
 class DunnQcNormalizationTest {
 
   @Test
-  void dunnIsDefaultAndUsesWithinBatchQcMeanRatherThanStudyAbundances() {
+  void dunnIsDefaultAndAlignsBatchesToCommonQcMedianRatherThanStudyAbundances() {
     final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
     final Map<String, Double> values = new LinkedHashMap<>();
     for (final String batch : List.of("A", "B")) {
@@ -24,9 +25,11 @@ class DunnQcNormalizationTest {
     final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
         FeatureQcSettings.defaults());
     assertTrue(result.settings().automaticSmoothing());
-    for (final double factor : result.rowFactors().get(1).values()) assertEquals(1d, factor, 1e-10);
+    // QCs are 100 in batch A and 200 in batch B, both are scaled to the common median 150
+    result.rowFactors().get(1).forEach((id, factor) ->
+        assertEquals(id.startsWith("A") ? 1.5d : .75d, factor, 1e-10, id));
     final var diagnostic = result.diagnostics().rows().get(1).batches().get("B");
-    assertEquals(200d, diagnostic.correctionTarget(), 1e-10);
+    assertEquals(150d, diagnostic.correctionTarget(), 1e-10);
     assertEquals(1, diagnostic.selectedDegree());
     assertEquals(6, diagnostic.leaveOneOutPredictionCount());
     assertTrue(diagnostic.validationScale().startsWith("raw response"));
@@ -55,24 +58,6 @@ class DunnQcNormalizationTest {
   }
 
   @Test
-  void conditioningQcsAreExcludedBeforeCoverageAndFitting() {
-    final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
-    final Map<String, Double> values = new LinkedHashMap<>();
-    for (int i = 0; i < 8; i++) {
-      samples.add(new FeatureQcDriftNormalization.Sample("s" + i, "A", i, true));
-      values.put("s" + i, i < 2 ? 8000d : 100d);
-    }
-    final FeatureQcSettings settings = new FeatureQcSettings(true, .75d, 1, 2, 5, 10d, .5d, 2);
-    final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), settings);
-    final var batch = result.diagnostics().rows().get(1).batches().get("A");
-    assertEquals(6, batch.totalQcs());
-    assertEquals(6, batch.usableQcs());
-    assertEquals(100d, batch.correctionTarget(), 1e-10);
-    assertEquals(2, batch.boundarySampleCount());
-    assertEquals(8, result.rowFactors().get(1).size());
-  }
-
-  @Test
   void automaticAndFixedSmoothingShareTheSameMissingnessRule() {
     final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
     final Map<String, Double> values = new LinkedHashMap<>();
@@ -84,7 +69,7 @@ class DunnQcNormalizationTest {
         FeatureQcSettings.defaults());
     assertEquals(10, dunn.rowFactors().get(1).size());
     final FeatureQcResult fixed = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
-        new FeatureQcSettings(false, .75d, 1, 2, 5, 10d, .5d, 0));
+        new FeatureQcSettings(new ManualLoess(.75d, 1, 2), 5, 10d, .5d));
     assertEquals(dunn.rowFactors(), fixed.rowFactors());
   }
 }

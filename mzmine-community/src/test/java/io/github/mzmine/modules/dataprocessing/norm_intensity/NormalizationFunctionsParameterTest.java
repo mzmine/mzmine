@@ -35,6 +35,14 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcAvailability;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcBatchDiagnostic;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcDiagnostics;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcFitPoint;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcProvenance;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcRowDiagnostic;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSettings;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.ManualLoess;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -185,7 +193,7 @@ class NormalizationFunctionsParameterTest {
 
   @Test
   void roundtripPreservesTypedFeatureQcProvenanceExactly() throws Exception {
-    final FeatureQcSettings settings = new FeatureQcSettings(false, .8d, 2, 1, 5, 12d, .4d, 0);
+    final FeatureQcSettings settings = new FeatureQcSettings(new ManualLoess(.8d, 2, 1), 5, 12d, .4d);
     final FeatureQcBatchDiagnostic batch = new FeatureQcBatchDiagnostic("batch1", 6, 6, 1d,
         6d, 0, 6, null, .1d, .05d, 6, .02d, 6, 0, null, .8d, 1.2d,
         List.of(new FeatureQcFitPoint(1d, 10d, 11d)), 1, 5, .8d, 10d,

@@ -32,7 +32,7 @@ public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModu
   ByFeatureIntensity("By feature abundances", "feature_intensity_normalization",
       FeatureIntensityNormalizationModule.class), //
   TotalRawSignal("Spectral TIC", "spectral_tic", TotalRawSignalNormalizationTypeModule.class), //
-  FeatureQcLoess("QC drift correction", "feature_qc",
+  FeatureQcLoess("Feature specific QC drift correction (QC-RLSC)", "feature_qc",
       FeatureQcNormalizationModule.class), //
   MetadataColumn("Metadata column (weight, dilution, ...)", "metadata_column",
       MetadataColumnNormalizationTypeModule.class),  //

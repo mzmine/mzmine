@@ -12,30 +12,33 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSettings;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothingOptions;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.ManualLoessSmoothingParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
-import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -163,7 +166,8 @@ class FeatureQcNormalizerTaskTest {
         new MobilityTolerance(.25f), StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES);
     final FeatureQcNormalizationParameters featureQcParameters =
         (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters().cloneParameterSet();
-    featureQcParameters.setParameter(FeatureQcNormalizationParameters.automaticSmoothing, false);
+    featureQcParameters.getParameter(FeatureQcNormalizationParameters.smoothing)
+        .setValue(FeatureQcSmoothingOptions.MANUAL_LOESS, ManualLoessSmoothingParameters.create(.75d, 1, 2));
     final ParameterSet parameters = IntensityNormalizerParameters.create(
         new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "feature-qc-compose",
         new MetadataNormalizationConfig("feature_qc_compose_dilution", MetadataNormalizationConfig.Mode.divide),
@@ -179,9 +183,9 @@ class FeatureQcNormalizerTaskTest {
     final ModularFeatureList output = (ModularFeatureList) project.getCurrentFeatureLists().stream()
         .filter(list -> list != source).findFirst().orElseThrow();
     // Metadata and internal standards produce effective values of 15 and 30. Fixed QC-RLSC
-    // preserves each batch's QC mean, exactly as automatic QC-RLSC does.
+    // aligns both batches to the common QC median 22.5, exactly as automatic QC-RLSC does.
     for (int i = 0; i < files.size(); i++) {
-      assertEquals(i < 5 ? 15f : 30f,
+      assertEquals(22.5f,
           ((ModularFeature) output.findRowByID(2).getFeature(files.get(i)))
               .get(NormalizedAreaType.class), 1e-3f);
     }
