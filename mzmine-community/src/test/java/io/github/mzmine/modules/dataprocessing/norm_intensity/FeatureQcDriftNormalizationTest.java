@@ -22,7 +22,7 @@ class FeatureQcDriftNormalizationTest {
       5, 10d, .5d, 0);
 
   @Test
-  void fixedSmoothingPreservesEachBatchQcMeanAndIgnoresStudyAbundances() {
+  void fixedSmoothingAlignsBatchesToCommonQcMedianAndIgnoresStudyAbundances() {
     final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
     final Map<String, Double> values = new LinkedHashMap<>();
     for (int index = 0; index < 5; index++) {
@@ -36,10 +36,16 @@ class FeatureQcDriftNormalizationTest {
 
     final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), FIXED);
 
-    for (final double factor : result.rowFactors().get(1).values()) assertEquals(1d, factor, 1e-12);
+    // median(5 x 10, 5 x 20) = 15 is the common target of both batches
+    final Map<String, Double> factors = result.rowFactors().get(1);
+    for (int index = 0; index < 5; index++) {
+      assertEquals(1.5d, factors.get("a" + index), 1e-12);
+      assertEquals(.75d, factors.get("b" + index), 1e-12);
+    }
+    assertEquals(1.5d, factors.get("study"), 1e-12);
     final var batches = result.diagnostics().rows().get(1).batches();
-    assertEquals(10d, batches.get("A").correctionTarget());
-    assertEquals(20d, batches.get("B").correctionTarget());
+    assertEquals(15d, batches.get("A").correctionTarget());
+    assertEquals(15d, batches.get("B").correctionTarget());
     assertEquals(1, result.availability().fullyCorrectedRows());
   }
 
@@ -62,15 +68,14 @@ class FeatureQcDriftNormalizationTest {
   }
 
   @Test
-  void fixedQuadraticSmoothingCorrectsRawResponsesToTheArithmeticQcMean() {
+  void fixedQuadraticSmoothingCorrectsRawResponsesToTheQcMedian() {
     final List<FeatureQcDriftNormalization.Sample> samples = samples("A", 9);
     final Map<String, Double> values = new LinkedHashMap<>();
-    double target = 0d;
     for (int i = 0; i < 9; i++) {
-      final double value = 100d + i * i;
-      values.put("s" + i, value);
-      target += value / 9d;
+      values.put("s" + i, 100d + i * i);
     }
+    // median of 100 + i^2 for i = 0..8
+    final double target = 116d;
     final var settings = new FeatureQcSettings(false, 1d, 2, 0, 5, 10d, .5d, 0);
     final var result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), settings);
     for (final var sample : samples) {

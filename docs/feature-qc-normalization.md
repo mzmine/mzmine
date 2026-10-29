@@ -1,6 +1,6 @@
-# QC drift correction
+# Feature specific QC drift correction
 
-Choose **QC drift correction** as the **Inter-sample correction** in the intensity normalizer.
+Choose **Feature specific QC drift correction (QC-RLSC)** as the **Inter-sample correction** in the intensity normalizer.
 The same QC-RLSC pipeline supports **Automatic smoothing** (enabled by default) or fixed smoothing.
 Both calculate one correction per feature and file, using comparable pooled QC injections selected
 in **Reference samples**.
@@ -24,18 +24,19 @@ internal-standard correction. It uses configurable bisquare residual reweighting
 spline, and the nearest fitted boundary value outside the usable QC interval. These are explicit
 numerical conventions where the paper does not prescribe all implementation details.
 
-Correction is multiplicative and preserves the mean QC scale within each batch:
+Correction is multiplicative. Every batch of a feature is rescaled to one common target:
 
 ```text
-factor = arithmetic mean of usable batch QC responses / fitted QC response at injection order
+factor = median of usable QC responses across all batches / fitted QC response at injection order
 ```
 
-This is the divisive, mean-QC rescaling option also provided by the
-[qcrlscR package](https://github.com/wanchanglin/qcrlscR). The package is a reference, not a runtime
-dependency: its optional GCV search and wrapper-level log transformation are not substituted for
-Dunn's discrete LOOCV fitting procedure. This mode corrects within-batch drift; rescaling to each
-batch's own QC mean does not remove between-batch offsets. No additional scalar batch correction
-is applied automatically.
+Dunn divides by the fitted QC curve, which brings the QCs of every batch to the same level and so
+integrates the batches without a separate between-batch step. Multiplying all batches by the same
+per-feature median keeps this alignment and the abundance scale. A per-batch target would restore
+the batch offsets. The [qcrlscR package](https://github.com/wanchanglin/qcrlscR) is a reference, not
+a runtime dependency: its optional GCV search and wrapper-level log transformation are not
+substituted for Dunn's discrete LOOCV fitting procedure. No additional scalar batch correction is
+applied.
 
 **Initial QC injections to exclude** removes conditioning QCs from fitting, missingness counts, and
 QC diagnostics independently in each batch. The default is zero for data whose conditioning QCs
@@ -51,8 +52,8 @@ diagnostics and apply the appropriate feature-quality filters separately.
 
 Disable **Automatic smoothing** to supply the **LOESS bandwidth** and **Polynomial degree** directly.
 This skips the entire cross-validation search. The same raw-response fitter, robust reweighting,
-QC selection, injection-order coordinates, spline interpolation, boundary handling, and batch-QC
-mean rescaling still apply.
+QC selection, injection-order coordinates, spline interpolation, boundary handling, and common
+QC-median rescaling still apply.
 
 The neighborhood contains `ceil(bandwidth * usable QC count)` observations. It must contain at least
 `polynomial degree + 2` neighbors, and each local fit still needs enough positively weighted,
@@ -60,8 +61,8 @@ independent observations. Unsupported fits are reported as unavailable; the algo
 silently increase the span or change the degree. Diagnostics record the actual neighborhood/span
 and the supplied degree. No cross-validation score is reported for fixed smoothing.
 
-Fixed smoothing changes only parameter selection. It does not switch to log intensities, elapsed-time
-coordinates, or a global scaling target.
+Fixed smoothing changes only parameter selection. It does not switch to log intensities or
+elapsed-time coordinates.
 
 ## Settings
 
@@ -98,8 +99,8 @@ by Dunn. A run with no successful corrections finishes with a warning.
 
 Open **QC diagnostics** from the applied-methods pane. Diagnostics retain the method, settings,
 solver, response scale, coverage, failure reasons, factor range, boundaries, and fitted QC curve.
-Diagnostics also record the polynomial degree, neighborhood size, effective span, and mean-QC
-correction target. With automatic smoothing, the raw-response LOOCV score is the **model-selection
+Diagnostics also record the polynomial degree, neighborhood size, effective span, and the common
+QC-median correction target. With automatic smoothing, the raw-response LOOCV score is the **model-selection
 error**, not an independent estimate of prediction performance. Fixed smoothing records that
 cross-validation was not performed, with no score and zero validation predictions or failures.
 

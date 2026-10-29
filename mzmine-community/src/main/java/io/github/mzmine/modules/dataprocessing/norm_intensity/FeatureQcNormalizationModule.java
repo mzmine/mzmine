@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /** Fits feature-specific QC corrections from the native task's prepared batch inputs. */
 public final class FeatureQcNormalizationModule implements NormalizationTypeModule {
 
-  @Override public @NotNull String getName() { return "QC drift correction"; }
+  @Override public @NotNull String getName() { return NormalizationType.FeatureQcLoess.toString(); }
   @Override public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FeatureQcNormalizationParameters.class;
   }

@@ -72,7 +72,8 @@ public final class FeatureQcDriftNormalization {
       checkCanceled(canceled);
       final int rowId = row.getKey();
       final Map<String, Double> values = row.getValue();
-      final int usableQcs = usableQcs(samples, values, canceled).size();
+      final List<Sample> allUsableQcs = usableQcs(samples, values, canceled);
+      final int usableQcs = allUsableQcs.size();
       if (totalQcs == 0) {
         unavailableRows.put(rowId, FeatureQcUnavailableReason.NO_QC_REFERENCES);
         rowDiagnostics.put(rowId, new FeatureQcRowDiagnostic(rowId, 0, 0,
@@ -86,12 +87,18 @@ public final class FeatureQcDriftNormalization {
             FeatureQcUnavailableReason.GLOBAL_MISSING_QC_THRESHOLD, Map.of()));
         continue;
       }
+      // decision: Dunn 2011 divides by the fitted QC curve, which aligns all batches to the same QC
+      // level. Rescaling every batch to one common target keeps this alignment and the abundance
+      // scale. A per-batch target would restore the batch offsets. Without usable QCs, every batch
+      // fails the minimum usable QC check before the target is used
+      final double target = allUsableQcs.isEmpty() ? Double.NaN : median(allUsableQcs.stream()
+          .mapToDouble(sample -> values.get(sample.id())).toArray());
       final Map<String, Double> rowFactors = new LinkedHashMap<>();
       final Set<String> rowBoundaries = new LinkedHashSet<>();
       final Map<String, FeatureQcBatchDiagnostic> batchDiagnostics = new LinkedHashMap<>();
       for (final Map.Entry<String, List<Sample>> batch : batches.entrySet()) {
         checkCanceled(canceled);
-        final BatchResult result = calculateBatch(batch.getKey(), batch.getValue(), values,
+        final BatchResult result = calculateBatch(batch.getKey(), batch.getValue(), values, target,
             settings, canceled);
         batchDiagnostics.put(batch.getKey(), result.diagnostic());
         if (result.diagnostic().successful()) {
@@ -111,14 +118,18 @@ public final class FeatureQcDriftNormalization {
             + "spline; raw response; " + (settings.automaticSmoothing()
             ? "Dunn 2011 LOOCV span/degree selection" : "fixed span and degree, no LOOCV search"),
         "ordinal acquisition order within each batch; nearest QC boundary outside fitted range",
-        "divide by fitted QC response, rescale to arithmetic mean of usable QCs in each batch",
+        "divide by fitted QC response, rescale to median of usable QCs across all batches",
         settings, availability, rowDiagnostics);
     return new FeatureQcResult(samples, factors, boundaries, unavailableRows, diagnostics);
   }
 
+  /**
+   * @param target the common correction target of this feature across all batches
+   */
   private static @NotNull BatchResult calculateBatch(@NotNull final String batch,
       @NotNull final List<Sample> samples, @NotNull final Map<String, Double> values,
-      @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
+      final double target, @NotNull final FeatureQcSettings settings,
+      @NotNull final BooleanSupplier canceled) {
     final List<Sample> qcs = usableQcs(samples, values, canceled);
     final int totalQcs = countQcs(samples, canceled);
     final int usableQcs = qcs.size();
@@ -132,12 +143,10 @@ public final class FeatureQcDriftNormalization {
     }
     final double[] x = new double[usableQcs];
     final double[] y = new double[usableQcs];
-    double target = 0d;
     for (int i = 0; i < usableQcs; i++) {
       checkCanceled(canceled);
       x[i] = qcs.get(i).order();
       y[i] = values.get(qcs.get(i).id());
-      target += y[i] / usableQcs;
     }
     final Fit fit;
     try {

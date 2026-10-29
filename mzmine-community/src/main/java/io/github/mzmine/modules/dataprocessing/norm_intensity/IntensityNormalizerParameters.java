@@ -88,23 +88,25 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
       "Inter-sample correction", """
       Step 3 of 3: QC-based signal drift correction, applied after metadata normalization (step 1) and %s (step 2).
       Sample-wide methods interpolate reference-sample factors and align batch reference medians.
-      Feature-specific QC LOESS fits each feature within each batch against a common median log abundance across all samples after steps 1 and 2; it does not apply additional scalar batch scaling.
+      Feature specific QC drift correction fits each feature within each batch on the abundances after steps 1 and 2 and rescales all batches to the median of the feature's QCs across all batches, which also aligns the batches.
       Acquisition dates come from project or data file metadata.""".formatted(
           internalStandardization.getName()),
       NormalizationType.intraBatchDriftNormalizers());
 
   /**
-   * When set, QC drift correction is computed independently per batch (intra-batch correction),
-   * then batches are aligned to the global QC median (inter-batch correction / pooled QC
-   * normalization). Without a batch ID, all QC samples form one continuous reference sequence.
+   * When set, QC drift correction is computed independently per batch (intra-batch correction).
+   * Sample-wide methods then align batches to the global QC median (inter-batch correction / pooled
+   * QC normalization). Feature specific QC drift correction aligns batches in the same step by a
+   * common target per feature. Without a batch ID, all QC samples form one continuous reference
+   * sequence.
    */
   public static final OptionalParameter<MetadataGroupingParameter> batchIdColumn = new OptionalParameter<>(
       new MetadataGroupingParameter("Batch correction metadata column", """
           Metadata column identifying the analytical batch (samples measured under comparable conditions).
           When set, samples are split into batches before applying steps 2 (%s) and 3 (%s), \
           so that reference samples (e.g., pooled QCs) and interpolation are batch-specific.
-          Sample-wide methods then align batch reference medians. Feature-specific QC LOESS uses \
-          its common feature target across all batches without additional scalar batch scaling.""".formatted(internalStandardization.getName(), normalizationType.getName())), false);
+          Sample-wide methods then align batch reference medians. Feature specific QC drift \
+          correction aligns batches in the same step by rescaling each feature in all batches to the median of its QCs across all batches.""".formatted(internalStandardization.getName(), normalizationType.getName())), false);
 
   /**
    * Holds the diagnostics of the normalization (messages and feature-QC provenance) in a

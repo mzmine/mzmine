@@ -179,9 +179,9 @@ class FeatureQcNormalizerTaskTest {
     final ModularFeatureList output = (ModularFeatureList) project.getCurrentFeatureLists().stream()
         .filter(list -> list != source).findFirst().orElseThrow();
     // Metadata and internal standards produce effective values of 15 and 30. Fixed QC-RLSC
-    // preserves each batch's QC mean, exactly as automatic QC-RLSC does.
+    // aligns both batches to the common QC median 22.5, exactly as automatic QC-RLSC does.
     for (int i = 0; i < files.size(); i++) {
-      assertEquals(i < 5 ? 15f : 30f,
+      assertEquals(22.5f,
           ((ModularFeature) output.findRowByID(2).getFeature(files.get(i)))
               .get(NormalizedAreaType.class), 1e-3f);
     }
