@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 67790,
-          "sha512": "ea9bafbf3aa0cd90ea4c78deaab35e5b00dc18b35c7223f462e11d7cd1568182f708256bace11ddd7c23a8c7f0afc78b308cc9baff0d702a3e6a7ee44ada540d",
-          "sha256": "cc8a646e36c17dacc2254790acc2f0fbff001c00b592fab4ce624d71b1e9210f",
-          "sha1": "03cfc6893a5e4cec14e87276bf28277eec650810",
-          "md5": "6cd3527a1e3461623d7114efafc72e6f"
+          "size": 70864,
+          "sha512": "025567a88d1613326dab65b807386a91efa6da18ad3e7277d7b325f71e24b5d6bea50b9afa43f9b1903334f6a5c65d1691c5a4821e9cb69ca529b695c6d4beaf",
+          "sha256": "1adca94b7053f53b07b2c1d33086d455d397fcbaa7fdf4e9a790b2df2d84861b",
+          "sha1": "35b6ac41553015948de7a5be4a8296f221eead0b",
+          "md5": "31508dd65f6f0d0c9a7a41d8d4e47ca5"
         }
       ]
     },
@@ -86,17 +86,24 @@
           "version": {
             "requires": "24.0.3"
           }
+        },
+        {
+          "group": "com.microsoft",
+          "module": "credential-secure-storage",
+          "version": {
+            "requires": "1.0.3"
+          }
         }
       ],
       "files": [
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 67790,
-          "sha512": "ea9bafbf3aa0cd90ea4c78deaab35e5b00dc18b35c7223f462e11d7cd1568182f708256bace11ddd7c23a8c7f0afc78b308cc9baff0d702a3e6a7ee44ada540d",
-          "sha256": "cc8a646e36c17dacc2254790acc2f0fbff001c00b592fab4ce624d71b1e9210f",
-          "sha1": "03cfc6893a5e4cec14e87276bf28277eec650810",
-          "md5": "6cd3527a1e3461623d7114efafc72e6f"
+          "size": 70864,
+          "sha512": "025567a88d1613326dab65b807386a91efa6da18ad3e7277d7b325f71e24b5d6bea50b9afa43f9b1903334f6a5c65d1691c5a4821e9cb69ca529b695c6d4beaf",
+          "sha256": "1adca94b7053f53b07b2c1d33086d455d397fcbaa7fdf4e9a790b2df2d84861b",
+          "sha1": "35b6ac41553015948de7a5be4a8296f221eead0b",
+          "md5": "31508dd65f6f0d0c9a7a41d8d4e47ca5"
         }
       ]
     }

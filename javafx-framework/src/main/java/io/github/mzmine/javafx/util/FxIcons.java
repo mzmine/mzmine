@@ -46,7 +46,7 @@ public enum FxIcons implements IconCodeSupplier {
   ROCKET, LIGHTBULB, LIGHTBULB_FILL, METADATA_TABLE, TABLE, SPREADSHEET, GRAPH_UP,
 
   // ACTIONS
-  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH, COLLAPSE, EXPAND;
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH, COLLAPSE, EXPAND, GO_OFFLINE, MENU;
 
 
   @Override
@@ -118,6 +118,8 @@ public enum FxIcons implements IconCodeSupplier {
       case EXPAND -> "bi-arrows-expand";
       case FEATURE_LIST -> "bi-file-spreadsheet";
       case ALIGNED_FEATURE_LIST -> "bi-file-spreadsheet-fill";
+      case GO_OFFLINE -> "bi-cloud-slash";
+      case MENU -> "bi-list";
     };
   }
 }

@@ -184,9 +184,10 @@ import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.Equival
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap2DModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
@@ -206,7 +207,6 @@ import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.reporting.jasper.ReportingModule;
 import java.util.ArrayList;
@@ -484,8 +484,8 @@ public class BatchModeModulesList {
           SpectraVisualizerModule.class, //
           FrameVisualizerModule.class, //
           ChromatogramVisualizerModule.class, //
-          TwoDVisualizerModule.class, //
-          Fx3DVisualizerModule.class, //
+          IntensityMap2DModule.class, //
+          IntensityMap3DModule.class, //
           MassvoltammogramFromFileModule.class, //
           MassvoltammogramFromFeatureListModule.class, //
           MSnTreeVisualizerModule.class, //
