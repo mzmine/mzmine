@@ -163,7 +163,8 @@ class FeatureQcNormalizerTaskTest {
         new MobilityTolerance(.25f), StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES);
     final FeatureQcNormalizationParameters featureQcParameters =
         (FeatureQcNormalizationParameters) new FeatureQcNormalizationParameters().cloneParameterSet();
-    featureQcParameters.setParameter(FeatureQcNormalizationParameters.automaticSmoothing, false);
+    featureQcParameters.getParameter(FeatureQcNormalizationParameters.smoothing)
+        .setValue(FeatureQcSmoothingOptions.MANUAL_LOESS, ManualLoessSmoothingParameters.create(.75d, 1, 2));
     final ParameterSet parameters = IntensityNormalizerParameters.create(
         new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "feature-qc-compose",
         new MetadataNormalizationConfig("feature_qc_compose_dilution", MetadataNormalizationConfig.Mode.divide),

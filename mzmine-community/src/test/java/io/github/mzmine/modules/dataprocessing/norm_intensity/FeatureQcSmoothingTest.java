@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.ManualLoess;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.QcRlsc;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -135,8 +137,7 @@ class FeatureQcSmoothingTest {
     final double[] x = coordinates(9);
     final double[] y = {14d, 15.6d, 18.4d, 18d, 20.2d, 23.9d, 24.1d, 28.5d, 30.4d};
     final var automatic = FeatureQcDriftNormalization.fit(x, y, automatic(2), () -> false);
-    final var settings = new FeatureQcSettings(false, automatic.span(), automatic.degree(),
-        2, 5, 10d, .5d, 0);
+    final var settings = new FeatureQcSettings(new ManualLoess(automatic.span(), automatic.degree(), 2), 5, 10d, .5d);
     final var fixed = FeatureQcDriftNormalization.fit(x, y, settings, () -> false);
 
     assertEquals(automatic.neighborhoodSize(), fixed.neighborhoodSize());
@@ -153,7 +154,7 @@ class FeatureQcSmoothingTest {
     final double[] y = values(x, value -> 10d + value * value);
     // Four observations support this quadratic fit, but omitting one leaves too few positive
     // tricube weights for a quadratic LOOCV candidate. Fixed fitting must not run that search.
-    final var settings = new FeatureQcSettings(false, 1d, 2, 0, 5, 10d, .5d, 0);
+    final var settings = new FeatureQcSettings(new ManualLoess(1d, 2, 0), 5, 10d, .5d);
     final var fit = FeatureQcDriftNormalization.fit(x, y, settings, () -> false);
     assertEquals(2, fit.degree());
     assertEquals(4, fit.neighborhoodSize());
@@ -165,38 +166,26 @@ class FeatureQcSmoothingTest {
   void fixedSpanDoesNotGainANeighborThroughFloatingPointRoundoff() {
     final double[] x = coordinates(25);
     final double[] y = values(x, value -> 100d + value);
-    final var settings = new FeatureQcSettings(false, 7d / 25d, 1, 0, 5, 10d, .5d, 0);
+    final var settings = new FeatureQcSettings(new ManualLoess(7d / 25d, 1, 0), 5, 10d, .5d);
     final var fit = FeatureQcDriftNormalization.fit(x, y, settings, () -> false);
     assertEquals(7, fit.neighborhoodSize());
-    assertEquals(settings.bandwidth(), fit.span());
-  }
-
-  @Test
-  void automaticSmoothingIgnoresTheStoredManualSettings() {
-    final double[] x = coordinates(9);
-    final double[] y = values(x, value -> 20d + value * value);
-    final var defaults = FeatureQcDriftNormalization.fit(x, y, automatic(0), () -> false);
-    final var otherManualSettings = new FeatureQcSettings(true, .01d, 2, 0, 5, 10d, .5d, 0);
-    final var fit = FeatureQcDriftNormalization.fit(x, y, otherManualSettings, () -> false);
-    assertEquals(defaults.degree(), fit.degree());
-    assertEquals(defaults.neighborhoodSize(), fit.neighborhoodSize());
-    assertEquals(defaults.crossValidationMse(), fit.crossValidationMse());
+    assertEquals(7d / 25d, fit.span());
   }
 
   @Test
   void fixedSmoothingRejectsUnsupportedNeighborhoodsAndHonorsCancellation() {
     final double[] x = coordinates(9);
     final double[] y = values(x, value -> 10d + value);
-    final var tooSmall = new FeatureQcSettings(false, .2d, 2, 0, 5, 10d, .5d, 0);
+    final var tooSmall = new FeatureQcSettings(new ManualLoess(.2d, 2, 0), 5, 10d, .5d);
     assertThrows(IllegalArgumentException.class,
         () -> FeatureQcDriftNormalization.fit(x, y, tooSmall, () -> false));
-    final var fixed = new FeatureQcSettings(false, .75d, 1, 2, 5, 10d, .5d, 0);
+    final var fixed = new FeatureQcSettings(new ManualLoess(.75d, 1, 2), 5, 10d, .5d);
     assertThrows(CancellationException.class,
         () -> FeatureQcDriftNormalization.fit(x, y, fixed, () -> true));
   }
 
   private static @NotNull FeatureQcSettings automatic(final int robustness) {
-    return new FeatureQcSettings(true, .75d, 1, robustness, 5, 10d, .5d, 0);
+    return new FeatureQcSettings(new QcRlsc(robustness), 5, 10d, .5d);
   }
 
   private static @NotNull double[] coordinates(final int size) {

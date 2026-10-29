@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.ManualLoess;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,8 +19,7 @@ import org.junit.jupiter.api.Test;
 
 class FeatureQcDriftNormalizationTest {
 
-  private static final FeatureQcSettings FIXED = new FeatureQcSettings(false, .75d, 1, 2,
-      5, 10d, .5d, 0);
+  private static final FeatureQcSettings FIXED = new FeatureQcSettings(new ManualLoess(.75d, 1, 2), 5, 10d, .5d);
 
   @Test
   void fixedSmoothingAlignsBatchesToCommonQcMedianAndIgnoresStudyAbundances() {
@@ -76,7 +76,7 @@ class FeatureQcDriftNormalizationTest {
     }
     // median of 100 + i^2 for i = 0..8
     final double target = 116d;
-    final var settings = new FeatureQcSettings(false, 1d, 2, 0, 5, 10d, .5d, 0);
+    final var settings = new FeatureQcSettings(new ManualLoess(1d, 2, 0), 5, 10d, .5d);
     final var result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), settings);
     for (final var sample : samples) {
       assertEquals(target, values.get(sample.id()) * result.rowFactors().get(1).get(sample.id()), 1e-8);
@@ -185,7 +185,7 @@ class FeatureQcDriftNormalizationTest {
   @Test
   void rejectsExcessiveFactorsAndDoesNotTreatCancellationAsFitFailure() {
     final Map<String, Double> values = Map.of("s0", 10d, "s1", 20d, "s2", 30d, "s3", 40d, "s4", 50d);
-    final var settings = new FeatureQcSettings(false, 1d, 1, 0, 5, 2d, .5d, 0);
+    final var settings = new FeatureQcSettings(new ManualLoess(1d, 1, 0), 5, 2d, .5d);
     final var result = FeatureQcDriftNormalization.calculate(samples("A", 5), Map.of(1, values), settings);
     assertEquals(FeatureQcUnavailableReason.FACTOR_OUT_OF_BOUNDS, result.unavailableReason(1, "s0"));
     assertThrows(java.util.concurrent.CancellationException.class,
@@ -199,7 +199,7 @@ class FeatureQcDriftNormalizationTest {
         Map.of(1, Map.of("study", 10d)), FIXED);
     assertEquals(FeatureQcUnavailableReason.NO_QC_REFERENCES, noQc.unavailableRows().get(1));
     final var noInput = FeatureQcDriftNormalization.calculate(samples("A", 5), Map.of(2, Map.of()),
-        new FeatureQcSettings(false, .75d, 1, 2, 5, 10d, 1d, 0));
+        new FeatureQcSettings(new ManualLoess(.75d, 1, 2), 5, 10d, 1d));
     assertEquals(FeatureQcUnavailableReason.BATCH_INSUFFICIENT_USABLE_QCS,
         noInput.unavailableReason(2, "s0"));
   }

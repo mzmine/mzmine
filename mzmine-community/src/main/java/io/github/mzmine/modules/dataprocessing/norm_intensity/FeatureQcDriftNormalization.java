@@ -3,6 +3,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.ManualLoess;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -25,7 +26,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** One QC-RLSC pipeline for every feature and batch, with automatic or fixed smoothing. */
+/** One QC drift correction pipeline for every feature and batch, with QC-RLSC or manual LOESS smoothing. */
 public final class FeatureQcDriftNormalization {
 
   private static final double WEIGHT_EPSILON = 1e-14;
@@ -55,7 +56,7 @@ public final class FeatureQcDriftNormalization {
       @NotNull final Map<Integer, Map<String, Double>> allValues,
       @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
     validateInputs(samples, allValues, canceled);
-    return calculatePrepared(prepareSamples(samples, settings, canceled), allValues, settings, canceled);
+    return calculatePrepared(prepareSamples(samples, canceled), allValues, settings, canceled);
   }
 
   private static @NotNull FeatureQcResult calculatePrepared(@NotNull final List<Sample> samples,
@@ -116,7 +117,7 @@ public final class FeatureQcDriftNormalization {
     final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics(
         "Tricube local linear/quadratic regression; bisquare residual reweighting; natural cubic "
             + "spline; raw response; " + (settings.automaticSmoothing()
-            ? "Dunn 2011 LOOCV span/degree selection" : "fixed span and degree, no LOOCV search"),
+            ? "Dunn 2011 LOOCV span/degree selection" : "manual span and degree, no LOOCV search"),
         "ordinal acquisition order within each batch; nearest QC boundary outside fitted range",
         "divide by fitted QC response, rescale to median of usable QCs across all batches",
         settings, availability, rowDiagnostics);
@@ -192,26 +193,27 @@ public final class FeatureQcDriftNormalization {
     final FeatureQcBatchDiagnostic diagnostic = new FeatureQcBatchDiagnostic(batch, totalQcs,
         usableQcs, x[0], x[x.length - 1], boundaries.size(), factors.size(), null, rsd(y),
         rsd(after), y.length, fit.crossValidationMse(), settings.automaticSmoothing() ? y.length : 0,
-        0, settings.automaticSmoothing() ? null : "fixed smoothing; cross-validation not performed",
+        0, settings.automaticSmoothing() ? null : "manual LOESS; cross-validation not performed",
         minimum(factorValues), maximum(factorValues), points, fit.degree(), fit.neighborhoodSize(),
         fit.span(), target, "raw response; " + (settings.automaticSmoothing()
-        ? "model-selection LOOCV error, not independent validation" : "fixed smoothing, no LOOCV score"));
+        ? "model-selection LOOCV error, not independent validation" : "manual LOESS, no LOOCV score"));
     return new BatchResult(factors, boundaries, diagnostic);
   }
 
+  /**
+   * Replaces the acquisition order by the ordinal position within each batch.
+   */
   private static @NotNull List<Sample> prepareSamples(@NotNull final List<Sample> samples,
-      @NotNull final FeatureQcSettings settings, @NotNull final BooleanSupplier canceled) {
+      @NotNull final BooleanSupplier canceled) {
     final Map<String, Sample> prepared = new LinkedHashMap<>();
     for (final List<Sample> batch : batches(samples, canceled).values()) {
       final List<Sample> ordered = new ArrayList<>(batch);
       ordered.sort(Comparator.comparingDouble(Sample::order));
-      int qcs = 0;
       for (int index = 0; index < ordered.size(); index++) {
         checkCanceled(canceled);
         final Sample sample = ordered.get(index);
-        final boolean reference = sample.qc() && ++qcs > settings.initialQcsToExclude();
         final double coordinate = index + 1d;
-        prepared.put(sample.id(), new Sample(sample.id(), sample.batch(), coordinate, reference));
+        prepared.put(sample.id(), new Sample(sample.id(), sample.batch(), coordinate, sample.qc()));
       }
     }
     return samples.stream().map(sample -> prepared.get(sample.id())).toList();
@@ -436,8 +438,15 @@ public final class FeatureQcDriftNormalization {
     }
     final Geometry geometry = Geometry.create(x);
     Candidate best = null;
-    // decision: fixed smoothing bypasses the entire candidate/fold search.
-    if (settings.automaticSmoothing()) {
+    // decision: manual LOESS bypasses the entire candidate/fold search.
+    if (settings.smoothing() instanceof ManualLoess manual) {
+      // Avoid promoting k/n to k+1 neighbors because of multiplication roundoff (e.g. 7/25).
+      final int neighbors = (int) Math.ceil(Math.nextDown(manual.bandwidth() * x.length));
+      if (neighbors < manual.polynomialDegree() + 2) {
+        throw new IllegalArgumentException("Manual LOESS needs at least degree + 2 neighbors");
+      }
+      best = new Candidate(manual.polynomialDegree(), neighbors, Double.NaN);
+    } else {
       for (int degree = 1; degree <= 2; degree++) {
         // degree + 2 allows a zero-weight boundary neighbor. Distance ties can remove more
         // support; each local fit still checks the actual rank and positive weights.
@@ -459,13 +468,6 @@ public final class FeatureQcDriftNormalization {
         throw new IllegalArgumentException("No QC-RLSC candidate produced a complete finite "
             + "leave-one-out score");
       }
-    } else {
-      // Avoid promoting k/n to k+1 neighbors because of multiplication roundoff (e.g. 7/25).
-      final int neighbors = (int) Math.ceil(Math.nextDown(settings.bandwidth() * x.length));
-      if (neighbors < settings.polynomialDegree() + 2) {
-        throw new IllegalArgumentException("Fixed smoothing needs at least degree + 2 neighbors");
-      }
-      best = new Candidate(settings.polynomialDegree(), neighbors, Double.NaN);
     }
 
     final double[] fittedAtKnots = smoothAtKnots(geometry, normalizedY, best.degree,

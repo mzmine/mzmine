@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.ManualLoess;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,24 +58,6 @@ class DunnQcNormalizationTest {
   }
 
   @Test
-  void conditioningQcsAreExcludedBeforeCoverageAndFitting() {
-    final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
-    final Map<String, Double> values = new LinkedHashMap<>();
-    for (int i = 0; i < 8; i++) {
-      samples.add(new FeatureQcDriftNormalization.Sample("s" + i, "A", i, true));
-      values.put("s" + i, i < 2 ? 8000d : 100d);
-    }
-    final FeatureQcSettings settings = new FeatureQcSettings(true, .75d, 1, 2, 5, 10d, .5d, 2);
-    final FeatureQcResult result = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values), settings);
-    final var batch = result.diagnostics().rows().get(1).batches().get("A");
-    assertEquals(6, batch.totalQcs());
-    assertEquals(6, batch.usableQcs());
-    assertEquals(100d, batch.correctionTarget(), 1e-10);
-    assertEquals(2, batch.boundarySampleCount());
-    assertEquals(8, result.rowFactors().get(1).size());
-  }
-
-  @Test
   void automaticAndFixedSmoothingShareTheSameMissingnessRule() {
     final List<FeatureQcDriftNormalization.Sample> samples = new ArrayList<>();
     final Map<String, Double> values = new LinkedHashMap<>();
@@ -86,7 +69,7 @@ class DunnQcNormalizationTest {
         FeatureQcSettings.defaults());
     assertEquals(10, dunn.rowFactors().get(1).size());
     final FeatureQcResult fixed = FeatureQcDriftNormalization.calculate(samples, Map.of(1, values),
-        new FeatureQcSettings(false, .75d, 1, 2, 5, 10d, .5d, 0));
+        new FeatureQcSettings(new ManualLoess(.75d, 1, 2), 5, 10d, .5d));
     assertEquals(dunn.rowFactors(), fixed.rowFactors());
   }
 }

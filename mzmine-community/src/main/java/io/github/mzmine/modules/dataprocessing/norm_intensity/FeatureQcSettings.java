@@ -3,26 +3,16 @@
  */
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.modules.dataprocessing.norm_intensity.FeatureQcSmoothing.QcRlsc;
 import org.jetbrains.annotations.NotNull;
 
-/** Settings for one QC-RLSC pipeline, with automatic or fixed smoothing. */
-public record FeatureQcSettings(boolean automaticSmoothing, double bandwidth, int polynomialDegree,
-                                int robustnessIterations, int minimumUsableQcs,
-                                double maxFactor, double globalMissingQcThreshold,
-                                int initialQcsToExclude) {
+/** Settings for one QC drift correction pipeline, with QC-RLSC or manual LOESS smoothing. */
+public record FeatureQcSettings(@NotNull FeatureQcSmoothing smoothing, int minimumUsableQcs,
+                                double maxFactor, double globalMissingQcThreshold) {
 
   public FeatureQcSettings {
-    if (initialQcsToExclude < 0) {
-      throw new IllegalArgumentException("initial_qcs_to_exclude must be nonnegative.");
-    }
-    if (!Double.isFinite(bandwidth) || bandwidth <= 0d || bandwidth > 1d) {
-      throw new IllegalArgumentException("bandwidth must be in (0, 1].");
-    }
-    if (polynomialDegree < 1 || polynomialDegree > 2) {
-      throw new IllegalArgumentException("polynomial_degree must be 1 or 2.");
-    }
-    if (robustnessIterations < 0) {
-      throw new IllegalArgumentException("robustness_iterations must be nonnegative.");
+    if (smoothing == null) {
+      throw new IllegalArgumentException("smoothing must be set.");
     }
     if (minimumUsableQcs < 5) {
       throw new IllegalArgumentException("minimum_usable_qcs must be at least 5.");
@@ -37,10 +27,21 @@ public record FeatureQcSettings(boolean automaticSmoothing, double bandwidth, in
   }
 
   public static @NotNull FeatureQcSettings defaults() {
-    return new FeatureQcSettings(true, .75d, 1, 2, 5, 10d, .5d, 0);
+    return new FeatureQcSettings(QcRlsc.DEFAULT, 5, 10d, .5d);
+  }
+
+  /**
+   * @return true if span and degree are selected by QC-RLSC cross-validation
+   */
+  public boolean automaticSmoothing() {
+    return smoothing instanceof QcRlsc;
+  }
+
+  public int robustnessIterations() {
+    return smoothing.robustnessIterations();
   }
 
   public @NotNull String description() {
-    return automaticSmoothing ? "QC-RLSC (automatic smoothing)" : "QC-RLSC (fixed smoothing)";
+    return smoothing.description();
   }
 }
