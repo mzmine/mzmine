@@ -71,6 +71,23 @@ catalog {
 group = "io.github.mzmine"
 description = "mzmine"
 
+// Publish the font resources on every build host, but include them only in macOS applications.
+sourceSets {
+    macosFonts {
+        resources.setSrcDirs(['src/os_specific/macosFonts/resources'])
+    }
+}
+java {
+    registerFeature('macosFonts') {
+        usingSourceSet(sourceSets.macosFonts)
+    }
+}
+if (OperatingSystem.current().isMacOsX()) {
+    dependencies {
+        runtimeOnly(files(tasks.named('macosFontsJar')))
+    }
+}
+
 def APPNAME = "mzmine"
 project.ext.appName = APPNAME
 

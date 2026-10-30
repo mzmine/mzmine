@@ -24,6 +24,7 @@
 
 package io.github.mzmine.gui.preferences;
 
+import com.sun.jna.Platform;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
@@ -37,9 +38,9 @@ import org.jetbrains.annotations.NotNull;
  * <ol>
  *   <li>Style base stylesheet (structural controls)</li>
  *   <li>Color palette stylesheet (.root color variables, overrides style defaults)</li>
- *   <li>Dark overrides (if dark palette, structural rules that differ for dark mode)</li>
  *   <li>Common additions</li>
  *   <li>Light or dark additions</li>
+ *   <li>Bundled UI font (macOS only)</li>
  * </ol>
  */
 public record Themes(@NotNull ThemeStyle style, @NotNull ThemeColors colors) {
@@ -47,17 +48,21 @@ public record Themes(@NotNull ThemeStyle style, @NotNull ThemeColors colors) {
   private static final String ADDITIONS_COMMON = "themes/jabref_additions_common.css";
   private static final String ADDITIONS_LIGHT = "themes/jabref_additions_light.css";
   private static final String ADDITIONS_DARK = "themes/jabref_additions_dark.css";
+  private static final String MACOS_FONTS = "themes/fonts_macos.css";
 
   /**
    * Applies this theme's stylesheets to the given observable list (typically a Scene's stylesheet
    * list). Clears any existing stylesheets first.
    */
   public void apply(@NotNull final ObservableList<String> sheets) {
-    List<String> styles = new ArrayList<>();
+    final List<String> styles = new ArrayList<>();
     styles.add(style.getStylesheet());
     styles.add(colors.getStylesheet());
     styles.add(ADDITIONS_COMMON);
     styles.add(colors.isDark() ? ADDITIONS_DARK : ADDITIONS_LIGHT);
+    if (Platform.isMac()) {
+      styles.add(MACOS_FONTS);
+    }
     sheets.setAll(styles);
   }
 
