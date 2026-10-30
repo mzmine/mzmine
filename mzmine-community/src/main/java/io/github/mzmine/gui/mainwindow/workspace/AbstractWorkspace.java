@@ -64,6 +64,7 @@ import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityre
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.group_isotope_labeling_networking.IsotopeLabelingNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.CalcEcmsPotentialModule;
@@ -82,6 +83,7 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
+import io.github.mzmine.modules.dataprocessing.isolab_targeted.IsotopeLabelingTargetedModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -125,6 +127,7 @@ import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisM
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMap2DModule;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.isotope_labeling.IsotopeLabelingModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
@@ -249,7 +252,7 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultLcMsSubMenu() {
     return addModuleMenuItems("LC-MS", ModularADAPChromatogramBuilderModule.class,
-        TargetedFeatureDetectionModule.class);
+        TargetedFeatureDetectionModule.class, IsotopeLabelingTargetedModule.class);
   }
 
   protected Menu buildDefaultGcMsSubMenu() {
@@ -301,7 +304,8 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultFeatureGroupingSubMenu() {
     final Menu groupingMenu = addModuleMenuItems("Feature grouping", CorrelateGroupingModule.class,
-        IonNetworkingModule.class, MainSpectralNetworkingModule.class, AddIonNetworkingModule.class,
+        IonNetworkingModule.class, MainSpectralNetworkingModule.class,
+        IsotopeLabelingNetworkingModule.class, AddIonNetworkingModule.class,
         IonNetworkRefinementModule.class, FormulaPredictionIonNetworkModule.class,
         CreateAvgNetworkFormulasModule.class, IonNetworkMSMSCheckModule.class,
         ClearIonIdentitiesModule.class);
@@ -360,6 +364,7 @@ public abstract class AbstractWorkspace implements Workspace {
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, "Lipids", LipidAnnotationQCDashboardModule.class,
         EquivalentCarbonNumberModule.class, LipidAnnotationSummaryModule.class);
+    addModuleMenuItem(featureVis, IsotopeLabelingModule.class, null);
     addModuleMenuItems(featureVis, "Dashboards", CompoundDashboardModule.class,
         IntegrationDashboardModule.class, LipidAnnotationQCDashboardModule.class,
         StatsDasboardModule.class);
