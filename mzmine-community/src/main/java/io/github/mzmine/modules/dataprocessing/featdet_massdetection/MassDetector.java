@@ -28,6 +28,8 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -57,5 +59,23 @@ public interface MassDetector extends MZmineModule {
   default double[][] getMassValues(double[] mzs, double[] intensities,
       final @NotNull MassSpectrumType type) {
     throw new UnsupportedOperationException("Method not implemented. Please implement me.");
+  }
+
+  /**
+   * Detects masses in all mobility scans of a frame at once. Used by the mass detection task and
+   * the import processors, so detectors that combine information across mobility scans (e.g., for
+   * saturated ions) behave the same in both pipelines. Frames are detected like any other scan by
+   * {@link #getMassValues(MassSpectrum)}. The default detects every mobility scan independently.
+   *
+   * @param mobilityScans all mobility scans of one frame, sorted by mobility scan number
+   * @return mass values as [mzs, intensities][data], one entry per mobility scan in the input order
+   */
+  default @NotNull List<double[][]> getMobilityScanMassValues(
+      @NotNull List<? extends MassSpectrum> mobilityScans) {
+    final List<double[][]> values = new ArrayList<>(mobilityScans.size());
+    for (final MassSpectrum mobilityScan : mobilityScans) {
+      values.add(getMassValues(mobilityScan));
+    }
+    return values;
   }
 }
