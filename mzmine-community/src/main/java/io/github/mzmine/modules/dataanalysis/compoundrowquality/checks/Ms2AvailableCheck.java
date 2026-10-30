@@ -68,6 +68,16 @@ public final class Ms2AvailableCheck implements QualityCheck {
   @Override
   public @NotNull QualityCheckResult evaluate(@NotNull CompoundRow row,
       @NotNull QualityCheckContext context) {
+    // GC-EI compounds hold one deconvoluted MS1 (EI) pseudo spectrum per sample on the
+    // representative. There is no MS2, activation method or energy to report
+    final List<Scan> representativeScans = row.getPreferredRow().getAllFragmentScans();
+    if (!representativeScans.isEmpty() && representativeScans.stream()
+        .allMatch(ScanUtils::isGcEiScan)) {
+      final int n = representativeScans.size();
+      return new DefaultQualityCheckResult(QualityCheckType.MS2_AVAILABLE, QualityCheckStatus.PASS,
+          "Deconvoluted EI spectrum in %d sample%s (no MS2)".formatted(n, n == 1 ? "" : "s"),
+          List.of(), List.of(row.getPreferredRow()));
+    }
     final List<CompoundFeatureMember> members = row.getCompoundMembers();
     final List<RowScans> rowScans = new ArrayList<>();
     final List<FeatureListRow> involved = new ArrayList<>();

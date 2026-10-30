@@ -74,6 +74,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
@@ -243,6 +244,14 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // The renderer maps are updated in the task's updateGuiModel before the dataset list setAll,
     // so by the time these listeners fire the maps already reflect the new datasets.
     model.selectedAdductRowProperty().subscribe(_ -> applySelectionHighlight());
+    // large compounds only draw the most intense rows, redraw to include a newly selected row
+    model.selectedAdductRowProperty().subscribe(_ -> {
+      if (interactor.isSelectedRowHidden()) {
+        scheduleEic();
+        scheduleMobilogram();
+        scheduleSpectra();
+      }
+    });
     model.getEicDatasets()
         .addListener((ListChangeListener<XYDatasetAndRenderer>) _ -> applySelectionHighlight());
     model.getMobilogramDatasets()
@@ -282,7 +291,9 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     mobilogramPlot.setRangeAxisLabel("Intensity");
     mobilogramPlot.setShowSeriesLabel(true);
     ms1Chart.rangeAxisLabelProperty().set("Intensity (MS1)");
-    ms2Chart.rangeAxisLabelProperty().set("Intensity (MS2)");
+    ms2Chart.rangeAxisLabelProperty().bind(
+        Bindings.when(model.deconvolutedEiProperty()).then("Intensity (EI)")
+            .otherwise("Intensity (MS2)"));
   }
 
   // --- FxController overrides -----------------------------------------------

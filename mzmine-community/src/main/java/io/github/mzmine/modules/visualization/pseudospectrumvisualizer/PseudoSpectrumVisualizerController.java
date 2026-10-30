@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,11 +24,13 @@
 
 package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.gui.framework.fx.SelectedFilesBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -41,6 +43,7 @@ import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -96,6 +99,27 @@ public class PseudoSpectrumVisualizerController extends
               + e.getMessage());
     }
     return new MZTolerance(0.005, 15);
+  }
+
+  /**
+   * @return true if the feature has a pseudo spectrum or is a member of a GC-EI deconvoluted
+   * compound with a pseudo spectrum
+   */
+  public static boolean hasPseudoSpectrum(@Nullable Feature feature) {
+    if (feature == null) {
+      return false;
+    }
+    if (feature.getMostIntenseFragmentScan() instanceof PseudoSpectrum) {
+      return true;
+    }
+    final FeatureListRow row = feature.getRow();
+    final CompoundRow compound = row == null ? null : CompoundMemberDatasetsBuilder.findCompound(row);
+    if (compound == null) {
+      return false;
+    }
+    final Feature representative = compound.getPreferredRow().getFeature(feature.getRawDataFile());
+    return representative != null && ScanUtils.isGcEiScan(
+        representative.getMostIntenseFragmentScan());
   }
 
   private void initListeners() {
