@@ -91,7 +91,8 @@ class BatchTaskCancellationTest {
     Mockito.when(stepParameters.checkParameterValues(Mockito.any(Collection.class))).thenReturn(true);
     final BatchQueue queue = new BatchQueue();
     queue.add(new MZmineProcessingStepImpl<>(new BlockingModule(childTask), stepParameters));
-    final BatchModeParameters parameters = new BatchModeParameters();
+    final BatchModeParameters parameters = (BatchModeParameters) new BatchModeParameters()
+        .cloneParameterSet();
     parameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
     return new BatchTask(project, parameters, Instant.now());
   }
