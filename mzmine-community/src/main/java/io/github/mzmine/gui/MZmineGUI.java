@@ -304,7 +304,7 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
       @NotNull final GroupableTreeView<RawDataFile> rawDataList) {
     List<@NotNull GroupingStrategy<RawDataFile>> strategies = createRawDataStrategies();
     rawDataList.getAvailableStrategies().setAll(strategies);
-    // default: no grouping
+    // default: group by sample type, the project metadata always has this column
     rawDataList.setActiveStrategy(strategies.stream()
         .filter(strategy -> strategy.displayName().contains(MetadataColumn.SAMPLE_TYPE_HEADER))
         .findFirst().orElse(strategies.getFirst()));

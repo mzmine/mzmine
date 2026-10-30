@@ -574,6 +574,19 @@
             ]
         },
         {
+            "moduleName": "com.microsoft:credential-secure-storage",
+            "moduleVersion": "1.0.3",
+            "moduleUrls": [
+                "https://github.com/Microsoft/credential-secure-storage-for-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "MIT License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
+                }
+            ]
+        },
+        {
             "moduleName": "com.miglayout:miglayout",
             "moduleVersion": "3.7.4",
             "moduleUrls": [
