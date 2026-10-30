@@ -28,10 +28,15 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -78,6 +83,69 @@ public class SpectralDeconvolutionUtils {
       deconvolutedFeatureListRowsByRtOnly.add(mainFeature.getRow());
     }
     return deconvolutedFeatureListRowsByRtOnly;
+  }
+
+  /**
+   * @return the {@link PseudoSpectrum} fragment scans of all features of the row
+   */
+  public static @NotNull List<PseudoSpectrum> getPseudoSpectra(@NotNull final FeatureListRow row) {
+    final List<PseudoSpectrum> pseudoSpectra = new ArrayList<>();
+    for (final Scan scan : row.getAllFragmentScans()) {
+      if (scan instanceof PseudoSpectrum pseudoSpectrum) {
+        pseudoSpectra.add(pseudoSpectrum);
+      }
+    }
+    return pseudoSpectra;
+  }
+
+  /**
+   * Merges the pseudo spectra of all features of a row into one consensus spectrum. Signals within
+   * the m/z tolerance are combined and their intensities summed. Other fragment scans are ignored.
+   *
+   * @param row         the row with GC-EI pseudo spectra as fragment scans
+   * @param mzTolerance tolerance to merge signals
+   * @return double[2][] with sorted m/z values [0] and summed intensities [1]. Empty arrays if the
+   * row has no pseudo spectrum
+   */
+  public static double @NotNull [] @NotNull [] mergePseudoSpectra(
+      @NotNull final FeatureListRow row, @NotNull final MZTolerance mzTolerance) {
+    return mergePseudoSpectra(getPseudoSpectra(row), mzTolerance);
+  }
+
+  private static double @NotNull [] @NotNull [] mergePseudoSpectra(
+      @NotNull final List<PseudoSpectrum> pseudoSpectra, @NotNull final MZTolerance mzTolerance) {
+    return SpectraMerging.calculatedMergedMzsAndIntensities(pseudoSpectra, mzTolerance,
+        IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, null);
+  }
+
+  /**
+   * The signals of the merged pseudo spectra of a row, ranked by the number of pseudo spectra
+   * (samples) that contain the signal and then by summed intensity. Same consensus idea as the
+   * quantifier selection in the GC-EI aligner.
+   *
+   * @param row         the row with GC-EI pseudo spectra as fragment scans
+   * @param mzTolerance tolerance to merge and match signals
+   * @return the consensus signals, most common first. Empty if the row has no pseudo spectrum
+   */
+  public static @NotNull List<PseudoSpectrumConsensusSignal> getConsensusSignals(
+      @NotNull final FeatureListRow row, @NotNull final MZTolerance mzTolerance) {
+    final List<PseudoSpectrum> pseudoSpectra = getPseudoSpectra(row);
+    final double[][] merged = mergePseudoSpectra(pseudoSpectra, mzTolerance);
+
+    final List<PseudoSpectrumConsensusSignal> signals = new ArrayList<>(merged[0].length);
+    for (int i = 0; i < merged[0].length; i++) {
+      final double mz = merged[0][i];
+      int detections = 0;
+      for (final PseudoSpectrum spectrum : pseudoSpectra) {
+        final int index = spectrum.binarySearch(mz, DefaultTo.CLOSEST_VALUE);
+        if (index >= 0 && mzTolerance.checkWithinTolerance(mz, spectrum.getMzValue(index))) {
+          detections++;
+        }
+      }
+      signals.add(new PseudoSpectrumConsensusSignal(mz, merged[1][i], detections));
+    }
+    signals.sort(PseudoSpectrumConsensusSignal.MOST_COMMON_FIRST);
+    return signals;
   }
 
   /**
