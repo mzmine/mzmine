@@ -73,7 +73,9 @@ description = "mzmine"
 
 // Publish the font resources on every build host, but include them only in macOS applications.
 sourceSets {
-    macosFonts
+    macosFonts {
+        resources.setSrcDirs(['src/os_specific/macosFonts/resources'])
+    }
 }
 java {
     registerFeature('macosFonts') {
