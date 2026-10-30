@@ -52,6 +52,17 @@ class ArgsToConfigUtils {
   private static final Logger logger = Logger.getLogger(ArgsToConfigUtils.class.getName());
 
   /**
+   * Lists the command line login options when no valid user is available in headless mode.
+   */
+  static final String CLI_LOGIN_REQUIRED_MESSAGE = """
+      Requires user login. Use one of these command line arguments:
+        -cli-token <token>  login with a token generated in the mzio account console, \
+        recommended for automatic pipelines for online users.
+        -login              login via the system internet browser, saves a user file to the users directory
+        -user <file|name>   an offline user locked to this machine, use an .mzuser4 user file
+      Legacy .mzuser files from older mzmine versions are not supported, login again to create a new user file.""";
+
+  /**
    * Parses all relevant arguments from the given program arguments and initialises the
    * {@link MZmineCoreArgumentParser} instance in this class.
    *
@@ -98,6 +109,12 @@ class ArgsToConfigUtils {
     // login user by cli-token
     if (argsParser.isCliLoginToken()) {
       commandLineLogin(isCliBatchProcessing, LoginOptions.CLI_TOKEN);
+    }
+
+    // the -login user was already logged in and saved by MZmineCoreArgumentParser
+    // without a batch, -login only saves the user to the configuration and closes mzmine
+    if (argsParser.isCliLogin() && !isCliBatchProcessing) {
+      saveLoginToConfigAndExit();
     }
   }
 
@@ -212,8 +229,7 @@ class ArgsToConfigUtils {
       UsersController.getInstance().loginOrRegisterConsoleBlocking(option);
       success = true;
     } catch (Exception ex) {
-      DesktopService.getDesktop().displayMessage(
-          "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+      DesktopService.getDesktop().displayMessage(CLI_LOGIN_REQUIRED_MESSAGE);
       if (!isCliBatchProcessing) {
         MZmineExit.exit(1);
         return true;
@@ -222,21 +238,28 @@ class ArgsToConfigUtils {
     // if no batch select - that means it was only a login call.
     // save config and close mzmine
     if (success && !isCliBatchProcessing) {
-      String currentUserName = CurrentUserService.getUserName().orElse("");
-      ConfigService.getPreferences().setParameter(MZminePreferences.username, currentUserName);
-      if (!ConfigService.saveUserConfig()) {
-        logger.severe(
-            "Failed to save user config after login. A solution may be to delete the .mzconfig file in the system user directory /.mzmine/");
-        MZmineExit.exit(1);
-        return true;
-      } else {
-        logger.info("User login successful, user configuration is saved with the new user "
-            + currentUserName);
-        MZmineExit.exit(0);
-        return true;
-      }
+      saveLoginToConfigAndExit();
+      return true;
     }
     return false;
+  }
+
+  /**
+   * Saves the current user to the configuration and closes mzmine. Used when a login option is
+   * given without a batch file.
+   */
+  private static void saveLoginToConfigAndExit() {
+    final String currentUserName = CurrentUserService.getUserName().orElse("");
+    ConfigService.getPreferences().setParameter(MZminePreferences.username, currentUserName);
+    if (!ConfigService.saveUserConfig()) {
+      logger.severe(
+          "Failed to save user config after login. A solution may be to delete the .mzconfig file in the system user directory /.mzmine/");
+      MZmineExit.exit(1);
+    } else {
+      logger.info("User login successful, user configuration is saved with the new user "
+          + currentUserName);
+      MZmineExit.exit(0);
+    }
   }
 
 }
