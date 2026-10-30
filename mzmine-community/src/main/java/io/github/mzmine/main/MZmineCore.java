@@ -277,6 +277,14 @@ public final class MZmineCore {
 
     Task batchTask = null;
     if (batchFile != null) {
+      // decision: every batch requires a valid user with a claimed license. Check before the batch
+      // starts, also without terminal input where no console login was attempted above
+      if (CurrentUserService.isInvalid()) {
+        getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
+        MZmineExit.exit(1);
+        return;
+      }
+
       // load batch
       if ((!batchFile.exists()) || (!batchFile.canRead())) {
         logger.severe("Cannot read batch file " + batchFile);
