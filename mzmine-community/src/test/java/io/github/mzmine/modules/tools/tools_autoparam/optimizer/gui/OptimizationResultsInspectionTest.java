@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.moeaframework.core.objective.Minimize;
 
 @DisabledOnOs(value = OS.LINUX, disabledReason = "JavaFX needs a display; Linux CI is headless.")
 class OptimizationResultsInspectionTest {
@@ -34,6 +35,8 @@ class OptimizationResultsInspectionTest {
     final FutureTask<Void> test = new FutureTask<>(() -> {
       final var model = new OptimizationResultModel(false);
       final var solution = new org.moeaframework.core.Solution(0, 1);
+      // objectives are named like the metrics of the optimizer, the name is the column header
+      solution.setObjective(0, new Minimize("Score"));
       model.getDisplayedSolutions().add(solution);
       model.optimizationRunningProperty().set(false);
       final AtomicReference<org.moeaframework.core.Solution> applied = new AtomicReference<>();
@@ -65,6 +68,7 @@ class OptimizationResultsInspectionTest {
     final FutureTask<Void> test = new FutureTask<>(() -> {
       final var model = new OptimizationResultModel(false);
       final var initialUserSettings = new org.moeaframework.core.Solution(0, 1);
+      initialUserSettings.setObjective(0, new Minimize("Score"));
       model.initialUserSettingsSolutionProperty().set(initialUserSettings);
       model.getDisplayedSolutions().add(initialUserSettings);
       model.selectedSolutionProperty().set(initialUserSettings);
