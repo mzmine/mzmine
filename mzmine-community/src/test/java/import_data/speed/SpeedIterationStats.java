@@ -41,10 +41,15 @@ import org.jetbrains.annotations.Nullable;
  * The feature list numbers are the result fingerprint: a branch that is faster because it produced
  * fewer rows or fewer features is a regression, not a win, and without these columns that would not
  * be visible in the report.
+ * <p>
+ * They are summed over <b>all</b> feature lists on purpose. Reading only the last list is a race
+ * whenever a batch ends in per file lists instead of one aligned list: the tasks run in parallel, so
+ * which list is added last is whichever file happened to finish first, and the number then varies
+ * between runs of identical code. Totals are independent of completion order.
  *
  * @param featureLists        number of feature lists in the project after the batch
- * @param rows                rows of the newest feature list
- * @param features            features summed over the rows of the newest feature list
+ * @param rows                rows summed over all feature lists
+ * @param features            features summed over the rows of all feature lists
  * @param tempDirFreeGBBefore usable space of the temp directory volume before the batch
  * @param tempDirFreeGBAfter  usable space of the temp directory volume after the batch
  * @param tempDirUsedGB       before - after, so how much space the batch consumed. This is the
@@ -70,11 +75,11 @@ public record SpeedIterationStats(int featureLists, int rows, int features,
   public static SpeedIterationStats after(final double freeGBBefore,
       @Nullable final MemoryMeasurement memory) {
     final List<FeatureList> featureLists = ProjectService.getProject().getCurrentFeatureLists();
-    // the newest feature list is the result of the last processing step
-    final FeatureList newest = featureLists.isEmpty() ? null : featureLists.getLast();
-    final int rows = newest == null ? 0 : newest.getNumberOfRows();
-    final int features = newest == null ? 0
-        : newest.getRows().stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
+    // sum over all lists, not just the last one - see the class javadoc, picking the last list is
+    // order dependent and therefore not comparable between runs
+    final int rows = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
+    final int features = featureLists.stream().flatMap(flist -> flist.getRows().stream())
+        .mapToInt(FeatureListRow::getNumberOfFeatures).sum();
 
     final double freeGBAfter = tempDirFreeGB();
     return new SpeedIterationStats(featureLists.size(), rows, features, freeGBBefore, freeGBAfter,
