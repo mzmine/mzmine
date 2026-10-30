@@ -183,8 +183,8 @@ public final class MZmineCore {
   private static void addUserRequiredListener() {
     // add event listener
     EventService.subscribe(mzEvent -> {
-      if (mzEvent instanceof AuthRequiredEvent(String message)) {
-        DialogLoggerUtil.showMessageDialog("Invalid user", requireNonNullElse(message, ""));
+      if (mzEvent instanceof AuthRequiredEvent(String title, String message)) {
+        DialogLoggerUtil.showMessageDialog(title, requireNonNullElse(message, ""));
 
         if (DesktopService.isGUI()) {
           getDesktop().addTab(UsersTab.showTab());
