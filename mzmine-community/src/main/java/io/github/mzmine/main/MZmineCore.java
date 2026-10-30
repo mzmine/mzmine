@@ -198,12 +198,10 @@ public final class MZmineCore {
                 return;
               }
             }
-            getDesktop().displayMessage(
-                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
             MZmineExit.exit(1);
           } catch (Exception ex) {
-            getDesktop().displayMessage(
-                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
             MZmineExit.exit(1);
           }
         }
@@ -269,18 +267,24 @@ public final class MZmineCore {
         UsersController.getInstance()
             .loginOrRegisterConsoleBlocking(LoginOptions.CLI_TOKEN);
       } catch (Exception ex) {
-        getDesktop().displayMessage(
-            "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+        logger.warning("Console login failed: " + ex.getMessage());
       }
       if (CurrentUserService.isInvalid()) {
-        logger.warning(
-            "No valid user. Please login via the GUI or CLI or provide a user via command line argument -user path/user.mzuser");
+        getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
         MZmineExit.exit(1);
       }
     }
 
     Task batchTask = null;
     if (batchFile != null) {
+      // decision: every batch requires a valid user with a claimed license. Check before the batch
+      // starts, also without terminal input where no console login was attempted above
+      if (CurrentUserService.isInvalid()) {
+        getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
+        MZmineExit.exit(1);
+        return;
+      }
+
       // load batch
       if ((!batchFile.exists()) || (!batchFile.canRead())) {
         logger.severe("Cannot read batch file " + batchFile);
