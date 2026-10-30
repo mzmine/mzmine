@@ -286,4 +286,26 @@ class MetadataTableTest {
     Assertions.assertEquals(Set.of(columnNew), filledMetadataTable.getColumns());
     Assertions.assertEquals(columnValueNew, filledMetadataTable.getValue(columnNew, rawDataFile1));
   }
+
+  @Test
+  void columnOrderIsTotalOrder() {
+    // titles that only differ in case used to compare as smaller in both directions
+    final List<MetadataColumn<String>> pairs = List.of(new StringMetadataColumn("Sample_Name"),
+        new StringMetadataColumn(MetadataColumn.SAMPLE_NAME_HEADER),
+        new StringMetadataColumn("Run_Date"), new StringMetadataColumn(MetadataColumn.DATE_HEADER),
+        new StringMetadataColumn("Group"), new StringMetadataColumn("group"));
+    for (final MetadataColumn<String> a : pairs) {
+      for (final MetadataColumn<String> b : pairs) {
+        Assertions.assertEquals(Integer.signum(a.compareTo(b)), -Integer.signum(b.compareTo(a)),
+            a + " vs " + b);
+        Assertions.assertEquals(a.equals(b), a.compareTo(b) == 0, a + " vs " + b);
+      }
+    }
+
+    final MetadataTable table = new MetadataTable(false);
+    pairs.reversed().forEach(table::addColumn);
+    Assertions.assertEquals(
+        List.of("Sample_Name", "sample_name", "Run_Date", "run_date", "Group", "group"),
+        table.getColumnsSorted().stream().map(MetadataColumn::getTitle).toList());
+  }
 }
