@@ -246,7 +246,10 @@ public class RawDataFilesParameter implements
         Element newElement = parentDocument.createElement("specific_file");
         String fileName = item.getName();
         newElement.setTextContent(fileName);
-        newElement.setAttribute(PATH_ATTRIBUTE, item.getAbsolutePath());
+        final String absolutePath = item.getAbsolutePath();
+        if (absolutePath != null) {
+          newElement.setAttribute(PATH_ATTRIBUTE, absolutePath);
+        }
 
         final Path relPath = project.getRelativePath(item.getAbsoluteFilePath().toPath());
         if (relPath != null && project.resolveRelativePathToFile(relPath.toString()).exists()) {

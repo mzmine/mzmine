@@ -1,0 +1,25 @@
+dataset,seed,kind,name,estimate,bestPerturbed,front
+thermo-20y-qc,42,metric,Yasin isotope score,3014.3277211944846,,5765.986504454195
+thermo-20y-qc,42,diagnostic,Total features,28866.0,,60168.0
+thermo-20y-qc,42,diagnostic,Shape filter would remove / %,,,
+thermo-20y-qc,42,parameter,FWHM,0.030181679874658585,,0.023016127417717403
+thermo-20y-qc,42,parameter,Inter sample RT tolerance,0.04613828659057617,,0.04613828659057617
+thermo-20y-qc,42,parameter,MS1 noise level,5.0,,3.0
+thermo-20y-qc,42,parameter,MZ tolerance / m/z,0.003,,0.008
+thermo-20y-qc,42,parameter,MZ tolerance / ppm,7.0,,15.0
+thermo-20y-qc,42,parameter,Min consecutive,5.0,,4.0
+thermo-20y-qc,42,parameter,Min height,434925.40625,,176204.80976763522
+thermo-20y-qc,42,parameter,Chrom. Threshold,0.85,,0.897
+thermo-20y-qc,42,parameter,Top-to-edge ratio,1.7,,1.5
+zenotof-feces-pos,42,metric,Yasin isotope score,15420.158015124638,,41329.83678634
+zenotof-feces-pos,42,diagnostic,Total features,21422.0,,35959.0
+zenotof-feces-pos,42,diagnostic,Shape filter would remove / %,,,
+zenotof-feces-pos,42,parameter,FWHM,0.04732702486217022,,0.1997233367283255
+zenotof-feces-pos,42,parameter,Inter sample RT tolerance,0.02121567726135254,,0.14455442635406007
+zenotof-feces-pos,42,parameter,MS1 noise level,7.0,,7.0
+zenotof-feces-pos,42,parameter,MZ tolerance / m/z,0.003,,0.01
+zenotof-feces-pos,42,parameter,MZ tolerance / ppm,7.0,,20.0
+zenotof-feces-pos,42,parameter,Min consecutive,6.0,,8.0
+zenotof-feces-pos,42,parameter,Min height,198.0,,85.53618090643074
+zenotof-feces-pos,42,parameter,Chrom. Threshold,0.85,,0.944
+zenotof-feces-pos,42,parameter,Top-to-edge ratio,1.7,,1.55

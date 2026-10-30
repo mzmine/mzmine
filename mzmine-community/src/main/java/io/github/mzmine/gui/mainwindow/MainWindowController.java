@@ -358,7 +358,8 @@ public class MainWindowController {
     }));
     memoryUpdater.play();
 
-    final AcademicWorkspace academicWorkspace = new AcademicWorkspace();
+    final Workspace academicWorkspace = WorkspaceMenuHelper.getWorkspaces()
+        .getOrDefault(AcademicWorkspace.uniqueId, new AcademicWorkspace());
     WorkspaceMenuHelper.addWorkspace(academicWorkspace);
     if (WorkspaceMenuHelper.getDefaultWorkspaceId() == null) {
       WorkspaceMenuHelper.setDefaultWorkspace(academicWorkspace);

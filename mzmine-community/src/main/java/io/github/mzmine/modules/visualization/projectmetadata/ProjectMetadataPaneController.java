@@ -77,6 +77,11 @@ public class ProjectMetadataPaneController {
     tableModel = new MetadataTableModel(metadataTable, tableView);
   }
 
+  /** Reload columns and rows after an atomic metadata update. */
+  public void refresh() {
+    tableModel.createAndSetExistingColumns();
+  }
+
   public void setStage(Stage stage) {
     currentStage = stage;
     stage.setOnCloseRequest(we -> logger.info("Parameters are not updated"));

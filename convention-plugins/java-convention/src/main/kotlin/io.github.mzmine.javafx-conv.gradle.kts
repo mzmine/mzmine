@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,6 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import org.gradle.api.tasks.JavaExec
+import org.openjfx.gradle.metadatarule.JavaFXComponentMetadataRule
+
 plugins {
     id("io.github.mzmine.java-common-conv")
     id("org.openjfx.javafxplugin")
@@ -30,12 +33,22 @@ plugins {
 
 // https://github.com/gradle/gradle/issues/15383
 val libs = versionCatalogs.named("libs")
+val javaFxVersion = libs.findVersion("javafx").get().strictVersion
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jfree" && requested.name == "jfreechart") {
+            useVersion(libs.findVersion("jfreechart").get().requiredVersion)
+            because("patch transitive jfreechart upgrades to the version declared in libs.versions.toml")
+        }
+    }
+}
 
 /*
  * Include JavaFX modules
  */
 javafx {
-    version = libs.findVersion("javafx").get().strictVersion
+    version = javaFxVersion
 //    version = "23.0.2"
     modules(
         "javafx.base",
@@ -49,5 +62,22 @@ javafx {
 
 
 dependencies {
+    components {
+        // decision: JavaFX 24+ supplies the jdk.jsobject module removed from JDK 26.
+        withModule<JavaFXComponentMetadataRule>("org.openjfx:jdk-jsobject")
+    }
+    implementation("org.openjfx:jdk-jsobject:$javaFxVersion")
     implementation(libs.findBundle("javafx-convention").get())
+}
+
+tasks.withType<JavaExec>().configureEach {
+    doFirst {
+        val jsObjectModulePath = classpath.filter {
+            it.name.startsWith("jdk-jsobject-")
+        }
+        if (!jsObjectModulePath.isEmpty) {
+            setClasspath(classpath.filter { !it.name.startsWith("jdk-jsobject-") })
+            jvmArgs("--upgrade-module-path", jsObjectModulePath.asPath)
+        }
+    }
 }

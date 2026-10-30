@@ -107,7 +107,7 @@ public class RsdFilterParameters extends SimpleParameterSet {
    * Create a filter for a specific data table. Will automatically select only the grouped data
    * files
    */
-  RsdFilter createFilter(List<FeatureListRow> rows, List<RawDataFile> rawFiles) {
+  public RsdFilter createFilter(List<FeatureListRow> rows, List<RawDataFile> rawFiles) {
     // prepare data
     final AbundanceMeasure measure = getValue(abundanceMeasure);
     final ImputationFunctions missingImputation = getValue(missingValueImputation);

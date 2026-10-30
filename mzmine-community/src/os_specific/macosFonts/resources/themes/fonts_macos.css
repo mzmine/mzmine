@@ -1,0 +1,9 @@
+/* Static faces avoid macOS system variable-font spacing issues in JavaFX. */
+@font-face { src: url("../fonts/inter/Inter-Regular.otf"); }
+@font-face { src: url("../fonts/inter/Inter-Bold.otf"); }
+@font-face { src: url("../fonts/inter/Inter-Italic.otf"); }
+@font-face { src: url("../fonts/inter/Inter-BoldItalic.otf"); }
+
+.root {
+  -fx-font-family: "Inter";
+}

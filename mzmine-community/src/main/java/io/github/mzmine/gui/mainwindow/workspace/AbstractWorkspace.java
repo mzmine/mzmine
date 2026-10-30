@@ -114,6 +114,7 @@ import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPrevie
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
+import io.github.mzmine.modules.tools.tools_autoparam.AutoParamDashboardModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
@@ -135,9 +136,9 @@ import io.github.mzmine.modules.visualization.otherdetectors.multidetector.Multi
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
+import io.github.mzmine.modules.visualization.rawfilemetadata.AcquisitionMetadataTab;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
-import io.github.mzmine.modules.visualization.rawfilemetadata.AcquisitionMetadataTab;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
@@ -374,8 +375,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Tools");
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
-    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class,
-        QualityParametersModule.class);
+    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class, QualityParametersModule.class,
+        AutoParamDashboardModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
         MsMsQualityExportModule.class, MatchesSubsetLibraryModule.class,
         MergeLibrariesModule.class);

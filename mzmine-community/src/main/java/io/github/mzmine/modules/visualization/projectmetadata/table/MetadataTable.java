@@ -101,19 +101,33 @@ public class MetadataTable {
     this(true);
   }
 
+  /**
+   *
+   * @param enableAutoDetection true if {@link SampleType} auto detection is enabled. Automatically
+   *                            adds the sample type column.
+   */
   public MetadataTable(boolean enableAutoDetection) {
     this(enableAutoDetection, Map.of());
   }
 
-  public MetadataTable(@NotNull Map<MetadataColumn<?>, ? extends Map<RawDataFile, ?>> data) {
-    this(true, data);
-  }
-
+  /**
+   *
+   * @param enableAutoDetection true if {@link SampleType} auto detection is enabled. Automatically
+   *                            adds the sample type column.
+   */
   public MetadataTable(boolean enableAutoDetection,
       @NotNull Map<MetadataColumn<?>, ? extends Map<RawDataFile, ?>> data) {
     this.enableAutoDetection = enableAutoDetection;
     // defensive copy
     data.forEach((column, values) -> getModifiableColumnData(column).putAll(values));
+    // decision: project tables always have the sample type column, also before the first file is
+    // added, e.g., for the default grouping of the raw data list. Import tables (no auto detection)
+    // only contain the columns of the imported file.
+    if (enableAutoDetection) {
+      getSampleTypeColumn();
+      // the initial state of a new table is no modification
+      version.set(0);
+    }
   }
 
 

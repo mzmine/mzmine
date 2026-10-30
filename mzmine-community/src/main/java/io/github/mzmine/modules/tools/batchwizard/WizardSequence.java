@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.parameters.ParameterUtils;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +57,19 @@ public class WizardSequence extends AbstractList<WizardStepParameters> {
    */
   public Optional<WizardStepParameters> get(final WizardPart part) {
     return steps.stream().filter(step -> step.getPart() == part).findFirst();
+  }
+
+  /**
+   * @return a deep copy with new step instances that carry the same parameter values
+   */
+  public @NotNull WizardSequence copy() {
+    final WizardSequence copy = new WizardSequence();
+    for (final WizardStepParameters step : steps) {
+      final WizardStepParameters stepCopy = step.getFactory().create();
+      ParameterUtils.copyParameters(step, stepCopy);
+      copy.add(stepCopy);
+    }
+    return copy;
   }
 
   /**

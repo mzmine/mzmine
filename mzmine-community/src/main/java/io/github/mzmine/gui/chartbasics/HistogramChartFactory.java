@@ -61,6 +61,10 @@ public class HistogramChartFactory {
 
   private static GaussianCurveFitter fitter = GaussianCurveFitter.create().withMaxIterations(10000);
 
+  /** A numeric histogram bin shared by native charts and bounded evidence projections. */
+  public record HistogramBin(double center, int count) {
+  }
+
   /**
    * Performs Gaussian fit on XYSeries
    *
@@ -352,46 +356,54 @@ public class HistogramChartFactory {
    */
   public static XYSeries createHistoSeries(double[] data, double binwidth, double min, double max,
       DoubleFunction<Double> function) {
-    double datawidth = (max - min);
-    int cbin = (int) Math.ceil(datawidth / binwidth);
-    int[] bins = new int[cbin + 1];
-
-    // count intensities in bins
-    // if value>bin.upper put in next
-    for (double v : data) {
-      int i = (int) Math.ceil((v - min) / binwidth) - 1;
-      if (i < 0) // does only happen if min>than minimum value of data
-      {
-        i = 0;
-      }
-      if (i >= bins.length) {
-        i = bins.length - 1;
-      }
-      bins[i]++;
-    }
+    final List<HistogramBin> bins = createHistogramBins(data, binwidth, min, max);
 
     // add zeros around data
     boolean peakStarted = false;
     XYSeries series = new XYSeries("histo", true, true);
-    for (int i = 0; i < bins.length; i++) {
+    for (int i = 0; i < bins.size(); i++) {
       // start peak and add data if>0
-      if (bins[i] > 0) {
+      if (bins.get(i).count() > 0) {
         // add previous zero once
         if (!peakStarted && i > 0) {
-          addDPToSeries(series, bins, i - 1, binwidth, min, max, function);
+          addDPToSeries(series, bins, i - 1, function);
         }
 
         // add data
-        addDPToSeries(series, bins, i, binwidth, min, max, function);
+        addDPToSeries(series, bins, i, function);
 
         peakStarted = true;
       } else {
         // add trailing zero
-        addDPToSeries(series, bins, i, binwidth, min, max, function);
+        addDPToSeries(series, bins, i, function);
         peakStarted = false;
       }
     }
     return series;
+  }
+
+  /**
+   * Numeric binning used by {@link #createHistoSeries(double[], double, double, double,
+   * DoubleFunction)}. Values on a bin boundary remain in the lower bin, matching the historical
+   * chart behavior; out-of-range values are clamped to the nearest edge bin.
+   */
+  public static @NotNull List<HistogramBin> createHistogramBins(double @NotNull [] data,
+      double binwidth, double min, double max) {
+    if (!(binwidth > 0d) || !Double.isFinite(min) || !Double.isFinite(max) || max < min) {
+      throw new IllegalArgumentException("Histogram bounds and bin width must be finite and valid");
+    }
+    final int binCount = (int) Math.ceil((max - min) / binwidth) + 1;
+    final int[] counts = new int[binCount];
+    for (final double value : data) {
+      int index = (int) Math.ceil((value - min) / binwidth) - 1;
+      index = Math.max(0, Math.min(index, counts.length - 1));
+      counts[index]++;
+    }
+    final List<HistogramBin> bins = new ArrayList<>(counts.length);
+    for (int i = 0; i < counts.length; i++) {
+      bins.add(new HistogramBin(min + binwidth / 2d + i * binwidth, counts[i]));
+    }
+    return bins;
   }
 
   /**
@@ -406,56 +418,17 @@ public class HistogramChartFactory {
    */
   public static XYSeries createHistoSeries(DoubleArrayList data, double binwidth, double min,
       double max, DoubleFunction<Double> function) {
-    double datawidth = (max - min);
-    int cbin = (int) Math.ceil(datawidth / binwidth);
-    int[] bins = new int[cbin + 1];
-
-    // count intensities in bins
-    // if value>bin.upper put in next
-    for (double v : data) {
-      int i = (int) Math.ceil((v - min) / binwidth) - 1;
-      if (i < 0) // does only happen if min>than minimum value of data
-      {
-        i = 0;
-      }
-      if (i >= bins.length) {
-        i = bins.length - 1;
-      }
-      bins[i]++;
-    }
-
-    // add zeros around data
-    boolean peakStarted = false;
-    XYSeries series = new XYSeries("histo", true, true);
-    for (int i = 0; i < bins.length; i++) {
-      // start peak and add data if>0
-      if (bins[i] > 0) {
-        // add previous zero once
-        if (!peakStarted && i > 0) {
-          addDPToSeries(series, bins, i - 1, binwidth, min, max, function);
-        }
-
-        // add data
-        addDPToSeries(series, bins, i, binwidth, min, max, function);
-
-        peakStarted = true;
-      } else {
-        // add trailing zero
-        addDPToSeries(series, bins, i, binwidth, min, max, function);
-        peakStarted = false;
-      }
-    }
-    return series;
+    return createHistoSeries(data.toDoubleArray(), binwidth, min, max, function);
   }
 
-  private static void addDPToSeries(XYSeries series, int[] bins, int i, double binwidth, double min,
-      double max, DoubleFunction<Double> function) {
+  private static void addDPToSeries(XYSeries series, List<HistogramBin> bins, int i,
+      DoubleFunction<Double> function) {
     // adds a data point to the series
-    double x = min + (binwidth / 2.0) + i * binwidth;
+    double x = bins.get(i).center();
     if (function != null) {
       x = function.apply(x);
     }
-    series.add(x, bins[i]);
+    series.add(x, bins.get(i).count());
   }
 
   /**

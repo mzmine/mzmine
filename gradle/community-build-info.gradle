@@ -1,0 +1,90 @@
+import groovy.json.JsonOutput
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
+import org.gradle.work.DisableCachingByDefault
+
+import javax.inject.Inject
+
+/** Writes the source identity of the Community artifact being built. */
+@DisableCachingByDefault(because = 'The source commit is observed at execution time')
+abstract class GenerateCommunityBuildInfo extends DefaultTask {
+
+    @Internal
+    abstract DirectoryProperty getCheckout()
+
+    @Input
+    abstract Property<String> getPackageVersion()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    GenerateCommunityBuildInfo() {
+        outputs.upToDateWhen { false }
+    }
+
+    @TaskAction
+    void generate() {
+        final Map source = gitBuildInfo(checkout.get().asFile)
+        final Map buildInfo = [
+                contract_version: 1,
+                package_version : packageVersion.get(),
+                commit          : source.commit,
+        ]
+        final File output = new File(outputDirectory.get().asFile,
+                'META-INF/mzmine/community-build.json')
+        if (!output.parentFile.isDirectory() && !output.parentFile.mkdirs()) {
+            throw new GradleException("Cannot create Community build-info directory: ${output.parentFile}")
+        }
+        output.setText(JsonOutput.prettyPrint(JsonOutput.toJson(buildInfo)) + '\n', 'UTF-8')
+    }
+
+    private Map gitBuildInfo(final File directory) {
+        if (!new File(directory, '.git').exists()) {
+            return [commit: null]
+        }
+        final String commit = git(directory, ['rev-parse', 'HEAD'])
+        if (commit == null || !commit.matches('[0-9a-f]{40}')) {
+            return [commit: null]
+        }
+        return [commit: commit]
+    }
+
+    private String git(final File directory, final List<String> arguments) {
+        final ByteArrayOutputStream output = new ByteArrayOutputStream()
+        try {
+            final def result = execOperations.exec {
+                workingDir(directory)
+                commandLine(['git'] + arguments)
+                standardOutput = output
+                errorOutput = new ByteArrayOutputStream()
+                ignoreExitValue = true
+            }
+            return result.exitValue == 0 ? output.toString('UTF-8').trim() : null
+        } catch (Exception ignored) {
+            return null
+        }
+    }
+}
+
+final def generateCommunityBuildInfo = tasks.register(
+        'generateCommunityBuildInfo', GenerateCommunityBuildInfo) {
+    checkout.set(rootProject.layout.projectDirectory)
+    // Read the final project version lazily; the configuration cache stores
+    // this provider's computed String value.
+    packageVersion.set(providers.provider { project.version.toString() })
+    outputDirectory.set(layout.buildDirectory.dir('generated/community-build-info'))
+}
+
+sourceSets.main.resources.srcDir(generateCommunityBuildInfo.flatMap { it.outputDirectory })
+tasks.named('processResources') {
+    dependsOn(generateCommunityBuildInfo)
+}
