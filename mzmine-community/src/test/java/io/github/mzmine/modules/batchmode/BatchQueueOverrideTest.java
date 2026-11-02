@@ -27,15 +27,17 @@ package io.github.mzmine.modules.batchmode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.io.File;
 import java.net.URL;
@@ -94,6 +96,14 @@ class BatchQueueOverrideTest {
         csvAfter.orElseThrow().getValue(LocalCSVDatabaseSearchParameters.dataBaseFile));
     assertEquals(newProject,
         projectAfter.orElseThrow().getValue(ProjectLoaderParameters.projectFile));
+  }
+
+  @Test
+  void validatesRowsFilterBeforeRsdProvenanceIsRecorded() {
+    final BatchQueue queue = new BatchQueue();
+    queue.add(new MZmineProcessingStepImpl<>(new RowsFilterModule(), new RowsFilterParameters()));
+
+    assertNull(BatchUtils.checkBatchParameters(queue));
   }
 
   private static BatchQueue loadBatch() throws Exception {

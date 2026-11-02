@@ -45,6 +45,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.CSVParsingUtils.CompoundDbLoadResult;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.maths.CenterMeasure;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -169,8 +170,8 @@ public final class StandardCompoundNormalizationTypeModule implements
         skippedFiles.add(rawFile.getName());
         continue;
       }
-      NormalizationFunction function = new StandardCompoundNormalizationFunction(standardUsageType,
-          mzVsRtBalance, StandardCompoundFactorMode.getDefault(), referencePoints);
+      final NormalizationFunction function = createReferenceFunction(referencePoints,
+          standardUsageType, mzVsRtBalance);
 
       // add or merge function into a new instance within summary
       summary.addMergeFunction(rawFile, function);
@@ -192,6 +193,14 @@ public final class StandardCompoundNormalizationTypeModule implements
     }
 
     return fileToFunction;
+  }
+
+  /** Creates the native correction for already selected standard points in one file. */
+  public static @NotNull StandardCompoundNormalizationFunction createReferenceFunction(
+      final @NotNull List<StandardCompoundReferencePoint> referencePoints,
+      final @NotNull StandardUsageType usageType, final double mzVsRtBalance) {
+    return new StandardCompoundNormalizationFunction(usageType, mzVsRtBalance,
+        StandardCompoundFactorMode.getDefault(), List.copyOf(referencePoints));
   }
 
   /**
@@ -508,6 +517,27 @@ public final class StandardCompoundNormalizationTypeModule implements
     }
   }
 
+  /**
+   * Calculates the reference level for an internal standard from usable reference abundances.
+   *
+   * <p>Only finite positive values can define a standard level. {@link CenterMeasure#AUTO} has no
+   * defined normalization behavior and must be resolved by the caller.
+   */
+  public static double calculateReferenceAbundance(final double @NotNull [] abundances,
+      @NotNull final CenterMeasure measure) {
+    final double[] usableAbundances = java.util.Arrays.stream(abundances)
+        .filter(value -> Double.isFinite(value) && value > 0d).toArray();
+    if (usableAbundances.length == 0) {
+      return Double.NaN;
+    }
+    return switch (measure) {
+      case MEDIAN -> MathUtils.calcMedian(usableAbundances);
+      case AVG -> MathUtils.calcAvg(usableAbundances);
+      case AUTO -> throw new IllegalArgumentException(
+          "CenterMeasure.AUTO is not supported for standard-compound normalization.");
+    };
+  }
+
   private static @NotNull String describe(@NotNull final CompoundDBAnnotation annotation) {
     final String name = annotation.getCompoundName();
     final Double mz = annotation.getPrecursorMZ();
@@ -589,12 +619,9 @@ public final class StandardCompoundNormalizationTypeModule implements
      * detected it. NaN if the standard was not detected in any reference sample.
      */
     double referenceAbundance() {
-      if (referenceAbundances.isEmpty()) {
-        // MathUtils.calcMedian returns 0 for empty input, which would be a silently wrong level
-        return Double.NaN;
-      }
-      return MathUtils.calcMedian(
-          referenceAbundances.values().stream().mapToDouble(Double::doubleValue).toArray());
+      return calculateReferenceAbundance(
+          referenceAbundances.values().stream().mapToDouble(Double::doubleValue).toArray(),
+          CenterMeasure.MEDIAN);
     }
 
     /**

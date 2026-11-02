@@ -224,4 +224,5 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
     int index = keyCol.indexOf(key.toString());
     return index != -1 ? valueCol.get(index) : "";
   }
+
 }

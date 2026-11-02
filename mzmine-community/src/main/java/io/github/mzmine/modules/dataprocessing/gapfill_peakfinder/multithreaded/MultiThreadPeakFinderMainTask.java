@@ -49,6 +49,7 @@ import io.github.mzmine.taskcontrol.utils.TaskResultSummary.ErrorMessageHandling
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.mzio.links.MzioMZmineLinks;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -177,10 +178,20 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod("Gap filling ", MultiThreadPeakFinderModule.class,
             parameters, getModuleCallDate()));
 
+    // row-dependent normalization needs the row of a feature, which is only set when the feature
+    // is added. Apply once to all features before the row bindings
+    NormalizationRowIdentity.applyRowDependentIntensityNormalization(processedPeakList);
+
     // update all rows by row bindings (average values)
     // this needs to be done after all tasks finish because values were not updated when
     // adding features
     processedPeakList.applyRowBindings();
+
+    // canceled while the normalization and row bindings were applied: a copy is not published and
+    // the original stays in the project. An in-place list keeps its completed values
+    if (isCanceled()) {
+      return;
+    }
 
     // add / remove or rename the new feature list in project
     originalFeatureListOption.reflectNewFeatureListToProject(suffix, project, processedPeakList,

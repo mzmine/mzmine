@@ -114,16 +114,17 @@ import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPrevie
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
+import io.github.mzmine.modules.tools.tools_autoparam.AutoParamDashboardModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap2DModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
@@ -135,15 +136,14 @@ import io.github.mzmine.modules.visualization.otherdetectors.multidetector.Multi
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
+import io.github.mzmine.modules.visualization.rawfilemetadata.AcquisitionMetadataTab;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
-import io.github.mzmine.modules.visualization.rawfilemetadata.AcquisitionMetadataTab;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.javafx.FxMenuUtil;
 import io.github.mzmine.util.javafx.ModuleMenuItem;
@@ -336,12 +336,12 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Visualization");
 
     final Menu rawDataVis = FxMenuUtil.addModuleMenuItems(menu, "Raw data",
-        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, ImageVisualizerModule.class,
-        SpectraVisualizerModule.class, FrameVisualizerModule.class);
+        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, SpectraVisualizerModule.class,
+        FrameVisualizerModule.class);
 
     addSeparator(rawDataVis);
-    addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, TwoDVisualizerModule.class,
-        Fx3DVisualizerModule.class, MsMsVisualizerModule.class,
+    addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, IntensityMap2DModule.class,
+        IntensityMap3DModule.class, MsMsVisualizerModule.class,
         MassvoltammogramFromFileModule.class);
     addSeparator(rawDataVis);
     addModuleMenuItems(rawDataVis, RawDataSummaryModule.class, ScanHistogramModule.class,
@@ -375,8 +375,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Tools");
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
-    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class,
-        QualityParametersModule.class);
+    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class, QualityParametersModule.class,
+        AutoParamDashboardModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
         MsMsQualityExportModule.class, MatchesSubsetLibraryModule.class,
         MergeLibrariesModule.class);
@@ -446,7 +446,7 @@ public abstract class AbstractWorkspace implements Workspace {
         () -> UserAuthStore.removeUserFile(CurrentUserService.getUser()));
     addMenuItem(menu, "Open users directory", getWorkspaceMenuHelper()::openUsersDirectory);
     addMenuItem(menu, "Manage user online",
-        () -> DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl()));
+        () -> DesktopService.getDesktop().openWebPage(MzioMZmineLinks.ACCOUNT_CONSOLE.getUrl()));
     return menu;
   }
 

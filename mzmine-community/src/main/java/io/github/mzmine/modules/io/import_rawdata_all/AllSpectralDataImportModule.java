@@ -97,6 +97,22 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private static final String MODULE_DESCRIPTION = "This module combines the import of different MS data formats and provides advanced options";
 
   /**
+   * Creates the standard import task(s) without adding them to the task controller. This keeps
+   * native parameter validation and task construction reusable for callers with a separate review
+   * step.
+   */
+  public static @NotNull NativeImportSelection.ImportTaskPreparation prepareTasks(
+      final @NotNull MZmineProject project, final @NotNull ParameterSet parameters,
+      final @NotNull Instant moduleCallDate) {
+    final List<Task> tasks = new ArrayList<>();
+    final AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
+        AllSpectralDataImportModule.class);
+    final ExitCode exitCode = (module == null ? new AllSpectralDataImportModule() : module)
+        .runModule(project, parameters.cloneParameterSet(), tasks, moduleCallDate);
+    return new NativeImportSelection.ImportTaskPreparation(exitCode, tasks);
+  }
+
+  /**
    * Define filters and processors for scans
    */
   public static @NotNull ScanImportProcessorConfig createSpectralProcessors(
@@ -254,7 +270,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasksToAdd, @NotNull Instant moduleCallDate) {
-
     // collect all tasks and run them on ThreadPoolTask
     List<Task> tasks = new ArrayList<>();
     // collect data import tasks to then load metadata once all data was loaded
@@ -375,7 +390,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 //    var threadPoolTask = new ThreadPoolTask(description , nThreads, tasks);
 //    tasksToAdd.add(threadPoolTask);
 
-    AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(tasks, parameters);
+    final AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(project,
+        tasks, dataImportTasks, parameters);
     tasksToAdd.add(mainTask);
 
     return ExitCode.OK;

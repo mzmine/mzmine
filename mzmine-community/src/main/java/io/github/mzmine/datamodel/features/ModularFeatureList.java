@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.features.settings.FeatureListSettings;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -49,6 +50,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -149,6 +151,12 @@ public class ModularFeatureList implements FeatureList {
    * {@link FeatureListPreferences#createDefault()}
    */
   private volatile @NotNull FeatureListPreferences preferences = FeatureListPreferences.createDefault();
+
+  /**
+   * Settings written by processing modules, never null, defaults to
+   * {@link FeatureListSettings#DEFAULT}
+   */
+  private volatile @NotNull FeatureListSettings settings = FeatureListSettings.DEFAULT;
 
   private final AtomicLong structuralVersion = new AtomicLong(0);
   @Nullable
@@ -659,6 +667,7 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
+    NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
   }
 
   /**
@@ -684,6 +693,7 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
+    NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
   }
 
   /**
@@ -709,6 +719,8 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
+    // a later row that reuses a removed row ID must not get its normalization factor
+    NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
   }
 
   /**
@@ -1098,6 +1110,16 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void setPreferences(@NotNull final FeatureListPreferences preferences) {
     this.preferences = preferences;
+  }
+
+  @Override
+  public @NotNull FeatureListSettings getSettings() {
+    return settings;
+  }
+
+  @Override
+  public void setSettings(@NotNull final FeatureListSettings settings) {
+    this.settings = settings;
   }
 
   @Override

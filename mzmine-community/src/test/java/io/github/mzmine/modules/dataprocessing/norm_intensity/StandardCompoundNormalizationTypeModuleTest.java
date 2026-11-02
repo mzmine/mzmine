@@ -53,6 +53,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.maths.CenterMeasure;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -82,6 +83,22 @@ class StandardCompoundNormalizationTypeModuleTest {
   @TempDir
   Path tempDir;
   private int standardsFileIndex = 0;
+
+  @Test
+  void calculateReferenceAbundanceUsesOnlyFinitePositiveValues() {
+    final double[] abundances = {Double.NaN, Double.NEGATIVE_INFINITY, -1d, 0d, 100d, 200d,
+        Double.POSITIVE_INFINITY};
+
+    assertEquals(150d, StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(
+        abundances, CenterMeasure.MEDIAN), 1e-12);
+    assertEquals(150d, StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(
+        abundances, CenterMeasure.AVG), 1e-12);
+    assertTrue(Double.isNaN(StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(
+        new double[]{0d, Double.NaN}, CenterMeasure.MEDIAN)));
+    assertThrows(IllegalArgumentException.class,
+        () -> StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(abundances,
+            CenterMeasure.AUTO));
+  }
 
   @Test
   void createReferenceFunctionsThrowsIfNoStandardsSelected() throws IOException {

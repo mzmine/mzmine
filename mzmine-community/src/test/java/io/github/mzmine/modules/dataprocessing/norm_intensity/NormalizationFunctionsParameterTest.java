@@ -35,6 +35,14 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcAvailability;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcBatchDiagnostic;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcDiagnostics;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcFitPoint;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcProvenance;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcRowDiagnostic;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSettings;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.feature_qc.FeatureQcSmoothing.ManualLoess;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -45,6 +53,7 @@ import io.github.mzmine.util.XMLUtils;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -163,7 +172,6 @@ class NormalizationFunctionsParameterTest {
   void hiddenParameterInNormalizerParameterSetPersistsFunctions() throws Exception {
     final IntensityNormalizerParameters parameters = createIntensityParameters("hidden_save",
         AbundanceMeasure.Height, OriginalFeatureListOption.KEEP, List.of(factorFunction));
-
     final String xml = ParameterUtils.saveValuesToXMLString(parameters);
     final IntensityNormalizerParameters loaded = createIntensityParameters("placeholder",
         AbundanceMeasure.Area, OriginalFeatureListOption.REMOVE, List.of());
@@ -184,7 +192,32 @@ class NormalizationFunctionsParameterTest {
   }
 
   @Test
-  void extractionUsesLatestIntensityNormalizerAppliedMethod() {
+  void roundtripPreservesTypedFeatureQcProvenanceExactly() throws Exception {
+    final FeatureQcSettings settings = new FeatureQcSettings(new ManualLoess(.8d, 2, 1), 5, 12d, .4d);
+    final FeatureQcBatchDiagnostic batch = new FeatureQcBatchDiagnostic("batch1", 6, 6, 1d,
+        6d, 0, 6, null, .1d, .05d, 6, .02d, 6, 0, null, .8d, 1.2d,
+        List.of(new FeatureQcFitPoint(1d, 10d, 11d)), 1, 5, .8d, 10d,
+        "raw response");
+    final FeatureQcDiagnostics diagnostics = new FeatureQcDiagnostics("solver", "injection order",
+        "batch QC mean", settings,
+        new FeatureQcAvailability(1, 0, 0, 0, 6, 0), Map.of(3,
+            new FeatureQcRowDiagnostic(3, 6, 6, null, Map.of("batch1", batch))));
+    final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
+    parameter.setValue(new IntensityNormalizationSummary(List.of(), List.of(), List.of(
+        new FeatureQcProvenance("Area", diagnostics))));
+
+    final Document document = XMLUtils.newDocument();
+    final Element root = document.createElement("normalizationFunctions");
+    document.appendChild(root);
+    parameter.saveValueToXML(root);
+    final NormalizationFunctionsParameter loaded = new NormalizationFunctionsParameter();
+    loaded.loadValueFromXML(root);
+
+    assertEquals(parameter.getValue().featureQc(), loaded.getValue().featureQc());
+  }
+
+  @Test
+  void activeStateOwnsReapplicationAndLegacyHistoryIsAnExplicitFallback() {
     final RawDataFile rawDataFile = RawDataFile.createDummyFile();
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, rawDataFile);
 
@@ -204,18 +237,22 @@ class NormalizationFunctionsParameterTest {
         new SimpleFeatureListAppliedMethod(IntensityNormalizerModule.class, latestParameters,
             Instant.parse("2026-01-01T11:30:00Z")));
 
+    assertEquals(3d, IntensityNormalizerModule.getLegacyNormalizationFromAppliedMethods(featureList)
+        .get(0).getNormalizationFactor(100d, 5f), 1e-12);
+    featureList.setSettings(featureList.getSettings().withNormalization(
+        olderParameters.getValue(IntensityNormalizerParameters.hiddenNormalizationSummary)));
     final IntensityNormalizationSummary summary = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(
         featureList);
     assertNotNull(summary);
     assertEquals(1, summary.size());
     final List<RawFileNormalizationFunction> latestFunctions = summary.functions();
     assertEquals(1, latestFunctions.size());
-    assertEquals(3d, latestFunctions.getFirst().function().getNormalizationFactor(100d, 5f), 1e-12);
+    assertEquals(2d, latestFunctions.getFirst().function().getNormalizationFactor(100d, 5f), 1e-12);
 
     final NormalizationFunction latestForFile = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
         featureList, rawDataFile).get();
     assertNotNull(latestForFile);
-    assertEquals(3d, latestForFile.getNormalizationFactor(100d, 5f), 1e-12);
+    assertEquals(2d, latestForFile.getNormalizationFactor(100d, 5f), 1e-12);
 
     final NormalizationFunction missingFile = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
         featureList, createRawFile("unknown")).orElse(null);

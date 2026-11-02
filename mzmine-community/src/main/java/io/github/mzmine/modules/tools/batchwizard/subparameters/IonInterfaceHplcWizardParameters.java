@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -58,8 +59,8 @@ public final class IonInterfaceHplcWizardParameters extends IonInterfaceWizardPa
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Minimum consecutive scans",
-      "Minimum number of consecutive scans with detected data points as used in chromatogram building and feature resolving.", 4, 1,
-      Integer.MAX_VALUE);
+      "Minimum number of consecutive scans with detected data points as used in chromatogram building and feature resolving.",
+      4, 1, Integer.MAX_VALUE);
 
   public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
       "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"

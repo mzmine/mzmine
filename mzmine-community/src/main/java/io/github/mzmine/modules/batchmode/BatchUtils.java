@@ -198,6 +198,7 @@ public class BatchUtils {
       final ParameterSet parameters = step.getParameterSet();
       final RawDataFilesSelectionType rawSelection = ParameterUtils.streamParametersDeep(parameters,
               RawDataFilesParameter.class).map(RawDataFilesParameter::getValue)
+          .filter(Objects::nonNull)
           .map(RawDataFilesSelection::getSelectionType).findFirst().orElse(null);
       if (rawSelection != null && previousRawFileSelection == null) {
         previousRawFileSelection = rawSelection;
@@ -216,6 +217,7 @@ public class BatchUtils {
 
       final FeatureListsSelectionType flistSelection = ParameterUtils.streamParametersDeep(
               parameters, FeatureListsParameter.class).map(FeatureListsParameter::getValue)
+          .filter(Objects::nonNull)
           .map(FeatureListsSelection::getSelectionType).findFirst().orElse(null);
       if (flistSelection != null && previousFlistSelection == null) {
         previousFlistSelection = flistSelection;

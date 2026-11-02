@@ -31,6 +31,7 @@ import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.io.File;
 import java.time.Instant;
 import java.util.Objects;
@@ -53,12 +54,14 @@ import testutils.MZmineTestUtil;
 @DisabledOnOs(OS.MAC)
 public class ProjectLoadTest {
 
-  private MZmineProject currentProject;
+  private MZmineProject project;
 
   @BeforeAll
   public void init() {
     //    logger.info("Running MZmine");
     MZmineTestUtil.startMzmineCore();
+    project = new MZmineProjectImpl();
+    ProjectService.getProjectManager().setCurrentProject(project);
   }
 
   @AfterAll

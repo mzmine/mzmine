@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
+import java.util.function.ToDoubleFunction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public enum ImageNormalization {
@@ -41,6 +43,23 @@ public enum ImageNormalization {
       case TIC_AVG_NORMALIZATION ->
           IonTimeSeriesUtils.normalizeToAvgTic(series, allSelectedScans, storage);
 //      case ROOT_MEAN_SQUARE -> null;
+    };
+  }
+
+  /**
+   * The same per-scan factors as {@link #normalize(IonTimeSeries, List, MemoryMapStorage)}, for
+   * views that process raw scans directly.
+   *
+   * @return intensity factor per scan
+   */
+  public @NotNull ToDoubleFunction<Scan> scanFactors(
+      @NotNull final List<? extends Scan> allSelectedScans) {
+    return switch (this) {
+      case NO_NORMALIZATION -> _ -> 1d;
+      case TIC_AVG_NORMALIZATION -> {
+        final double avgTic = IonTimeSeriesUtils.averageTic(allSelectedScans);
+        yield scan -> avgTic / scan.getTIC();
+      }
     };
   }
 

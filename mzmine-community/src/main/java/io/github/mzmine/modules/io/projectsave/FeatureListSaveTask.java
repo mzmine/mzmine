@@ -236,6 +236,11 @@ public class FeatureListSaveTask extends AbstractTask {
     flist.getPreferences().saveToXML(preferencesElement);
     root.appendChild(preferencesElement);
 
+    // write settings of this feature list that were set by processing modules
+    Element settingsElement = document.createElement(CONST.XML_FLIST_SETTINGS_ELEMENT);
+    flist.getSettings().saveToXML(settingsElement);
+    root.appendChild(settingsElement);
+
     // write applied methods
     appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
     ObservableList<FeatureListAppliedMethod> appliedMethods = flist.getAppliedMethods();

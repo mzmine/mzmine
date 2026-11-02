@@ -54,6 +54,7 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.StartupSplash;
+import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
@@ -303,7 +304,7 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
       @NotNull final GroupableTreeView<RawDataFile> rawDataList) {
     List<@NotNull GroupingStrategy<RawDataFile>> strategies = createRawDataStrategies();
     rawDataList.getAvailableStrategies().setAll(strategies);
-    // default: no grouping
+    // default: group by sample type, the project metadata always has this column
     rawDataList.setActiveStrategy(strategies.stream()
         .filter(strategy -> strategy.displayName().contains(MetadataColumn.SAMPLE_TYPE_HEADER))
         .findFirst().orElse(strategies.getFirst()));
@@ -657,6 +658,9 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
 
     // Activate project - bind it to the desktop's project tree
     MZmineGUI.activateProject(ProjectService.getProject());
+    // The scene and desktop are now available to the application-specific navigation handler.
+    DeepLinkRouter.markGuiReady();
+    DeepLinkRouter.dispatchPending();
 
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);

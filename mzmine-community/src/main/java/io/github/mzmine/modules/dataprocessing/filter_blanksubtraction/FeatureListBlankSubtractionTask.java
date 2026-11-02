@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -165,6 +166,14 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     // make sure this feature list is never used for batch last selection
     backgroundAlignedFeaturesList.setExcludedFromBatchLast(true);
 
+    // decision: blank subtraction removes features, which changes the basis of all normalization
+    // factors, also of factors that are not feature specific (e.g., feature median). Drop the
+    // normalization and normalize again after blank subtraction
+    notBackgroundAlignedFeaturesList.setSettings(
+        notBackgroundAlignedFeaturesList.getSettings().withNormalization(null));
+    backgroundAlignedFeaturesList.setSettings(
+        backgroundAlignedFeaturesList.getSettings().withNormalization(null));
+
     final List<FeatureListRow> notBackgroundAlignedFeaturesListRows = new ArrayList<>();
     final List<FeatureListRow> backgroundAlignedFeaturesListRows = new ArrayList<>();
     // each original row maps to its row in the result lists, needed to transfer the relationship
@@ -223,7 +232,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         // row bindings aggregate over all features, so applying them per feature is O(features^2).
         // the rows are added to the feature list below, which applies the bindings once
         featuresToKeep.forEach(f -> featureListRow.addFeature(f.getRawDataFile(),
-            new ModularFeature(notBackgroundAlignedFeaturesList, f), false));
+            copyWithoutNormalization(notBackgroundAlignedFeaturesList, f), false));
 
         if (this.createDeletedFeatureList) {
           final StringBuilder sb = new StringBuilder();
@@ -259,7 +268,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
             backgroundAlignedFeaturesList, originalRow.getID(), (ModularFeatureListRow) originalRow,
             false);
         featuresToRemove.forEach(f -> featureListRow.addFeature(f.getRawDataFile(),
-            new ModularFeature(backgroundAlignedFeaturesList, f), false));
+            copyWithoutNormalization(backgroundAlignedFeaturesList, f), false));
 
         final StringBuilder sb = new StringBuilder();
         sb.append(String.format(
@@ -306,6 +315,17 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * @return a copy of the feature without normalized values, the normalization is dropped by blank
+   * subtraction
+   */
+  private static @NotNull ModularFeature copyWithoutNormalization(
+      @NotNull final ModularFeatureList flist, @NotNull final Feature feature) {
+    final ModularFeature copy = new ModularFeature(flist, feature);
+    FeatureDataUtils.clearIntensityNormalizationFromFeature(copy);
+    return copy;
   }
 
   private List<Feature> getRowFeatures(FeatureListRow row, List<RawDataFile> raws) {
