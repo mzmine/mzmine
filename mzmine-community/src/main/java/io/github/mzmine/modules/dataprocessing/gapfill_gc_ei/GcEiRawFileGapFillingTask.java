@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.FeatureSmoothingOptions;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -142,8 +143,8 @@ class GcEiRawFileGapFillingTask extends AbstractTask {
     if (selected != null) {
       return selected;
     }
-    // assumption: without selected scans, the scan selection of the chromatogram builder applies
-    return List.of(settings.scanSelection().getMatchingScans(file));
+    // assumption: without selected scans, the chromatograms were built on all MS1 scans
+    return List.of(new ScanSelection(1).getMatchingScans(file));
   }
 
   /**

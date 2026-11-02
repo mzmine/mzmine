@@ -29,12 +29,13 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.PseudoSpectrumConsensusSignal;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.MathUtils;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,8 +45,8 @@ import org.jetbrains.annotations.Nullable;
  * @param row           the row to gap-fill
  * @param quantifierMz  the m/z of the row. The feature of this m/z is added to the row
  * @param rt            the retention time of the row
- * @param topMzs        the most common signals of the pseudo spectra of the row, see
- *                      {@link SpectralDeconvolutionUtils#getConsensusSignals}
+ * @param topMzs        the most intense signals of the pseudo spectra of the row that are shared
+ *                      by the minimum number of pseudo spectra
  * @param detectedRange the retention time range of all detected features of the row
  * @param leftWidth     median distance from the start of the detected features to their apex
  * @param rightWidth    median distance from the apex of the detected features to their end
@@ -55,19 +56,28 @@ public record GcEiGapFillTarget(@NotNull FeatureListRow row, double quantifierMz
                                 float leftWidth, float rightWidth) {
 
   /**
-   * @param numTopSignals number of signals to extract from the pseudo spectra
-   * @param mzTolerance   tolerance to merge and match the pseudo spectra of all features
-   * @return the target or null if the row has no pseudo spectrum
+   * @param row                 the row with pseudo spectra
+   * @param numTopSignals       number of the most intense signals to extract from the pseudo
+   *                            spectra
+   * @param minSignalDetections minimum number of pseudo spectra that share a top signal
+   * @param mzTolerance         tolerance to merge the pseudo spectra of all features
+   * @return the target or null if the row has no pseudo spectrum signal shared by the minimum
+   * number of pseudo spectra
    */
   public static @Nullable GcEiGapFillTarget fromRow(@NotNull final FeatureListRow row,
-      final int numTopSignals, @NotNull final MZTolerance mzTolerance) {
-    final List<PseudoSpectrumConsensusSignal> signals = SpectralDeconvolutionUtils.getConsensusSignals(
-        row, mzTolerance);
-    if (signals.isEmpty()) {
+      final int numTopSignals, final int minSignalDetections,
+      @NotNull final MZTolerance mzTolerance) {
+    final double[][] merged = SpectralDeconvolutionUtils.mergePseudoSpectra(row, mzTolerance,
+        minSignalDetections);
+    final double[] mzs = merged[0];
+    final double[] intensities = merged[1];
+    if (mzs.length == 0) {
       return null;
     }
-    final double[] topMzs = signals.stream().limit(numTopSignals)
-        .mapToDouble(PseudoSpectrumConsensusSignal::mz).toArray();
+    // assumption: rows with fewer shared signals than requested are confirmed with those signals
+    final double[] topMzs = IntStream.range(0, mzs.length).boxed()
+        .sorted(Comparator.comparingDouble((Integer i) -> intensities[i]).reversed())
+        .limit(numTopSignals).mapToDouble(i -> mzs[i]).toArray();
 
     // decision: peak shape from detected features, gap-filled features may be distorted
     List<? extends Feature> features = row.getFeatures().stream()

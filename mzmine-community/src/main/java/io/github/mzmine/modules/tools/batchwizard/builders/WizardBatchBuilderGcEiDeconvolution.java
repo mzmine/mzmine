@@ -229,10 +229,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   }
 
   private void makeAndAddGcEiGapFillingStep(final BatchQueue q) {
-    // co-elution of the top signals is checked with the same tolerance as the deconvolution
+    // m/z tolerance and minimum data points of the chromatogram builder, co-elution tolerance of
+    // the deconvolution
     final ParameterSet param = GcEiGapFillingParameters.create(
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS), 3,
-        interSampleRtTol, intraSampleRtTol, "gaps", handleOriginalFeatureLists);
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS), mzTolScans,
+        3, 2, interSampleRtTol, intraSampleRtTol, minRtDataPoints, "gaps",
+        handleOriginalFeatureLists);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(GcEiGapFillingModule.class), param));

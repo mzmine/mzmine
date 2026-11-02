@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -43,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class SpectralDeconvolutionUtilsTest {
@@ -50,7 +49,7 @@ class SpectralDeconvolutionUtilsTest {
   private static final MZTolerance MZ_TOLERANCE = new MZTolerance(0.005, 10);
 
   @Test
-  void consensusSignalsRankDetectionsBeforeIntensity() {
+  void mergeKeepsSignalsSharedByMinimumDetections() {
     final RawDataFile a = new RawDataFileImpl("a", null, null);
     final RawDataFile b = new RawDataFileImpl("b", null, null);
     final ModularFeatureList flist = new ModularFeatureList("aligned", null, a, b);
@@ -61,13 +60,17 @@ class SpectralDeconvolutionUtilsTest {
     addFeature(row, flist, b, List.of(pseudoSpectrum(b, new double[]{100, 150},
         new double[]{1E5, 8E4})));
 
-    final List<PseudoSpectrumConsensusSignal> signals = SpectralDeconvolutionUtils.getConsensusSignals(
-        row, MZ_TOLERANCE);
+    final double[][] shared = SpectralDeconvolutionUtils.mergePseudoSpectra(row, MZ_TOLERANCE, 2);
+    Assertions.assertArrayEquals(new double[]{100, 150}, shared[0], 1E-6);
+    Assertions.assertArrayEquals(new double[]{2E5, 1.6E5}, shared[1], 1E-6);
 
-    assertEquals(List.of(100d, 150d, 300d),
-        signals.stream().map(PseudoSpectrumConsensusSignal::mz).toList());
-    assertEquals(2, signals.getFirst().numDetections());
-    assertEquals(2E5, signals.getFirst().sumIntensity(), 1E-6);
+    final double[][] all = SpectralDeconvolutionUtils.mergePseudoSpectra(row, MZ_TOLERANCE, 1);
+    Assertions.assertArrayEquals(new double[]{100, 150, 300}, all[0], 1E-6);
+
+    // rows with fewer pseudo spectra than required use all of them
+    final double[][] limited = SpectralDeconvolutionUtils.mergePseudoSpectra(row, MZ_TOLERANCE,
+        5);
+    Assertions.assertArrayEquals(shared[0], limited[0], 1E-6);
   }
 
   @Test
@@ -82,8 +85,8 @@ class SpectralDeconvolutionUtilsTest {
 
     final double[][] merged = SpectralDeconvolutionUtils.mergePseudoSpectra(row, MZ_TOLERANCE);
 
-    assertEquals(1, merged[0].length, "the MS2 scan is not a pseudo spectrum");
-    assertEquals(100d, merged[0][0], 1E-6);
+    Assertions.assertEquals(1, merged[0].length, "the MS2 scan is not a pseudo spectrum");
+    Assertions.assertEquals(100d, merged[0][0], 1E-6);
   }
 
   private static void addFeature(@NotNull final ModularFeatureListRow row,

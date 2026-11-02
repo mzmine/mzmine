@@ -68,6 +68,7 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
   private final @NotNull OriginalFeatureListOption handleOriginal;
   private final @NotNull String suffix;
   private final int numTopSignals;
+  private final int minSignalDetections;
   private final @NotNull RTTolerance sampleToSampleRtTolerance;
   private final @NotNull RTTolerance intraSampleCoelutionTolerance;
   private @Nullable ModularFeatureList processedList;
@@ -82,6 +83,7 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
     handleOriginal = parameters.getValue(GcEiGapFillingParameters.HANDLE_ORIGINAL);
     suffix = parameters.getValue(GcEiGapFillingParameters.SUFFIX);
     numTopSignals = parameters.getValue(GcEiGapFillingParameters.NUMBER_OF_TOP_SIGNALS);
+    minSignalDetections = parameters.getValue(GcEiGapFillingParameters.MIN_SIGNAL_DETECTIONS);
     sampleToSampleRtTolerance = parameters.getValue(
         GcEiGapFillingParameters.SAMPLE_TO_SAMPLE_RT_TOLERANCE);
     intraSampleCoelutionTolerance = parameters.getValue(
@@ -90,13 +92,8 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final GcEiFeatureFindingSettings settings;
-    try {
-      settings = GcEiFeatureFindingSettings.fromAppliedMethods(originalList.getAppliedMethods());
-    } catch (IllegalStateException e) {
-      error(e.getMessage());
-      return;
-    }
+    final GcEiFeatureFindingSettings settings = GcEiFeatureFindingSettings.of(parameters,
+        originalList.getAppliedMethods());
 
     final int numRows = originalList.getNumberOfRows();
     final int numRaws = originalList.getNumberOfRawDataFiles();
@@ -151,17 +148,20 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
   }
 
   /**
+   * @param flist       the feature list to gap-fill
+   * @param mzTolerance tolerance to merge the pseudo spectra of each row
    * @return the gaps (rows without feature) for each raw data file. Rows without pseudo spectrum
-   * are skipped.
+   * signals shared by the minimum number of samples are skipped.
    */
   private @NotNull Map<RawDataFile, List<GcEiGapFillTarget>> collectGaps(
       @NotNull final ModularFeatureList flist, @NotNull final MZTolerance mzTolerance) {
     final Map<RawDataFile, List<GcEiGapFillTarget>> gapsPerFile = new LinkedHashMap<>();
-    int rowsWithoutPseudoSpectrum = 0;
+    int rowsWithoutSignals = 0;
     for (final FeatureListRow row : flist.getRows()) {
-      final GcEiGapFillTarget target = GcEiGapFillTarget.fromRow(row, numTopSignals, mzTolerance);
+      final GcEiGapFillTarget target = GcEiGapFillTarget.fromRow(row, numTopSignals,
+          minSignalDetections, mzTolerance);
       if (target == null) {
-        rowsWithoutPseudoSpectrum++;
+        rowsWithoutSignals++;
         continue;
       }
       for (final RawDataFile file : flist.getRawDataFiles()) {
@@ -172,12 +172,12 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
       }
     }
 
-    if (rowsWithoutPseudoSpectrum > 0) {
-      final int skipped = rowsWithoutPseudoSpectrum;
+    if (rowsWithoutSignals > 0) {
+      final int skipped = rowsWithoutSignals;
       logger.warning(() -> """
-          %d rows of %s have no pseudo spectrum and were not gap-filled. \
+          %d rows of %s have no pseudo spectrum signals shared by %d samples and were not gap-filled. \
           Run the GC-EI spectral deconvolution before alignment and gap filling.""".formatted(
-          skipped, flist.getName()));
+          skipped, flist.getName(), minSignalDetections));
     }
     return gapsPerFile;
   }

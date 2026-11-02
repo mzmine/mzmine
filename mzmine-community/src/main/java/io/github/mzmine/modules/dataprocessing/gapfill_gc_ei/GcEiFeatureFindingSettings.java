@@ -26,81 +26,39 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_gc_ei;
 
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The feature detection settings that created the features of a feature list, extracted from its
- * applied methods. GC-EI gap filling extracts chromatograms with the same m/z tolerance and scans
- * and applies the same smoothing, so that gap-filled features are comparable to detected
- * features.
+ * The settings to extract and confirm the signals of a row in samples with a gap.
  *
- * @param chromatogramParameters parameters of the ADAP chromatogram builder
- * @param smoothingParameters    parameters of the last smoothing step after the chromatogram
- *                               builder, or null if there was none
+ * @param mzTolerance         tolerance to merge pseudo spectra and extract chromatograms
+ * @param minConsecutiveScans minimum number of consecutive scans with signal around a peak apex
+ * @param smoothingParameters parameters of the last smoothing step in the processing history, or
+ *                            null if there was none
  */
-public record GcEiFeatureFindingSettings(@NotNull ParameterSet chromatogramParameters,
+public record GcEiFeatureFindingSettings(@NotNull MZTolerance mzTolerance, int minConsecutiveScans,
                                          @Nullable ParameterSet smoothingParameters) {
 
   /**
-   * Extracts the latest chromatogram builder call and the latest smoothing call after it.
-   *
-   * @param methods applied methods of a feature list, oldest first
-   * @throws IllegalStateException if the chromatogram builder step is missing
+   * @param parameters the GC-EI gap filling parameters
+   * @param methods    applied methods of the feature list, oldest first
+   * @return the settings with the smoothing of the processing history, so that gap-filled
+   * features are comparable to detected features
    */
-  public static @NotNull GcEiFeatureFindingSettings fromAppliedMethods(
+  public static @NotNull GcEiFeatureFindingSettings of(@NotNull final ParameterSet parameters,
       @NotNull final List<FeatureListAppliedMethod> methods) {
-    final int chromIndex = lastIndexOf(methods, ModularADAPChromatogramBuilderModule.class, 0);
-    if (chromIndex < 0) {
-      throw new IllegalStateException("""
-          GC-EI gap filling uses the m/z tolerance of the original chromatogram building, \
-          but no "Chromatogram builder" step was found in the processing history of the feature list.""");
-    }
-
     // assumption: GC-EI workflows smooth at most once, usually before resolving
-    final int smoothingIndex = lastIndexOf(methods, SmoothingModule.class, chromIndex + 1);
-    final ParameterSet smoothingParameters =
-        smoothingIndex >= 0 ? methods.get(smoothingIndex).getParameters() : null;
-
-    return new GcEiFeatureFindingSettings(methods.get(chromIndex).getParameters(),
-        smoothingParameters);
-  }
-
-  /**
-   * @return index of the last method of the module class at or after from, or -1
-   */
-  private static int lastIndexOf(@NotNull final List<FeatureListAppliedMethod> methods,
-      @NotNull final Class<? extends MZmineModule> module, final int from) {
-    for (int i = methods.size() - 1; i >= from; i--) {
-      final FeatureListAppliedMethod method = methods.get(i);
-      if (method != null && module.isInstance(method.getModule())) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  public @NotNull MZTolerance mzTolerance() {
-    return chromatogramParameters.getValue(ADAPChromatogramBuilderParameters.mzTolerance);
-  }
-
-  public @NotNull ScanSelection scanSelection() {
-    return chromatogramParameters.getValue(ADAPChromatogramBuilderParameters.scanSelection);
-  }
-
-  /**
-   * Re-detected signals need at least this number of consecutive data points around their apex
-   */
-  public int minConsecutiveScans() {
-    return chromatogramParameters.getValue(
-        ADAPChromatogramBuilderParameters.minimumConsecutiveScans);
+    final FeatureListAppliedMethod smoothing = ParameterUtils.getLatestModuleCall(methods,
+        SmoothingModule.class);
+    return new GcEiFeatureFindingSettings(
+        parameters.getValue(GcEiGapFillingParameters.MZ_TOLERANCE),
+        parameters.getValue(GcEiGapFillingParameters.MIN_CONSECUTIVE_SCANS),
+        smoothing != null ? smoothing.getParameters() : null);
   }
 }

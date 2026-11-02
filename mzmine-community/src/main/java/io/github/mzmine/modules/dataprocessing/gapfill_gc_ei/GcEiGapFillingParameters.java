@@ -33,21 +33,34 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import org.jetbrains.annotations.NotNull;
 
 public class GcEiGapFillingParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
+  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
+      ToleranceType.SCAN_TO_SCAN, """
+      Used to merge the pseudo spectra of a row and to extract the chromatograms of its signals in samples with a gap.
+      Usually the same tolerance as used for chromatogram building.""", 0.002, 10);
+
   public static final IntegerParameter NUMBER_OF_TOP_SIGNALS = new IntegerParameter(
       "Number of top signals", """
-      Number of signals of the pseudo spectra of a row (merged over all samples) that need to be found as co-eluting peaks
-      in a sample before the row is gap-filled in that sample. Signals found in the pseudo spectra of most samples come first,
-      then the most intense. The quantifier m/z of the row always needs to be found as well.""", 3, true, 1,
-      null);
+      Number of the most intense signals of the pseudo spectra of a row (merged over all samples) that need to be found
+      as co-eluting peaks in a sample before the row is gap-filled in that sample.
+      Only signals shared by the minimum number of pseudo spectra are used.
+      The quantifier m/z of the row always needs to be found as well.""", 3, true, 1, null);
+
+  public static final IntegerParameter MIN_SIGNAL_DETECTIONS = new IntegerParameter(
+      "Minimum detections per signal", """
+      A signal is only used as top signal if it is found in the pseudo spectra of at least this number of samples.
+      Rows detected in fewer samples use all of their pseudo spectra.""", 2, true, 1, null);
 
   public static final RTToleranceParameter SAMPLE_TO_SAMPLE_RT_TOLERANCE = new RTToleranceParameter(
       "Retention time tolerance (sample-to-sample)", """
@@ -61,6 +74,11 @@ public class GcEiGapFillingParameters extends SimpleParameterSet {
       in the same sample. Usually the same tolerance as used for the GC-EI spectral deconvolution.""",
       new RTTolerance(0.04f, Unit.MINUTES));
 
+  public static final IntegerParameter MIN_CONSECUTIVE_SCANS = new IntegerParameter(
+      "Minimum consecutive scans", """
+      A peak apex needs at least this number of consecutive scans with signal around it.
+      Usually the same value as used for chromatogram building.""", 4, true, 1, null);
+
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "gaps");
 
@@ -68,24 +86,41 @@ public class GcEiGapFillingParameters extends SimpleParameterSet {
       true);
 
   public GcEiGapFillingParameters() {
-    super(new Parameter[]{FEATURE_LISTS, NUMBER_OF_TOP_SIGNALS, SAMPLE_TO_SAMPLE_RT_TOLERANCE,
-            INTRA_SAMPLE_COELUTION_TOLERANCE, SUFFIX, HANDLE_ORIGINAL},
+    super(new Parameter[]{FEATURE_LISTS, MZ_TOLERANCE, NUMBER_OF_TOP_SIGNALS,
+            MIN_SIGNAL_DETECTIONS, SAMPLE_TO_SAMPLE_RT_TOLERANCE, INTRA_SAMPLE_COELUTION_TOLERANCE,
+            MIN_CONSECUTIVE_SCANS, SUFFIX, HANDLE_ORIGINAL},
         "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_gc_ei/gc-ei-gap-filling.html");
   }
 
   /**
    * Creates a parameter set for programmatic use, e.g., in the processing wizard.
+   *
+   * @param flists                        the feature lists to gap-fill
+   * @param mzTolerance                   tolerance to merge pseudo spectra and extract signals
+   * @param numberOfTopSignals            number of top signals that need to be found
+   * @param minSignalDetections           minimum number of pseudo spectra that share a top signal
+   * @param sampleToSampleRtTolerance     maximum distance of the quantifier apex to the row RT
+   * @param intraSampleCoelutionTolerance maximum distance of the top signal apices to the
+   *                                      quantifier apex
+   * @param minConsecutiveScans           minimum consecutive scans with signal around an apex
+   * @param suffix                        suffix of the new feature list
+   * @param handleOriginal                handling of the original feature list
+   * @return the parameter set
    */
   public static @NotNull GcEiGapFillingParameters create(
-      @NotNull final FeatureListsSelection flists, final int numberOfTopSignals,
+      @NotNull final FeatureListsSelection flists, @NotNull final MZTolerance mzTolerance,
+      final int numberOfTopSignals, final int minSignalDetections,
       @NotNull final RTTolerance sampleToSampleRtTolerance,
-      @NotNull final RTTolerance intraSampleCoelutionTolerance,
+      @NotNull final RTTolerance intraSampleCoelutionTolerance, final int minConsecutiveScans,
       @NotNull final String suffix, @NotNull final OriginalFeatureListOption handleOriginal) {
     final GcEiGapFillingParameters params = (GcEiGapFillingParameters) new GcEiGapFillingParameters().cloneParameterSet();
     params.setParameter(FEATURE_LISTS, flists);
+    params.setParameter(MZ_TOLERANCE, mzTolerance);
     params.setParameter(NUMBER_OF_TOP_SIGNALS, numberOfTopSignals);
+    params.setParameter(MIN_SIGNAL_DETECTIONS, minSignalDetections);
     params.setParameter(SAMPLE_TO_SAMPLE_RT_TOLERANCE, sampleToSampleRtTolerance);
     params.setParameter(INTRA_SAMPLE_COELUTION_TOLERANCE, intraSampleCoelutionTolerance);
+    params.setParameter(MIN_CONSECUTIVE_SCANS, minConsecutiveScans);
     params.setParameter(SUFFIX, suffix);
     params.setParameter(HANDLE_ORIGINAL, handleOriginal);
     return params;

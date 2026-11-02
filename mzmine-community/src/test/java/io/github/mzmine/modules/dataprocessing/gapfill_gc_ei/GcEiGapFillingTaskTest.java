@@ -25,12 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_gc_ei;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -78,6 +72,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -133,12 +128,12 @@ class GcEiGapFillingTaskTest {
 
     final FeatureListRow row = flist.getRow(0);
     final Feature filled = row.getFeature(sample);
-    assertNotNull(filled, "the gap should be filled");
-    assertEquals(FeatureStatus.ESTIMATED, filled.getFeatureStatus());
-    assertEquals(QUANTIFIER_MZ, filled.getMZ(), 0.001, "the quantifier feature should be added");
-    assertEquals(ROW_RT + 0.01f, filled.getRT(), SCAN_INTERVAL);
-    assertEquals(HEIGHT, filled.getHeight(), HEIGHT * 0.01);
-    assertEquals(FeatureStatus.DETECTED, row.getFeature(reference).getFeatureStatus());
+    Assertions.assertNotNull(filled, "the gap should be filled");
+    Assertions.assertEquals(FeatureStatus.ESTIMATED, filled.getFeatureStatus());
+    Assertions.assertEquals(QUANTIFIER_MZ, filled.getMZ(), 0.001, "the quantifier feature should be added");
+    Assertions.assertEquals(ROW_RT + 0.01f, filled.getRT(), SCAN_INTERVAL);
+    Assertions.assertEquals(HEIGHT, filled.getHeight(), HEIGHT * 0.01);
+    Assertions.assertEquals(FeatureStatus.DETECTED, row.getFeature(reference).getFeatureStatus());
   }
 
   @Test
@@ -149,7 +144,7 @@ class GcEiGapFillingTaskTest {
 
     runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
 
-    assertNull(flist.getRow(0).getFeature(sample), "third most intense signal is missing");
+    Assertions.assertNull(flist.getRow(0).getFeature(sample), "third most intense signal is missing");
   }
 
   @Test
@@ -160,7 +155,7 @@ class GcEiGapFillingTaskTest {
 
     runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
 
-    assertNull(flist.getRow(0).getFeature(sample), "compound elutes outside of RT tolerance");
+    Assertions.assertNull(flist.getRow(0).getFeature(sample), "compound elutes outside of RT tolerance");
   }
 
   @Test
@@ -172,7 +167,7 @@ class GcEiGapFillingTaskTest {
 
     runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
 
-    assertNull(flist.getRow(0).getFeature(sample), "second signal does not co-elute");
+    Assertions.assertNull(flist.getRow(0).getFeature(sample), "second signal does not co-elute");
   }
 
   @Test
@@ -185,8 +180,8 @@ class GcEiGapFillingTaskTest {
     runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
 
     final Feature filled = flist.getRow(0).getFeature(sample);
-    assertNotNull(filled, "gap filling must not depend on the detection thresholds");
-    assertEquals(HEIGHT * 0.02, filled.getHeight(), HEIGHT * 0.001);
+    Assertions.assertNotNull(filled, "gap filling must not depend on the detection thresholds");
+    Assertions.assertEquals(HEIGHT * 0.02, filled.getHeight(), HEIGHT * 0.001);
   }
 
   @Test
@@ -199,62 +194,69 @@ class GcEiGapFillingTaskTest {
 
     runGapFilling(flist, OriginalFeatureListOption.KEEP);
 
-    assertNull(flist.getRow(0).getFeature(filledSample), "the original list stays unchanged");
+    Assertions.assertNull(flist.getRow(0).getFeature(filledSample), "the original list stays unchanged");
     final ModularFeatureList gapFilled = project.getCurrentFeatureLists().stream()
         .map(ModularFeatureList.class::cast).filter(f -> f != flist).findFirst().orElseThrow();
     final FeatureListRow row = gapFilled.getRow(0);
-    assertNotNull(row.getFeature(filledSample));
-    assertNull(row.getFeature(emptySample));
+    Assertions.assertNotNull(row.getFeature(filledSample));
+    Assertions.assertNull(row.getFeature(emptySample));
     // smoothing lowers the apex of the synthetic gaussian peak slightly
     final float height = row.getFeature(filledSample).getHeight();
-    assertTrue(height < HEIGHT && height > HEIGHT * 0.9, "unexpected height " + height);
-    assertEquals(2, row.getNumberOfFeatures());
+    Assertions.assertTrue(height < HEIGHT && height > HEIGHT * 0.9, "unexpected height " + height);
+    Assertions.assertEquals(2, row.getNumberOfFeatures());
   }
 
   @Test
-  void settingsRequireChromatogramBuilder() {
-    final ModularFeatureList flist = new ModularFeatureList("no history", null, reference);
-    assertThrows(IllegalStateException.class,
-        () -> GcEiFeatureFindingSettings.fromAppliedMethods(flist.getAppliedMethods()));
+  void fillsGapWithoutChromatogramBuilderInHistory() {
+    final RawDataFile sample = createFile("sample",
+        Map.of(QUANTIFIER_MZ, ROW_RT, SECOND_MZ, ROW_RT, THIRD_MZ, ROW_RT));
+    final ModularFeatureList flist = createAlignedList(false, reference, sample);
+    // other chromatogram builders may create the features
+    flist.getAppliedMethods().clear();
 
-    // no resolver needed
-    flist.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class,
-            createChromatogramParameters(), Instant.now()));
-    final GcEiFeatureFindingSettings settings = GcEiFeatureFindingSettings.fromAppliedMethods(
-        flist.getAppliedMethods());
-    assertEquals(4, settings.minConsecutiveScans());
-    assertNull(settings.smoothingParameters());
+    runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
+
+    Assertions.assertNotNull(flist.getRow(0).getFeature(sample));
   }
 
   @Test
-  void settingsUseSmoothingAfterChromatogramBuilder() {
-    // smoothing of an earlier processing before the chromatogram builder is ignored
-    final ModularFeatureList earlier = new ModularFeatureList("earlier", null, reference);
-    earlier.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(SmoothingModule.class, createSmoothingParameters(),
-            Instant.now()));
-    addFeatureFindingHistory(earlier, false);
-    assertNull(GcEiFeatureFindingSettings.fromAppliedMethods(earlier.getAppliedMethods())
-        .smoothingParameters());
+  void settingsUseParametersAndLatestSmoothing() {
+    final ParameterSet params = createParameters(OriginalFeatureListOption.KEEP);
+
+    final ModularFeatureList unsmoothed = new ModularFeatureList("unsmoothed", null, reference);
+    addFeatureFindingHistory(unsmoothed, false);
+    final GcEiFeatureFindingSettings settings = GcEiFeatureFindingSettings.of(params,
+        unsmoothed.getAppliedMethods());
+    Assertions.assertEquals(MZ_TOLERANCE, settings.mzTolerance());
+    Assertions.assertEquals(4, settings.minConsecutiveScans());
+    Assertions.assertNull(settings.smoothingParameters());
 
     final ModularFeatureList smoothed = new ModularFeatureList("smoothed", null, reference);
     addFeatureFindingHistory(smoothed, true);
-    assertNotNull(GcEiFeatureFindingSettings.fromAppliedMethods(smoothed.getAppliedMethods())
-        .smoothingParameters());
+    Assertions.assertNotNull(
+        GcEiFeatureFindingSettings.of(params, smoothed.getAppliedMethods()).smoothingParameters());
   }
 
   private void runGapFilling(@NotNull final ModularFeatureList flist,
       @NotNull final OriginalFeatureListOption handleOriginal) {
     project.addFeatureList(flist);
-    final ParameterSet params = GcEiGapFillingParameters.create(
-        new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), 3,
-        new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES), "gaps",
-        handleOriginal);
+    final ParameterSet params = createParameters(handleOriginal);
     final GcEiGapFillingTask task = new GcEiGapFillingTask(project, flist, null, Instant.now(),
         params, GcEiGapFillingModule.class);
     task.run();
-    assertEquals(TaskStatus.FINISHED, task.getStatus(), task.getErrorMessage());
+    Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus(), task.getErrorMessage());
+  }
+
+  /**
+   * @param handleOriginal handling of the original feature list
+   * @return gap filling parameters like in the GC-EI wizard
+   */
+  private static @NotNull ParameterSet createParameters(
+      @NotNull final OriginalFeatureListOption handleOriginal) {
+    return GcEiGapFillingParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), MZ_TOLERANCE, 3, 2,
+        new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES), 4, "gaps",
+        handleOriginal);
   }
 
   /**
