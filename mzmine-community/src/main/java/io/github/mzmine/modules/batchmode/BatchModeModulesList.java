@@ -513,7 +513,7 @@ public class BatchModeModulesList {
           ExternalRowHtmlVisualizerModule.class, //
           PCAModule.class, //
           VolcanoPlotModule.class, //
-          AutoParamModule.class, //
+//          AutoParamModule.class, //
           AutoParamDashboardModule.class //
 
 //      , CodingDemoModule.class // only test purpose
