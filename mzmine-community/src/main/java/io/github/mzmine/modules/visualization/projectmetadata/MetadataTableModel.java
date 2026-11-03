@@ -89,10 +89,7 @@ public class MetadataTableModel {
     final TableColumn<MetadataRow, String> dataFileColumn = createDataFileColumn();
     tableView.getColumns().add(dataFileColumn);
 
-    final List<MetadataColumn<?>> tableColumns = metadataTable.getColumns().stream().sorted()
-        .toList();
-
-    for (MetadataColumn<?> metaColumn : tableColumns) {
+    for (MetadataColumn<?> metaColumn : metadataTable.getColumnsSorted()) {
       createAndAddColumnToTableView(metaColumn);
     }
 
