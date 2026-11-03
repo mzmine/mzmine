@@ -49,6 +49,11 @@ public final class OptimisticallySynchronizedDataColumn<T> extends AbstractDataC
     this.delegate = delegate;
   }
 
+  public AbstractDataColumn<T> unwrap() {
+    // Return underlying ADC
+    return delegate;
+  }
+
   @Override
   public @Nullable T get(final int index) {
     return delegate.get(index);
