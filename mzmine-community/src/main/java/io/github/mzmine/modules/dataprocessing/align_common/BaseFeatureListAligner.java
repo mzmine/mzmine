@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,6 +72,7 @@ public class BaseFeatureListAligner {
   private final FeatureAlignmentPostProcessor postProcessor;
   private final FeatureCloner featureCloner;
   private final FeatureListRowSorter baseRowSorter;
+  private final Function<FeatureList, List<FeatureListRow>> rowsToAlign;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
   private int iteration = 1;
 
@@ -79,6 +81,21 @@ public class BaseFeatureListAligner {
       final FeatureRowAlignScorer rowAligner, final FeatureCloner featureCloner,
       final FeatureListRowSorter baseRowSorter,
       final @Nullable FeatureAlignmentPostProcessor postProcessor) {
+    this(parentTask, featureLists, featureListName, storage, rowAligner, featureCloner,
+        baseRowSorter, postProcessor, FeatureList::getRowsCopy);
+  }
+
+  /**
+   * @param rowsToAlign selects the rows of each feature list that are aligned. Other rows are not
+   *                    added to the aligned feature list by this aligner, the post processor may
+   *                    add them.
+   */
+  public BaseFeatureListAligner(final Task parentTask, final List<FeatureList> featureLists,
+      final String featureListName, final @Nullable MemoryMapStorage storage,
+      final FeatureRowAlignScorer rowAligner, final FeatureCloner featureCloner,
+      final FeatureListRowSorter baseRowSorter,
+      final @Nullable FeatureAlignmentPostProcessor postProcessor,
+      final @NotNull Function<FeatureList, List<FeatureListRow>> rowsToAlign) {
 
     this.parentTask = parentTask;
     this.featureLists = featureLists;
@@ -88,6 +105,7 @@ public class BaseFeatureListAligner {
     this.featureCloner = featureCloner;
     this.baseRowSorter = baseRowSorter;
     this.postProcessor = postProcessor;
+    this.rowsToAlign = rowsToAlign;
   }
 
   /**
@@ -202,9 +220,17 @@ public class BaseFeatureListAligner {
   }
 
   public ModularFeatureList alignFeatureLists() {
+    // list all rows to align for each feature list
+    // sort feature lists by number of rows and name to make reproducible
+    // this is needed if 2 feature lists have the same number of rows, which will lead to different results
+    final List<List<FeatureListRow>> allRows = new ArrayList<>(featureLists.size());
+    allRows.addAll(featureLists.stream().sorted(
+            comparingInt(FeatureList::getNumberOfRows).reversed().thenComparing(FeatureList::getName))
+        .map(rowsToAlign).map(ArrayList::new).toList());
+
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
-    long totalRows = featureLists.stream().mapToLong(FeatureList::getNumberOfRows).sum();
+    long totalRows = allRows.stream().mapToLong(List::size).sum();
     progress.setTotal(totalRows);
 
     // open dialog if there may be too much work
@@ -216,15 +242,6 @@ public class BaseFeatureListAligner {
     }
 
     final AtomicInteger newRowID = new AtomicInteger(1);
-
-    // list all rows for each feature list
-    final List<List<FeatureListRow>> allRows = new ArrayList<>(featureLists.size());
-
-    // sort feature lists by name to make reproducible
-    // this is needed if 2 feature lists have the same number of rows, which will lead to different results
-    allRows.addAll(featureLists.stream().sorted(
-            comparingInt(FeatureList::getNumberOfRows).reversed().thenComparing(FeatureList::getName))
-        .map(FeatureList::getRowsCopy).toList());
 
     // still contains rows from unaligned feature lists
     while (!allRows.isEmpty()) {

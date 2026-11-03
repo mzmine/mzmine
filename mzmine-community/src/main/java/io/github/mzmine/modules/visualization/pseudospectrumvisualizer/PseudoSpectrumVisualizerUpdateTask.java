@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,15 +27,15 @@ package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import static java.util.Objects.requireNonNullElse;
 
-import io.github.mzmine.datamodel.PseudoSpectrum;
-import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.paint.Color;
@@ -60,6 +60,20 @@ public class PseudoSpectrumVisualizerUpdateTask extends
       return;
     }
     rawFile = requireNonNullElse(model.getSelectedFile(), row.getBestFeature().getRawDataFile());
+    final Color color = requireNonNullElse(model.getColor(), rawFile.getColor());
+
+    // GC-EI deconvolution keeps all features in a compound: draw the member features directly
+    final CompoundRow compound = CompoundMemberDatasetsBuilder.findCompound(row);
+    if (compound != null) {
+      final Feature representative = compound.getPreferredRow().getFeature(rawFile);
+      final Scan compoundSpectrum =
+          representative == null ? null : representative.getMostIntenseFragmentScan();
+      if (ScanUtils.isGcEiScan(compoundSpectrum)) {
+        scan = compoundSpectrum;
+        datasets.addAll(CompoundMemberDatasetsBuilder.createDatasets(compound, rawFile, color));
+        return;
+      }
+    }
 
     final Feature feature = row.getFeature(rawFile);
     if (feature == null) {
@@ -74,7 +88,7 @@ public class PseudoSpectrumVisualizerUpdateTask extends
     final MZTolerance mzTol = requireNonNullElse(model.getMzTolerance(),
         new MZTolerance(0.005, 15));
 
-    final Color color = requireNonNullElse(model.getColor(), rawFile.getColor());
+    // other pseudo spectra (DIA) or feature lists without compound list extract the chromatograms
     final PseudoSpectrumFeatureDataSetCalculationTask task = new PseudoSpectrumFeatureDataSetCalculationTask(
         rawFile, scan, feature, mzTol, color);
     task.run();
