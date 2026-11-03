@@ -450,6 +450,7 @@ public class SpectralLibraryEntryFactory {
         continue;
       }
       if (addExperimentalResults) {
+        // if experimental results are added, skip RT and CCS fields from the database to not override them
         if (field == DBEntryField.RT || field == DBEntryField.CCS) {
           continue;
         }
