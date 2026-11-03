@@ -36,7 +36,13 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateHandling;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateMzCheck;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
+import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingModule;
+import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -165,6 +171,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     }
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
+    makeAndAddGcEiGapFillingStep(q);
+    makeAndAddGcEiDuplicateFilterStep(q);
     if (applySpectralNetworking) {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, true);
     }
@@ -218,6 +226,30 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralDeconvolutionGCModule.class), param));
+  }
+
+  private void makeAndAddGcEiGapFillingStep(final BatchQueue q) {
+    // m/z tolerance and minimum data points of the chromatogram builder, co-elution tolerance of
+    // the deconvolution
+    final ParameterSet param = GcEiGapFillingParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS), mzTolScans,
+        3, 2, interSampleRtTol, intraSampleRtTol, minRtDataPoints, "gaps",
+        handleOriginalFeatureLists);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GcEiGapFillingModule.class), param));
+  }
+
+  private void makeAndAddGcEiDuplicateFilterStep(final BatchQueue q) {
+    // after gap filling, duplicates of one compound co-elute within the deconvolution tolerance
+    final ParameterSet param = GcEiDuplicateFilterParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+        intraSampleRtTol, mzTolScans, GcEiDuplicateMzCheck.QUANTIFIER_IN_BOTH_SPECTRA,
+        GcEiDuplicateFilterParameters.DEFAULT_MIN_COSINE, GcEiDuplicateHandling.MERGE, "dup",
+        handleOriginalFeatureLists);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GcEiDuplicateFilterModule.class), param));
   }
 
   private void makeAndAddAlignmentStep(final BatchQueue q) {
