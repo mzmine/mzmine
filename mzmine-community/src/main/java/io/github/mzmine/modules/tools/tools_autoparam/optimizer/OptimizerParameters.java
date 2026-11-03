@@ -109,7 +109,7 @@ public class OptimizerParameters extends SimpleParameterSet {
       Runs one additional full batch using the wizard settings captured before estimation and \
       optimization. It is shown as a separate comparison baseline and is never ranked as an \
       optimized solution.
-
+      
       This additional batch does not consume the configured iteration budget, which remains \
       reserved for the raw-data estimate and the optimizer search.""", false);
 
@@ -171,8 +171,8 @@ public class OptimizerParameters extends SimpleParameterSet {
     final List<ParameterDefinition<?>> paramToOptimize = simpleParameters.getValue(
         SimpleOptimizerParameters.paramToOptimize);
     param.setParameter(OptimizerParameters.paramToOptimize, new ArrayList<>(paramToOptimize));
-    param.setParameter(iterations,
-        Math.max(MIN_ITERATIONS, Math.min(DEFAULT_SOLUTIONS.size() * 7, paramToOptimize.size() * 7)));
+    param.setParameter(iterations, Math.max(MIN_ITERATIONS,
+        Math.min(DEFAULT_SOLUTIONS.size() * 7, paramToOptimize.size() * 7)));
     return param;
   }
 
@@ -234,12 +234,15 @@ public class OptimizerParameters extends SimpleParameterSet {
         FxLayout.newTitledPane("Citations", FxTextFlows.newTextFlow(FxTexts.text(
                 "When optimizing on these respective metrics, please respect the following citations:"),
             FxTexts.linebreak(), FxTexts.boldText(OptimizationMetrics.IPO_ISOTOPE_SCORE.name()),
-            FxTexts.text(": "),
+            FxTexts.text(": "),//
             FxTexts.hyperlinkText("IPO", "https://doi.org/10.1186/s12859-015-0562-8"),
-            FxTexts.linebreak(),
+            FxTexts.linebreak(),//
             FxTexts.boldText(OptimizationMetrics.SLAW_INTEGRATION_SCORE.name()), FxTexts.text(": "),
             FxTexts.hyperlinkText("SLAW",
-                "https://pubs.acs.org/doi/10.1021/acs.analchem.1c02687"))));
+                "https://pubs.acs.org/doi/10.1021/acs.analchem.1c02687"),//
+            FxTexts.linebreak(), //
+            FxTexts.boldText(OptimizationMetrics.ISOTOPE_RATIO_CONSISTENCY_SCORE.name()),
+            FxTexts.text(": El Abiedad Y. (unpublished, tba)"))));
   }
 
   public @NotNull ExitCode showSetupDialog(boolean valueCheckRequired,
