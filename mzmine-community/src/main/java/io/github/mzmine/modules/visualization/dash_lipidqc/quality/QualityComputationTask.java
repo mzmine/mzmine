@@ -56,7 +56,7 @@ final class QualityComputationTask extends FxUpdateTask<AnnotationQualityModel> 
 
   // Snapshots taken from model in constructor for thread safety
   private final @Nullable FeatureListRow row;
-  private final @Nullable ModularFeatureList featureList;
+  private final @NotNull ModularFeatureList featureList;
   private final boolean includeRetentionTimeAnalysis;
   private final @NotNull KendrickReviewMode reviewMode;
   private @NotNull QualityComputationResult result;
@@ -155,29 +155,34 @@ final class QualityComputationTask extends FxUpdateTask<AnnotationQualityModel> 
         .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
   }
 
+  /**
+   * Builds component details and the overall score using the applied lipid annotation settings.
+   *
+   * @param row                 row providing measured values
+   * @param match               lipid annotation to evaluate
+   * @param interferenceMetrics interference context for the row
+   * @return quality card with the configured overall score
+   */
   private @NotNull QualityCardData createQualityCardData(final @NotNull FeatureListRow row,
       final @NotNull MatchedLipid match, final @NotNull InterferenceMetrics interferenceMetrics) {
     final QualityMetric ms1 = evaluateMs1(row, featureList, match);
     final QualityMetric ms2 = evaluateMs2(match);
     final QualityMetric adduct = evaluateAdduct(row, match);
     final QualityMetric isotope = evaluateIsotope(row, match);
-    final @Nullable ElutionOrderMetrics elutionMetrics = includeRetentionTimeAnalysis
-        && featureList != null ? LipidQcScoringUtils.computeElutionOrderMetrics(featureList, row,
-        match) : null;
-    final QualityMetric elutionOrder = includeRetentionTimeAnalysis ? elutionMetrics != null
-        ? new QualityMetric(elutionMetrics.combinedScore(),
-        LipidQcScoringUtils.formatElutionOrderDetail(elutionMetrics))
-        : new QualityMetric(0.4d, "Missing RT context")
-        : new QualityMetric(0d, "Disabled for current lipid analysis mode");
+    final @Nullable ElutionOrderMetrics elutionMetrics =
+        includeRetentionTimeAnalysis && featureList != null
+            ? LipidQcScoringUtils.computeElutionOrderMetrics(featureList, row, match) : null;
+    final QualityMetric elutionOrder =
+        includeRetentionTimeAnalysis ? elutionMetrics != null ? new QualityMetric(
+            elutionMetrics.combinedScore(),
+            LipidQcScoringUtils.formatElutionOrderDetail(elutionMetrics))
+            : new QualityMetric(0.4d, "Missing RT context")
+            : new QualityMetric(0d, "Disabled for current lipid analysis mode");
     final QualityMetric interference = new QualityMetric(
         LipidQcScoringUtils.computeInterferenceScore(interferenceMetrics.totalPenaltyCount()),
         LipidQcScoringUtils.interferenceDetail(interferenceMetrics));
-    final double adductWeight = LipidQcScoringUtils.computeAdductWeight(row, match);
-    final double elutionOrderWeight = includeRetentionTimeAnalysis
-        ? LipidQcScoringUtils.computeElutionOrderWeight(elutionMetrics) : 0d;
-    final double overall = LipidQcScoringUtils.computeWeightedQualityScore(ms1.score(), ms2.score(),
-        adduct.score(), isotope.score(), interference.score(), elutionOrder.score(), true,
-        includeRetentionTimeAnalysis, adductWeight, elutionOrderWeight);
+    final double overall = LipidQcScoringUtils.computeConfiguredAnnotationScore(featureList, row,
+        match, includeRetentionTimeAnalysis);
     return new QualityCardData(match, ms1, ms2, adduct, isotope, elutionOrder, interference,
         overall);
   }
