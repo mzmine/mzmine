@@ -28,6 +28,8 @@ package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +50,27 @@ public interface MsProcessor {
    */
   @NotNull SimpleSpectralArrays processScan(@Nullable final Scan metadataOnlyScan,
       @NotNull final SimpleSpectralArrays spectrum);
+
+  /**
+   * Process all mobility scans of a frame at once. Processors that need the information of all
+   * mobility scans (e.g., mass detection of saturated ions) override this method. The default
+   * processes every mobility scan independently by
+   * {@link #processScan(Scan, SimpleSpectralArrays)}. Frames are processed like any other scan.
+   *
+   * @param metadataOnlyScan metadata used for all mobility scans of this frame, may be null. May be
+   *                         changed during processing (e.g., spectrum type after mass detection).
+   * @param mobilityScans    spectral data of all mobility scans of one frame
+   * @return the processed data, one entry per mobility scan in the input order
+   */
+  default @NotNull List<SimpleSpectralArrays> processMobilityScans(
+      @Nullable final Scan metadataOnlyScan,
+      @NotNull final List<SimpleSpectralArrays> mobilityScans) {
+    final List<SimpleSpectralArrays> processed = new ArrayList<>(mobilityScans.size());
+    for (final SimpleSpectralArrays mobilityScan : mobilityScans) {
+      processed.add(processScan(metadataOnlyScan, mobilityScan));
+    }
+    return processed;
+  }
 
   @NotNull String description();
 }
