@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidMainClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
@@ -115,37 +114,8 @@ public class AddCustomLipidClassParameters extends SimpleParameterSet {
 
     if (!getValue(lipidCategory).equals(LipidCategories.SPHINGOLIPIDS) && Arrays.stream(
         getValue(customLipidClassFragmentationRules)).anyMatch(
-        rule -> (rule != null && rule.getLipidFragmentationRuleType() != null && (
-            rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-                || rule.getLipidFragmentationRuleType()
-                .equals(LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-                || rule.getLipidFragmentationRuleType()
-                .equals(LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT_NL)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT_NL)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT_NL)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT_NL)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT_NL)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT_NL)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
-                || rule.getLipidFragmentationRuleType().equals(
-                LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT))))) {
+        rule -> rule != null && rule.getLipidFragmentationRuleType() != null
+            && rule.getLipidFragmentationRuleType().isSphingolipidSpecific())) {
       String message = "Lipid fragmentation rule warning. "
           + "You are using a sphingolipid specific fragmentation rule for a lipid of the category "
           + lipidCategory.getValue()

@@ -49,6 +49,7 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
   private final List<LipidFragment> fragments;
   private final boolean matchedSignals;
   private final List<Double> matchedMzValues;
+  private final boolean showAccuracy;
 
   public MatchedLipidLabelGenerator(SpectraPlot plot, List<LipidFragment> fragments) {
     this(plot, fragments, true);
@@ -56,6 +57,16 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
 
   public MatchedLipidLabelGenerator(SpectraPlot plot, List<LipidFragment> fragments,
       boolean matchedSignals) {
+    this(plot, fragments, matchedSignals, true);
+  }
+
+  /**
+   * @param showAccuracy false for simulated spectra, where the mass error to a measured peak has
+   *                     no meaning
+   */
+  public MatchedLipidLabelGenerator(@NotNull SpectraPlot plot,
+      @Nullable List<LipidFragment> fragments, boolean matchedSignals, boolean showAccuracy) {
+    this.showAccuracy = showAccuracy;
     this.plot = plot;
     this.fragments = fragments;
     this.matchedSignals = matchedSignals;
@@ -80,7 +91,7 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
       if (fragments == null || item >= fragments.size()) {
         return null;
       }
-      return buildFragmentAnnotation(fragments.get(item), true);
+      return buildFragmentAnnotation(fragments.get(item), showAccuracy);
     }
 
     final double x = dataset.getXValue(series, item);

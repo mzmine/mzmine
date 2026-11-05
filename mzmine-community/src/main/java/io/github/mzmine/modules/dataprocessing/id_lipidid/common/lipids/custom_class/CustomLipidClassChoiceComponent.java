@@ -28,7 +28,11 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorController;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorTab;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.library.LocalLipidClassLibrary;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal.AddCustomLipidClassParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
@@ -45,6 +49,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
@@ -65,6 +72,8 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
   private final Button exportButton = new Button("Export...");
   private final Button removeButton = new Button("Remove selected");
   private final Button clearButton = new Button("Clear");
+  private final Button libraryButton = new Button("From library...");
+  private final Button editorButton = new Button("Open editor");
 
   // Filename extension.
   private static final String FILENAME_EXTENSION = "*.json";
@@ -170,8 +179,22 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       listView.getItems().clear();
     });
 
+    libraryButton.setTooltip(new Tooltip("Add classes saved in your local lipid class library"));
+    libraryButton.setOnAction(_ -> addFromLibrary());
+    editorButton.setTooltip(new Tooltip("""
+        Open the custom lipid class editor to build, test and share classes         and to download classes from the community library.
+        A selected class is opened as a new class in the editor."""));
+    editorButton.setOnAction(_ -> {
+      final CustomLipidClass selected = listView.getSelectionModel().getSelectedItem();
+      if (selected != null) {
+        CustomLipidClassEditorController.getInstance().editAsNew(selected);
+      }
+      CustomLipidClassEditorTab.showTab();
+    });
+
     buttonsPane.getChildren()
-        .addAll(addButton, importButton, exportButton, removeButton, clearButton);
+        .addAll(libraryButton, editorButton, addButton, importButton, exportButton, removeButton,
+            clearButton);
     setTop(buttonsPane);
 
     listView.setOnMouseClicked(event -> {
@@ -223,6 +246,37 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
         }
       }
     });
+  }
+
+  /**
+   * Lets the user choose classes from the local library and adds them to the list. Classes with
+   * the same abbreviation and name are replaced.
+   */
+  private void addFromLibrary() {
+    final List<CustomLipidClass> saved = LocalLipidClassLibrary.getInstance().getClasses();
+    if (saved.isEmpty()) {
+      DialogLoggerUtil.showMessageDialog("No saved lipid classes", """
+          Your local lipid class library is empty. Open the editor to create classes           or to download classes from the community library.""");
+      return;
+    }
+    final ListView<CustomLipidClass> choices = new ListView<>(
+        FXCollections.observableArrayList(saved));
+    choices.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    choices.setPrefSize(420, 320);
+    final Dialog<List<CustomLipidClass>> dialog = new Dialog<>();
+    dialog.setTitle("Add lipid classes from your library");
+    dialog.setHeaderText("Select the classes to add (Ctrl/Cmd + click for several)");
+    dialog.getDialogPane().setContent(choices);
+    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+    dialog.initOwner(getScene().getWindow());
+    dialog.setResultConverter(button -> button == ButtonType.OK ? List.copyOf(
+        choices.getSelectionModel().getSelectedItems()) : List.of());
+    final List<CustomLipidClass> selected = dialog.showAndWait().orElse(List.of());
+    for (final CustomLipidClass lipidClass : selected) {
+      listView.getItems().removeIf(c -> c.getAbbr().equals(lipidClass.getAbbr()) && c.getName()
+          .equals(lipidClass.getName()));
+      listView.getItems().add(lipidClass);
+    }
   }
 
   void setValue(List<CustomLipidClass> checkedItems) {

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.presets;
 
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.library.CustomLipidClassPresetStore;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.modules.presets.ModulePresetStoreFactory;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.MetadataRegexMappingPresetStore;
@@ -65,6 +66,9 @@ public class PresetStoreService {
     registerStoreFactory(PresetCategory.OTHER,
         KnownPresetGroup.METADATA_REGEX_MAPPING_PRESET.getUniqueID(),
         (_, _) -> new MetadataRegexMappingPresetStore());
+    registerStoreFactory(PresetCategory.LIBRARIES,
+        KnownPresetGroup.CUSTOM_LIPID_CLASS_PRESET.getUniqueID(),
+        (_, _) -> new CustomLipidClassPresetStore());
   }
 
 

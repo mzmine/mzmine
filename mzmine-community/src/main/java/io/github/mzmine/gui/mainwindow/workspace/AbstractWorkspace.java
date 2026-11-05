@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow.workspace;
 
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorModule;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
@@ -376,7 +377,7 @@ public abstract class AbstractWorkspace implements Workspace {
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class, QualityParametersModule.class,
-        AutoParamDashboardModule.class);
+        AutoParamDashboardModule.class, CustomLipidClassEditorModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
         MsMsQualityExportModule.class, MatchesSubsetLibraryModule.class,
         MergeLibrariesModule.class);
