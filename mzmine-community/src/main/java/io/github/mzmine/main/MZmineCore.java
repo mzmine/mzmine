@@ -36,13 +36,13 @@ import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.ShutDownHook;
-import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -119,6 +119,8 @@ public final class MZmineCore {
       DeepLinkRouter.queueLaunchArguments(args);
 
       final String[] launchArguments = DeepLinkRouter.withoutDeepLinkArguments(args);
+      // the argument parser already logs in users from the command line so init trust store
+      NativeTrustStoreManager.initTrustStore();
       final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(launchArguments);
       getInstance().startUp(argsParser);
       launchBatchOrGui(launchArguments, argsParser);
@@ -142,6 +144,7 @@ public final class MZmineCore {
 
     showStartupSplash(argsParser);
 
+    // no-op if an entry point already initialized it before parsing the arguments
     NativeTrustStoreManager.initTrustStore();
 
     ProxyTestUtils.logProxyState("Proxy on startup:");
