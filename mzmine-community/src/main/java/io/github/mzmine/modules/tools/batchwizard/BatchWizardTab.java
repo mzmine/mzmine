@@ -594,9 +594,17 @@ public class BatchWizardTab extends SimpleTab {
 
     // advanced mode toggle switch
     final ToggleSwitch advancedToggle = new ToggleSwitch("Advanced mode");
-    advancedToggle.setTooltip(new Tooltip("Show or hide the advanced parameter customization tab"));
+    advancedToggle.setTooltip(new Tooltip("""
+        Show or hide the advanced parameter customization tab.
+        Hiding the tab disables the parameter customization."""));
     advancedToggle.selectedProperty().bindBidirectional(advancedMode);
-    advancedMode.addListener((_, _, _) -> {
+    advancedMode.addListener((_, _, advanced) -> {
+      // decision: the overrides of a hidden customization tab are not applied to the batch. The
+      // enable checkbox in the tab header stays unchecked when the tab is shown again.
+      if (!advanced) {
+        sequenceSteps.get(WizardPart.CUSTOMIZATION)
+            .ifPresent(step -> step.setParameter(CustomizationWizardParameters.enabled, false));
+      }
       if (listenersActive) {
         // When a preset is loaded the listeners are not enabled
         createParameterPanes();
