@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 69354,
-          "sha512": "3d4143759938133a082e40def795a4c9556356addf126ed9f0537c8aacd4ff89c3d3c85cf906cd313470f72899c0c73737bfa88e9cf308b1bd2791084bca9af9",
-          "sha256": "243e19f15ef1b6ddec4239309ef986c93149a8aaec634c03f240619c3e2e37a0",
-          "sha1": "7b2f5f231e7c0c070553918e0c4d1feefc9c8e8b",
-          "md5": "730e1b421291327ed059bde796c9ec38"
+          "size": 72270,
+          "sha512": "929df7b939836aab46dec1f303aafce5ee41e42724ffc092307098b8a19707643312599dd2615b785d3d927d43bc5b923c8d4de816a6512e85b30e01accac4d0",
+          "sha256": "a1859759283850f1a45a94338b5a426bc53d07f892608a9854e44337b7632f2d",
+          "sha1": "45ff7db32c0ac7fb2ff2c1b698a42d471da23821",
+          "md5": "adcb92640ec49b117245575c51bb1607"
         }
       ]
     },
@@ -50,6 +50,13 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "jdk-jsobject",
+          "version": {
+            "requires": "26"
           }
         },
         {
@@ -167,11 +174,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 69354,
-          "sha512": "3d4143759938133a082e40def795a4c9556356addf126ed9f0537c8aacd4ff89c3d3c85cf906cd313470f72899c0c73737bfa88e9cf308b1bd2791084bca9af9",
-          "sha256": "243e19f15ef1b6ddec4239309ef986c93149a8aaec634c03f240619c3e2e37a0",
-          "sha1": "7b2f5f231e7c0c070553918e0c4d1feefc9c8e8b",
-          "md5": "730e1b421291327ed059bde796c9ec38"
+          "size": 72270,
+          "sha512": "929df7b939836aab46dec1f303aafce5ee41e42724ffc092307098b8a19707643312599dd2615b785d3d927d43bc5b923c8d4de816a6512e85b30e01accac4d0",
+          "sha256": "a1859759283850f1a45a94338b5a426bc53d07f892608a9854e44337b7632f2d",
+          "sha1": "45ff7db32c0ac7fb2ff2c1b698a42d471da23821",
+          "md5": "adcb92640ec49b117245575c51bb1607"
         }
       ]
     }
