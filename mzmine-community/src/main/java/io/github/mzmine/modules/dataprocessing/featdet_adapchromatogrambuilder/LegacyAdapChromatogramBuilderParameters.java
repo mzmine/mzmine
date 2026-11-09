@@ -60,12 +60,12 @@ public class LegacyAdapChromatogramBuilderParameters extends SimpleParameterSet 
       "Minimum intensity for consecutive scans", """
       This threshold is only used to find consecutive scans (data points) above a certain intensity.
       All data points, even below this level can be added to a chromatogram but at least N consecutive scans need to be above.
-      """, MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+      """, MZmineCore.getConfiguration().getIntensityFormat(), 0d, 0d, Double.MAX_VALUE);
 
   public static final DoubleParameter minHighestPoint = new DoubleParameter(
       "Minimum absolute height",
       "Points below this intensity will not be considered in starting a new chromatogram",
-      MZmineCore.getConfiguration().getIntensityFormat());
+      MZmineCore.getConfiguration().getIntensityFormat(), null, 0d, Double.MAX_VALUE);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       ToleranceType.SCAN_TO_SCAN, 0.002, 10);

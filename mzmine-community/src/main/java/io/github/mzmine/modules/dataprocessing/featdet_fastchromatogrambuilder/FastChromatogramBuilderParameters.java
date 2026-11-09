@@ -57,12 +57,13 @@ public class FastChromatogramBuilderParameters extends SimpleParameterSet {
       "Minimum intensity for consecutive scans", """
       This threshold is only used to find consecutive scans (data points) above a certain intensity.
       All data points, even below this level can be added to a chromatogram but at least N consecutive scans need to be above.
-      """, MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+      """, MZmineCore.getConfiguration().getIntensityFormat(), 0d, 0d, Double.MAX_VALUE);
 
   public static final DoubleParameter minHighestPoint = new DoubleParameter(
       "Minimum absolute height", """
       The consecutive scans need to reach this height. Signals below this intensity will not start a new chromatogram
-      but can be added to an existing one.""", MZmineCore.getConfiguration().getIntensityFormat());
+      but can be added to an existing one.""", MZmineCore.getConfiguration().getIntensityFormat(),
+      null, 0d, Double.MAX_VALUE);
 
   // decision: auto by default, the presets per instrument type are only rough guesses
   public static final MZToleranceOrAutoParameter mzTolerance = new MZToleranceOrAutoParameter(
