@@ -61,6 +61,53 @@ public abstract class ModularSubColumnsType<T extends ModularDataRecord> extends
   protected abstract T createRecord(final SimpleModularDataModel model);
 
   @Override
+  public boolean requiresFeatureListContext() {
+    return getSubDataTypes().stream().anyMatch(DataType::requiresFeatureListContext);
+  }
+
+  @Override
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
+      throws XMLStreamException {
+    // decision: context need depends on the sub types, so check at runtime instead of overriding
+    if (requiresFeatureListContext()) {
+      throw new UnsupportedOperationException(
+          getClass().getName() + " requires feature list context for XML save/load");
+    }
+    if (!(value instanceof ModularDataRecord record)) {
+      return;
+    }
+    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
+    final List<DataType> subTypes = getSubDataTypes();
+    for (final DataType<?> sub : subTypes) {
+      final Object subValue = record.getValue(sub);
+      if (subValue != null) {
+        writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+        writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
+        try {
+          sub.saveToXML(writer, subValue);
+        } catch (XMLStreamException e) {
+          logger.log(Level.WARNING,
+              "Error while writing data type " + sub.getClass().getSimpleName() + " with value "
+                  + subValue + " to xml.  " + e.getMessage(), e);
+        }
+        writer.writeEndElement();
+      }
+    }
+    writer.writeEndElement();
+  }
+
+  @Override
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader)
+      throws XMLStreamException {
+    if (requiresFeatureListContext()) {
+      throw new UnsupportedOperationException(
+          getClass().getName() + " requires feature list context for XML save/load");
+    }
+    final SimpleModularDataModel model = loadSubColumnsFromXML(reader);
+    return model.isEmpty() ? null : createRecord(model);
+  }
+
+  @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {

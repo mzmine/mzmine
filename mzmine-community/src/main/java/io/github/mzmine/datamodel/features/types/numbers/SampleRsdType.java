@@ -27,8 +27,6 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -95,9 +93,7 @@ public class SampleRsdType extends DataType<ModularDataModel> implements SubColu
   }
 
   @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file) {
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value) {
     // the sub values are computed on demand, there is nothing to persist
   }
 

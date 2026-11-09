@@ -396,7 +396,8 @@ class ScanRtCorrectionTask extends AbstractTask {
     }
 
     final List<FeatureList> referenceFlistsByNumRows = flists.stream()
-        .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
+        .filter(flist -> flist.getRawDataFiles().stream().allMatch(
+            file -> sampleTypeFilter.matches(project.getProjectMetadata(), file)))
         .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
     if (referenceFlistsByNumRows.isEmpty()) {
       final RuntimeException ex = new RuntimeException(

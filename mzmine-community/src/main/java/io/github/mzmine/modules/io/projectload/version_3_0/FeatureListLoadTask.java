@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsLoader;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.features.settings.FeatureListSettings;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -47,6 +48,7 @@ import io.github.mzmine.datamodel.identities.iontype.project_io.IonNetworksLoade
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingParameters;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -134,7 +136,8 @@ public class FeatureListLoadTask extends AbstractTask {
       ModularFeature feature, RawDataFile file) {
     if (type != null) {
       try {
-        return type.loadFromXML(reader, project, flist, row, feature, file);
+        return type.requiresFeatureListContext() ? type.loadFromXML(reader, project, flist, row,
+            feature, file) : type.loadFromXML(reader);
       } catch (Exception e) {
         logger.log(Level.WARNING, e,
             () -> "Error loading data type " + type.getHeaderString() + " in row (id=" + row.getID()
@@ -561,6 +564,12 @@ public class FeatureListLoadTask extends AbstractTask {
       final Element preferencesElement = (Element) (((NodeList) preferencesExpr.evaluate(
           configuration, XPathConstants.NODESET)).item(0));
 
+      // settings may be absent in projects saved before they were introduced
+      XPathExpression settingsExpr = xpath.compile(
+          "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_SETTINGS_ELEMENT);
+      final Element settingsElement = (Element) (((NodeList) settingsExpr.evaluate(configuration,
+          XPathConstants.NODESET)).item(0));
+
       XPathExpression expr = xpath.compile(
           "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
       NodeList nodelist = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
@@ -640,6 +649,15 @@ public class FeatureListLoadTask extends AbstractTask {
       // old projects do not have preferences (introduced mzmine 4.11)
       if (preferences != null) {
         flist.setPreferences(preferences);
+      }
+      final FeatureListSettings settings = FeatureListSettings.loadFromXML(settingsElement);
+      if (settings != null) {
+        flist.setSettings(settings);
+      } else {
+        // old projects stored the normalization functions only in the applied methods. Migrate once
+        flist.setSettings(FeatureListSettings.DEFAULT.withNormalization(
+            IntensityNormalizerModule.getLegacyNormalizationFromAppliedMethods(flist)
+                .withFunctionsOnly()));
       }
       return flist;
     } catch (XPathExpressionException | ParserConfigurationException | SAXException |

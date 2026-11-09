@@ -26,12 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ArrayUtils;
-import io.github.mzmine.util.MathUtils;
+import java.util.Arrays;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +70,7 @@ public final class FeatureIntensityNormalizationModule extends
     final double[] abundances = featureList.stream().map(r -> (ModularFeature) r.getFeature(file))
         .filter(Objects::nonNull)
         .mapToDouble(feature -> abundanceMeasure.getOrNaN(feature, existingNormFunction))
-        .filter(d -> !Double.isNaN(d)).toArray();
+        .filter(Double::isFinite).toArray();
 
     if (abundances.length == 0) {
       throw new IllegalStateException(
@@ -77,12 +78,7 @@ public final class FeatureIntensityNormalizationModule extends
               featureList.getName()));
     }
 
-    final double result = switch (mode) {
-      case MEDIAN -> MathUtils.calcMedian(abundances);
-      case AVERAGE -> MathUtils.calcAvg(abundances);
-      case SUM_TIC -> ArrayUtils.sum(abundances);
-      case MAX -> ArrayUtils.max(abundances).orElse(0d);
-    };
+    final double result = calculateNormalizationMetric(abundances, mode);
 
     if (!Double.isFinite(result) || Double.compare(result, 0d) == 0) {
       throw new IllegalStateException(
@@ -91,5 +87,26 @@ public final class FeatureIntensityNormalizationModule extends
     }
 
     return result;
+  }
+
+  /**
+   * Calculates the file metric used by feature-intensity normalization.
+   *
+   * <p>Non-finite abundances are unavailable measurements. Returning {@link Double#NaN} for no
+   * usable abundance lets callers retain their context-specific error handling.
+   */
+  public static double calculateNormalizationMetric(final double @NotNull [] abundances,
+      @NotNull final FeatureIntensityNormalizationMode mode) {
+    final double[] finiteAbundances = Arrays.stream(abundances).filter(Double::isFinite).toArray();
+    if (finiteAbundances.length == 0) {
+      return Double.NaN;
+    }
+
+    return switch (mode) {
+      case MEDIAN -> MathUtils.calcMedian(finiteAbundances);
+      case AVERAGE -> MathUtils.calcAvg(finiteAbundances);
+      case SUM_TIC -> ArrayUtils.sum(finiteAbundances);
+      case MAX -> ArrayUtils.max(finiteAbundances).orElse(0d);
+    };
   }
 }

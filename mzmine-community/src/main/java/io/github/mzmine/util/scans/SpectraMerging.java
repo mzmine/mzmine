@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,6 +55,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.SimpleDoubleRangeMap;
+import io.github.mzmine.util.SimpleRangeEntry;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.CenterFunction;
@@ -123,7 +125,190 @@ public class SpectraMerging {
    * @return double[2][] array, [0][] being the mzs, [1] being the intensities. Empty double[2][0]
    * if the source collection is empty.
    */
+  @NotNull
   public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensities(
+      @NotNull final Collection<T> source, @NotNull final MZTolerance tolerance,
+      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
+      @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,
+      @Nullable final Double outputNoiseLevel, @Nullable final Integer minNumPeaks) {
+
+    if (source.isEmpty()) {
+      return new double[][]{new double[0], new double[0]};
+    }
+
+    final MergingDataPoints data = flattenDataPoints(source, inputNoiseLevel);
+    final double[] mzs = data.mzs();
+    final int[] intensityOrder = data.intensityOrderDescending();
+
+    // groups are created in order of descending intensity, each uncovered data point proposes a
+    // new range that is trimmed to its neighbors.
+    final SimpleDoubleRangeMap<Integer> rangeMap = new SimpleDoubleRangeMap<>();
+    final int[] rangeOfDataPoint = new int[data.size()];
+    int numRanges = 0;
+    for (final int dp : intensityOrder) {
+      final double mz = mzs[dp];
+      SimpleRangeEntry<Integer> entry = rangeMap.getEntry(mz);
+      if (entry == null) {
+        entry = rangeMap.putNonOverlapping(tolerance.getSimpleToleranceRange(mz), numRanges++);
+      }
+      rangeOfDataPoint[dp] = entry.value();
+    }
+
+    final int[] rangesAscending = new int[numRanges];
+    int i = 0;
+    for (final SimpleRangeEntry<Integer> entry : rangeMap.entries()) {
+      rangesAscending[i++] = entry.value();
+    }
+
+    return aggregateGroups(data, intensityOrder, rangeOfDataPoint, rangesAscending,
+        intensityMergingType, mzCenterFunction, outputNoiseLevel, minNumPeaks);
+  }
+
+  /**
+   * Extracts all data points above the noise level into primitive arrays.
+   */
+  @NotNull
+  private static <T extends MassSpectrum> MergingDataPoints flattenDataPoints(
+      @NotNull final Collection<T> source, @Nullable final Double inputNoiseLevel) {
+    int totalDataPoints = 0;
+    int maxDataPoints = 0;
+    for (final T spectrum : source) {
+      final int numDataPoints = spectrum.getNumberOfDataPoints();
+      totalDataPoints += numDataPoints;
+      maxDataPoints = Math.max(maxDataPoints, numDataPoints);
+    }
+
+    final double[] rawMzs = new double[maxDataPoints];
+    final double[] rawIntensities = new double[maxDataPoints];
+    final double[] mzs = new double[totalDataPoints];
+    final double[] intensities = new double[totalDataPoints];
+    final int[] spectrumIndices = new int[totalDataPoints];
+
+    int size = 0;
+    int spectrumIndex = 0;
+    for (final T spectrum : source) {
+      spectrum.getMzValues(rawMzs);
+      spectrum.getIntensityValues(rawIntensities);
+
+      final int numDataPoints = spectrum.getNumberOfDataPoints();
+      for (int i = 0; i < numDataPoints; i++) {
+        if (inputNoiseLevel == null || rawIntensities[i] > inputNoiseLevel) {
+          mzs[size] = rawMzs[i];
+          intensities[size] = rawIntensities[i];
+          spectrumIndices[size] = spectrumIndex;
+          size++;
+        }
+      }
+      spectrumIndex++;
+    }
+    return new MergingDataPoints(mzs, intensities, spectrumIndices, size, source.size());
+  }
+
+  /**
+   * Calculates the merged m/z and intensity of each group of data points.
+   *
+   * @param intensityOrder   data point indices by descending intensity
+   * @param rangeOfDataPoint the range (group) id of each data point
+   * @param rangesAscending  all range ids sorted by ascending m/z
+   * @return double[2][] array, [0][] being the mzs, [1] being the intensities.
+   */
+  @NotNull
+  private static double[][] aggregateGroups(@NotNull final MergingDataPoints data,
+      @NotNull final int[] intensityOrder, @NotNull final int[] rangeOfDataPoint,
+      @NotNull final int[] rangesAscending,
+      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
+      @NotNull final CenterFunction mzCenterFunction, @Nullable final Double outputNoiseLevel,
+      @Nullable final Integer minNumPeaks) {
+    final int numRanges = rangesAscending.length;
+    final double[] mzs = data.mzs();
+    final double[] intensities = data.intensities();
+    final int[] spectrumIndices = data.spectrumIndices();
+
+    // counting sort by range, keeps the descending intensity order within each range
+    final int[] rangeStart = new int[numRanges + 1];
+    for (final int dp : intensityOrder) {
+      rangeStart[rangeOfDataPoint[dp] + 1]++;
+    }
+    for (int r = 0; r < numRanges; r++) {
+      rangeStart[r + 1] += rangeStart[r];
+    }
+    final int[] nextSlot = Arrays.copyOf(rangeStart, numRanges);
+    final int[] grouped = new int[intensityOrder.length];
+    for (final int dp : intensityOrder) {
+      grouped[nextSlot[rangeOfDataPoint[dp]]++] = dp;
+    }
+
+    // per range, only the most intense data point of each spectrum is kept:
+    // spectrumStamp[spectrum] == range marks that the spectrum already has a data point in the
+    // current range. Stamping with the range id means the array never has to be cleared.
+    final int[] spectrumStamp = new int[data.numSpectra()];
+    Arrays.fill(spectrumStamp, -1);
+    // the kept data point of each spectrum in the current range
+    final int[] dataPointOfSpectrum = new int[data.numSpectra()];
+    // the spectra with a kept data point in the current range, only the first numKept are valid.
+    // Reused for all ranges.
+    final int[] keptSpectrumIndices = new int[data.numSpectra()];
+
+    final TDoubleArrayList newMzs = new TDoubleArrayList(numRanges);
+    final TDoubleArrayList newIntensities = new TDoubleArrayList(numRanges);
+
+    for (final int range : rangesAscending) {
+      int numKept = 0;
+      for (int g = rangeStart[range]; g < rangeStart[range + 1]; g++) {
+        final int dp = grouped[g];
+        final int spectrum = spectrumIndices[dp];
+        // decision: keep only the most intense data point of each spectrum in a group. This is what
+        // the legacy implementation does: its TreeSet sorted by spectrum index silently drops data
+        // points of a spectrum that is already in the group.
+        if (spectrumStamp[spectrum] != range) {
+          spectrumStamp[spectrum] = range;
+          dataPointOfSpectrum[spectrum] = dp;
+          keptSpectrumIndices[numKept++] = spectrum;
+        }
+      }
+
+      if (minNumPeaks != null && numKept < minNumPeaks) {
+        continue;
+      }
+
+      // decision: pass values in spectrum order like the legacy implementation so the floating point
+      // results are identical
+      Arrays.sort(keptSpectrumIndices, 0, numKept);
+      final double[] groupMzs = new double[numKept];
+      final double[] groupIntensities = new double[numKept];
+      for (int k = 0; k < numKept; k++) {
+        final int dp = dataPointOfSpectrum[keptSpectrumIndices[k]];
+        groupMzs[k] = mzs[dp];
+        groupIntensities[k] = intensities[dp];
+      }
+
+      final double newMz = mzCenterFunction.calcCenter(groupMzs, groupIntensities);
+      final double newIntensity = switch (intensityMergingType) {
+        case SUMMED -> Arrays.stream(groupIntensities).sum();
+        case MAXIMUM -> Arrays.stream(groupIntensities).max().orElse(0d);
+        case AVERAGE -> Arrays.stream(groupIntensities).average().orElse(0d);
+      };
+
+      if (outputNoiseLevel == null || newIntensity > outputNoiseLevel) {
+        newMzs.add(newMz);
+        newIntensities.add(newIntensity);
+      }
+    }
+
+    return new double[][]{newMzs.toArray(), newIntensities.toArray()};
+  }
+
+  /**
+   * Legacy implementation of {@link #calculatedMergedMzsAndIntensities} based on guava's
+   * {@link TreeRangeMap}. Kept as reference for the regression test (SpectraMergingRegressionTest)
+   * and the benchmark (SpectraMergingBenchmarkTest).
+   *
+   * @deprecated slow, use {@link #calculatedMergedMzsAndIntensities}, which yields identical
+   * results.
+   */
+  @Deprecated
+  @NotNull
+  public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensitiesLegacy(
       @NotNull final Collection<T> source, @NotNull final MZTolerance tolerance,
       @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
       @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,

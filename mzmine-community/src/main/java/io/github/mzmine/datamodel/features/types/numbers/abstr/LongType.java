@@ -26,12 +26,7 @@
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -75,9 +70,7 @@ public abstract class LongType extends NumberType<Long> {
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value) throws XMLStreamException {
     if (value == null) {
       return;
     }
@@ -90,9 +83,7 @@ public abstract class LongType extends NumberType<Long> {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull XMLStreamReader reader) throws XMLStreamException {
     String str = reader.getElementText();
     if (str == null || str.isEmpty()) {
       return null;

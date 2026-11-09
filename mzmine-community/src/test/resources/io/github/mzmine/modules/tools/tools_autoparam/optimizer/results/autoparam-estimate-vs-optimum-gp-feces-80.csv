@@ -1,0 +1,13 @@
+dataset,seed,kind,name,estimate,bestPerturbed,front
+zenotof-feces-pos,42,metric,Yasin isotope score,15420.158015124638,22347.06926210955,33333.93444620446
+zenotof-feces-pos,42,diagnostic,Total features,21422.0,19881.0,32828.0
+zenotof-feces-pos,42,diagnostic,Shape filter would remove / %,,,
+zenotof-feces-pos,42,parameter,FWHM,0.04732702486217022,0.05119986138902587,0.0640036548539283
+zenotof-feces-pos,42,parameter,Inter sample RT tolerance,0.02121567726135254,0.019610890693368622,0.12939938765577746
+zenotof-feces-pos,42,parameter,MS1 noise level,7.0,7.0,7.0
+zenotof-feces-pos,42,parameter,MZ tolerance / m/z,0.003,0.005,0.005
+zenotof-feces-pos,42,parameter,MZ tolerance / ppm,7.0,15.0,15.0
+zenotof-feces-pos,42,parameter,Min consecutive,6.0,3.0,3.0
+zenotof-feces-pos,42,parameter,Min height,198.0,252.81430230649897,135.57773768619285
+zenotof-feces-pos,42,parameter,Chrom. Threshold,0.85,0.804055017355221,0.7079818423063929
+zenotof-feces-pos,42,parameter,Top-to-edge ratio,1.7,1.966143967705663,2.2208647318658192

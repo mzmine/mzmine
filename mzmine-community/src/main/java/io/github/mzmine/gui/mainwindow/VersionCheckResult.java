@@ -28,11 +28,18 @@ package io.github.mzmine.gui.mainwindow;
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.gui.VersionCheckResultType;
 import io.github.mzmine.util.io.SemverVersionReader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public record VersionCheckResult(VersionCheckResultType type, Semver newVersion) {
 
-  public static VersionCheckResult of(Semver newVersion) {
-    final Semver current = SemverVersionReader.getMZmineVersion();
+  public static @NotNull VersionCheckResult of(final @Nullable Semver newVersion) {
+    return of(SemverVersionReader.getMZmineVersion(), newVersion);
+  }
+
+  /** Allows UI-free checks to compare against the same captured installed version. */
+  public static @NotNull VersionCheckResult of(final @NotNull Semver current,
+      final @Nullable Semver newVersion) {
     if (newVersion == null) {
       return new VersionCheckResult(VersionCheckResultType.CANNOT_PARSE, newVersion);
     } else if (current.isLowerThan(newVersion)) {

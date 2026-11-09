@@ -45,4 +45,5 @@ public interface RawDataFileOpenHandler extends Task {
   void setProject(MZmineProject project);
 
   void setZipFile(ZipFile zipFile);
+
 }

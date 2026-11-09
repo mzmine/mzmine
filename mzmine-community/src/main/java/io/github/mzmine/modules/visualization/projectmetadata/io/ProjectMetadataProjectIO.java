@@ -52,11 +52,14 @@ public final class ProjectMetadataProjectIO {
   }
 
   /**
-   * @return {@code true} if metadata was written, or {@code false} for an empty metadata table
+   * @return {@code true} if metadata was written, or {@code false} for an empty metadata table or a
+   * table without raw data files
    */
   public static boolean saveToZip(@NotNull final ZipOutputStream zipStream) throws IOException {
     final MetadataTable metadata = ProjectService.getMetadata();
-    if (metadata.getColumns().isEmpty()) {
+    // the project table always has the sample type column. Without files there are no values and
+    // loading metadata without files fails, see ProjectMetadataReader
+    if (metadata.getColumns().isEmpty() || metadata.getRawDataFilesUnsorted().isEmpty()) {
       logger.info("Project metadata is empty, nothing to save");
       return false;
     }

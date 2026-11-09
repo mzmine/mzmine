@@ -84,8 +84,17 @@ class MetadataTableTest {
     data.put(column2, row2);
     data.put(column3, row3);
 
-    filledMetadataTable = new MetadataTable(data);
-    emptyMetadataTable = new MetadataTable();
+    // without auto detection, project tables additionally start with the sample type column
+    filledMetadataTable = new MetadataTable(false, data);
+    emptyMetadataTable = new MetadataTable(false);
+  }
+
+  @Test
+  void projectTableStartsWithSampleTypeColumnWithoutChange() {
+    final MetadataTable projectTable = new MetadataTable();
+    Assertions.assertEquals(1, projectTable.getColumns().size());
+    Assertions.assertNotNull(projectTable.getColumnByName(MetadataColumn.SAMPLE_TYPE_HEADER));
+    Assertions.assertEquals(0, projectTable.getVersion());
   }
 
   @Test
@@ -206,7 +215,7 @@ class MetadataTableTest {
     final Map<MetadataColumn<?>, Map<RawDataFile, Object>> input = new HashMap<>();
     input.put(column1, row);
 
-    final MetadataTable table = new MetadataTable(input);
+    final MetadataTable table = new MetadataTable(false, input);
     // changing the input afterwards must not change the table
     row.put(rawDataFile2, columnValueNew);
     input.remove(column1);

@@ -80,6 +80,9 @@ public class SplitAlignedFeatureListParameters extends SimpleParameterSet {
   public @Nullable Region getMessage() {
     return FxTextFlows.newTextFlowInAccordion("Information", true, FxTexts.text("""
         This module will remove all annotations from the feature list, because current annotations \
-        are based on evidence merged across multiple files."""));
+        are based on evidence merged across multiple files. It also removes the intensity \
+        normalization (normalized values and functions), because the split feature lists are meant \
+        for reprocessing, e.g., resolving or expanding and aligning again. Normalize again after \
+        the new alignment."""));
   }
 }

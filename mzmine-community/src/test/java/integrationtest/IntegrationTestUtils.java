@@ -106,8 +106,8 @@ public class IntegrationTestUtils {
    */
   public static List<CheckResult> runBatchCompareToCsv(String batchFile, String baseCsvFile,
       File tempDir, @Nullable String @Nullable [] overrideDataFiles,
-      @Nullable String @Nullable [] overrideSpectralLibraries,
-      @Nullable File overrideMetadataFile) {
+      @Nullable String @Nullable [] overrideSpectralLibraries, @Nullable File overrideMetadataFile,
+      boolean checkImportedFilesAndLibraries) {
 
     final URL batch = IntegrationTestUtils.class.getClassLoader().getResource(batchFile);
     final URL expectedResultsUrl = IntegrationTestUtils.class.getClassLoader()
@@ -137,30 +137,33 @@ public class IntegrationTestUtils {
     }
 
     return runBatchCompareToCsv(urlToFile(batch), urlToFile(expectedResultsUrl), tempDir, files,
-        libraries, overrideMetadataFile);
+        libraries, overrideMetadataFile, checkImportedFilesAndLibraries);
   }
 
   /**
    * Executes a batch comparison process using the provided batch file.
    *
-   * @param batchFile                 the batch file to be executed
-   * @param baseCsvFile               the base CSV file for comparison
-   * @param tempDir                   the temporary directory for intermediate files during
-   *                                  execution
-   * @param overrideDataFiles         optional array of files for data files (null or empty means no
-   *                                  overrides)
-   * @param overrideSpectralLibraries optional array of spectral library files that override batch
-   *                                  defaults (null or empty means no overrides)
+   * @param batchFile                      the batch file to be executed
+   * @param baseCsvFile                    the base CSV file for comparison
+   * @param tempDir                        the temporary directory for intermediate files during
+   *                                       execution
+   * @param overrideDataFiles              optional array of files for data files (null or empty
+   *                                       means no overrides)
+   * @param overrideSpectralLibraries      optional array of spectral library files that override
+   *                                       batch defaults (null or empty means no overrides)
+   * @param checkImportedFilesAndLibraries checks if the number of imported files matches the number
+   *                                       of the file overrides
    * @return a list of CheckResult objects containing the comparison results; the list is empty if
    * all comparisons are successful
    */
   public static List<CheckResult> runBatchCompareToCsv(File batchFile, File baseCsvFile,
       File tempDir, @Nullable File @Nullable [] overrideDataFiles,
-      @Nullable File @Nullable [] overrideSpectralLibraries, @Nullable File overrideMetadataFile) {
+      @Nullable File @Nullable [] overrideSpectralLibraries, @Nullable File overrideMetadataFile,
+      boolean checkImportedFilesAndLibraries) {
 
     final String batchFileName = batchFile.getName();
     final File csvExportFile = runBatchGetExportedCsv(batchFile, tempDir, overrideDataFiles,
-        overrideSpectralLibraries, overrideMetadataFile);
+        overrideSpectralLibraries, overrideMetadataFile, checkImportedFilesAndLibraries);
 
     return getCsvComparisonResults(baseCsvFile, csvExportFile, batchFileName);
   }
@@ -171,7 +174,8 @@ public class IntegrationTestUtils {
     final URL resource = IntegrationTestUtils.class.getClassLoader()
         .getResource(expectedResultsFullPath);
     return runBatchCompareToCsv(test.batchFile(), urlToFile(resource), test.tempDir(),
-        test.rawFiles(), test.specLibs(), test.metadataFile());
+        test.rawFiles(), test.specLibs(), test.metadataFile(),
+        test.checkImportedFilesAndLibraries());
   }
 
   /**
@@ -180,8 +184,8 @@ public class IntegrationTestUtils {
    */
   public static @NotNull File runBatchGetExportedCsv(@NotNull String batchFile,
       @NotNull File tempDir, @Nullable String @Nullable [] overrideDataFiles,
-      @Nullable String @Nullable [] overrideSpectralLibraries,
-      @Nullable File overrideMetadataFile) {
+      @Nullable String @Nullable [] overrideSpectralLibraries, @Nullable File overrideMetadataFile,
+      boolean checkImportedFilesAndLibraries) {
 
     final URL batch = IntegrationTestUtils.class.getClassLoader().getResource(batchFile);
     final @Nullable File @Nullable [] files =
@@ -207,13 +211,14 @@ public class IntegrationTestUtils {
       throw new RuntimeException("Not all libraries were found");
     }
 
-    return runBatchGetExportedCsv(urlToFile(batch), tempDir, files, libraries,
-        overrideMetadataFile);
+    return runBatchGetExportedCsv(urlToFile(batch), tempDir, files, libraries, overrideMetadataFile,
+        checkImportedFilesAndLibraries);
   }
 
-  public static File runBatchGetExportedCsv(@NotNull final IntegrationTest test) {
+  public static File runBatchGetExportedCsv(@NotNull final IntegrationTest test,
+      boolean checkImportedFilesAndLibraries) {
     return runBatchGetExportedCsv(test.batchFile(), test.tempDir(), test.rawFiles(),
-        test.specLibs(), test.metadataFile());
+        test.specLibs(), test.metadataFile(), checkImportedFilesAndLibraries);
   }
 
   /**
@@ -222,7 +227,7 @@ public class IntegrationTestUtils {
    */
   public static @NotNull File runBatchGetExportedCsv(File batchFile, File tempDir,
       @Nullable File @Nullable [] overrideDataFiles, File[] overrideSpectralLibraries,
-      @Nullable File overrideMetadataFile) {
+      @Nullable File overrideMetadataFile, boolean checkImportedFilesAndLibraries) {
 
     final MZmineProject project = new MZmineProjectImpl();
     ProjectService.getProjectManager().setCurrentProject(project);
@@ -239,8 +244,10 @@ public class IntegrationTestUtils {
     final BatchTask batchTask = BatchModeModule.runBatchQueue(queue, project, overrideDataFiles,
         overrideMetadataFile, overrideSpectralLibraries, null, Instant.now(), null, null);
 
-    checkImportedFilesAndLibraries(overrideDataFiles, overrideSpectralLibraries, batchFileName,
-        project);
+    if (checkImportedFilesAndLibraries) {
+      checkImportedFilesAndLibraries(overrideDataFiles, overrideSpectralLibraries, batchFileName,
+          project);
+    }
 
     if (batchTask == null || batchTask.getStatus() != TaskStatus.FINISHED) {
       throw new RuntimeException(

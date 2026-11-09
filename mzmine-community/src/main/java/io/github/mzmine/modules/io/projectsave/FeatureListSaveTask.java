@@ -236,6 +236,11 @@ public class FeatureListSaveTask extends AbstractTask {
     flist.getPreferences().saveToXML(preferencesElement);
     root.appendChild(preferencesElement);
 
+    // write settings of this feature list that were set by processing modules
+    Element settingsElement = document.createElement(CONST.XML_FLIST_SETTINGS_ELEMENT);
+    flist.getSettings().saveToXML(settingsElement);
+    root.appendChild(settingsElement);
+
     // write applied methods
     appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
     ObservableList<FeatureListAppliedMethod> appliedMethods = flist.getAppliedMethods();
@@ -372,7 +377,11 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, dataType.getUniqueID());
 
     try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-      dataType.saveToXML(writer, value, flist, row, feature, file);
+      if (dataType.requiresFeatureListContext()) {
+        dataType.saveToXML(writer, value, flist, row, feature, file);
+      } else {
+        dataType.saveToXML(writer, value);
+      }
     } catch (XMLStreamException e) {
       logger.log(Level.WARNING,
           "Error while writing data type " + dataType.getClass().getSimpleName() + " with value "

@@ -27,15 +27,109 @@ package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistPepSearchTask.QuerySpectrum;
+import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistPepSearchTask.SearchRun;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests {@link NistPepSearchTask#resolveQueryPosition(int, String, int, Map)}, which decides on
- * which row a hit lands.
+ * which row a hit lands, and how the queries are split into MSPepSearch runs.
  */
 class NistPepSearchTaskTest {
+
+  private static final PolarityType POS = PolarityType.POSITIVE;
+  private static final PolarityType NEG = PolarityType.NEGATIVE;
+  private static final PolarityType UNKNOWN = PolarityType.UNKNOWN;
+
+  /**
+   * A query as far as the grouping looks at it: the row and scan are not needed.
+   */
+  private static QuerySpectrum query(final String name, final Integer nominalMw,
+      final PolarityType polarity) {
+    return new QuerySpectrum(name, null, null, new DataPoint[0], nominalMw, polarity);
+  }
+
+  /**
+   * The names of the queries per run, in run order.
+   */
+  private static Map<SearchRun, List<String>> names(
+      final Map<SearchRun, List<QuerySpectrum>> runs) {
+
+    final Map<SearchRun, List<String>> names = new LinkedHashMap<>();
+    runs.forEach(
+        (run, queries) -> names.put(run, queries.stream().map(QuerySpectrum::name).toList()));
+    return names;
+  }
+
+  @Test
+  @DisplayName("MS/MS queries are searched once per polarity, unknown polarity in a run of its own")
+  void msmsRunsPerPolarity() {
+
+    final List<QuerySpectrum> queries = List.of(query("p1", 194, POS), query("n1", 194, NEG),
+        query("p2", 300, POS), query("u1", 120, UNKNOWN), query("n2", 88, NEG));
+
+    final Map<SearchRun, List<QuerySpectrum>> runs = NistPepSearchTask.groupQueries(queries,
+        NistSearchMode.MSMS_HIRES);
+
+    // first seen order, and the query order within each run; no /MwForLoss outside the hybrid
+    assertEquals(
+        List.of(new SearchRun(null, POS), new SearchRun(null, NEG), new SearchRun(null, UNKNOWN)),
+        List.copyOf(runs.keySet()));
+    assertEquals(Map.of(new SearchRun(null, POS), List.of("p1", "p2"), new SearchRun(null, NEG),
+        List.of("n1", "n2"), new SearchRun(null, UNKNOWN), List.of("u1")), names(runs));
+  }
+
+  @Test
+  @DisplayName("Queries of one polarity are a single run")
+  void singlePolarityIsOneRun() {
+
+    final List<QuerySpectrum> queries = List.of(query("n1", null, NEG), query("n2", null, NEG));
+
+    assertEquals(Map.of(new SearchRun(null, NEG), List.of("n1", "n2")),
+        names(NistPepSearchTask.groupQueries(queries, NistSearchMode.MSMS_HIRES)));
+  }
+
+  @Test
+  @DisplayName("The hybrid search groups by molecular weight and skips queries without one")
+  void hybridRunsPerMolecularWeight() {
+
+    final List<QuerySpectrum> queries = List.of(query("a", 278, UNKNOWN), query("b", 150, UNKNOWN),
+        query("none", null, UNKNOWN), query("c", 278, UNKNOWN));
+
+    assertEquals(Map.of(new SearchRun(278, UNKNOWN), List.of("a", "c"), new SearchRun(150, UNKNOWN),
+        List.of("b")), names(NistPepSearchTask.groupQueries(queries, NistSearchMode.GC_EI_HYBRID)));
+  }
+
+  @Test
+  @DisplayName("The other EI searches run once per polarity without /MwForLoss")
+  void eiRunsPerPolarity() {
+
+    final List<QuerySpectrum> queries = List.of(query("a", 278, POS), query("b", 150, POS),
+        query("c", 150, NEG));
+
+    assertEquals(
+        Map.of(new SearchRun(null, POS), List.of("a", "b"), new SearchRun(null, NEG), List.of("c")),
+        names(NistPepSearchTask.groupQueries(queries, NistSearchMode.GC_EI_IDENTITY)));
+  }
+
+  @Test
+  @DisplayName("Only a positive or negative scan gives a query a polarity")
+  void queryPolarity() {
+
+    assertEquals(POS, NistPepSearchTask.queryPolarity(POS));
+    assertEquals(NEG, NistPepSearchTask.queryPolarity(NEG));
+    for (final PolarityType undefined : Arrays.asList(PolarityType.NEUTRAL, PolarityType.ANY,
+        UNKNOWN, null)) {
+      assertEquals(UNKNOWN, NistPepSearchTask.queryPolarity(undefined));
+    }
+  }
 
   /**
    * Three queries submitted to one run, as NistPepSearchTask#applyHits builds the lookup.

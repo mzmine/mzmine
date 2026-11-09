@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
@@ -67,6 +68,12 @@ public class CompoundDashboardTab extends SimpleTab {
   public @Nullable FeatureList getFeatureList() {
     return controller.getFeatureList();
   }
+
+  /** Selects and reveals a row in this dashboard's feature table. */
+  public void selectRow(final @NotNull FeatureListRow row) {
+    controller.selectRow(row);
+  }
+
 
   @Override
   public @NotNull Collection<? extends FeatureList> getFeatureLists() {

@@ -97,7 +97,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final BooleanParameter clearRtCorrection = new BooleanParameter(
       RTCorrectionParameters.clearPreviousCorrection.getName(), """
-      If a file is processed multimple times, clearing potentially applied RT corrections ensures that
+      If a file is processed multiple times, clearing potentially applied RT corrections ensures that
       the processing is reproducible for multiple runs. If no correction was applied previously,
       this parameter has no effect. Default = enabled.""", true);
 

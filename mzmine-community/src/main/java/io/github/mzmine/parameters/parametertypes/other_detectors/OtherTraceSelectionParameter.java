@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.parameters.parametertypes.other_detectors;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -59,7 +58,8 @@ public class OtherTraceSelectionParameter implements
     this(value, List.of(OtherRawOrProcessed.values()));
   }
 
-  public OtherTraceSelectionParameter(@NotNull OtherTraceSelection value, Collection<OtherRawOrProcessed> otherRawOrProcessedChoices) {
+  public OtherTraceSelectionParameter(@NotNull OtherTraceSelection value,
+      Collection<OtherRawOrProcessed> otherRawOrProcessedChoices) {
     this("Trace selection", """
         Select the traces you want to process.
         raw = unprocessed, raw detector traces. always remain unaltered and true to the raw data.
@@ -142,6 +142,7 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public UserParameter<OtherTraceSelection, OtherTraceSelectionComponent> cloneParameter() {
-    return new OtherTraceSelectionParameter(name, description, value.copy());
+    return new OtherTraceSelectionParameter(name, description, value.copy(),
+        List.copyOf(otherRawOrProcessedChoices));
   }
 }

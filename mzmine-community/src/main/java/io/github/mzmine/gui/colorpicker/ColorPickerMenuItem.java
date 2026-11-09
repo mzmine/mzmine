@@ -63,11 +63,18 @@ public class ColorPickerMenuItem extends CustomMenuItem {
       selectedColor.setValue(color);
       // hide menu
       var m = getParentMenu();
-      // find root menu
-      while (m.getParentMenu() != null) {
-        m = m.getParentMenu();
+      if (m == null) {
+        // directly in a context menu
+        if (getParentPopup() != null) {
+          getParentPopup().hide();
+        }
+      } else {
+        // find root menu
+        while (m.getParentMenu() != null) {
+          m = m.getParentMenu();
+        }
+        m.hide();
       }
-      m.hide();
 
       for (Consumer<Color> l : colorChangeListeners) {
         l.accept(color);

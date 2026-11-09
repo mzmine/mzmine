@@ -84,7 +84,8 @@ public class GeneralTypeTests {
   @DisplayName("NetworkStats save load")
   void networkStatsTest() {
     NetworkStatsType type = new NetworkStatsType();
-    simpleDataTypeSaveLoadTest(type, new NetworkStats(2, 2, 2, 5, 2));
+    final NetworkStats value = new NetworkStats(2, 2, 2, 5, 2);
+    simpleDataTypeSaveLoadTest(type, value);
   }
 
   @Test

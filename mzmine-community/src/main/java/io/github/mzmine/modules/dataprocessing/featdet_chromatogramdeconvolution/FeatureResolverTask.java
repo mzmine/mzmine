@@ -53,6 +53,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -323,6 +324,9 @@ public class FeatureResolverTask extends AbstractTask {
 
     // do not transfer types add them later
     FeatureListUtils.transferMetadata(originalFeatureList, resolvedFeatureList, false);
+    // resolved features have new intensities and new row IDs, an earlier normalization does not
+    // apply to them
+    NormalizationRowIdentity.removeIntensityNormalization(resolvedFeatureList);
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
