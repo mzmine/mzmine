@@ -78,13 +78,11 @@ public final class IonTypesCheck implements QualityCheck {
           QualityCheckStatus.UNAVAILABLE, "No ion types annotated", List.of(), involved);
     }
 
-    final String summary =
-        distinct.size() + " adduct" + (distinct.size() == 1 ? "" : "s") + ": " + String.join(", ",
-            distinct.keySet());
+    final List<String> ionTypeNames = List.copyOf(distinct.keySet());
     final List<FeatureListRow> distinctRows = List.copyOf(distinct.values());
 
     final ColorAssignment coloring = context.colorAssignment();
-      return new IonTypesQualityResult(QualityCheckStatus.PASS, summary, distinctRows, involved,
-          coloring, context.selectedMemberRow());
+      return new IonTypesQualityResult(QualityCheckStatus.PASS, ionTypeNames, distinctRows,
+          involved, coloring, context.selectedMemberRow());
   }
 }

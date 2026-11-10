@@ -121,6 +121,9 @@ public class CompoundDashboardModel {
   // actually rendered.
   private final StringProperty ms1Title = new SimpleStringProperty("");
   private final StringProperty ms2Title = new SimpleStringProperty("");
+  // true when the selected compound is a GC-EI deconvoluted compound. Its spectrum is a
+  // deconvoluted MS1 (EI) pseudo spectrum and not an MS2
+  private final BooleanProperty deconvolutedEi = new SimpleBooleanProperty(false);
 
   // Domain axis label for the mobilogram plot; the mobilogram task overrides this per IMS file so
   // the unit follows the actual mobility type (e.g. "1/K0", "drift time (ms)").
@@ -129,6 +132,10 @@ public class CompoundDashboardModel {
   // Visibility of the optional 4D feature plot pane. Defaults to true so users can immediately see
   // the bubble plot when opening the dashboard; the toggle button in the EIC toolbar collapses it.
   private final BooleanProperty featurePlot4DVisible = new SimpleBooleanProperty(true);
+
+  // The member legend below the charts shows only the most intense rows until it is expanded.
+  // Stays expanded across compound changes until the user collapses it again.
+  private final BooleanProperty legendExpanded = new SimpleBooleanProperty(false);
 
   // --- accessors -------------------------------------------------------------
 
@@ -305,6 +312,18 @@ public class CompoundDashboardModel {
     return ms2Title;
   }
 
+  public boolean isDeconvolutedEi() {
+    return deconvolutedEi.get();
+  }
+
+  public void setDeconvolutedEi(boolean deconvolutedEi) {
+    this.deconvolutedEi.set(deconvolutedEi);
+  }
+
+  public BooleanProperty deconvolutedEiProperty() {
+    return deconvolutedEi;
+  }
+
   public @Nullable String getMobilogramDomainAxisLabel() {
     return mobilogramDomainAxisLabel.get();
   }
@@ -323,5 +342,17 @@ public class CompoundDashboardModel {
 
   public BooleanProperty featurePlot4DVisibleProperty() {
     return featurePlot4DVisible;
+  }
+
+  public boolean isLegendExpanded() {
+    return legendExpanded.get();
+  }
+
+  public void setLegendExpanded(boolean expanded) {
+    legendExpanded.set(expanded);
+  }
+
+  public BooleanProperty legendExpandedProperty() {
+    return legendExpanded;
   }
 }
