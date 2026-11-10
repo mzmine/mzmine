@@ -41,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
  * A lightweight alternative to guava's {@link TreeRangeMap} for non-overlapping, closed
  * {@link SimpleDoubleRange}s. Open bounds are not needed, because doubles are discrete: an open
  * bound {@code (b} is equivalent to the closed bound {@code [Math.nextUp(b)}. Ranges that are
- * created by {@link #putNonOverlapping(SimpleDoubleRange, Object)} are therefore seamless to their
+ * created by {@link #putNonOverlapping(double, SimpleDoubleRange, Object)} are therefore seamless
+ * to their
  * neighbors.
  * <p>
  * Backed by an AVL tree keyed by the lower bound of each range. The tree is stored in parallel
@@ -104,42 +105,47 @@ public class SimpleDoubleRangeMap<V> {
   }
 
   /**
-   * Trims the proposed range so that it does not overlap any range in this map. The trimmed bounds
-   * connect seamlessly to the neighboring ranges ({@link Math#nextUp(double)} and
-   * {@link Math#nextDown(double)} of the neighbor's bound), so no gaps are introduced.
+   * Trims the proposed range to the gap between the existing ranges that contains the anchor. The
+   * trimmed bounds connect seamlessly to the neighboring ranges ({@link Math#nextUp(double)} and
+   * {@link Math#nextDown(double)} of the neighbor's bound), so no gaps are introduced. Existing
+   * ranges that lie within the proposed range but beyond a neighbor of the anchor are not
+   * overwritten, the result is cut at the neighbor instead.
    *
-   * @param proposed the proposed range. Must not fully enclose a range of this map.
+   * @param anchor   a value that is not covered by any range of this map, e.g., the m/z of the
+   *                 data point that proposes the range. The result always contains it.
+   * @param proposed the proposed range, must contain the anchor
    * @return the trimmed range
-   * @throws IllegalStateException if the proposed range fully encloses a range of this map or if
-   *                               the proposed range is completely covered by existing ranges.
+   * @throws IllegalArgumentException if the anchor is outside the proposed range or already
+   *                                  covered by a range of this map
    */
   @NotNull
-  public SimpleDoubleRange createNonOverlappingRange(@NotNull final SimpleDoubleRange proposed) {
+  public SimpleDoubleRange createNonOverlappingRange(final double anchor,
+      @NotNull final SimpleDoubleRange proposed) {
+    if (!proposed.contains(anchor)) {
+      throw new IllegalArgumentException(
+          "Anchor %s is outside the proposed range %s.".formatted(anchor, proposed));
+    }
+
     double lower = proposed.lower();
     double upper = proposed.upper();
 
-    final int leftNode = floorNode(lower);
-    if (leftNode != NIL && uppers[leftNode] >= lower) {
-      lower = Math.nextUp(uppers[leftNode]);
-    }
-
-    // the first range starting at or after the (trimmed) lower bound
-    final int rightNode = ceilingNode(lower);
-    if (rightNode != NIL && lowers[rightNode] <= upper) {
-      if (uppers[rightNode] < upper) {
-        // decision: the guava based SpectraMerging#createNewNonOverlappingRange only checks the
-        // ranges that contain the proposed bounds and silently overwrites enclosed ranges. This
-        // should never happen if all ranges are created with the same tolerance, so fail loudly.
-        throw new IllegalStateException(
-            "Proposed range %s encloses the existing range %s.".formatted(proposed,
-                entry(rightNode).range()));
+    // decision: trim against the direct neighbors of the anchor instead of the ranges that contain
+    // the proposed bounds. Cascaded trimming with ppm tolerances can leave narrow ranges between
+    // a proposed bound and the anchor, which a bound based check would treat as enclosed.
+    final int leftNode = floorNode(anchor);
+    if (leftNode != NIL) {
+      if (uppers[leftNode] >= anchor) {
+        throw new IllegalArgumentException(
+            "Anchor %s is already covered by the range %s.".formatted(anchor,
+                entry(leftNode).range()));
       }
-      upper = Math.nextDown(lowers[rightNode]);
+      lower = Math.max(lower, Math.nextUp(uppers[leftNode]));
     }
 
-    if (lower > upper) {
-      throw new IllegalStateException(
-          "Proposed range %s is completely covered by existing ranges.".formatted(proposed));
+    // the anchor is not covered, so the next range starts above it
+    final int rightNode = ceilingNode(anchor);
+    if (rightNode != NIL) {
+      upper = Math.min(upper, Math.nextDown(lowers[rightNode]));
     }
 
     if (lower == proposed.lower() && upper == proposed.upper()) {
@@ -149,16 +155,20 @@ public class SimpleDoubleRangeMap<V> {
   }
 
   /**
-   * Trims the proposed range with {@link #createNonOverlappingRange(SimpleDoubleRange)} and maps
-   * the trimmed range to the value.
+   * Trims the proposed range with {@link #createNonOverlappingRange(double, SimpleDoubleRange)}
+   * and maps the trimmed range to the value.
    *
+   * @param anchor   a value that is not covered by any range of this map and contained in the
+   *                 proposed range
+   * @param proposed the proposed range
+   * @param value    the value to map
    * @return the new entry with the trimmed range
    */
   @NotNull
-  public SimpleRangeEntry<V> putNonOverlapping(@NotNull final SimpleDoubleRange proposed,
-      final V value) {
-    final SimpleRangeEntry<V> entry = new SimpleRangeEntry<>(createNonOverlappingRange(proposed),
-        value);
+  public SimpleRangeEntry<V> putNonOverlapping(final double anchor,
+      @NotNull final SimpleDoubleRange proposed, final V value) {
+    final SimpleRangeEntry<V> entry = new SimpleRangeEntry<>(
+        createNonOverlappingRange(anchor, proposed), value);
     insert(entry);
     return entry;
   }
