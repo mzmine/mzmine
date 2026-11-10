@@ -26,6 +26,7 @@ package io.github.mzmine.util.web.truststore;
 
 
 import java.security.KeyStore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
@@ -42,6 +43,8 @@ public class NativeTrustStoreManager {
 
   private static final Logger logger = Logger.getLogger(NativeTrustStoreManager.class.getName());
 
+  private static final AtomicBoolean initialized = new AtomicBoolean(false);
+
   /**
    * merge OS trust store with the cacerts from java seems like windows trust store handles external
    * custom root certs in a way that they need to be requested once and the JVM option below only
@@ -49,8 +52,15 @@ public class NativeTrustStoreManager {
    * -Djavax.net.ssl.trustStoreType=Windows-ROOT -Djavax.net.ssl.trustStore=NONE
    * <p>
    * if javax.net.ssl.trustStoreType is defined, then use only this trust store (already loaded)
+   * <p>
+   * Only the first call initializes the trust store. Entry points call this before the first
+   * connection, e.g., the command line login while parsing the arguments.
    */
   public static void initTrustStore() {
+    // initialize only once
+    if (!initialized.compareAndSet(false, true)) {
+      return;
+    }
     final String jvmTrustStoreChoice = System.getProperty("javax.net.ssl.trustStore", "");
     if (!jvmTrustStoreChoice.isEmpty()) {
       logger.info("Trust store has been set by JVM arg to " + jvmTrustStoreChoice);
