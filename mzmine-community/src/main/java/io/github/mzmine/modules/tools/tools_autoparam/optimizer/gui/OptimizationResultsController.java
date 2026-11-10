@@ -48,13 +48,16 @@ import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.BatchTask;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardCreateBatchChecker;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardParameterChanges.Source;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.FrontSolutionRanker;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.SolutionApplyMode;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
@@ -81,6 +84,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -102,6 +107,8 @@ import org.moeaframework.core.Solution;
 import org.moeaframework.core.population.NondominatedPopulation;
 
 public class OptimizationResultsController extends FxController<OptimizationResultModel> {
+
+  private static final Logger logger = Logger.getLogger(OptimizationResultsController.class.getName());
 
   /**
    * Replaced by a new wizard tab if the original one was closed, see {@link #showWizardTab()}.
@@ -499,6 +506,7 @@ public class OptimizationResultsController extends FxController<OptimizationResu
    * @return the batch, null if the user cancelled or the batch could not be created
    */
   private @Nullable BatchQueue createOptimizedBatch() {
+    // restore initial preset (the one the optimization was started with)
     if (!restoreOptimizationPresets()) {
       return null;
     }
@@ -510,6 +518,8 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     }
     applySelectedSolutionToWizard(mode.get());
 
+    // decision: the snapshot is detached from the wizard, so changes for the queue below do not
+    // alter the wizard. On failure, the applied solution stays in the wizard to be fixed there.
     final WizardSequence sequenceSteps = wizardTab.snapshotSequence();
 
     final Optional<WizardStepParameters> workflow = sequenceSteps.get(WizardPart.WORKFLOW);
@@ -519,15 +529,57 @@ public class OptimizationResultsController extends FxController<OptimizationResu
       return null;
     }
 
-    BatchQueue q;
+    // assumption: an export path that is checked but empty was just not unchecked by the user
+    uncheckUnsetExportPath(workflow.get());
+
+    final List<String> errorMessages = new ArrayList<>();
+    sequenceSteps.forEach(step -> step.checkParameterValues(errorMessages));
+    if (!errorMessages.isEmpty()) {
+      logger.warning("Cannot create batch from optimized solution: " + errorMessages);
+      DialogLoggerUtil.showErrorDialog("Cannot create batch", """
+          The selected optimized parameters were applied to the wizard, but the batch cannot be created. \
+          Please check these parameters in the wizard:
+          %s""".formatted(String.join("\n", errorMessages)));
+      return null;
+    }
+
+    // checks like min sample number, qcs, metadata file. Same as creating a batch in the wizard.
+    if (!new BatchWizardCreateBatchChecker(sequenceSteps).checks()) {
+      // dialog shown in checks()
+      return null;
+    }
+
     try {
-      q = ((WorkflowWizardParameterFactory) workflow.get().getFactory()).getBatchBuilder(
+      return ((WorkflowWizardParameterFactory) workflow.get().getFactory()).getBatchBuilder(
           sequenceSteps).createQueue();
     } catch (Exception e) {
-      DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
-      q = null;
+      logger.log(Level.WARNING, e.getMessage(), e);
+      DialogLoggerUtil.showErrorDialog("Cannot create batch", """
+          The selected solution was applied to the wizard, but the batch cannot be created:
+          %s""".formatted(
+          Objects.requireNonNullElse(e.getMessage(), e.getClass().getSimpleName())));
+      return null;
     }
-    return q;
+  }
+
+  /**
+   * Unchecks the optional export path of the workflow step if it is checked but no path is set.
+   *
+   * @param workflow the workflow step, changed in place
+   */
+  private static void uncheckUnsetExportPath(@NotNull final WizardStepParameters workflow) {
+    // all workflows with an optional export path use the same parameter name
+    if (!(workflow.getNameParameterMap().get(WorkflowDdaWizardParameters.exportPath.getName())
+        instanceof OptionalParameter<?> exportPath)) {
+      return;
+    }
+    if (!Boolean.TRUE.equals(exportPath.getValue())
+        || exportPath.getEmbeddedParameter().getValue() != null) {
+      return;
+    }
+    exportPath.setValue(false);
+    logger.info(
+        "Export path is checked but not set in the wizard. Creating the batch without export.");
   }
 
   private void runBatchFilterResults() {
