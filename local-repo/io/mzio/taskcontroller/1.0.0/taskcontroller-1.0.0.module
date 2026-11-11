@@ -27,11 +27,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 39425,
-          "sha512": "60b7e266f70b3f8530f22e94b3bb60bcb987fc49c245347951f90b98d8cc2bcef5f8e3bc72ab678f5aec62332872a6700b5c15e58c65ce15bc4369b818fc1041",
-          "sha256": "fc17ca27f8d82c427b281e179cc0d81c75a0257ee8dae749fdc95e0cd739d093",
-          "sha1": "a11b17f94c41e9ede6413d4b8b3fd7e125b04a46",
-          "md5": "e84cd8f704ff47962bfe487c663edbe1"
+          "size": 39616,
+          "sha512": "2305e6b913e71347301f17aeb4f8c4304099b4cb75464b23f84d138d08b6b25ee1e524967f880ec04834affc29d03c26cfaf5e876b243308aedfcb243b100c32",
+          "sha256": "01c95bef9d40c8a9bf5922a0fc0c9b1651118d485f795f9d6473424c26dca74b",
+          "sha1": "58396ae90da1ee3d9ce94b9587e258ef8f7d624f",
+          "md5": "fdff19411dc8bcc2e41e14f040790947"
         }
       ]
     },
@@ -50,6 +50,13 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "jdk-jsobject",
+          "version": {
+            "requires": "26"
           }
         },
         {
@@ -170,11 +177,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 39425,
-          "sha512": "60b7e266f70b3f8530f22e94b3bb60bcb987fc49c245347951f90b98d8cc2bcef5f8e3bc72ab678f5aec62332872a6700b5c15e58c65ce15bc4369b818fc1041",
-          "sha256": "fc17ca27f8d82c427b281e179cc0d81c75a0257ee8dae749fdc95e0cd739d093",
-          "sha1": "a11b17f94c41e9ede6413d4b8b3fd7e125b04a46",
-          "md5": "e84cd8f704ff47962bfe487c663edbe1"
+          "size": 39616,
+          "sha512": "2305e6b913e71347301f17aeb4f8c4304099b4cb75464b23f84d138d08b6b25ee1e524967f880ec04834affc29d03c26cfaf5e876b243308aedfcb243b100c32",
+          "sha256": "01c95bef9d40c8a9bf5922a0fc0c9b1651118d485f795f9d6473424c26dca74b",
+          "sha1": "58396ae90da1ee3d9ce94b9587e258ef8f7d624f",
+          "md5": "fdff19411dc8bcc2e41e14f040790947"
         }
       ]
     }
