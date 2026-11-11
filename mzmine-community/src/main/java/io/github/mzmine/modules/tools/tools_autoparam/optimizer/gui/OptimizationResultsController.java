@@ -57,12 +57,13 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.FrontSolutionRanker;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.IndexedParameter;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.SolutionApplyMode;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.WizardOptimizationProblem;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.FeatureRecord;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.TaskService;
@@ -108,7 +109,8 @@ import org.moeaframework.core.population.NondominatedPopulation;
 
 public class OptimizationResultsController extends FxController<OptimizationResultModel> {
 
-  private static final Logger logger = Logger.getLogger(OptimizationResultsController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      OptimizationResultsController.class.getName());
 
   /**
    * Replaced by a new wizard tab if the original one was closed, see {@link #showWizardTab()}.
@@ -128,21 +130,20 @@ public class OptimizationResultsController extends FxController<OptimizationResu
   private @NotNull SolutionApplyMode lastApplyMode = SolutionApplyMode.ESTIMATED_AND_OPTIMIZED;
 
   /**
-   * @param singlePassSolution     the evaluated raw data estimate. Shown as the first row of the
-   *                               results table so it can always be compared against the optimized
-   *                               solutions, regardless of whether it was used to warm-start the
-   *                               optimizer.
+   * @param singlePassSolution          the evaluated raw data estimate. Shown as the first row of
+   *                                    the results table so it can always be compared against the
+   *                                    optimized solutions, regardless of whether it was used to
+   *                                    warm-start the optimizer.
    * @param initialUserSettingsSolution optional separately evaluated settings captured before the
    *                                    optimization; shown for comparison but never selected as a
    *                                    result candidate
-   * @param showExtendedStatistics show every evaluated solution with all diagnostic attributes
-   *                               instead of only the estimate and the current front
+   * @param showExtendedStatistics      show every evaluated solution with all diagnostic attributes
+   *                                    instead of only the estimate and the current front
    */
   public OptimizationResultsController(@Nullable BatchWizardTab wizardTab,
       @NotNull WizardOptimizationProblem optimization, @Nullable final Solution singlePassSolution,
       @Nullable final Solution initialUserSettingsSolution, final boolean showExtendedStatistics,
-      @Nullable final Stage stage,
-      @Nullable final Runnable stopSearchAction,
+      @Nullable final Stage stage, @Nullable final Runnable stopSearchAction,
       @Nullable final Consumer<Solution> externalApplyAction) {
     super(new OptimizationResultModel(showExtendedStatistics));
     this.wizardTab = wizardTab;
@@ -166,28 +167,34 @@ public class OptimizationResultsController extends FxController<OptimizationResu
    * this on the JavaFX application thread. An external apply action owns application of the exact
    * selected solution; without one, Apply updates the wizard through the native mode chooser.
    *
-   * @param wizardTab the wizard that owns native application, or null for an external consumer
-   * @param optimization the evaluated optimization problem
-   * @param singlePassSolution the evaluated raw-data estimate
+   * @param wizardTab                   the wizard that owns native application, or null for an
+   *                                    external consumer
+   * @param optimization                the evaluated optimization problem
+   * @param singlePassSolution          the evaluated raw-data estimate
    * @param initialUserSettingsSolution optional user-settings comparison baseline
-   * @param showExtendedStatistics whether to show all evaluated solutions
-   * @param stopSearchAction action used while a live search is running, or null for completed data
-   * @param externalApplyAction action consuming the selected solution outside the wizard, or null
+   * @param showExtendedStatistics      whether to show all evaluated solutions
+   * @param stopSearchAction            action used while a live search is running, or null for
+   *                                    completed data
+   * @param externalApplyAction         action consuming the selected solution outside the wizard,
+   *                                    or null
    * @return the shown controller, so a live caller can publish later evaluations and completion
    */
   public static @NotNull OptimizationResultsController showResultsWindow(
-      @Nullable final BatchWizardTab wizardTab, @NotNull final WizardOptimizationProblem optimization,
-      @Nullable final Solution singlePassSolution, @Nullable final Solution initialUserSettingsSolution,
-      final boolean showExtendedStatistics, @Nullable final Runnable stopSearchAction,
+      @Nullable final BatchWizardTab wizardTab,
+      @NotNull final WizardOptimizationProblem optimization,
+      @Nullable final Solution singlePassSolution,
+      @Nullable final Solution initialUserSettingsSolution, final boolean showExtendedStatistics,
+      @Nullable final Runnable stopSearchAction,
       @Nullable final Consumer<Solution> externalApplyAction) {
     FxThread.requireFxThread();
     if (wizardTab == null && externalApplyAction == null) {
-      throw new IllegalArgumentException("A results window needs a wizard or an external apply action.");
+      throw new IllegalArgumentException(
+          "A results window needs a wizard or an external apply action.");
     }
     final Stage stage = new Stage();
     final OptimizationResultsController controller = new OptimizationResultsController(wizardTab,
-        optimization, singlePassSolution, initialUserSettingsSolution, showExtendedStatistics, stage,
-        stopSearchAction, externalApplyAction);
+        optimization, singlePassSolution, initialUserSettingsSolution, showExtendedStatistics,
+        stage, stopSearchAction, externalApplyAction);
     final Region region = controller.buildView();
     stage.initOwner(MZmineCore.getDesktop().getMainWindow());
     final Scene scene = new Scene(region);
@@ -204,7 +211,9 @@ public class OptimizationResultsController extends FxController<OptimizationResu
     return controller;
   }
 
-  /** Returns the shown window, or null when this controller is used without a window. */
+  /**
+   * Returns the shown window, or null when this controller is used without a window.
+   */
   public @Nullable Stage getStage() {
     return stage;
   }
@@ -569,11 +578,9 @@ public class OptimizationResultsController extends FxController<OptimizationResu
    */
   private static void uncheckUnsetExportPath(@NotNull final WizardStepParameters workflow) {
     // all workflows with an optional export path use the same parameter name
-    if (!(workflow.getNameParameterMap().get(WorkflowDdaWizardParameters.exportPath.getName())
-        instanceof OptionalParameter<?> exportPath)) {
-      return;
-    }
-    if (!Boolean.TRUE.equals(exportPath.getValue())
+    final OptionalParameter<FileNameSuffixExportParameter> exportPath = workflow.getParameter(
+        WorkflowDdaWizardParameters.exportPath);
+    if (Boolean.FALSE.equals(exportPath.getValue())
         || exportPath.getEmbeddedParameter().getValue() != null) {
       return;
     }
