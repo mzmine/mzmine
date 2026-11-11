@@ -38,8 +38,11 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.io.JsonUtils;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -279,7 +282,11 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       var value = entry.getValue();
       writer.writeStartElement(XML_DB_FIELD_ELEMENT);
       writer.writeAttribute(XML_FIELD_NAME_ATTR, key.name());
-      writer.writeCharacters(String.valueOf(value));
+      // List fields (e.g. synonyms) are loaded as JSON in DBEntryField#convertValue.
+      // List#toString cannot be parsed back because names may contain commas.
+      final String text = key.getObjectClass().equals(List.class) && value instanceof Collection<?>
+          ? JsonUtils.writeStringOrElse(value, String.valueOf(value)) : String.valueOf(value);
+      writer.writeCharacters(text);
       writer.writeEndElement(); // field
     }
     writer.writeEndElement(); // list
