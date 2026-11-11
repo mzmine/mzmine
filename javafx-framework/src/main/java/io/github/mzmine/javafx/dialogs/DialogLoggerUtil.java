@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -341,14 +341,15 @@ public class DialogLoggerUtil {
 
     final double maxDialogHeight = 800;
     final double maxDialogWidth = 800;
-      // seems like a good size for the dialog message when an old batch is loaded into new version
+    // seems like a good size for the dialog message when an old batch is loaded into new version
     final double prefDialogWidth = 550;
 
     alert.getDialogPane().setMaxHeight(maxDialogHeight);
     alert.getDialogPane().setMaxWidth(maxDialogWidth);
 
     final Region mainPane;
-    if (content instanceof Region cregion && (content instanceof TextFlow || content instanceof TextArea)) {
+    if (content instanceof Region cregion && (content instanceof TextFlow
+        || content instanceof TextArea)) {
       final ScrollPane scrollPane = new ScrollPane(content);
       scrollPane.setFitToWidth(true);
       scrollPane.setFitToHeight(false);
@@ -357,7 +358,6 @@ public class DialogLoggerUtil {
       scrollPane.setMaxHeight(maxDialogHeight);
       scrollPane.setPannable(true);
       mainPane = scrollPane;
-
 
       cregion.setMaxWidth(Region.USE_PREF_SIZE);
       scrollPane.viewportBoundsProperty().subscribe((_, bounds) -> {
@@ -383,8 +383,8 @@ public class DialogLoggerUtil {
         double targetViewportHeight = Math.min(naturalTextHeight, maxDialogHeight);
         scrollPane.setPrefViewportHeight(targetViewportHeight);
 
-        if (alert.getDialogPane().getScene() != null
-            && alert.getDialogPane().getScene().getWindow() instanceof Stage stage) {
+        if (alert.getDialogPane().getScene() != null && alert.getDialogPane().getScene()
+            .getWindow() instanceof Stage stage) {
           stage.sizeToScene();
         }
       }
@@ -395,15 +395,18 @@ public class DialogLoggerUtil {
         // use delayed subscription because there are many changes to xy width height
         // in the construction of the layout and within the centering
         final Subscription subscription = PropertyUtils.onChangeDelayedSubscription(() -> {
-          boolean centered = centerAlertOnWindow(alert);
-          if (centered) {
-            onceCenteredOnWindow.set(centered);
-          }
-        }, Duration.millis(100),  alert.xProperty(), alert.yProperty(), alert.widthProperty(), alert.heightProperty());
+              boolean centered = centerAlertOnWindow(alert);
+              if (centered) {
+                onceCenteredOnWindow.set(centered);
+              }
+            }, Duration.millis(100), alert.xProperty(), alert.yProperty(), alert.widthProperty(),
+            alert.heightProperty());
         // remove subscription so that the dialog is not changed all the time
         // otherwise it would be stuck on one screen
         onceCenteredOnWindow.subscribe(state -> {
-          if(state) subscription.unsubscribe();
+          if (state) {
+            subscription.unsubscribe();
+          }
         });
       } else {
         centerAlertOnWindow(alert);
@@ -436,7 +439,7 @@ public class DialogLoggerUtil {
     if (owner != null) {
       alert.setX(owner.getX() + (owner.getWidth() - alert.getWidth()) / 2);
       alert.setY(owner.getY() + (owner.getHeight() - alert.getHeight()) / 2);
-    return true;
+      return true;
     } else {
       alert.setX(100);
       alert.setY(100);
@@ -541,12 +544,28 @@ public class DialogLoggerUtil {
 
   public static TextInputDialog createTextInputDialog(@NotNull String title, @NotNull String header,
       @NotNull String content) {
+    return createTextInputDialog(title, header, content, null);
+  }
+
+  /**
+   *
+   * @param title
+   * @param header
+   * @param content
+   * @param defaultInputText The text that will be displayed in the test input field by default.
+   * @return
+   */
+  public static TextInputDialog createTextInputDialog(@NotNull String title, @NotNull String header,
+      @NotNull String content, @Nullable String defaultInputText) {
     TextInputDialog dialog = new TextInputDialog();
     // applies style and more
     applyFocusedWindowStyle(dialog);
     dialog.setTitle(title);
     dialog.setHeaderText(header);
     dialog.setContentText(content);
+    if (defaultInputText != null) {
+      dialog.getEditor().setText(defaultInputText);
+    }
     return dialog;
   }
 
