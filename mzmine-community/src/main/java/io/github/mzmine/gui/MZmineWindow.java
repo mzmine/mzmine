@@ -95,6 +95,7 @@ public class MZmineWindow extends Stage {
 
     mainPane = new BorderPane();
     tabPane = new TabPane();
+    MZmineTab.configureTabPane(tabPane);
     Scene scene = new Scene(mainPane);
     scene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
