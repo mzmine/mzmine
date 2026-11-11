@@ -107,8 +107,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     dataBaseFile = parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile)
         .getValue();
-    fieldSeparator = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator)
-        .getValue();
+    fieldSeparator = parameters.getValue(LocalCSVDatabaseSearchParameters.fieldSeparator)
+        .separator();
     importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
     mzTolerance = parameters.getValue(LocalCSVDatabaseSearchParameters.mzTolerance);
     rtTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(

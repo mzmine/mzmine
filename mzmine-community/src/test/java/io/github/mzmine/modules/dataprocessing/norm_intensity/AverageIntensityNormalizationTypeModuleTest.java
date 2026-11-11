@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -138,5 +139,32 @@ class AverageIntensityNormalizationTypeModuleTest {
     assertNotNull(interpolated);
     // factor = nextFactor*nextRunWeight + prevFactor*previousWeight = 4*0.75 + 2*0.25 = 3.5
     assertEquals(3.5d, interpolated.getNormalizationFactor(0d, 0f), 1e-12);
+  }
+
+  @Test
+  void scalarQcInterpolationPreservesFractionalTimestampWeightsAndComposesWithPriorStage() {
+    final RawDataFileImpl previousQc = createRawFile("qc_previous",
+        LocalDateTime.of(2026, 1, 1, 10, 0, 0, 0));
+    final RawDataFileImpl sample = createRawFile("sample",
+        LocalDateTime.of(2026, 1, 1, 10, 0, 1, 600_000_000));
+    final RawDataFileImpl nextQc = createRawFile("qc_next",
+        LocalDateTime.of(2026, 1, 1, 10, 0, 3, 200_000_000));
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, previousQc,
+        sample, nextQc);
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+    summary.addMergeFunction(sample, new FactorNormalizationFunction(2d));
+
+    final Map<RawDataFile, NormalizationFunction> referenceFunctions = new LinkedHashMap<>();
+    referenceFunctions.put(previousQc, new FactorNormalizationFunction(1.5d));
+    referenceFunctions.put(nextQc, new FactorNormalizationFunction(.75d));
+    NormalizationFunctionUtils.interpolateLinearBinary(summary,
+        new SamplesBatch(featureList.getRawDataFiles()), referenceFunctions, new MetadataTable(false));
+
+    final FactorNormalizationFunction composed = assertInstanceOf(FactorNormalizationFunction.class,
+        summary.get(sample));
+    // ChronoUnit.SECONDS produces 1/3 and 1/3, so the stage factor remains .75 rather than
+    // being renormalized to 1.125. It composes with the already-applied factor of two.
+    assertEquals(1.5d, composed.factor(), 1e-12);
   }
 }

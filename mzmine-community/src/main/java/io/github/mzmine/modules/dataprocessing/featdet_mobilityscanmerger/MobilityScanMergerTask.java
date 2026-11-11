@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,6 +80,20 @@ public class  MobilityScanMergerTask extends AbstractTask {
     minDetections = parameters.getValue(MobilityScanMergerParameters.minNumberOfDetections);
   }
 
+  /**
+   * Merges the mass lists of the mobility scans of a frame into one spectrum.
+   *
+   * @return [mzs, intensities] of the merged spectrum
+   * @throws NullPointerException if a mobility scan has no mass list
+   */
+  public static double @NotNull [] @NotNull [] mergeMobilityScans(@NotNull Frame frame,
+      @NotNull MZTolerance mzTolerance, @NotNull IntensityMergingType mergingType,
+      @NotNull CenterFunction centerFunction, double noiseLevel, int minDetections) {
+    return SpectraMerging.calculatedMergedMzsAndIntensities(
+        frame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
+        mergingType, centerFunction, null, noiseLevel, minDetections);
+  }
+
   @Override
   public String getTaskDescription() {
     return "Merging mobility scans for frame " + processedFrames + "/" + totalFrames;
@@ -103,9 +117,8 @@ public class  MobilityScanMergerTask extends AbstractTask {
     try {
       for (Frame f : frames) {
         SimpleFrame frame = (SimpleFrame) f;
-        double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
-            frame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
-            mergingType, cf, null, noiseLevel, minDetections);
+        double[][] merged = mergeMobilityScans(frame, mzTolerance, mergingType, cf, noiseLevel,
+            minDetections);
 
         frame.setDataPoints(merged[0], merged[1]);
         frame.addMassList(new ScanPointerMassList(frame));

@@ -25,11 +25,6 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -88,9 +83,7 @@ public class MLScoreType extends DataType<MLScore> {
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value) throws XMLStreamException {
     if (value == null) {
       return;
     }
@@ -103,9 +96,7 @@ public class MLScoreType extends DataType<MLScore> {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull XMLStreamReader reader) throws XMLStreamException {
     do {
       if (reader.isStartElement() && MLScore.XML_ELEMENT.equals(reader.getLocalName())) {
         return MLScore.loadFromXML(reader);

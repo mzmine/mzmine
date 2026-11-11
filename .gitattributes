@@ -13,3 +13,8 @@
 *.txt text
 *.bat text
 
+# Encoded csv/tsv test fixtures. They must keep their exact bytes (byte order mark, encoding
+# and line endings), so git must not normalize them.
+mzmine-community/src/test/resources/csv/encodings/*.csv -text
+mzmine-community/src/test/resources/csv/encodings/*.tsv -text
+mzmine-community/src/test/resources/csv/encodings/*.txt -text

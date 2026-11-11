@@ -41,6 +41,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
@@ -79,7 +80,7 @@ public class FileAndPathUtil {
   // changed on other thread so make volatile
   // flag to delete temp files as soon as possible
   private static volatile boolean earlyTempFileCleanup = true;
-  private static volatile File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
+  private static final TempDirectoryManager TEMP_DIRECTORIES = new TempDirectoryManager();
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -496,6 +497,40 @@ public class FileAndPathUtil {
   }
 
   /**
+   * Also resolves links, so a link to or from the mzmine dir is detected as well.
+   *
+   * @return true if the file is the .mzmine dir in the user directory or inside of it
+   */
+  public static boolean isInMzmineDir(@NotNull File file) {
+    final Path mzmineDir = USER_MZMINE_DIR.toPath().toAbsolutePath().normalize();
+    try {
+      final Path path = file.toPath().toAbsolutePath().normalize();
+      return path.startsWith(mzmineDir) || toRealPath(path).startsWith(toRealPath(mzmineDir));
+    } catch (InvalidPathException e) {
+      // cannot be created anyway
+      return false;
+    }
+  }
+
+  /**
+   * Resolves links of the longest existing parent, as the path itself may not exist yet.
+   */
+  private static Path toRealPath(@NotNull Path path) {
+    Path existing = path;
+    while (existing != null && !Files.exists(existing)) {
+      existing = existing.getParent();
+    }
+    if (existing == null) {
+      return path;
+    }
+    try {
+      return existing.toRealPath().resolve(existing.relativize(path));
+    } catch (IOException e) {
+      return path;
+    }
+  }
+
+  /**
    * Directory for external resources
    */
   public static File resolveInDownloadResourcesDir(String name) {
@@ -632,22 +667,44 @@ public class FileAndPathUtil {
     }
   }
 
+  /**
+   * Checks write access on every call, because the directory is used without failover. Free space
+   * is not checked, prefer the create methods of this class for temp files.
+   *
+   * @return the first writable configured temp directory, otherwise the default java temp directory
+   */
   public static File getTempDir() {
-    return MZMINE_TEMP_DIR;
+    return TEMP_DIRECTORIES.getDirectory();
   }
 
   /**
-   * Sets the temp dir.
+   * Returns a snapshot of the configured directories in priority order, without the default java
+   * temp directory that is only used as runtime fallback.
    */
-  public static void setTempDir(@NotNull final File path) {
-    MZMINE_TEMP_DIR = path;
+  public static File[] getTempDirs() {
+    return TEMP_DIRECTORIES.getDirectories();
+  }
+
+  /**
+   * Sets directories in priority order. An empty list restores the default temporary directory.
+   * The .mzmine dir and its subdirectories are never used, see {@link #isInMzmineDir(File)}.
+   * Inaccessible directories stay in the list for failover. If no directory is writable, the
+   * default java temp directory is used until a configured directory works again, without adding it
+   * to the list. An unchanged list returns without disk access. Configuration does not wait for a
+   * running temp file creation.
+   *
+   * @return the configured directories, excluding those in the mzmine settings folder
+   */
+  public static File @NotNull [] setTempDirs(@NotNull final File... paths) {
+    return TEMP_DIRECTORIES.setDirectories(paths);
   }
 
   /**
    * Creates a temp file in the set mzmine temp directory.
    */
   public static File createTempFile(String prefix, String suffix) throws IOException {
-    final File tempFile = Files.createTempFile(MZMINE_TEMP_DIR.toPath(), prefix, suffix).toFile();
+    final File tempFile = TEMP_DIRECTORIES.create(0,
+        dir -> Files.createTempFile(dir, prefix, suffix).toFile());
     logger.info("Created temp file " + tempFile.getAbsolutePath());
     return tempFile;
   }
@@ -675,7 +732,15 @@ public class FileAndPathUtil {
 
   public static MemorySegment memoryMapSparseTempFile(Arena arena, long size)
       throws IOException, AccessDeniedException {
-    return memoryMapSparseTempFile("mzmine", ".tmp", getTempDir().toPath(), arena, size);
+    return TEMP_DIRECTORIES.create(size,
+        dir -> memoryMapSparseTempFile("mzmine", ".tmp", dir, arena, size));
+  }
+
+  /**
+   * Opens a sparse temporary file in the configured directories, with synchronized failover.
+   */
+  public static FileChannel openTempFileChannel(String prefix, String suffix) throws IOException {
+    return TEMP_DIRECTORIES.create(0, dir -> openTempFileChannel(prefix, suffix, dir));
   }
 
   /**
@@ -773,7 +838,7 @@ public class FileAndPathUtil {
    * Creates a temp folder in the set mzmine temp directory.
    */
   public static Path createTempDirectory(String name) throws IOException {
-    return Files.createTempDirectory(MZMINE_TEMP_DIR.toPath(), name);
+    return TEMP_DIRECTORIES.create(0, dir -> Files.createTempDirectory(dir, name));
   }
 
   public static Path getWorkingDirectory() {

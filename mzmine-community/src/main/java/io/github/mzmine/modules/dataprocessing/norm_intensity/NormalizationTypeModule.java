@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface NormalizationTypeModule extends MZmineModule permits
     InternalStandardSelectingNormalizer, MetadataColumnNormalizationTypeModule,
-    NoNormalizationTypeModule, NormalizationTypeWithReferencesModule {
+    NoNormalizationTypeModule, NormalizationTypeWithReferencesModule, FeatureQcNormalizationModule {
 
   void createAllNormalizationFunctionsToSummary(
       @NotNull IntensityNormalizationSearchableSummary summary,

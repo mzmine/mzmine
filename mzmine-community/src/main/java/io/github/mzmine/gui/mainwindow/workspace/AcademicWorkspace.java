@@ -91,16 +91,29 @@ import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.user.MZmineUser;
 import java.util.EnumSet;
+import java.util.function.Supplier;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class AcademicWorkspace extends AbstractWorkspace {
 
   public static final String uniqueId = "academic";
+
+  private final @NotNull Supplier<@Nullable Menu> additionalMenuFactory;
+
+  public AcademicWorkspace() {
+    this(() -> null);
+  }
+
+  /** Supplies a fresh optional menu on each rebuild, including after a user change. */
+  public AcademicWorkspace(final @NotNull Supplier<@Nullable Menu> additionalMenuFactory) {
+    this.additionalMenuFactory = additionalMenuFactory;
+  }
 
   @Override
   public String getName() {
@@ -113,7 +126,7 @@ public final class AcademicWorkspace extends AbstractWorkspace {
   }
 
   @Override
-  public MenuBar buildMainMenu(EnumSet<WorkspaceTags> tags) {
+  public @NotNull MenuBar buildMainMenu(final @NotNull EnumSet<WorkspaceTags> tags) {
     final MenuBar menuBar = new MenuBar();
 
     menuBar.getMenus().add(buildDefaultProjectMenu());
@@ -125,6 +138,10 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     menuBar.getMenus().add(buildDefaultToolsMenu());
     menuBar.getMenus().add(buildDefaultWindowsMenu());
     menuBar.getMenus().add(buildDefaultUsersMenu());
+    final Menu additionalMenu = additionalMenuFactory.get();
+    if (additionalMenu != null) {
+      menuBar.getMenus().add(additionalMenu);
+    }
     final Menu workspaces = buildDefaultWorkspacesMenu();
     if (WorkspaceMenuHelper.getWorkspaces().size() > 1) {
       menuBar.getMenus().add(workspaces);

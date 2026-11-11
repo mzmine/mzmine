@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -184,6 +185,12 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
     }
     model.setFeatureList(flist);
   }
+
+  /** Selects a row on the JavaFX thread without changing the active feature list. */
+  public void selectRow(final @NotNull FeatureListRow row) {
+    onGuiThread(() -> model.setRow(row));
+  }
+
 
   /**
    * Commits the manual integrations accumulated in this session to the current feature list as a

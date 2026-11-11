@@ -741,4 +741,8 @@ public class ParameterUtils {
     }
     return actualParameters;
   }
+
+  public static boolean skipForBatchModeValidation(Parameter<?> param) {
+    return param instanceof RawDataFilesParameter || param instanceof FeatureListsParameter;
+  }
 }

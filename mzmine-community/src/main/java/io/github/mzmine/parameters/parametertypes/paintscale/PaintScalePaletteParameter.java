@@ -170,8 +170,8 @@ public class PaintScalePaletteParameter implements
     component.setValue(newValue);
   }
 
-  protected @NotNull List<SimpleColorPalette> getPalettes() {
-    return palettes;
+  public @NotNull List<SimpleColorPalette> getPalettes() {
+    return List.copyOf(palettes);
   }
 
   protected void setPalettes(@NotNull List<SimpleColorPalette> palettes) {

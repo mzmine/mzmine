@@ -47,11 +47,13 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.maths.CenterMeasure;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -81,6 +83,22 @@ class StandardCompoundNormalizationTypeModuleTest {
   @TempDir
   Path tempDir;
   private int standardsFileIndex = 0;
+
+  @Test
+  void calculateReferenceAbundanceUsesOnlyFinitePositiveValues() {
+    final double[] abundances = {Double.NaN, Double.NEGATIVE_INFINITY, -1d, 0d, 100d, 200d,
+        Double.POSITIVE_INFINITY};
+
+    assertEquals(150d, StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(
+        abundances, CenterMeasure.MEDIAN), 1e-12);
+    assertEquals(150d, StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(
+        abundances, CenterMeasure.AVG), 1e-12);
+    assertTrue(Double.isNaN(StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(
+        new double[]{0d, Double.NaN}, CenterMeasure.MEDIAN)));
+    assertThrows(IllegalArgumentException.class,
+        () -> StandardCompoundNormalizationTypeModule.calculateReferenceAbundance(abundances,
+            CenterMeasure.AUTO));
+  }
 
   @Test
   void createReferenceFunctionsThrowsIfNoStandardsSelected() throws IOException {
@@ -711,7 +729,7 @@ class StandardCompoundNormalizationTypeModuleTest {
       throws IOException {
     final File standardsFile = writeStandardsFile(csvContent);
     return StandardCompoundNormalizationTypeParameters.create(List.of(SampleType.values()),
-        usageType, 1d, standardsFile, ",", new MZTolerance(0.25, 0d),
+        usageType, 1d, standardsFile, FieldSeparator.COMMA, new MZTolerance(0.25, 0d),
         new RTTolerance(0.25f, RTTolerance.Unit.MINUTES), new MobilityTolerance(0.25f), mode);
   }
 

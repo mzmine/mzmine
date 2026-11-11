@@ -36,6 +36,14 @@ public class FxThread {
   private static final Logger logger = Logger.getLogger(FxThread.class.getName());
   private static boolean isFxInitialized = false;
 
+  /** Fails fast for synchronous UI methods that require the JavaFX application thread. */
+  public static void requireFxThread() {
+    if (!Platform.isFxApplicationThread()) {
+      throw new IllegalStateException(
+          "This operation requires the JavaFX application thread; use FxThread.runLater");
+    }
+  }
+
   public static boolean isFxInitialized() {
     return isFxInitialized;
   }

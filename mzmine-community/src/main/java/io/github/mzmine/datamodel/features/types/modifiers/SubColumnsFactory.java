@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -170,6 +170,36 @@ public interface SubColumnsFactory {
       T newValue) {
   }
 
+
+  @NotNull
+  default SimpleModularDataModel loadSubColumnsFromXML(final @NotNull XMLStreamReader reader)
+      throws XMLStreamException {
+    final SimpleModularDataModel model = new SimpleModularDataModel();
+    boolean startFound = false;
+
+    while (reader.hasNext()) {
+      final int next = reader.next();
+      if (next == XMLEvent.START_ELEMENT && reader.getLocalName().equals(SUB_TYPES_XML_ELEMENT)) {
+        startFound = true;
+      }
+      if (!startFound) {
+        if (next == XMLEvent.END_ELEMENT) {
+          return model;
+        }
+        continue;
+      }
+      if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(SUB_TYPES_XML_ELEMENT)) {
+        break;
+      }
+      if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        final DataType type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        final Object value = type.loadFromXML(reader);
+        model.set(type, value);
+      }
+    }
+    return model;
+  }
 
   @NotNull
   default SimpleModularDataModel loadSubColumnsFromXML(final @NotNull XMLStreamReader reader,

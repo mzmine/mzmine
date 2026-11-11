@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2
 
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafCalibrationVariables;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.SpectraAcquisitionStepsTable;
@@ -57,6 +58,7 @@ public class BafDataAccess implements AutoCloseable {
   private static final Logger logger = Logger.getLogger(BafDataAccess.class.getName());
   private final SpectraAcquisitionStepsTable spectraTable;
   private final BafPropertiesTable metadata = new BafPropertiesTable();
+  private final BafCalibrationVariables calibrationVariables = new BafCalibrationVariables();
   private final Ms2Table ms2Table = new Ms2Table();
   @NotNull
   private final Arena arena;
@@ -174,6 +176,7 @@ public class BafDataAccess implements AutoCloseable {
         logger.finest(() -> "Connection established. " + connection.toString());
         spectraTable.executeQuery(connection);
         metadata.executeQuery(connection);
+        calibrationVariables.executeQuery(connection);
         ms2Table.executeQuery(connection);
       } catch (SQLException e) {
         throw new RuntimeException(e);
@@ -240,6 +243,10 @@ public class BafDataAccess implements AutoCloseable {
 
   public BafPropertiesTable getMetadata() {
     return metadata;
+  }
+
+  public @NotNull BafCalibrationVariables getCalibrationVariables() {
+    return calibrationVariables;
   }
 
   private void closeHandle() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,14 @@
 
 package io.github.mzmine.modules.io.import_feature_networks;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
+import java.util.Map;
 
 public class ImportFeatureNetworksSimpleParameters extends SimpleParameterSet {
 
@@ -42,7 +46,19 @@ public class ImportFeatureNetworksSimpleParameters extends SimpleParameterSet {
       EdgeScore is a floating point number
       """, ExtensionFilters.CSV_TSV_IMPORT);
 
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forReading(
+      "Character used to separate fields in the input files. Auto detect determines the separator from the file itself.");
+
   public ImportFeatureNetworksSimpleParameters() {
-    super(flist, input);
+    super(flist, input, fieldSeparator);
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    if (!loadedParams.containsKey(fieldSeparator.getName())) {
+      // this parameter did not exist before, the files were always read as comma separated
+      setParameter(fieldSeparator, FieldSeparator.COMMA);
+    }
   }
 }

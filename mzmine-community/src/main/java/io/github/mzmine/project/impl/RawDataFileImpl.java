@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -94,6 +96,7 @@ public class RawDataFileImpl implements RawDataFile {
   private MassSpectrumType spectraType;
   @Nullable
   private LocalDateTime startTimeStamp = null;
+  private final SimpleModularDataModel fileMetadata = new SimpleModularDataModel();
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage) {
@@ -406,6 +409,11 @@ public class RawDataFileImpl implements RawDataFile {
 
   public void setStartTimeStamp(@Nullable LocalDateTime startTimeStamp) {
     this.startTimeStamp = startTimeStamp;
+  }
+
+  @Override
+  public @NotNull ModularDataModel getFileMetadata() {
+    return fileMetadata;
   }
 
   /**

@@ -70,7 +70,7 @@ public class MSnTreeExportTask extends AbstractTask {
     outFile = parameters.getValue(MSnTreeExportParameters.FILENAME);
     raws = parameters.getValue(MSnTreeExportParameters.RAW_FILES).getMatchingRawDataFiles();
     mzTol = parameters.getValue(MSnTreeExportParameters.MZ_TOL);
-    sep = parameters.getValue(MSnTreeExportParameters.SEPARATOR);
+    sep = parameters.getValue(MSnTreeExportParameters.SEPARATOR).separator();
     description = String.format("Exporting %d raw files as MSn trees to tabular file %s",
         raws.length, outFile.getAbsolutePath());
 

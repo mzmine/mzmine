@@ -189,4 +189,21 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   public double getPrefColumnWidth() {
     return 150;
   }
+
+  @Override
+  public boolean requiresFeatureListContext() {
+    return true;
+  }
+
+  @Override
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value) {
+    throw new UnsupportedOperationException(
+        getClass().getName() + " requires feature list context for XML save/load");
+  }
+
+  @Override
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader) {
+    throw new UnsupportedOperationException(
+        getClass().getName() + " requires feature list context for XML save/load");
+  }
 }

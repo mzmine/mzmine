@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.util.files;
 
 import io.github.mzmine.util.io.WriterOptions;
+import java.io.File;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -49,6 +50,72 @@ class FileAndPathUtilTest {
   private static final Logger logger = Logger.getLogger(FileAndPathUtilTest.class.getName());
   @TempDir
   static Path tempDir;
+
+  @Test
+  void configuredCreationMethodsFailOver() throws IOException {
+    File[] previousDirectories = FileAndPathUtil.getTempDirs();
+    List<TempDirectoryManager.TempFileOperation<?>> operations = List.of(
+        _ -> FileAndPathUtil.createTempFile("failover", ".tmp"),
+        _ -> FileAndPathUtil.createTempDirectory("failover"), _ -> {
+          try (var channel = FileAndPathUtil.openTempFileChannel("failover", ".tmp")) {
+            return channel.size();
+          }
+        }, _ -> {
+          try (var arena = Arena.ofConfined()) {
+            var mapped = FileAndPathUtil.memoryMapSparseTempFile(arena, 1024);
+            mapped.set(ValueLayout.JAVA_BYTE, 0, (byte) 42);
+            return mapped.get(ValueLayout.JAVA_BYTE, 0);
+          }
+        });
+
+    try {
+      for (var operation : operations) {
+        Path first = Files.createTempDirectory(tempDir, "first");
+        Path second = Files.createTempDirectory(tempDir, "second");
+        FileAndPathUtil.setTempDirs(first.toFile(), second.toFile());
+        // Make the current directory unusable after configuration, without requiring a full disk.
+        Files.delete(first);
+        Files.createFile(first);
+
+        operation.create(second);
+
+        Assertions.assertEquals(second.toFile(), FileAndPathUtil.getTempDir());
+      }
+    } finally {
+      FileAndPathUtil.setTempDirs(previousDirectories);
+    }
+  }
+
+  @Test
+  void detectsMzmineDirAndItsSubdirectories() {
+    File mzmineDir = FileAndPathUtil.getMzmineDir();
+    File userDir = mzmineDir.getParentFile();
+
+    Assertions.assertTrue(FileAndPathUtil.isInMzmineDir(mzmineDir));
+    Assertions.assertTrue(FileAndPathUtil.isInMzmineDir(new File(mzmineDir, "temp/nested")));
+    Assertions.assertTrue(
+        FileAndPathUtil.isInMzmineDir(new File(userDir, "other/../.mzmine/temp")));
+    Assertions.assertFalse(FileAndPathUtil.isInMzmineDir(userDir));
+    Assertions.assertFalse(FileAndPathUtil.isInMzmineDir(new File(userDir, ".mzmine_temp")));
+    Assertions.assertFalse(FileAndPathUtil.isInMzmineDir(tempDir.toFile()));
+  }
+
+  @Test
+  void mzmineDirIsNeverConfiguredAsTempDir() {
+    File[] previousDirectories = FileAndPathUtil.getTempDirs();
+    try {
+      File mzmineDir = FileAndPathUtil.getMzmineDir();
+      File subdirectory = new File(mzmineDir, "temp-" + System.nanoTime());
+      File allowed = tempDir.resolve("allowed").toFile();
+
+      FileAndPathUtil.setTempDirs(mzmineDir, subdirectory, allowed);
+
+      Assertions.assertArrayEquals(new File[]{allowed}, FileAndPathUtil.getTempDirs());
+      Assertions.assertFalse(subdirectory.exists());
+    } finally {
+      FileAndPathUtil.setTempDirs(previousDirectories);
+    }
+  }
 
   @Test
   void existingFile() {

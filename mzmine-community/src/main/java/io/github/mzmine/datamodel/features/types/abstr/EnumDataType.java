@@ -25,11 +25,6 @@
 
 package io.github.mzmine.datamodel.features.types.abstr;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
@@ -59,9 +54,7 @@ public abstract class EnumDataType<T extends Enum<T> & UniqueIdSupplier> extends
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull XMLStreamReader reader) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
         && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
@@ -75,9 +68,7 @@ public abstract class EnumDataType<T extends Enum<T> & UniqueIdSupplier> extends
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value) throws XMLStreamException {
     if (value == null) {
       return;
     }

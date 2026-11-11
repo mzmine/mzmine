@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.modules.tools.tools_autoparam.preclassification;
+
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.parameters.UserParameter;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Classifies the imported raw data before parameter estimation and optimization and decides a
+ * wizard setting that has to be fixed for the whole run, e.g., the polarity.
+ *
+ * @param <T> value type of the decided wizard setting
+ */
+public interface RawDataClassifier<T> {
+
+  /**
+   * @return the parameter in {@link PreclassificationParameters} that holds the decision. A clone
+   * of the respective wizard parameter.
+   */
+  @NotNull UserParameter<T, ?> parameter();
+
+  /**
+   * @param files  the imported raw data files that are used for estimation and optimization
+   * @param wizard the current wizard sequence with the user's settings
+   * @return the decision for {@link #parameter()}
+   */
+  @NotNull ClassifierDecision<T> decide(@NotNull List<@NotNull RawDataFile> files,
+      @NotNull WizardSequence wizard);
+}

@@ -76,4 +76,14 @@ public final class R2RStructureSimilarity extends InternalTypedRowsRelationship 
   public @Nullable String getInchiB() {
     return inchiB;
   }
+
+  @Override
+  public @NotNull R2RStructureSimilarity withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    // each inchi belongs to one of the two rows, so swap them when the constructor reorders the
+    // rows - otherwise the structure would be attributed to the wrong row
+    final boolean swap = swapsRows(a, b);
+    return new R2RStructureSimilarity(a, b, fingerprintType, swap ? inchiB : inchiA,
+        swap ? inchiA : inchiB, similarity);
+  }
 }

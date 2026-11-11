@@ -27,11 +27,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 15214,
-          "sha512": "fc52794963a17980fcd2a1c0fb291cab01057a30b4ca32b3ae9e26747b7f03869c8e49f53a483fd077d4de7243c03643afe1bbf30a19cfad96a5c33eb158c3f2",
-          "sha256": "1b2680f9b5134dd04f03dd020434ae6853519dbae569dd141bdba59f834dac57",
-          "sha1": "3ea80bbbfbb6e85d1fb861bf7828637ab8eb54de",
-          "md5": "5c44e1744dc76d6c33ede57c3bf608aa"
+          "size": 16963,
+          "sha512": "d97cbd4e68ddd359230b3de05fedb896479b4c3897b3721c5433d0594f171280c66527e2182d77d95f8eb3c522d31f52355ffdd8fa4c150c6af4b515abd91e38",
+          "sha256": "422207fc5edc859a97f4a28519671f277e5ac1de30bd177ddd026b0368e261cb",
+          "sha1": "594a2dadfdf91b971ab061d161d277c65ea0fddf",
+          "md5": "5091ff49e809f34b673fa8dfcadcf1c9"
         }
       ]
     },
@@ -50,6 +50,13 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "jdk-jsobject",
+          "version": {
+            "requires": "26"
           }
         },
         {
@@ -159,11 +166,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 15214,
-          "sha512": "fc52794963a17980fcd2a1c0fb291cab01057a30b4ca32b3ae9e26747b7f03869c8e49f53a483fd077d4de7243c03643afe1bbf30a19cfad96a5c33eb158c3f2",
-          "sha256": "1b2680f9b5134dd04f03dd020434ae6853519dbae569dd141bdba59f834dac57",
-          "sha1": "3ea80bbbfbb6e85d1fb861bf7828637ab8eb54de",
-          "md5": "5c44e1744dc76d6c33ede57c3bf608aa"
+          "size": 16963,
+          "sha512": "d97cbd4e68ddd359230b3de05fedb896479b4c3897b3721c5433d0594f171280c66527e2182d77d95f8eb3c522d31f52355ffdd8fa4c150c6af4b515abd91e38",
+          "sha256": "422207fc5edc859a97f4a28519671f277e5ac1de30bd177ddd026b0368e261cb",
+          "sha1": "594a2dadfdf91b971ab061d161d277c65ea0fddf",
+          "md5": "5091ff49e809f34b673fa8dfcadcf1c9"
         }
       ]
     }

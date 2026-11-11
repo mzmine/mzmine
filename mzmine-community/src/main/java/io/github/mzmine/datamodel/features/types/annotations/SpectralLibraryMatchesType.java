@@ -93,6 +93,7 @@ public final class SpectralLibraryMatchesType extends AbstractSpectralLibraryMat
       new CASType(), //
       new InternalIdType(), //
       new RIDiffType(), //
+      new SynonymsType(), //
       new DatabaseNameType(), //
       new JsonStringType() //
   );

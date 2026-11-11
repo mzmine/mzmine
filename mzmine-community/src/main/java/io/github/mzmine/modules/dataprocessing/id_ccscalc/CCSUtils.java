@@ -44,7 +44,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -65,12 +64,6 @@ public class CCSUtils {
   // could be an option for TIMS
 
   private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
-  /**
-   * Initalize lazyl. Since this is a static final field, it would otherwise always be initialised
-   * and lead to an error message on MacOS in {@link TDFUtils#loadLibrary()} even for non-tdf files
-   * once a ccs is calculated.
-   */
-  private static final LazyConstant<TDFUtils> tdfUtils = LazyConstant.of(TDFUtils::new);
 
   private CCSUtils() {
   }
@@ -114,7 +107,7 @@ public class CCSUtils {
    * @author https://github.com/SteffenHeu
    */
   public static Float calcCCSFromTimsMobility(double mobility, int charge, double mz) {
-    return tdfUtils.get().calculateCCS(mobility, charge, mz);
+    return TDFUtils.calculateCCS(mobility, charge, mz);
   }
 
   public static Float logUnsupportedMobilityUnit() {
@@ -130,9 +123,7 @@ public class CCSUtils {
    */
   public static List<CCSCalibrant> getCalibrantsFromCSV(final File file)
       throws IOException, CsvException {
-    final FileReader fileReader = new FileReader(file);
     final List<String[]> content = CSVParsingUtils.readData(file, ";");
-    fileReader.close();
 
     final MZType mzType = DataTypes.get(MZType.class);
     final io.github.mzmine.datamodel.features.types.numbers.MobilityType mobilityType = DataTypes.get(

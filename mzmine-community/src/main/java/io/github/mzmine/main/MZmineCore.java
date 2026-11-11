@@ -42,6 +42,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -115,10 +116,14 @@ public final class MZmineCore {
   public static void main(final String[] args) {
     try {
       printDebugInfo(args);
+      DeepLinkRouter.queueLaunchArguments(args);
 
-      final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
+      final String[] launchArguments = DeepLinkRouter.withoutDeepLinkArguments(args);
+      // the argument parser already logs in users from the command line so init trust store
+      NativeTrustStoreManager.initTrustStore();
+      final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(launchArguments);
       getInstance().startUp(argsParser);
-      launchBatchOrGui(args, argsParser);
+      launchBatchOrGui(launchArguments, argsParser);
 
     } catch (Exception ex) {
       StartupSplash.hide();
@@ -139,6 +144,7 @@ public final class MZmineCore {
 
     showStartupSplash(argsParser);
 
+    // no-op if an entry point already initialized it before parsing the arguments
     NativeTrustStoreManager.initTrustStore();
 
     ProxyTestUtils.logProxyState("Proxy on startup:");
@@ -151,31 +157,18 @@ public final class MZmineCore {
     // so log state after load
     ProxyTestUtils.logProxyState("Auto proxy after config loading:");
 
-    // In GUI mode the user is restored asynchronously below. Capture the saved username now,
-    // before subscribing — the subscription fires immediately with user=null and would otherwise
-    // overwrite the saved preference with null before the async thread can read it.
-    final String savedUsername =
-        argsParser.isGuiMode() && argsParser.getUserFile() == null ? ConfigService.getPreference(
-            MZminePreferences.username) : null;
-
+    // Sync preferences with CurrentUserService->activeUser + Show warning if the currently active user is about to expire
     CurrentUserService.subscribe(user -> {
-      var nickname = user == null ? null : user.getNickname();
-      ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
-
-      checkUserRemainingDays(user);
+      if (user != null) {
+        checkUserRemainingDays(user);
+        ConfigService.getPreferences().setParameter(MZminePreferences.username, user.getUsername());
+      }
     });
 
     addUserRequiredListener();
 
     // after loading the config and numCores
     TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
-
-    // GUI mode: restore the previously active user on a virtual thread so that file I/O and
-    // optional network validation (every 5 days) do not block GUI startup.
-    if (savedUsername != null) {
-      Thread.ofVirtual().name("user-restore")
-          .start(() -> ArgsToConfigUtils.restoreUserFromConfig(savedUsername));
-    }
   }
 
   public static void checkUserRemainingDays(MZmineUser user) {
@@ -196,8 +189,8 @@ public final class MZmineCore {
   private static void addUserRequiredListener() {
     // add event listener
     EventService.subscribe(mzEvent -> {
-      if (mzEvent instanceof AuthRequiredEvent(String message)) {
-        DialogLoggerUtil.showMessageDialog("Invalid user", requireNonNullElse(message, ""));
+      if (mzEvent instanceof AuthRequiredEvent(String title, String message)) {
+        DialogLoggerUtil.showMessageDialog(title, requireNonNullElse(message, ""));
 
         if (DesktopService.isGUI()) {
           getDesktop().addTab(UsersTab.showTab());
@@ -205,18 +198,16 @@ public final class MZmineCore {
           try {
             if (DesktopService.hasTerminalInput()) {
               UsersController.getInstance()
-                  .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+                  .loginOrRegisterConsoleBlocking(LoginOptions.CLI_TOKEN);
               if (CurrentUserService.isValid()) {
                 // login was successful
                 return;
               }
             }
-            getDesktop().displayMessage(
-                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
             MZmineExit.exit(1);
           } catch (Exception ex) {
-            getDesktop().displayMessage(
-                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
             MZmineExit.exit(1);
           }
         }
@@ -280,20 +271,26 @@ public final class MZmineCore {
       try {
         logger.info("User login required.");
         UsersController.getInstance()
-            .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+            .loginOrRegisterConsoleBlocking(LoginOptions.CLI_TOKEN);
       } catch (Exception ex) {
-        getDesktop().displayMessage(
-            "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+        logger.warning("Console login failed: " + ex.getMessage());
       }
       if (CurrentUserService.isInvalid()) {
-        logger.warning(
-            "No valid user. Please login via the GUI or CLI or provide a user via command line argument -user path/user.mzuser");
+        getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
         MZmineExit.exit(1);
       }
     }
 
     Task batchTask = null;
     if (batchFile != null) {
+      // decision: every batch requires a valid user with a claimed license. Check before the batch
+      // starts, also without terminal input where no console login was attempted above
+      if (CurrentUserService.isInvalid()) {
+        getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
+        MZmineExit.exit(1);
+        return;
+      }
+
       // load batch
       if ((!batchFile.exists()) || (!batchFile.canRead())) {
         logger.severe("Cannot read batch file " + batchFile);
@@ -613,7 +610,7 @@ public final class MZmineCore {
       // basically a headless check when DesktopService is not initialized (always headless at this point)
       return;
     }
-    if (argsParser.isCliLogin() || argsParser.isCliLoginPassword()) {
+    if (argsParser.isCliLogin() || argsParser.isCliLoginToken()) {
       return;
     }
     if (argsParser.isKeepRunningAfterBatch()) {
@@ -637,7 +634,26 @@ public final class MZmineCore {
     Locale.setDefault(new Locale("en", "US"));
     // initialize by default with all in memory
     MemoryMapStorage.setStoreAllInRam(true);
+    relaxXmlEntityLimits();
 
     logger.fine("Initializing core classes..");
+  }
+
+  /**
+   * JDK 24+ ships strict XML limits (100,000 in conf/jaxp.properties). The parser counts every
+   * escaped character, e.g. &quot; in the title of every spectrum, towards them, so large mzML and
+   * imzML files fail to import. System properties override the configuration file; they are read
+   * whenever a parser is created, also by libraries like jimzmlparser. The limit on expansions of
+   * declared entities (jdk.xml.entityExpansionLimit) keeps protecting against entity bombs.
+   */
+  private static void relaxXmlEntityLimits() {
+    // 0 means no limit
+    for (final String limit : new String[]{"jdk.xml.maxGeneralEntitySizeLimit",
+        "jdk.xml.totalEntitySizeLimit", "jdk.xml.entityReplacementLimit"}) {
+      // decision: a limit set explicitly, e.g. by a -D JVM option, is kept
+      if (System.getProperty(limit) == null) {
+        System.setProperty(limit, "0");
+      }
+    }
   }
 }

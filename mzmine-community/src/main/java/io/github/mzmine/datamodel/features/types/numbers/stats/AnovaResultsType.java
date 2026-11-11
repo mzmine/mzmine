@@ -40,6 +40,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,5 +90,22 @@ public class AnovaResultsType extends ModularSubColumnsType<AnovaResult> {
     }
     return new AnovaResult(row, model.get(SelectedMetadataColumnType.class),
         model.get(AnovaPValueType.class), model.get(AnovaFValueType.class));
+  }
+
+  @Override
+  public boolean requiresFeatureListContext() {
+    return true;
+  }
+
+  @Override
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value) {
+    throw new UnsupportedOperationException(
+        getClass().getName() + " requires feature list context for XML save/load");
+  }
+
+  @Override
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader) {
+    throw new UnsupportedOperationException(
+        getClass().getName() + " requires feature list context for XML save/load");
   }
 }

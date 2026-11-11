@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -248,5 +249,10 @@ public class FxLabels {
     final String style = FxStyles.replaceProperty(text.getStyle(), "-fx-text-fill", colorStr);
     text.setStyle(style);
     return text;
+  }
+
+  public static @NotNull Label wrap(@NotNull Label label) {
+    label.setWrapText(true);
+    return label;
   }
 }

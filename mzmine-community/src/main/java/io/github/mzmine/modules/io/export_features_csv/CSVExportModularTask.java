@@ -109,7 +109,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.featureLists = parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
         .getMatchingFeatureLists();
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(CSVExportModularParameters.fieldSeparator).getValue();
+    fieldSeparator = parameters.getValue(CSVExportModularParameters.fieldSeparator).separator();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
     removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
@@ -553,7 +553,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   }
 
   /**
-   * @return true if type should be exported
+   * @return true if type should be exported, e.g. not a {@link NoTextColumn},
+   * {@link NullColumnType}, or {@link LinkedGraphicalType}
    */
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType

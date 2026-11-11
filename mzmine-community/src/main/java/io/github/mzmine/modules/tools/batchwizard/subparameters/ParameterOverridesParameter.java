@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -125,7 +126,7 @@ public class ParameterOverridesParameter implements
           .orElse(null);
       parameter.loadValueFromXML(overrideElement);
 
-      overrides.add(new ParameterOverride(moduleClass, moduleUniqueId, parameter, scope));
+      overrides.add(ParameterOverride.fromParameter(moduleClass, moduleUniqueId, parameter, scope));
     }
 
     this.value = overrides;
@@ -183,4 +184,5 @@ public class ParameterOverridesParameter implements
   public Priority getComponentVgrowPriority() {
     return Priority.ALWAYS;
   }
+
 }
