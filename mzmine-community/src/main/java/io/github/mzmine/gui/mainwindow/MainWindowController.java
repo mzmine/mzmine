@@ -254,7 +254,8 @@ public class MainWindowController {
       HBox box = new HBox(3, rawIcon);
       if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
           rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
-        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, FxIconUtil.LIST_ICON_SIZE,
+        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE,
+            FxIconUtil.LIST_ICON_SIZE,
             MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
         box.getChildren().add(fontIcon);
 
@@ -282,7 +283,8 @@ public class MainWindowController {
 
   private static Node getFeatureListIcon(@NotNull FeatureList flist) {
     if (!flist.isAligned()) {
-      return FxIconUtil.getFontIcon(FxIcons.FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE, flist.getRawDataFile(0).getColor());
+      return FxIconUtil.getFontIcon(FxIcons.FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE,
+          flist.getRawDataFile(0).getColor());
     } else {
       return FxIconUtil.getFontIcon(FxIcons.ALIGNED_FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE);
     }
@@ -426,7 +428,8 @@ public class MainWindowController {
 
         if (selectedItems.size() == 1) {
           featureListsRenameMenuItem.setDisable(false);
-          if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
+          if (featureListsList.getTreeView().getSelectionModel().getSelectedItem() == null
+              || featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
               == null) {
             featureListsRenameMenuItem.setText("Rename group");
           } else {
@@ -1021,6 +1024,35 @@ public class MainWindowController {
     if (selectedItem instanceof GroupTreeItem<RawDataFile> groupItem) {
       rawDataList.editGroup(groupItem);
     }
+  }
+
+  /**
+   * Groups the selected feature lists into a new user-named group. Switches the feature list view
+   * to a custom grouping if an automatic grouping is active.
+   *
+   * @param event the triggering event
+   */
+  public void handleGroupFeatureLists(@NotNull final Event event) {
+    final var selected = featureListsList.getSelectedItems();
+    if (selected.isEmpty()) {
+      return;
+    }
+
+    final var dialog = DialogLoggerUtil.createTextInputDialog("Group feature lists",
+        "Enter a name for the new group", "Group name:");
+    dialog.getEditor().setText("Group");
+    final Optional<String> result = dialog.showAndWait();
+    result.filter(name -> !name.isBlank()).ifPresent(featureListsList::groupSelected);
+  }
+
+  /**
+   * Moves the selected feature lists out of their groups to the top level. Switches the feature
+   * list view to a custom grouping if an automatic grouping is active.
+   *
+   * @param event the triggering event
+   */
+  public void handleUngroupFeatureLists(@NotNull final Event event) {
+    featureListsList.ungroupSelected();
   }
 
   public NotificationPane getNotificationPane() {

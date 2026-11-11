@@ -746,11 +746,13 @@ public class GroupableTreeView<T> extends BorderPane {
     }
 
     final TextInputDialog dialog = DialogLoggerUtil.createTextInputDialog("Set new name",
-        "Set a new name for %s".formatted(StringUtils.inQuotes(item.getValue().toString())), "");
-    dialog.showAndWait().ifPresent(newName -> {
-      renameConsumer.accept(item.getValue(), newName);
-      treeView.refresh();
-    });
+        "Set a new name for %s".formatted(StringUtils.inQuotes(item.getValue().toString())), "",
+        value.toString());
+    dialog.showAndWait().filter(newName -> !newName.isBlank() && !newName.equals(value.toString()))
+        .ifPresent(newName -> {
+          renameConsumer.accept(item.getValue(), newName);
+          treeView.refresh();
+        });
   }
 
   /**
@@ -761,7 +763,7 @@ public class GroupableTreeView<T> extends BorderPane {
   public void editGroup(@NotNull final GroupTreeItem<T> groupItem) {
     final String oldName = groupItem.getGroupName();
     final TextInputDialog dialog = DialogLoggerUtil.createTextInputDialog("Rename group",
-        "Set a new name for group %s".formatted(StringUtils.inQuotes(oldName)), oldName);
+        "Set a new name for group %s".formatted(StringUtils.inQuotes(oldName)), "", oldName);
     dialog.showAndWait().filter(newName -> !newName.isBlank() && !newName.equals(oldName))
         .ifPresent(newName -> {
           // snapshot to custom first if we are on an auto-strategy
