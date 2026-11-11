@@ -149,7 +149,7 @@ public class SpectraMerging {
       final double mz = mzs[dp];
       SimpleRangeEntry<Integer> entry = rangeMap.getEntry(mz);
       if (entry == null) {
-        entry = rangeMap.putNonOverlapping(tolerance.getSimpleToleranceRange(mz), numRanges++);
+        entry = rangeMap.putNonOverlapping(mz, tolerance.getSimpleToleranceRange(mz), numRanges++);
       }
       rangeOfDataPoint[dp] = entry.value();
     }

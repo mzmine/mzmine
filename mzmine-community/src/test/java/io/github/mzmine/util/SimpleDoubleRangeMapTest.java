@@ -61,11 +61,11 @@ class SimpleDoubleRangeMapTest {
     map.put(SimpleRange.ofDouble(30, 40), "b");
 
     final SimpleDoubleRange proposed = SimpleRange.ofDouble(Math.nextUp(20d), 25);
-    Assertions.assertEquals(proposed, map.createNonOverlappingRange(proposed));
+    Assertions.assertEquals(proposed, map.createNonOverlappingRange(22, proposed));
     Assertions.assertEquals(SimpleRange.ofDouble(0, 5),
-        map.createNonOverlappingRange(SimpleRange.ofDouble(0, 5)));
+        map.createNonOverlappingRange(2, SimpleRange.ofDouble(0, 5)));
     Assertions.assertEquals(SimpleRange.ofDouble(50, 55),
-        map.createNonOverlappingRange(SimpleRange.ofDouble(50, 55)));
+        map.createNonOverlappingRange(52, SimpleRange.ofDouble(50, 55)));
   }
 
   @Test
@@ -76,15 +76,16 @@ class SimpleDoubleRangeMapTest {
 
     // left overlap
     Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(20d), 25),
-        map.createNonOverlappingRange(SimpleRange.ofDouble(15, 25)));
+        map.createNonOverlappingRange(22, SimpleRange.ofDouble(15, 25)));
     // right overlap
     Assertions.assertEquals(SimpleRange.ofDouble(22, Math.nextDown(30d)),
-        map.createNonOverlappingRange(SimpleRange.ofDouble(22, 35)));
+        map.createNonOverlappingRange(25, SimpleRange.ofDouble(22, 35)));
     // both sides, touching bounds count as overlap because ranges are closed
     Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(20d), Math.nextDown(30d)),
-        map.createNonOverlappingRange(SimpleRange.ofDouble(20, 30)));
+        map.createNonOverlappingRange(25, SimpleRange.ofDouble(20, 30)));
 
-    final SimpleRangeEntry<String> entry = map.putNonOverlapping(SimpleRange.ofDouble(18, 32), "c");
+    final SimpleRangeEntry<String> entry = map.putNonOverlapping(25,
+        SimpleRange.ofDouble(18, 32), "c");
     Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(20d), Math.nextDown(30d)),
         entry.range());
     Assertions.assertEquals("a", map.get(20));
@@ -94,28 +95,91 @@ class SimpleDoubleRangeMapTest {
   }
 
   @Test
-  void enclosedRangeThrows() {
+  void rangesBeyondNeighborsAreKept() {
     final SimpleDoubleRangeMap<String> map = new SimpleDoubleRangeMap<>();
     map.put(SimpleRange.ofDouble(10, 20), "a");
     map.put(SimpleRange.ofDouble(22, 23), "b");
 
-    Assertions.assertThrows(IllegalStateException.class,
-        () -> map.createNonOverlappingRange(SimpleRange.ofDouble(21, 25)));
-    // also after trimming the lower bound
-    Assertions.assertThrows(IllegalStateException.class,
-        () -> map.createNonOverlappingRange(SimpleRange.ofDouble(15, 25)));
+    // b lies between the proposed lower bound and the anchor, it is the left neighbor
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(23d), 25),
+        map.createNonOverlappingRange(24, SimpleRange.ofDouble(21, 25)));
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(23d), 25),
+        map.createNonOverlappingRange(24, SimpleRange.ofDouble(15, 25)));
+    // b lies between the anchor and the proposed upper bound, it is the right neighbor
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(20d), Math.nextDown(22d)),
+        map.createNonOverlappingRange(21, SimpleRange.ofDouble(15, 25)));
+    Assertions.assertEquals(2, map.size());
   }
 
   @Test
-  void coveredRangeThrows() {
+  void narrowPpmRangeLeftOfAnchorIsKept() {
+    // values from a PASEF MS2 merge that failed with "Proposed range ... encloses the existing
+    // range ..." when the lower bound was trimmed against the range containing it
+    final double ppm = 25;
+    final double existingLower = 566.8299813721779;
+    final double existingUpper = 566.8441523669632;
+    final double anchor = 566.8441524350776;
+    final double tolerance = anchor / 1_000_000 * ppm;
+    final SimpleDoubleRange proposed = SimpleRange.ofDouble(anchor - tolerance,
+        anchor + tolerance);
+
+    final SimpleDoubleRangeMap<String> map = new SimpleDoubleRangeMap<>();
+    map.put(SimpleRange.ofDouble(566.8, Math.nextDown(existingLower)), "left");
+    map.put(SimpleRange.ofDouble(existingLower, existingUpper), "existing");
+    Assertions.assertTrue(proposed.lower() < existingLower);
+
+    final SimpleRangeEntry<String> entry = map.putNonOverlapping(anchor, proposed, "new");
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(existingUpper), proposed.upper()),
+        entry.range());
+    Assertions.assertEquals("existing", map.get(existingUpper));
+    Assertions.assertEquals("new", map.get(anchor));
+    Assertions.assertEquals(3, map.size());
+  }
+
+  @Test
+  void invalidAnchorThrows() {
     final SimpleDoubleRangeMap<String> map = new SimpleDoubleRangeMap<>();
     map.put(SimpleRange.ofDouble(10, 20), "a");
     map.put(SimpleRange.ofDouble(Math.nextUp(20d), 30), "b");
 
-    Assertions.assertThrows(IllegalStateException.class,
+    // anchor already covered
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> map.createNonOverlappingRange(15, SimpleRange.ofDouble(12, 18)));
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> map.createNonOverlappingRange(25, SimpleRange.ofDouble(15, 35)));
+    // anchor outside the proposed range
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> map.createNonOverlappingRange(40, SimpleRange.ofDouble(31, 35)));
+  }
+
+  @Test
+  void symmetricRangeUsesCenterAsAnchor() {
+    final SimpleDoubleRangeMap<String> map = new SimpleDoubleRangeMap<>();
+    map.put(SimpleRange.ofDouble(10, 20), "a");
+    map.put(SimpleRange.ofDouble(22, 23), "b");
+
+    // center 21 lies between a and b
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(20d), Math.nextDown(22d)),
+        map.createNonOverlappingRange(SimpleRange.ofDouble(16, 26)));
+    // center 24 lies right of b, b is the left neighbor although the range starts before it
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(23d), 27),
+        map.createNonOverlappingRange(SimpleRange.ofDouble(21, 27)));
+    // no trimming needed
+    final SimpleDoubleRange free = SimpleRange.ofDouble(40, 50);
+    Assertions.assertEquals(free, map.createNonOverlappingRange(free));
+
+    final SimpleRangeEntry<String> entry = map.putNonOverlapping(SimpleRange.ofDouble(18, 32),
+        "c");
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(23d), 32), entry.range());
+    Assertions.assertEquals("c", map.get(25));
+    Assertions.assertEquals(3, map.size());
+
+    // center 15 is already covered by a
+    Assertions.assertThrows(IllegalArgumentException.class,
         () -> map.createNonOverlappingRange(SimpleRange.ofDouble(12, 18)));
-    Assertions.assertThrows(IllegalStateException.class,
-        () -> map.createNonOverlappingRange(SimpleRange.ofDouble(15, 25)));
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> map.putNonOverlapping(SimpleRange.ofDouble(12, 18), "d"));
+    Assertions.assertEquals(3, map.size());
   }
 
   @Test
@@ -146,7 +210,8 @@ class SimpleDoubleRangeMapTest {
       if (map.getEntry(center) != null) {
         continue;
       }
-      final SimpleRangeEntry<Integer> entry = map.putNonOverlapping(proposed, ranges.size());
+      final SimpleRangeEntry<Integer> entry = map.putNonOverlapping(center, proposed,
+          ranges.size());
       Assertions.assertTrue(entry.range().contains(center));
       ranges.add(entry.range());
     }
@@ -209,7 +274,7 @@ class SimpleDoubleRangeMapTest {
 
     // the freed space can be used again
     Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(20d), Math.nextDown(50d)),
-        map.putNonOverlapping(SimpleRange.ofDouble(15, 55), "d").range());
+        map.putNonOverlapping(35, SimpleRange.ofDouble(15, 55), "d").range());
     Assertions.assertEquals(List.of("a", "d", "c"),
         map.entries().stream().map(SimpleRangeEntry::value).toList());
 
@@ -244,15 +309,22 @@ class SimpleDoubleRangeMapTest {
         expected.remove(containing);
       } else if (containing == null) {
         final SimpleDoubleRange proposed = SimpleRange.ofDouble(value - 0.05, value + 0.05);
-        final boolean enclosesExisting = expected.stream().anyMatch(
-            e -> e.range().lower() > proposed.lower() && e.range().upper() < proposed.upper());
-        if (enclosesExisting) {
-          // removals can leave narrow ranges that a new proposal fully encloses
-          Assertions.assertThrows(IllegalStateException.class,
-              () -> map.putNonOverlapping(proposed, -1));
-        } else {
-          expected.add(map.putNonOverlapping(proposed, nextValue++));
+        // brute force: the gap around the value, limited to the proposed range. Removals leave
+        // narrow ranges inside the proposed range that must be kept.
+        double expectedLower = proposed.lower();
+        double expectedUpper = proposed.upper();
+        for (final SimpleRangeEntry<Integer> entry : expected) {
+          if (entry.range().upper() < value) {
+            expectedLower = Math.max(expectedLower, Math.nextUp(entry.range().upper()));
+          } else {
+            expectedUpper = Math.min(expectedUpper, Math.nextDown(entry.range().lower()));
+          }
         }
+        final SimpleRangeEntry<Integer> added = map.putNonOverlapping(value, proposed,
+            nextValue++);
+        Assertions.assertEquals(SimpleRange.ofDouble(expectedLower, expectedUpper), added.range(),
+            "put " + value);
+        expected.add(added);
       } else {
         Assertions.assertEquals(containing, map.getEntry(value), "get " + value);
       }
@@ -318,9 +390,9 @@ class SimpleDoubleRangeMapTest {
   @Test
   void entriesAreAscending() {
     final SimpleDoubleRangeMap<String> map = new SimpleDoubleRangeMap<>();
-    map.putNonOverlapping(SimpleRange.ofDouble(50, 60), "c");
-    map.putNonOverlapping(SimpleRange.ofDouble(10, 20), "a");
-    map.putNonOverlapping(SimpleRange.ofDouble(15, 30), "b");
+    map.putNonOverlapping(55, SimpleRange.ofDouble(50, 60), "c");
+    map.putNonOverlapping(15, SimpleRange.ofDouble(10, 20), "a");
+    map.putNonOverlapping(25, SimpleRange.ofDouble(15, 30), "b");
 
     Assertions.assertEquals(List.of("a", "b", "c"),
         map.entries().stream().map(SimpleRangeEntry::value).toList());
