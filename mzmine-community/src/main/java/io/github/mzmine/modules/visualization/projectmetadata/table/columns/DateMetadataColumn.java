@@ -61,7 +61,7 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
       @Nullable LocalDateTime defaultValue) {
     try {
       return input == null ? defaultValue : convertOrThrow(input);
-    } catch (DateTimeParseException ignored) {
+    } catch (DateTimeParseException | IllegalArgumentException ignored) {
       return defaultValue;
     }
   }
