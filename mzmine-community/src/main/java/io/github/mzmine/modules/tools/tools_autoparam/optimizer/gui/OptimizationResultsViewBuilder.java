@@ -213,7 +213,7 @@ public class OptimizationResultsViewBuilder extends FxViewBuilder<OptimizationRe
       buttonBar.getButtons().add(button);
     }
     if (onAcceptPressed != null) {
-      final Button button = FxButtons.createButton("Apply", FxIcons.CHECK_CIRCLE, null,
+      final Button button = FxButtons.createButton("Apply to wizard", FxIcons.CHECK_CIRCLE, null,
           onAcceptPressed);
       button.disableProperty().bind(noUsableSelection);
       buttonBar.getButtons().add(button);

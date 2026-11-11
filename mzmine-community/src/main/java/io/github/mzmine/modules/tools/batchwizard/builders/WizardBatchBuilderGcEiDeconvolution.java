@@ -170,7 +170,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     }
     makeAndAddLibrarySearchMS1Step(q, false);
 
-    if (isExportActive) {
+    if (isExportActive && exportPath != null) {
       if (exportGnps) {
         makeAndAddGnpsExportStep(q);
       }
