@@ -290,6 +290,7 @@ public class MainWindowController {
 
   @FXML
   public void initialize() {
+    MZmineTab.configureTabPane(mainTabPane);
     // do not switch panes by arrows
     mainTabPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
@@ -919,7 +920,7 @@ public class MainWindowController {
    * @param title the matching title
    */
   public void removeTab(String title) {
-    getMainTabPane().getTabs().removeIf(t -> title.equals(t.getText()));
+    getMainTabPane().getTabs().removeIf(t -> title.equals(MZmineTab.getText(t)));
   }
 
   public void addTab(Tab tab) {

@@ -31,18 +31,15 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
-import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiSpectraVisualizerTab extends MZmineTab {
 
-  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
   public MultiSpectraVisualizerTab(FeatureListRow row) {
-    super("All MS/MS of ", false, false);
-    setText("All MS/MS of " + mzFormat.format(row.getAverageMZ()));
+    super("All MS/MS of " + MZmineCore.getConfiguration().getMZFormat().format(row.getAverageMZ()),
+        false, false);
     MultiSpectraVisualizerPane content = new MultiSpectraVisualizerPane(row);
     setContent(content);
   }
