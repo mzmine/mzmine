@@ -46,7 +46,7 @@ public enum FxIcons implements IconCodeSupplier {
   ROCKET, LIGHTBULB, LIGHTBULB_FILL, METADATA_TABLE, TABLE, SPREADSHEET, GRAPH_UP,
 
   // ACTIONS
-  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH, COLLAPSE, EXPAND, GO_OFFLINE, MENU;
+  SAVE, LOAD, CANCEL, FILTER, FILTER_FILL, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH, COLLAPSE, EXPAND, GO_OFFLINE, MENU;
 
 
   @Override
@@ -92,6 +92,7 @@ public enum FxIcons implements IconCodeSupplier {
       case LOAD -> "bi-box-arrow-in-up";
       case CANCEL -> "bi-x-circle";
       case FILTER -> "bi-funnel";
+      case FILTER_FILL -> "bi-funnel-fill";
       case CLEAR -> "bi-dash-circle-dotted";
       case START -> "bi-play-circle";
       case STOP -> "bi-stop-circle";
