@@ -109,8 +109,6 @@
                                 text="Show MS/MS scatter plot"/>
 
                               <SeparatorMenuItem/>
-                              <MenuItem onAction="#handleRawDataSort"
-                                text="Sort alphabetically"/>
                               <MenuItem onAction="#handleShowFileSummary"
                                 text="Show file summary (Applied methods)"/>
 
@@ -127,8 +125,11 @@
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
                               <MenuItem onAction="#handleColorByMetadata" text="Color by metadata"/>
                               <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleRawDataSort"
+                                text="Sort alphabetically"/>
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
+                              <SeparatorMenuItem/>
                               <MenuItem onAction="#handleRenameRawDataGroup"
                                 text="Rename group" fx:id="rawDataRenameGroupMenuItem"
                                 disable="true"/>
