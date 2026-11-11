@@ -94,7 +94,7 @@
                               <MenuItem onAction="#handleShowRawDataOverview"
                                 text="Show raw data overview"/>
                               <MenuItem onAction="#handleShowRawDataSummary"
-                                text="Show raw data summary"/>
+                                text="Show raw data summary (statistics)"/>
                               <MenuItem onAction="#handleShowIMSDataOverview"
                                 text="Show ion mobility raw data overview"/>
 
@@ -112,7 +112,7 @@
                               <MenuItem onAction="#handleRawDataSort"
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleShowFileSummary"
-                                text="Show file summary"/>
+                                text="Show file summary (Applied methods)"/>
 
                               <SeparatorMenuItem/>
                               <Menu text="Raw data export">
@@ -123,19 +123,19 @@
                                   text="Export scans mgf, txt, msp and mzML"
                                   userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
                               </Menu>
+                              <SeparatorMenuItem/>
+                              <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
+                              <MenuItem onAction="#handleColorByMetadata" text="Color by metadata"/>
+                              <SeparatorMenuItem/>
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
+                              <MenuItem onAction="#handleRenameRawDataGroup"
+                                text="Rename group" fx:id="rawDataRenameGroupMenuItem"
+                                disable="true"/>
                               <MenuItem onAction="#handleGroupRawDataFiles"
                                 text="Group files" fx:id="rawDataGroupMenuItem"/>
                               <MenuItem onAction="#handleUngroupRawDataFiles"
                                 text="Ungroup files" fx:id="rawDataUngroupMenuItem"/>
-                              <MenuItem onAction="#handleRenameRawDataGroup"
-                                text="Rename group" fx:id="rawDataRenameGroupMenuItem"
-                                disable="true"/>
-
-                              <SeparatorMenuItem/>
-                              <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
-                              <MenuItem onAction="#handleColorByMetadata" text="Color by metadata"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
@@ -165,10 +165,15 @@
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>
-                              <MenuItem onAction="#handleRenameFeatureList"
-                                text="Rename feature list" fx:id="featureListsRenameMenuItem"/>
                               <MenuItem onAction="#handleRemoveFeatureList"
                                 text="Remove feature list" fx:id="featureListsRemoveMenuItem"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleRenameFeatureList"
+                                text="Rename feature list" fx:id="featureListsRenameMenuItem"/>
+                              <MenuItem onAction="#handleGroupFeatureLists"
+                                text="Group feature lists"/>
+                              <MenuItem onAction="#handleUngroupFeatureLists"
+                                text="Ungroup feature lists"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
