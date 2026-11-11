@@ -42,8 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link SimpleDoubleRange}s. Open bounds are not needed, because doubles are discrete: an open
  * bound {@code (b} is equivalent to the closed bound {@code [Math.nextUp(b)}. Ranges that are
  * created by {@link #putNonOverlapping(double, SimpleDoubleRange, Object)} are therefore seamless
- * to their
- * neighbors.
+ * to their neighbors.
  * <p>
  * Backed by an AVL tree keyed by the lower bound of each range. The tree is stored in parallel
  * primitive arrays, so lookups do not box keys, do not allocate and do not dereference node
@@ -111,12 +110,12 @@ public class SimpleDoubleRangeMap<V> {
    * ranges that lie within the proposed range but beyond a neighbor of the anchor are not
    * overwritten, the result is cut at the neighbor instead.
    *
-   * @param anchor   a value that is not covered by any range of this map, e.g., the m/z of the
-   *                 data point that proposes the range. The result always contains it.
+   * @param anchor   a value that is not covered by any range of this map, e.g., the m/z of the data
+   *                 point that proposes the range. The result always contains it.
    * @param proposed the proposed range, must contain the anchor
    * @return the trimmed range
-   * @throws IllegalArgumentException if the anchor is outside the proposed range or already
-   *                                  covered by a range of this map
+   * @throws IllegalArgumentException if the anchor is outside the proposed range or already covered
+   *                                  by a range of this map
    */
   @NotNull
   public SimpleDoubleRange createNonOverlappingRange(final double anchor,
@@ -155,11 +154,63 @@ public class SimpleDoubleRangeMap<V> {
   }
 
   /**
-   * Trims the proposed range with {@link #createNonOverlappingRange(double, SimpleDoubleRange)}
-   * and maps the trimmed range to the value.
+   * Trims a range that is symmetric around the value that proposes it, e.g., a tolerance range
+   * around an m/z. Uses the center of the range as anchor for
+   * {@link #createNonOverlappingRange(double, SimpleDoubleRange)}, see there for the trimming.
+   * <p>
+   * The center is recalculated from the bounds, so it may differ from the original value by a
+   * rounding error. If the original value is at hand, prefer
+   * {@link #createNonOverlappingRange(double, SimpleDoubleRange)} with that value as anchor: a
+   * neighboring range may end between the original value and the recalculated center.
+   *
+   * @param symmetricRange a range that is symmetric around a value that is not covered by any range
+   *                       of this map
+   * @return the trimmed range
+   * @throws IllegalArgumentException if the center of the range is already covered by a range of
+   *                                  this map
+   */
+  @NotNull
+  public SimpleDoubleRange createNonOverlappingRange(
+      @NotNull final SimpleDoubleRange symmetricRange) {
+    return createNonOverlappingRange(center(symmetricRange), symmetricRange);
+  }
+
+  /**
+   * Trims a range that is symmetric around the value that proposes it with
+   * {@link #createNonOverlappingRange(SimpleDoubleRange)} and maps the trimmed range to the value.
+   * If the original value is at hand, prefer
+   * {@link #putNonOverlapping(double, SimpleDoubleRange, Object)} with that value as anchor.
+   *
+   * @param symmetricRange a range that is symmetric around a value that is not covered by any range
+   *                       of this map
+   * @param value          the value to map
+   * @return the new entry with the trimmed range
+   * @throws IllegalArgumentException if the center of the range is already covered by a range of
+   *                                  this map
+   */
+  @NotNull
+  public SimpleRangeEntry<V> putNonOverlapping(@NotNull final SimpleDoubleRange symmetricRange,
+      final V value) {
+    return putNonOverlapping(center(symmetricRange), symmetricRange, value);
+  }
+
+  /**
+   * @param range the range
+   * @return the center between the bounds of the range
+   */
+  private static double center(@NotNull final SimpleDoubleRange range) {
+    return (range.lower() + range.upper()) / 2;
+  }
+
+  /**
+   * Trims the proposed range with {@link #createNonOverlappingRange(double, SimpleDoubleRange)} and
+   * maps the trimmed range to the value.
    *
    * @param anchor   a value that is not covered by any range of this map and contained in the
-   *                 proposed range
+   *                 proposed range. If multiple neighbouring ranges exist, e.g., [10,20] and
+   *                 [22,23] and a proposed [15,30]:
+   *                 <p>
+   *                 anchor 21 gives (20, 22) anchor 25 gives (23, 30]
    * @param proposed the proposed range
    * @param value    the value to map
    * @return the new entry with the trimmed range

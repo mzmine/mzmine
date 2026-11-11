@@ -153,6 +153,36 @@ class SimpleDoubleRangeMapTest {
   }
 
   @Test
+  void symmetricRangeUsesCenterAsAnchor() {
+    final SimpleDoubleRangeMap<String> map = new SimpleDoubleRangeMap<>();
+    map.put(SimpleRange.ofDouble(10, 20), "a");
+    map.put(SimpleRange.ofDouble(22, 23), "b");
+
+    // center 21 lies between a and b
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(20d), Math.nextDown(22d)),
+        map.createNonOverlappingRange(SimpleRange.ofDouble(16, 26)));
+    // center 24 lies right of b, b is the left neighbor although the range starts before it
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(23d), 27),
+        map.createNonOverlappingRange(SimpleRange.ofDouble(21, 27)));
+    // no trimming needed
+    final SimpleDoubleRange free = SimpleRange.ofDouble(40, 50);
+    Assertions.assertEquals(free, map.createNonOverlappingRange(free));
+
+    final SimpleRangeEntry<String> entry = map.putNonOverlapping(SimpleRange.ofDouble(18, 32),
+        "c");
+    Assertions.assertEquals(SimpleRange.ofDouble(Math.nextUp(23d), 32), entry.range());
+    Assertions.assertEquals("c", map.get(25));
+    Assertions.assertEquals(3, map.size());
+
+    // center 15 is already covered by a
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> map.createNonOverlappingRange(SimpleRange.ofDouble(12, 18)));
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> map.putNonOverlapping(SimpleRange.ofDouble(12, 18), "d"));
+    Assertions.assertEquals(3, map.size());
+  }
+
+  @Test
   void putRejectsOverlap() {
     final SimpleDoubleRangeMap<String> map = new SimpleDoubleRangeMap<>();
     map.put(SimpleRange.ofDouble(10, 20), "a");
