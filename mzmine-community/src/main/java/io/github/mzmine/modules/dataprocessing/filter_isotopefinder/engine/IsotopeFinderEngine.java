@@ -152,7 +152,10 @@ public class IsotopeFinderEngine {
   }
 
   /**
-   * Detect the isotope pattern and charge on a single spectrum.
+   * Detect the isotope pattern and charge on a single spectrum. Normalizes to the feature height if
+   * the spectrum is a single {@link MobilityScan}; see
+   * {@link #detect(MassSpectrum, double, double, PolarityType, boolean)} for spectra that only cover
+   * a part of the feature without being a mobility scan themselves.
    *
    * @param spectrum the spectrum to search (most intense scan / best mobility scan).
    * @param mz       the searched signal m/z (feature m/z).
@@ -162,6 +165,20 @@ public class IsotopeFinderEngine {
    */
   public @Nullable DetectionResult detect(@Nullable final MassSpectrum spectrum, final double mz,
       final double height, @NotNull final PolarityType polarity) {
+    return detect(spectrum, mz, height, polarity, spectrum instanceof MobilityScan);
+  }
+
+  /**
+   * @param normalizeToHeight rescale all candidate intensities so the searched signal matches
+   *                          {@code height}. Needed whenever the spectrum covers only a part of the
+   *                          feature - a single mobility scan, or mobility scans merged over the
+   *                          mobility FWHM - so the reported pattern is on the feature's intensity
+   *                          scale. Scoring itself is scale invariant, every term is relative to
+   *                          the base peak.
+   * @see #detect(MassSpectrum, double, double, PolarityType)
+   */
+  public @Nullable DetectionResult detect(@Nullable final MassSpectrum spectrum, final double mz,
+      final double height, @NotNull final PolarityType polarity, final boolean normalizeToHeight) {
     if (spectrum == null || spectrum.getNumberOfDataPoints() == 0) {
       return null;
     }
@@ -176,7 +193,7 @@ public class IsotopeFinderEngine {
       }
       List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(diffs, maxDiff[i], tol,
           spectrum, featureDp);
-      if (spectrum instanceof MobilityScan && !candidates.isEmpty()) {
+      if (normalizeToHeight && !candidates.isEmpty()) {
         candidates = normalizeImsIntensities(candidates, spectrum, featureDp);
       }
       // necessary condition only; the real gate is on distinct 13C-grid offsets in scoreCharge
