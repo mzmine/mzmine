@@ -47,6 +47,11 @@ edge.STRUCTURE_TANIMOTO {
   /*stroke-width: 1.5px;*/
   /*stroke-mode: dots;*/
 }
+edge.ISOTOPE_LABELING {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #7fe0d6, #1fb5a8, #12786f, #0a4a44;
+}
 edge.OTHER {
   size-mode: dyn-size;
   fill-mode: dyn-plain;

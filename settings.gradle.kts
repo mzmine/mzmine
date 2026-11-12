@@ -32,12 +32,10 @@ pluginManagement {
     includeBuild("convention-plugins")
 }
 
-// this should not be needed but can remove later once stable
-//plugins {
-// this resolution should not be needed if we do not force a specific JDK
-// github actions already have their own jdk defined
-//    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-//}
+plugins {
+    // allows Gradle to auto-download the JDK required by the toolchain (see libs.versions.toml: jdk)
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 
 rootProject.name = "mzmine"
 include(

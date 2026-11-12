@@ -34,7 +34,7 @@ import java.util.Optional;
  */
 public enum EdgeType implements ElementType {
 
-  FEATURE_SHAPE_CORRELATION, MOBILITY_FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, MS2Deepscore, DREAMS, STRUCTURE_TANIMOTO, ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, OTHER;
+  FEATURE_SHAPE_CORRELATION, MOBILITY_FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, MS2Deepscore, DREAMS, STRUCTURE_TANIMOTO, ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, ISOTOPE_LABELING, OTHER;
 
   public static EdgeType of(String type) {
     if (type == null || type.isBlank()) {
@@ -56,6 +56,7 @@ public enum EdgeType implements ElementType {
       case MS2Deepscore -> MS2Deepscore;
       case DREAMS -> DREAMS;
       case STRUCTURE_TANIMOTO -> STRUCTURE_TANIMOTO;
+      case ISOTOPE_LABELING_SIM -> ISOTOPE_LABELING;
       case ANALOG_COSINE -> ANALOG_MS2_COSINE;
       case ANALOG_DREAMS -> ANALOG_DreaMS;
       case ANALOG_MS2DEEPSCORE -> ANALOG_MS2Deepscore;
@@ -76,6 +77,7 @@ public enum EdgeType implements ElementType {
       case MS2Deepscore -> Type.MS2Deepscore;
       case DREAMS -> Type.DREAMS;
       case STRUCTURE_TANIMOTO -> Type.STRUCTURE_TANIMOTO;
+      case ISOTOPE_LABELING -> Type.ISOTOPE_LABELING_SIM;
 
       // analog edges are not row-row relationships and have no real R2R type counterpart, but we need an enum value
       case ANALOG_DreaMS -> Type.ANALOG_DREAMS;
@@ -90,7 +92,7 @@ public enum EdgeType implements ElementType {
   public static List<EdgeType> getDefaultVisibleColumns() {
     return List.of(ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
         MS2Deepscore, DREAMS, STRUCTURE_TANIMOTO, ANALOG_MS2_COSINE, ANALOG_MS2Deepscore,
-        ANALOG_DreaMS, OTHER);
+        ANALOG_DreaMS, ISOTOPE_LABELING, OTHER);
   }
 
   @Override
@@ -116,6 +118,7 @@ public enum EdgeType implements ElementType {
       case MS2Deepscore -> "MS2Deepscore";
       case DREAMS -> "DreaMS";
       case STRUCTURE_TANIMOTO -> "STRUCTURE_TANIMOTO";
+      case ISOTOPE_LABELING -> "ISOTOPE_LABELING";
       case ANALOG_MS2_COSINE -> "ANALOG_COSINE";
       case ANALOG_MS2Deepscore -> "ANALOG_MS2Deepscore";
       case ANALOG_DreaMS -> "ANALOG_DreaMS";
