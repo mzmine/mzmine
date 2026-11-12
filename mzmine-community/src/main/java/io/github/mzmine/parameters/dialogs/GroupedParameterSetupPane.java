@@ -130,7 +130,7 @@ public class GroupedParameterSetupPane extends BorderPane {
     groupViewButton.selectedProperty()
         .subscribe((_, nv) -> viewType.set(nv ? GroupView.GROUPED : GroupView.SINGLE_LIST));
 
-    final FontIcon funnel = FxIconUtil.getFontIcon(FxIcons.FILTER_FILL, 15);
+    final FontIcon funnel = FxIconUtil.getFontIcon(FxIcons.FILTER, 15);
     final HBox searchBar = newHBox(groupViewButton, funnel, searchField);
     HBox.setHgrow(searchField, Priority.ALWAYS);
 
