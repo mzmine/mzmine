@@ -31,7 +31,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
@@ -196,12 +195,12 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
   protected void makeAndImageBuilderStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ImageBuilderModule.class).cloneParameterSet();
-    param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
+    param.setParameter(ImageBuilderParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
-    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
-    param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
-    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minFeatureHeight);
+    param.setParameter(ImageBuilderParameters.scanSelection, new ScanSelection(1));
+    param.setParameter(ImageBuilderParameters.mzTolerance, mzTolScans);
+    param.setParameter(ImageBuilderParameters.minHighest, minFeatureHeight);
     param.setParameter(ImageBuilderParameters.minimumConsecutiveScans, 5);
     param.setParameter(ImageBuilderParameters.minTotalSignals, minNumberOfPixels);
     param.setParameter(ImageBuilderParameters.suffix, "images");

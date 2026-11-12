@@ -116,6 +116,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionMod
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.tools.tools_autoparam.AutoParamDashboardModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram_comparison.ChromatogramComparisonModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
@@ -354,7 +355,8 @@ public abstract class AbstractWorkspace implements Workspace {
         FeatureCorrelationHistogramModule.class);
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, ScatterPlotVisualizerModule.class,
-        FeatureHistogramPlotModule.class, IntensityPlotModule.class);
+        FeatureHistogramPlotModule.class, IntensityPlotModule.class,
+        ChromatogramComparisonModule.class);
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
         MassvoltammogramFromFeatureListModule.class);

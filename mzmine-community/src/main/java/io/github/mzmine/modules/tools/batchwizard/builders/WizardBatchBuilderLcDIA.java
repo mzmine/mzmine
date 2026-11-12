@@ -112,7 +112,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
-    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
+    makeAndAddChromatogramBuilderStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
         minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
