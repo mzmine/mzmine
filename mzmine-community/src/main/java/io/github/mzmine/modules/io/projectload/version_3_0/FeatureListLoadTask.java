@@ -401,15 +401,15 @@ public class FeatureListLoadTask extends AbstractTask {
     if (key == null) {
       return null;
     }
-    final OtherFeatureListRow row = new OtherFeatureListRow(id, key);
+    final OtherFeatureListRow row = new OtherFeatureListRow(ofl, id, key);
     for (final OtherFeature feature : features) {
       try {
-        row.addFeature(feature);
+        // also recomputes row RT / RT range from the loaded features
+        row.setFeature(feature);
       } catch (IllegalArgumentException e) {
         logger.log(Level.WARNING, "Skipping other feature with mismatching trace key on load", e);
       }
     }
-    ofl.applyRowBindings(row); // recompute row RT / RT range from the loaded features
     return row;
   }
 

@@ -29,6 +29,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureToOtherRowPair;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationMaps;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
@@ -54,18 +59,42 @@ public final class OtherFeatureListUtils {
   }
 
   /**
-   * Creates a copy of a row: same ID and {@link OtherFeatureListRow#getTraceKey()}, copies of the
-   * features ({@link OtherFeature#copy()}) and a copy of the row values. Changes to the rows or
-   * features of one list therefore never leak into another list.
+   * Creates an empty aligned other feature list for an MS feature list, with the raw data files of
+   * the MS list and the core per-feature columns registered first for a stable column order. Row
+   * level RT columns are registered by the default row bindings. The list is not attached to the MS
+   * feature list.
    *
-   * @param row the row to copy
+   * @param flist   the MS feature list the other features are aligned for
+   * @param storage the storage for the data of the new list, may be null to store in RAM
+   * @return the new, empty list
+   */
+  @NotNull
+  public static OtherFeatureList createEmptyAlignedList(@NotNull final ModularFeatureList flist,
+      @Nullable final MemoryMapStorage storage) {
+    final OtherFeatureList ofl = new OtherFeatureList(flist.getName() + " other features", storage,
+        flist.getRawDataFiles());
+    ofl.addFeatureType(new OtherFeatureDataType(), new ChromatogramTypeType(), new WavelengthType(),
+        new RTType(), new RTRangeType());
+    return ofl;
+  }
+
+  /**
+   * Creates a copy of a row for another list: same ID and {@link OtherFeatureListRow#getTraceKey()},
+   * copies of the features ({@link OtherFeature#copy()}) and a copy of the row values. Changes to the
+   * rows or features of one list therefore never leak into another list. The copy is not added to
+   * the target list.
+   *
+   * @param row    the row to copy
+   * @param target the list the copy belongs to
    * @return the new row
    */
   @NotNull
-  public static OtherFeatureListRow copyRow(@NotNull final OtherFeatureListRow row) {
-    final OtherFeatureListRow copy = new OtherFeatureListRow(row.getID(), row.getTraceKey());
+  public static OtherFeatureListRow copyRow(@NotNull final OtherFeatureListRow row,
+      @NotNull final OtherFeatureList target) {
+    final OtherFeatureListRow copy = new OtherFeatureListRow(target, row.getID(),
+        row.getTraceKey());
     for (final OtherFeature feature : row.getFeatures()) {
-      copy.addFeature(feature.copy());
+      copy.setFeature(feature.copy());
     }
     copy.getMap().putAll(row.getMap());
     return copy;
@@ -73,7 +102,7 @@ public final class OtherFeatureListUtils {
 
   /**
    * Creates a copy of an aligned other feature list for a copied MS feature list. Rows are copied
-   * with {@link #copyRow(OtherFeatureListRow)} and keep their IDs. The MS-to-other correlations are
+   * with {@link #copyRow(OtherFeatureListRow, OtherFeatureList)} and keep their IDs. The MS-to-other correlations are
    * copied with remapped MS row IDs, correlations of MS rows without mapping are dropped.
    *
    * @param source           the list to copy
@@ -93,7 +122,7 @@ public final class OtherFeatureListUtils {
     copy.addRowType(source.getRowTypes().toArray(DataType[]::new));
     copy.addFeatureType(source.getFeatureTypes().toArray(DataType[]::new));
     for (final OtherFeatureListRow row : source.getRows()) {
-      copy.addRow(copyRow(row));
+      copy.addRow(copyRow(row, copy));
     }
     copy.setRowIdCounter(source.getRowIdCounter());
     return copy;

@@ -89,10 +89,10 @@ class OtherFeatureListTest {
 
     final TraceKey key = TraceKey.of(a1);
     otherRow1 = ofl.createRow(key);
-    otherRow1.addFeature(a1);
-    otherRow1.addFeature(b1);
+    otherRow1.setFeature(a1);
+    otherRow1.setFeature(b1);
     otherRow2 = ofl.createRow(key);
-    otherRow2.addFeature(a2);
+    otherRow2.setFeature(a2);
     ofl.applyRowBindings(otherRow1);
     ofl.applyRowBindings(otherRow2);
     ofl.addRow(otherRow1);
@@ -134,7 +134,7 @@ class OtherFeatureListTest {
 
     // rows added with existing IDs (load, copy) raise the counter
     final OtherFeatureList loaded = new OtherFeatureList("loaded", null, List.of(fileA));
-    loaded.addRow(new OtherFeatureListRow(7, otherRow1.getTraceKey()));
+    loaded.addRow(new OtherFeatureListRow(loaded, 7, otherRow1.getTraceKey()));
     Assertions.assertEquals(7, loaded.getRowIdCounter());
     Assertions.assertEquals(8, loaded.createRow(otherRow1.getTraceKey()).getID());
 
@@ -145,7 +145,7 @@ class OtherFeatureListTest {
     Assertions.assertEquals(20, loaded.getRowIdCounter());
 
     Assertions.assertThrows(IllegalArgumentException.class,
-        () -> loaded.addRow(new OtherFeatureListRow(7, otherRow1.getTraceKey())));
+        () -> loaded.addRow(new OtherFeatureListRow(loaded, 7, otherRow1.getTraceKey())));
   }
 
   @Test

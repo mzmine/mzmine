@@ -43,8 +43,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,6 +57,9 @@ import org.jetbrains.annotations.Nullable;
  * {@link ModularFeatureList} (see {@code ModularFeatureList#getAlignedOtherFeatures()}). It does not
  * share the {@code FeatureList} interface (that interface mixes in MS-specific queries); a thin,
  * DataType-driven exporter reuses the generic export pattern instead.
+ * <p>
+ * Not thread-safe: the list and its rows may be read from several threads, but edits (e.g., manual
+ * edits in the correlation dashboard) must not run concurrently with other edits or reads.
  */
 public class OtherFeatureList {
 
@@ -74,9 +75,9 @@ public class OtherFeatureList {
    */
   private final MsOtherCorrelationMaps msOtherCorrelationMaps;
 
-  private final ObservableList<OtherFeatureListRow> rows = FXCollections.observableArrayList();
-  private final ObservableList<OtherFeatureListRow> rowsUnmodifiableView = FXCollections.unmodifiableObservableList(
-      rows);
+  // decision: a plain list, nothing observes the rows. Edits and reads must not run concurrently.
+  private final List<OtherFeatureListRow> rows = new ArrayList<>();
+  private final List<OtherFeatureListRow> rowsUnmodifiableView = Collections.unmodifiableList(rows);
   // index for fast lookups by row ID (used on hot paths: table cells, export, dashboard)
   private final Map<Integer, OtherFeatureListRow> rowsById = new HashMap<>();
 
@@ -161,8 +162,11 @@ public class OtherFeatureList {
     return rawDataFiles.size();
   }
 
+  /**
+   * @return an unmodifiable view of the rows
+   */
   @NotNull
-  public ObservableList<OtherFeatureListRow> getRows() {
+  public List<OtherFeatureListRow> getRows() {
     return rowsUnmodifiableView;
   }
 
@@ -180,8 +184,14 @@ public class OtherFeatureList {
    * {@link #createRow(TraceKey)}.
    *
    * @param row the row to add, its ID must be unique in this list
+   * @throws IllegalArgumentException if the ID exists or the row belongs to another list
    */
   public void addRow(final @NotNull OtherFeatureListRow row) {
+    if (row.getOtherFeatureList() != this) {
+      throw new IllegalArgumentException(
+          "Row %d belongs to other feature list %s, not %s".formatted(row.getID(),
+              row.getOtherFeatureList().getName(), name));
+    }
     final OtherFeatureListRow previous = rowsById.putIfAbsent(row.getID(), row);
     if (previous != null) {
       throw new IllegalArgumentException(
@@ -242,11 +252,14 @@ public class OtherFeatureList {
   }
 
   /**
-   * Convenience: create (but do not add) a new row with a fresh ID for the given trace key.
+   * Creates (but does not add) a new row of this list with a fresh ID.
+   *
+   * @param traceKey the trace key of the new row
+   * @return the new, empty row
    */
   @NotNull
   public OtherFeatureListRow createRow(final @NotNull TraceKey traceKey) {
-    return new OtherFeatureListRow(nextRowId(), traceKey);
+    return new OtherFeatureListRow(this, nextRowId(), traceKey);
   }
 
   public void addRowType(final @NotNull DataType<?>... types) {

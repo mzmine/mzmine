@@ -48,20 +48,43 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * The row is a {@link ModularDataModel} (map-based, like {@link OtherFeatureImpl}) so that
  * DataType-driven machinery (export, table) can read row-level values (e.g. {@link RTType}) through
- * the generic {@code get(DataType)} API. The per-file {@link OtherFeature}s continue to live in their
- * {@link OtherTimeSeriesData} — this row only references them, it does not own them.
+ * the generic {@code get(DataType)} API. The row owns its per-file {@link OtherFeature}s: they are
+ * copies of the processed features in {@link OtherTimeSeriesData}, so re-processing the raw data
+ * does not change the aligned list.
+ * <p>
+ * Each row belongs to exactly one {@link OtherFeatureList}. Setting or removing a feature registers
+ * the feature types in that list and re-applies its row bindings. Not thread-safe.
  */
 public class OtherFeatureListRow extends ModularDataModelMap {
 
   private final Map<DataType, Object> map = new LinkedHashMap<>();
   private final Map<RawDataFile, OtherFeature> features = new LinkedHashMap<>();
 
+  private final @NotNull OtherFeatureList otherFeatureList;
   private final int id;
   private final @NotNull TraceKey traceKey;
 
-  public OtherFeatureListRow(final int id, final @NotNull TraceKey traceKey) {
+  /**
+   * Creates an empty row. Use {@link OtherFeatureList#createRow(TraceKey)} to get a fresh ID. The
+   * row is not added to the list.
+   *
+   * @param otherFeatureList the list this row belongs to
+   * @param id               the row ID, unique within the list
+   * @param traceKey         the trace key of all features of this row
+   */
+  public OtherFeatureListRow(final @NotNull OtherFeatureList otherFeatureList, final int id,
+      final @NotNull TraceKey traceKey) {
+    this.otherFeatureList = otherFeatureList;
     this.id = id;
     this.traceKey = traceKey;
+  }
+
+  /**
+   * @return the list this row belongs to
+   */
+  @NotNull
+  public OtherFeatureList getOtherFeatureList() {
+    return otherFeatureList;
   }
 
   @Override
@@ -79,19 +102,44 @@ public class OtherFeatureListRow extends ModularDataModelMap {
   }
 
   /**
-   * Places the given feature in this row's cell for its raw data file. The feature's own
-   * {@link TraceKey} must equal this row's key (the alignment gate).
+   * Places the given feature in this row's cell for its raw data file and replaces the previous
+   * feature of that file. The feature's own {@link TraceKey} must equal this row's key (the
+   * alignment gate). The feature types are registered in the {@link OtherFeatureList} and the row
+   * bindings are re-applied. The feature is stored as is, pass a copy if it is also used elsewhere,
+   * e.g., in {@link OtherTimeSeriesData}.
    *
+   * @param feature the feature to set
+   * @return the replaced feature of the same raw data file or null if the cell was empty
    * @throws IllegalArgumentException if the feature's {@link TraceKey} does not match this row
    */
-  public void addFeature(final @NotNull OtherFeature feature) {
+  @Nullable
+  public OtherFeature setFeature(final @NotNull OtherFeature feature) {
     final TraceKey featureKey = TraceKey.of(feature);
     if (!traceKey.equals(featureKey)) {
       throw new IllegalArgumentException(
           "Cannot add feature with trace key %s to row of trace key %s".formatted(featureKey,
               traceKey));
     }
-    features.put(feature.getRawDataFile(), feature);
+    final OtherFeature previous = features.put(feature.getRawDataFile(), feature);
+    otherFeatureList.addFeatureType(feature.getTypes().toArray(DataType[]::new));
+    otherFeatureList.applyRowBindings(this);
+    return previous;
+  }
+
+  /**
+   * Removes the feature of a raw data file from this row and re-applies the row bindings. The row
+   * stays in its list even if it is empty afterwards.
+   *
+   * @param file the raw data file
+   * @return the removed feature or null if the row had no feature for this file
+   */
+  @Nullable
+  public OtherFeature removeFeature(final @NotNull RawDataFile file) {
+    final OtherFeature removed = features.remove(file);
+    if (removed != null) {
+      otherFeatureList.applyRowBindings(this);
+    }
+    return removed;
   }
 
   @Nullable
