@@ -148,24 +148,92 @@ public class MsOtherCorrelationMaps {
   }
 
   /**
-   * Removes the correlation between an MS row and an aligned other-row for one file. If the link has
-   * no remaining files it is dropped entirely.
+   * Removes the correlation between an MS row and an aligned other-row for one file. The other
+   * feature stays in the aligned row, so this file changes from correlated to only aligned. The link
+   * keeps its position, so the preferred (first) trace does not change. Only when the link is not
+   * correlated in any file anymore, the whole link to the other-row is removed.
+   *
+   * @param msRowId    the MS row ID
+   * @param otherRowId the aligned other-row ID
+   * @param file       the raw data file to remove the correlation for
    */
   public void removeCorrelation(final int msRowId, final int otherRowId,
       final @NotNull RawDataFile file) {
     final List<OtherCorrelationLink> current = new ArrayList<>(getCorrelations(msRowId));
-    final OtherCorrelationLink existing = current.stream()
-        .filter(l -> l.otherRowId() == otherRowId).findFirst().orElse(null);
-    if (existing == null) {
+    int idx = -1;
+    for (int i = 0; i < current.size(); i++) {
+      if (current.get(i).otherRowId() == otherRowId) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx < 0) {
       return;
     }
-    current.remove(existing);
-    final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>(existing.perFile());
+    final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>(
+        current.get(idx).perFile());
     perFile.remove(file);
-    if (!perFile.isEmpty()) {
-      current.add(new OtherCorrelationLink(otherRowId, perFile));
+    if (perFile.isEmpty()) {
+      // decision: not correlated in any file anymore - drop the whole link to this other-row
+      current.remove(idx);
+    } else {
+      // replace in place to keep the preference order
+      current.set(idx, new OtherCorrelationLink(otherRowId, perFile));
     }
     setCorrelations(msRowId, current);
+  }
+
+  /**
+   * Creates a copy of these maps with the MS row IDs (keys) remapped. Other-row IDs are not
+   * changed. MS rows without a mapping are dropped. The link lists and links are immutable (lists
+   * are stored via {@link List#copyOf(java.util.Collection)}, which returns an already unmodifiable
+   * list as is) and are therefore shared with the copy instead of being copied. Changes always
+   * replace a whole list, so the copy and this instance stay independent.
+   *
+   * @param oldToNewMsRowIds old MS row ID -> new MS row ID
+   * @return a new, independent instance
+   */
+  @NotNull
+  public MsOtherCorrelationMaps createCopyWithRemappedMsRowIds(
+      final @NotNull Map<Integer, Integer> oldToNewMsRowIds) {
+    final MsOtherCorrelationMaps copy = new MsOtherCorrelationMaps();
+    for (final Map.Entry<Integer, List<OtherCorrelationLink>> entry : byMsRow.entrySet()) {
+      final Integer newMsRowId = oldToNewMsRowIds.get(entry.getKey());
+      if (newMsRowId != null) {
+        copy.setCorrelations(newMsRowId, entry.getValue());
+      }
+    }
+    return copy;
+  }
+
+  /**
+   * Keeps only the correlations of the given MS rows, e.g., after rows were removed from the MS
+   * feature list. The reverse index is updated.
+   *
+   * @param msRowIds the MS row IDs to keep
+   */
+  public void retainMsRows(final @NotNull Set<Integer> msRowIds) {
+    for (final Integer msRowId : List.copyOf(byMsRow.keySet())) {
+      if (!msRowIds.contains(msRowId)) {
+        clear(msRowId);
+      }
+    }
+  }
+
+  /**
+   * Removes all links to an aligned other-row, e.g., when the other-row is removed from its
+   * {@link OtherFeatureList}. The order of the remaining links (preference) is kept, MS rows
+   * without remaining links are dropped.
+   *
+   * @param otherRowId the ID of the removed other-row
+   */
+  public void removeOtherRow(final int otherRowId) {
+    // copy, setCorrelations changes the reverse index
+    for (final Integer msRowId : List.copyOf(getMsRowsForOtherRow(otherRowId))) {
+      final List<OtherCorrelationLink> remaining = getCorrelations(msRowId).stream()
+          .filter(link -> link.otherRowId() != otherRowId).toList();
+      setCorrelations(msRowId, remaining);
+    }
   }
 
   /**

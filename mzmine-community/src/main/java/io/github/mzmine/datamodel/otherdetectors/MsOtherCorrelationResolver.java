@@ -64,7 +64,8 @@ public final class MsOtherCorrelationResolver {
         continue;
       }
       final PerFileCorrelation pfc = entry.getValue();
-      perFileResults.add(new CorrelatedOtherFeature(feature, pfc.origin(), pfc.pearson()));
+      perFileResults.add(
+          new CorrelatedOtherFeature(otherRow, feature, pfc.origin(), pfc.pearson()));
     }
     return new MsOtherCorrelationRowResult(link.otherRowId(), otherRow, bestCorrelation(link),
         perFileResults);
@@ -132,7 +133,8 @@ public final class MsOtherCorrelationResolver {
     // aligned into this file but not correlated here - derived ALIGNED status, not stored
     final OtherFeature feature = preferred.otherRow().getFeature(file);
     return feature == null ? null
-        : new CorrelatedOtherFeature(feature, MsOtherCorrelationType.ALIGNED, null);
+        : new CorrelatedOtherFeature(preferred.otherRow(), feature, MsOtherCorrelationType.ALIGNED,
+            null);
   }
 
   /**

@@ -58,6 +58,7 @@ import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.OtherFeatureListUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.time.Instant;
@@ -564,6 +565,8 @@ public class ModularFeatureList implements FeatureList {
     }
 
     featureListRows.setAll(rows);
+    // rows that are not in the new set were removed (e.g., duplicate filter, isotope grouper)
+    OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this);
     applyRowBindings();
 
     // sorting
@@ -670,12 +673,17 @@ public class ModularFeatureList implements FeatureList {
     }
     detachFromCompoundListIfPresent(List.of(row));
     compoundListPropagationInFlight = true;
+    final boolean removed;
     try {
-      featureListRows.remove(row);
+      removed = featureListRows.remove(row);
     } finally {
       compoundListPropagationInFlight = false;
     }
     NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
+    if (removed) {
+      // the removed row is known, only drop its correlations
+      OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this, List.of(row));
+    }
   }
 
   /**
@@ -694,7 +702,8 @@ public class ModularFeatureList implements FeatureList {
     if (rowNum < 0 || rowNum >= featureListRows.size()) {
       return;
     }
-    detachFromCompoundListIfPresent(List.of(featureListRows.get(rowNum)));
+    final FeatureListRow row = featureListRows.get(rowNum);
+    detachFromCompoundListIfPresent(List.of(row));
     compoundListPropagationInFlight = true;
     try {
       featureListRows.remove(rowNum);
@@ -702,6 +711,7 @@ public class ModularFeatureList implements FeatureList {
       compoundListPropagationInFlight = false;
     }
     NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
+    OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this, List.of(row));
   }
 
   /**
@@ -727,8 +737,11 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
-    // a later row that reuses a removed row ID must not get its normalization factor
+    // a later row that reuses a removed row ID must not get its normalization factor or correlations
     NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
+    // only rows of this list can have been removed, rows of other lists may share an ID
+    OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this,
+        rowsToRemove.stream().filter(r -> r.getFeatureList() == this).toList());
   }
 
   /**

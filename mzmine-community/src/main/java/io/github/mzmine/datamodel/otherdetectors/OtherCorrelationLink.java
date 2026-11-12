@@ -26,6 +26,8 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,9 +40,13 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param otherRowId the {@link OtherFeatureListRow#getID()} of the correlated aligned other-row
  * @param perFile    per-file correlation truth; resolve the actual other feature via
- *                   {@code otherRow.getFeature(file)}
+ *                   {@code otherRow.getFeature(file)}. Stored as an unmodifiable copy (insertion
+ *                   order kept) so links can be shared between feature list copies.
  */
 public record OtherCorrelationLink(int otherRowId,
                                    @NotNull Map<RawDataFile, PerFileCorrelation> perFile) {
 
+  public OtherCorrelationLink {
+    perFile = Collections.unmodifiableMap(new LinkedHashMap<>(perFile));
+  }
 }

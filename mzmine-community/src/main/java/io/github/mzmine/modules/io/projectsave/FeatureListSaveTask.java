@@ -225,9 +225,7 @@ public class FeatureListSaveTask extends AbstractTask {
           XMLOutputFactory.newInstance().createXMLStreamWriter(os));
       writer.writeStartDocument("UTF-8", "1.0");
       writer.writeStartElement(CONST.XML_OTHER_DETECTOR_DATA_ELEMENT);
-      if (ofl != null) {
-        writeAlignedOtherFeatures(writer, ofl);
-      }
+      writeAlignedOtherFeatures(writer, ofl);
       if (!corrMaps.isEmpty()) {
         writeMsOtherCorrelationMaps(writer, corrMaps);
       }
@@ -262,6 +260,8 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeStartElement(CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT);
     writer.writeAttribute(CONST.XML_FLIST_NAME_ATTR, ofl.getName());
     writer.writeAttribute(CONST.XML_DATE_CREATED_ATTR, ofl.getDateCreated());
+    writer.writeAttribute(CONST.XML_OTHER_ROW_ID_COUNTER_ATTR,
+        String.valueOf(ofl.getRowIdCounter()));
 
     // the data type saveToXML signatures require a non-null (but content-irrelevant) row for
     // other-feature types; reuse an MS row as placeholder

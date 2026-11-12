@@ -39,11 +39,14 @@ import org.jetbrains.annotations.Nullable;
  * This is a single <b>per-file</b> result. For the row-level grouping of per-file results across an
  * aligned other-row, see {@link MsOtherCorrelationRowResult}.
  *
+ * @param otherRow     the aligned other-row that holds {@code otherFeature}. Used to link or unlink
+ *                     correlations by row ID.
  * @param otherFeature the correlated other-detector feature in one raw data file
  * @param type         whether the correlation was calculated, set manually, or only aligned
  * @param correlation  the per-file Pearson score, or null when unavailable
  */
-public record CorrelatedOtherFeature(@NotNull OtherFeature otherFeature,
+public record CorrelatedOtherFeature(@NotNull OtherFeatureListRow otherRow,
+                                     @NotNull OtherFeature otherFeature,
                                      @NotNull MsOtherCorrelationType type,
                                      @Nullable Float correlation) {
 

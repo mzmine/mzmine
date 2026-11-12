@@ -109,7 +109,7 @@ public class CONST {
   public static final String XML_OTHER_DETECTOR_DATA_ELEMENT = "other_detector_data";
   public static final String XML_ALIGNED_OTHER_FEATURES_ELEMENT = "aligned_other_features";
   public static final String XML_OTHER_ROW_ELEMENT = "otherrow";
-  public static final String XML_OTHER_UUID_ATTR = "uuid";
+  public static final String XML_OTHER_ROW_ID_COUNTER_ATTR = "rowidcounter";
   public static final String XML_MS_OTHER_CORRELATION_MAPS_ELEMENT = "ms_other_correlation_maps";
   public static final String XML_MS_OTHER_CORRELATION_ELEMENT = "ms_other_correlation";
   public static final String XML_OTHER_CORRELATION_LINK_ELEMENT = "other_correlation_link";

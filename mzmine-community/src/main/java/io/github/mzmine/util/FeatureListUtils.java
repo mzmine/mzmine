@@ -44,9 +44,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationMaps;
-import io.github.mzmine.datamodel.otherdetectors.OtherCorrelationLink;
-import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
@@ -829,44 +826,6 @@ public class FeatureListUtils {
   }
 
   /**
-   * Copies the aligned other-detector features and their MS-to-other correlations
-   * ({@link OtherFeatureList#getMsOtherCorrelationMaps()}) from {@code source} to {@code target}.
-   * <p>
-   * The correlations are keyed by MS row ID, so this is only valid when {@code target} preserves the
-   * source row IDs — callers must not use it after renumbering. A <b>new</b> {@link OtherFeatureList}
-   * is built that shares the source's (immutable) row objects but gets its <b>own</b> correlation maps
-   * — so editing the copy's correlations does not mutate the source. No-op if the source has no
-   * alignment or {@code source == target}. Only correlations for rows present in {@code target} are
-   * copied (so it works for filtered copies).
-   */
-  public static void copyMsOtherCorrelations(@NotNull final ModularFeatureList source,
-      @NotNull final ModularFeatureList target) {
-    if (source == target) {
-      return;
-    }
-    final OtherFeatureList srcOfl = source.getAlignedOtherFeatures();
-    if (srcOfl == null) {
-      return;
-    }
-    final OtherFeatureList copyOfl = new OtherFeatureList(srcOfl.getName(),
-        srcOfl.getMemoryMapStorage(), srcOfl.getRawDataFiles());
-    srcOfl.getRows().forEach(copyOfl::addRow); // share the immutable row objects
-    // carry over both schemas (row types incl. any beyond the default binding-registered ones)
-    copyOfl.addRowType(srcOfl.getRowTypes().toArray(new DataType[0]));
-    copyOfl.addFeatureType(srcOfl.getFeatureTypes().toArray(new DataType[0]));
-    target.setAlignedOtherFeatures(copyOfl);
-
-    final MsOtherCorrelationMaps srcMaps = srcOfl.getMsOtherCorrelationMaps();
-    final MsOtherCorrelationMaps dstMaps = copyOfl.getMsOtherCorrelationMaps();
-    for (final FeatureListRow row : target.getRows()) {
-      final List<OtherCorrelationLink> links = srcMaps.getCorrelations(row.getID());
-      if (!links.isEmpty()) {
-        dstMaps.setCorrelations(row.getID(), links);
-      }
-    }
-  }
-
-  /**
    * Does not copy rows
    */
   public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
@@ -943,10 +902,6 @@ public class FeatureListUtils {
       final Map<FeatureListRow, ModularFeatureListRow> rowMapping = copyRows(featureList, newFlist,
           renumberIDs);
       transferRowRelationsAndIIN(featureList, newFlist, rowMapping);
-      // correlations are keyed by MS row ID, so only copy them when IDs are preserved
-      if (!renumberIDs && featureList instanceof ModularFeatureList sourceMfl) {
-        copyMsOtherCorrelations(sourceMfl, newFlist);
-      }
     }
 
     return newFlist;
@@ -1079,6 +1034,22 @@ public class FeatureListUtils {
     target.getRowMaps().clearAll();
     target.addRowMaps(remapped);
     IonNetworkLogic.remapIonNetworks(source.getRows(), rowMapping);
+
+    // the aligned other detector features and their MS-to-other correlations (keyed by MS row ID)
+    // decision: only for new feature lists. In place, the row IDs may already be overwritten so the
+    // old IDs cannot be read from the rows anymore - callers that filter or renumber in place call
+    // OtherFeatureListUtils.transferAlignedOtherFeatures with their old -> new ID map.
+    if (source != target && source instanceof ModularFeatureList sourceMfl
+        && sourceMfl.getAlignedOtherFeatures() != null) {
+      final Map<Integer, Integer> oldToNewIds = HashMap.newHashMap(source.getNumberOfRows());
+      for (final FeatureListRow oldRow : source.getRows()) {
+        final FeatureListRow newRow = rowMapping.apply(oldRow);
+        if (newRow != null) {
+          oldToNewIds.put(oldRow.getID(), newRow.getID());
+        }
+      }
+      OtherFeatureListUtils.transferAlignedOtherFeatures(sourceMfl, target, oldToNewIds);
+    }
   }
 
   /**

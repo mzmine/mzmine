@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -70,11 +72,13 @@ public class OtherFeatureList {
    * they cannot outlive or reference a different alignment: re-running the alignment produces a new
    * {@link OtherFeatureList} with its own (empty) maps.
    */
-  private final MsOtherCorrelationMaps msOtherCorrelationMaps = new MsOtherCorrelationMaps();
+  private final MsOtherCorrelationMaps msOtherCorrelationMaps;
 
   private final ObservableList<OtherFeatureListRow> rows = FXCollections.observableArrayList();
   private final ObservableList<OtherFeatureListRow> rowsUnmodifiableView = FXCollections.unmodifiableObservableList(
       rows);
+  // index for fast lookups by row ID (used on hot paths: table cells, export, dashboard)
+  private final Map<Integer, OtherFeatureListRow> rowsById = new HashMap<>();
 
   // DataType schema, split into row-level and per-feature columns (as in ModularFeatureList)
   private final Set<DataType> rowTypes = new LinkedHashSet<>();
@@ -90,8 +94,31 @@ public class OtherFeatureList {
   private @NotNull String name;
   private String dateCreated;
 
+  /**
+   * Creates an empty list with empty MS-to-other correlation maps.
+   *
+   * @param name         the name of this list
+   * @param storage      the storage for data of this list, may be null to store in RAM
+   * @param rawDataFiles the raw data files (columns) of this list
+   */
   public OtherFeatureList(final @NotNull String name, final @Nullable MemoryMapStorage storage,
       final @NotNull List<RawDataFile> rawDataFiles) {
+    this(name, storage, rawDataFiles, new MsOtherCorrelationMaps());
+  }
+
+  /**
+   * Creates an empty list that owns the given correlation maps, e.g., a remapped copy of another
+   * list's maps.
+   *
+   * @param name                   the name of this list
+   * @param storage                the storage for data of this list, may be null to store in RAM
+   * @param rawDataFiles           the raw data files (columns) of this list
+   * @param msOtherCorrelationMaps the correlation maps owned by this list, must not be shared
+   */
+  public OtherFeatureList(final @NotNull String name, final @Nullable MemoryMapStorage storage,
+      final @NotNull List<RawDataFile> rawDataFiles,
+      final @NotNull MsOtherCorrelationMaps msOtherCorrelationMaps) {
+    this.msOtherCorrelationMaps = msOtherCorrelationMaps;
     this.name = name;
     this.memoryMapStorage = storage;
     // sort data files by name for stable order in export and GUI, matching ModularFeatureList
@@ -147,18 +174,46 @@ public class OtherFeatureList {
     return rows.stream();
   }
 
+  /**
+   * Adds a row and raises the row ID counter to at least the row's ID, so rows added with existing
+   * IDs (project load, copies) never collide with rows created later by
+   * {@link #createRow(TraceKey)}.
+   *
+   * @param row the row to add, its ID must be unique in this list
+   */
   public void addRow(final @NotNull OtherFeatureListRow row) {
+    final OtherFeatureListRow previous = rowsById.putIfAbsent(row.getID(), row);
+    if (previous != null) {
+      throw new IllegalArgumentException(
+          "Row ID %d already exists in other feature list %s".formatted(row.getID(), name));
+    }
     rows.add(row);
+    rowIdCounter.accumulateAndGet(row.getID(), Math::max);
   }
 
+  /**
+   * Removes a row and all MS-to-other correlations that link to it. The row ID counter is not
+   * lowered, so the ID of a removed row is never reused.
+   *
+   * @param row the row to remove
+   * @return true if the row was part of this list
+   */
+  public boolean removeRow(final @NotNull OtherFeatureListRow row) {
+    if (!rowsById.remove(row.getID(), row)) {
+      return false;
+    }
+    rows.remove(row);
+    msOtherCorrelationMaps.removeOtherRow(row.getID());
+    return true;
+  }
+
+  /**
+   * @param id the row ID
+   * @return the row with this ID or null if there is no such row
+   */
   @Nullable
   public OtherFeatureListRow findRowByID(final int id) {
-    for (final OtherFeatureListRow row : rows) {
-      if (row.getID() == id) {
-        return row;
-      }
-    }
-    return null;
+    return rowsById.get(id);
   }
 
   /**
@@ -167,6 +222,23 @@ public class OtherFeatureList {
    */
   public int nextRowId() {
     return rowIdCounter.incrementAndGet();
+  }
+
+  /**
+   * @return the highest row ID handed out or added so far. Persisted with the list.
+   */
+  public int getRowIdCounter() {
+    return rowIdCounter.get();
+  }
+
+  /**
+   * Restores the row ID counter, e.g., on project load. The counter never drops below the highest
+   * row ID already in this list.
+   *
+   * @param counter the highest row ID handed out so far
+   */
+  public void setRowIdCounter(final int counter) {
+    rowIdCounter.accumulateAndGet(counter, Math::max);
   }
 
   /**

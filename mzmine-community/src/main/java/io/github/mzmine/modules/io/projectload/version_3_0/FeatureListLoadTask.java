@@ -320,6 +320,7 @@ public class FeatureListLoadTask extends AbstractTask {
       MemoryMapStorage storage, ModularFeatureList flist) throws XMLStreamException {
     final String name = reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR);
     final String date = reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR);
+    final String rowIdCounter = reader.getAttributeValue(null, CONST.XML_OTHER_ROW_ID_COUNTER_ATTR);
 
     final OtherFeatureList ofl = new OtherFeatureList(
         name != null ? name : flist.getName() + " other features", storage,
@@ -354,6 +355,17 @@ public class FeatureListLoadTask extends AbstractTask {
       }
     }
     ofl.addFeatureType(presentTypes.toArray(DataType[]::new));
+
+    // addRow already raised the counter to the highest row ID; the saved counter may be higher if
+    // rows were created and removed before saving
+    if (rowIdCounter != null) {
+      try {
+        ofl.setRowIdCounter(Integer.parseInt(rowIdCounter));
+      } catch (NumberFormatException e) {
+        logger.log(Level.WARNING, "Cannot parse other feature list row ID counter " + rowIdCounter,
+            e);
+      }
+    }
 
     // attach the list; its (empty) correlation maps are populated next from the maps element
     flist.setAlignedOtherFeatures(ofl);

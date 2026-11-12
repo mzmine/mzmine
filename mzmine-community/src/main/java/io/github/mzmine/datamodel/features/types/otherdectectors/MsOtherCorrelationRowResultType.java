@@ -66,7 +66,9 @@ public class MsOtherCorrelationRowResultType extends ListWithSubsType<MsOtherCor
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms_other_correlation_result";
+    // decision: new ID - the old "ms_other_correlation_result" was a feature type with embedded,
+    // incompatible values. Old projects skip it as an unknown type.
+    return "ms_other_correlation_row_result";
   }
 
   @Override

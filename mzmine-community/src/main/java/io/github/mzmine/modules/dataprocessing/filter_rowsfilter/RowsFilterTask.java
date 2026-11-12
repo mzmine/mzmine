@@ -54,6 +54,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.OtherFeatureListUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.collections.IndexRangesList;
@@ -465,18 +466,11 @@ public class RowsFilterTask extends AbstractTask {
       newFeatureList.setCompoundList(newCompoundList);
     }
 
-    // transfer the MS-to-other-detector correlations. They are keyed by MS row ID, so they can only
-    // be carried over when row IDs are preserved. When renumbering in place, the stored keys become
-    // stale and are cleared.
-    if (featureList instanceof ModularFeatureList srcMfl) {
-      if (processInCurrentList) {
-        if (renumber && srcMfl.getAlignedOtherFeatures() != null) {
-          srcMfl.getAlignedOtherFeatures().getMsOtherCorrelationMaps().clearAll();
-        }
-        // else: maps stay valid for the surviving (in-place) rows
-      } else if (!renumber) {
-        FeatureListUtils.copyMsOtherCorrelations(srcMfl, newFeatureList);
-      }
+    // the aligned other detector features: the MS-to-other correlations are keyed by MS row ID. A new
+    // feature list is handled by transferRowRelationsAndIIN above. In place, the rows already carry
+    // the new IDs, so remap with the captured old -> new IDs (also drops filtered rows).
+    if (processInCurrentList && featureList instanceof ModularFeatureList srcMfl) {
+      OtherFeatureListUtils.transferAlignedOtherFeatures(srcMfl, srcMfl, oldToNewIds);
     }
 
     // Add task description to featureList.
