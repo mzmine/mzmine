@@ -40,7 +40,6 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
@@ -55,6 +54,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.OtherFeatureListUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.collections.IndexRangesList;
@@ -466,6 +466,13 @@ public class RowsFilterTask extends AbstractTask {
       newFeatureList.setCompoundList(newCompoundList);
     }
 
+    // the aligned other detector features: the MS-to-other correlations are keyed by MS row ID. A new
+    // feature list is handled by transferRowRelationsAndIIN above. In place, the rows already carry
+    // the new IDs, so remap with the captured old -> new IDs (also drops filtered rows).
+    if (processInCurrentList && featureList instanceof ModularFeatureList srcMfl) {
+      OtherFeatureListUtils.transferAlignedOtherFeatures(srcMfl, srcMfl, oldToNewIds);
+    }
+
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(getAppliedMethodDescription(), RowsFilterModule.class,
@@ -672,15 +679,12 @@ public class RowsFilterTask extends AbstractTask {
       }
     }
 
-    // filter by correlated traces
+    // filter by correlated traces (stored in the ID-only maps on the aligned other-feature list)
     if (onlyWithOtherCorrelated) {
-      boolean foundCorrelation = false;
-      for (ModularFeature feature : row.getFeatures()) {
-        if (feature.get(MsOtherCorrelationResultType.class) != null) {
-          foundCorrelation = true;
-          break;
-        }
-      }
+      final boolean foundCorrelation =
+          row.getFeatureList() instanceof ModularFeatureList mfl
+              && mfl.getAlignedOtherFeatures() != null && !mfl.getAlignedOtherFeatures()
+              .getMsOtherCorrelationMaps().getCorrelations(row.getID()).isEmpty();
       if (!foundCorrelation) {
         return true;
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import org.jetbrains.annotations.NotNull;
@@ -97,6 +98,24 @@ public interface OtherFeature extends ModularDataModel {
     feature.set(OtherFeatureDataType.class, series);
     FeatureDataUtils.recalculateIntensityTimeSeriesDependingTypes(feature);
     return feature;
+  }
+
+  /**
+   * Creates a copy of this feature with the same time series and properties. Built on
+   * {@link #createSubFeature()}, so the copy keeps the {@link RawTraceType} of this feature. A copy
+   * of a raw trace therefore references this raw trace as its {@link RawTraceType}: there is only
+   * one raw trace, and all copies and their processing results point to it.
+   * <p></p>
+   * The time series is immutable and shared with this feature. Values that depend on the time
+   * series are copied and stay valid, so no recalculation is needed.
+   *
+   * @return a new feature that can be changed independently of this feature
+   */
+  @NotNull
+  default OtherFeature copy() {
+    final OtherFeature copy = createSubFeature();
+    copy.set(OtherFeatureDataType.class, getFeatureData());
+    return copy;
   }
 
   @Nullable

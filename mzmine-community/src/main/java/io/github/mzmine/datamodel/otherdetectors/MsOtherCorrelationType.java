@@ -29,7 +29,20 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public enum MsOtherCorrelationType implements UniqueIdSupplier {
-  MANUAL, CALCULATED;
+  /**
+   * The correlation was set manually in the dashboard.
+   */
+  MANUAL,
+  /**
+   * The correlation was calculated (Pearson score above threshold).
+   */
+  CALCULATED,
+  /**
+   * The other-detector trace is aligned into this raw file, but the file's MS feature did not
+   * correlate to it (below threshold, no RT overlap, or no MS feature). This is a derived status: it
+   * is never stored, only computed at render time for files that lack a real correlation entry.
+   */
+  ALIGNED;
 
 
   @Override
@@ -37,6 +50,7 @@ public enum MsOtherCorrelationType implements UniqueIdSupplier {
     return switch (this) {
       case MANUAL -> "Manual";
       case CALCULATED -> "Calculated";
+      case ALIGNED -> "Aligned";
     };
   }
 
@@ -45,6 +59,7 @@ public enum MsOtherCorrelationType implements UniqueIdSupplier {
     return switch (this) {
       case MANUAL -> "MANUAL";
       case CALCULATED -> "CALCULATED";
+      case ALIGNED -> "ALIGNED";
     };
   }
 }
