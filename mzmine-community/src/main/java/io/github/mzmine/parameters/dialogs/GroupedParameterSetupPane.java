@@ -67,6 +67,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -77,6 +78,7 @@ import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.Nullable;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class GroupedParameterSetupPane extends BorderPane {
 
@@ -128,7 +130,8 @@ public class GroupedParameterSetupPane extends BorderPane {
     groupViewButton.selectedProperty()
         .subscribe((_, nv) -> viewType.set(nv ? GroupView.GROUPED : GroupView.SINGLE_LIST));
 
-    final HBox searchBar = newHBox(groupViewButton, searchField);
+    final FontIcon funnel = FxIconUtil.getFontIcon(FxIcons.FILTER, 15);
+    final HBox searchBar = newHBox(groupViewButton, funnel, searchField);
     HBox.setHgrow(searchField, Priority.ALWAYS);
 
     // summary just under search bar
