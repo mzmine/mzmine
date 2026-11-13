@@ -26,6 +26,7 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureListRow;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureToOtherRowPair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,12 +35,19 @@ import org.jetbrains.annotations.Nullable;
  * The outcome of a manual correlation of an MS feature to an other detector feature, see
  * {@link OtherFeatureManualUtils#correlateManually}.
  *
- * @param aligned    the aligned row and the feature in this row that is now correlated
- * @param replaced   the feature of the same raw data file that was replaced in the row, null if the
- *                   cell was empty or already held the same peak
- * @param createdRow true if a new row was created for the feature
+ * @param aligned          the aligned row and the feature in this row that is now correlated
+ * @param replaced         the feature of the same raw data file that was replaced in the row, null
+ *                         if the cell was empty or already held the same peak
+ * @param createdRow       true if a new row was created for the feature
+ * @param movedFrom        the row the peak was moved from together with its correlations (a
+ *                         misaligned peak), null if it was not moved
+ * @param removedSourceRow true if {@code movedFrom} was removed from the aligned list afterwards
+ * @param changed          false if the MS row was already correlated to this peak in this row and
+ *                         nothing changed
  */
 public record ManualOtherCorrelationResult(@NotNull OtherFeatureToOtherRowPair aligned,
-                                           @Nullable OtherFeature replaced, boolean createdRow) {
+                                           @Nullable OtherFeature replaced, boolean createdRow,
+                                           @Nullable OtherFeatureListRow movedFrom,
+                                           boolean removedSourceRow, boolean changed) {
 
 }

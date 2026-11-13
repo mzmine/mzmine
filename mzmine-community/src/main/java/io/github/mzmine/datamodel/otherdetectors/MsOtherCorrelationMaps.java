@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Holds the MS-feature-to-other-detector correlations for one {@link OtherFeatureList}, keyed by ID
@@ -124,6 +125,39 @@ public class MsOtherCorrelationMaps {
    */
   public void addManualCorrelation(final int msRowId, final int otherRowId,
       final @NotNull RawDataFile file) {
+    setPerFileCorrelation(msRowId, otherRowId, file,
+        new PerFileCorrelation(MsOtherCorrelationType.MANUAL, null));
+  }
+
+  /**
+   * @param msRowId    the MS row ID
+   * @param otherRowId the aligned other-row ID
+   * @param file       the raw data file
+   * @return the correlation of the MS row to the other-row in this file, null if they are not
+   * correlated in this file
+   */
+  @Nullable
+  public PerFileCorrelation getPerFileCorrelation(final int msRowId, final int otherRowId,
+      final @NotNull RawDataFile file) {
+    for (final OtherCorrelationLink link : getCorrelations(msRowId)) {
+      if (link.otherRowId() == otherRowId) {
+        return link.perFile().get(file);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Adds or replaces the correlation between an MS row and an aligned other-row for one file, e.g.,
+   * when a peak with its calculated correlation is moved to another other-row.
+   *
+   * @param msRowId     the MS row ID
+   * @param otherRowId  the aligned other-row ID
+   * @param file        the raw data file
+   * @param correlation the correlation in this file
+   */
+  public void setPerFileCorrelation(final int msRowId, final int otherRowId,
+      final @NotNull RawDataFile file, final @NotNull PerFileCorrelation correlation) {
     final List<OtherCorrelationLink> current = new ArrayList<>(getCorrelations(msRowId));
     int idx = -1;
     for (int i = 0; i < current.size(); i++) {
@@ -136,12 +170,12 @@ public class MsOtherCorrelationMaps {
       // update the existing link in place so the order (and preferred/first entry) is preserved
       final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>(
           current.get(idx).perFile());
-      perFile.put(file, new PerFileCorrelation(MsOtherCorrelationType.MANUAL, null));
+      perFile.put(file, correlation);
       current.set(idx, new OtherCorrelationLink(otherRowId, perFile));
     } else {
       // a newly correlated trace is appended (does not disturb existing preference)
       final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>();
-      perFile.put(file, new PerFileCorrelation(MsOtherCorrelationType.MANUAL, null));
+      perFile.put(file, correlation);
       current.add(new OtherCorrelationLink(otherRowId, perFile));
     }
     setCorrelations(msRowId, current);
