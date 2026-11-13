@@ -28,10 +28,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 22622,
-          "sha512": "2daaa1cbb7564b69616ba346474fe0282425003d67495e7d287ef0128c2d27cc010f721a5d49d5d027a3e88ea4c6d1249e5808287e801a28d129a29a63def828",
-          "sha256": "f362d3addf4ccb08f37505b7b438f7c9622f4d426d6117d0e78fa6facf9cc124",
-          "sha1": "a8a9849da4c849a25107d086d20ace3a4c97d3e8",
-          "md5": "0dbc3154b5d2e326e982e2601a52bb65"
+          "sha512": "b739e71f82f97226c8bd0829cecfb2fcedc4406439aa207cacb53571d78df3a04e89bfcc5a25ca85ecdb9d3b325a6395f95722bdc9f468a9d9170de5875a6002",
+          "sha256": "cbee859a768d77fc9052ad5c7c9e673ce89d7a8b17b5f5319c800b43f4cc48e1",
+          "sha1": "89ac5de9343728abc2248b8df771cc81bb9ee56b",
+          "md5": "4513d1c48c6c24600b5f0dd017da81c0"
         }
       ]
     },
@@ -167,10 +167,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 22622,
-          "sha512": "2daaa1cbb7564b69616ba346474fe0282425003d67495e7d287ef0128c2d27cc010f721a5d49d5d027a3e88ea4c6d1249e5808287e801a28d129a29a63def828",
-          "sha256": "f362d3addf4ccb08f37505b7b438f7c9622f4d426d6117d0e78fa6facf9cc124",
-          "sha1": "a8a9849da4c849a25107d086d20ace3a4c97d3e8",
-          "md5": "0dbc3154b5d2e326e982e2601a52bb65"
+          "sha512": "b739e71f82f97226c8bd0829cecfb2fcedc4406439aa207cacb53571d78df3a04e89bfcc5a25ca85ecdb9d3b325a6395f95722bdc9f468a9d9170de5875a6002",
+          "sha256": "cbee859a768d77fc9052ad5c7c9e673ce89d7a8b17b5f5319c800b43f4cc48e1",
+          "sha1": "89ac5de9343728abc2248b8df771cc81bb9ee56b",
+          "md5": "4513d1c48c6c24600b5f0dd017da81c0"
         }
       ]
     }
