@@ -36,6 +36,15 @@ import org.jetbrains.annotations.Nullable;
 public sealed interface DataColumn<T> permits AbstractDataColumn, NullableDoubleDataColumn,
     NullableFloatDataColumn, NullableIntDataColumn {
 
+  /**
+   * Access to the raw DataColumn. this if the column is not wrapped, the underlying DataColumn if
+   * it is wrapped.
+   * @return the underlying DataColumn Implementation
+   */
+  default DataColumn<T> unwrap() {
+    return this;
+  }
+
   @Nullable T get(final int index);
 
   /**

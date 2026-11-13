@@ -285,6 +285,11 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
+  public double getAverageMzOrDefault(double defaultValue) {
+    return getMzOrDefault(defaultValue);
+  }
+
+  @Override
   public void setAverageMZ(Double averageMZ) {
     // binding
   }
@@ -292,6 +297,11 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   @Override
   public Float getAverageRT() {
     return get(RTType.class);
+  }
+
+  @Override
+  public float getAverageRTOrElse(float defaultValue) {
+    return getRtOrDefault(defaultValue);
   }
 
   public Float getAverageRI() {

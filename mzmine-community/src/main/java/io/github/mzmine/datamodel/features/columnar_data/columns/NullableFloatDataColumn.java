@@ -54,7 +54,7 @@ public non-sealed interface NullableFloatDataColumn extends DataColumn<Float>, N
   @Override
   default @Nullable Float get(final int index) {
     var value = getFloat(index);
-    return isNull(value) ? null : value;
+    return Float.isNaN(value) ? null : value;
   }
 
 }
