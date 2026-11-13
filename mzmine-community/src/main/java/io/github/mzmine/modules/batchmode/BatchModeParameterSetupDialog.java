@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
@@ -55,6 +56,34 @@ public class BatchModeParameterSetupDialog extends ParameterSetupDialog {
     });
 
     super.addCheckParametersButton();
+  }
+
+  /**
+   * Checks the parameters of all steps and then asks the user to confirm plausibility warnings, see
+   * {@link BatchUtils#checkBatchParameters(BatchQueue)}. Only called by the check button and when
+   * starting the batch, not by the live validation on queue changes.
+   *
+   * @param updateParametersFirst               commit the component values to the parameters first
+   * @param showSuccessDialog                   show a dialog if all checks succeed
+   * @param skipRawDataAndFeatureListParameters skip raw data file and feature list selections
+   * @return false if parameters are invalid or the user declined to continue despite warnings
+   */
+  @Override
+  public boolean checkParameterValues(final boolean updateParametersFirst,
+      final boolean showSuccessDialog, final boolean skipRawDataAndFeatureListParameters) {
+    // decision: show the success dialog only after the warnings were confirmed
+    if (!super.checkParameterValues(updateParametersFirst, false,
+        skipRawDataAndFeatureListParameters)) {
+      return false;
+    }
+    if (!BatchUtils.confirmBatchParameterWarnings(controller.getValue())) {
+      return false;
+    }
+    if (showSuccessDialog) {
+      DialogLoggerUtil.showMessageDialogForTime("All parameter checks succeed.",
+          "All parameters are set correctly", 3500);
+    }
+    return true;
   }
 
   public void loadFile(File file) {
