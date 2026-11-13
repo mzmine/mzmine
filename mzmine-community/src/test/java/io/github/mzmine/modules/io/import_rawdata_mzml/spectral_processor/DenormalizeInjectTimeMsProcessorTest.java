@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.DenormalizeInjectTimeMsProcessor;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -47,16 +46,21 @@ class DenormalizeInjectTimeMsProcessorTest {
   double[] input = new double[]{0d, 5d, 10d, 11d};
   double[] expected = new double[]{0d, 10d, 20d, 22d};
 
-  @BeforeEach
-  void setUp() {
-    doReturn(2f).when(scan).getInjectionTime();
-  }
-
   @Test
   void testProcessScan() {
+    doReturn(2).when(scan).getMSLevel();
+    doReturn(2f).when(scan).getInjectionTime();
     var indata = data(input);
     SimpleSpectralArrays result =  new DenormalizeInjectTimeMsProcessor().processScan(scan, indata);
     assertArrayEquals(expected, result.mzs());
+  }
+
+  @Test
+  void testMs1ScanUnchanged() {
+    doReturn(1).when(scan).getMSLevel();
+    var indata = data(input.clone());
+    SimpleSpectralArrays result = new DenormalizeInjectTimeMsProcessor().processScan(scan, indata);
+    assertArrayEquals(input, result.intensities());
   }
 
   @NotNull

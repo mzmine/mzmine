@@ -56,6 +56,15 @@ public class MsProcessorList implements MsProcessor {
   }
 
   @Override
+  public @NotNull List<SimpleSpectralArrays> processMobilityScans(
+      final @Nullable Scan metadataOnlyScan, @NotNull List<SimpleSpectralArrays> mobilityScans) {
+    for (final MsProcessor processor : processors) {
+      mobilityScans = processor.processMobilityScans(metadataOnlyScan, mobilityScans);
+    }
+    return mobilityScans;
+  }
+
+  @Override
   public @NotNull String description() {
     return "Processing steps:\n" + processors.stream().map(MsProcessor::description)
         .collect(Collectors.joining("\n"));
