@@ -99,8 +99,7 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
             FxColorUtil.fxColorToAWT(MAX_MSMS_SCORE_COLOR), MIN_MSMS_SCORE_COLOR_VALUE,
             MAX_MSMS_SCORE_COLOR_VALUE, msMsScore));
 
-    Label lblMatchedLipid = createLabel(matchedLipid.getLipidAnnotation().getAnnotation(),
-        "white-larger-label");
+    Label lblMatchedLipid = createLabel(matchedLipid.toString(), "white-larger-label");
 
     String simScoreTooltip =
         "Explained intensity [%] of all signals in MS/MS spectrum: " + MSMS_SCORE_FORM.format(
@@ -175,7 +174,7 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
   private BorderPane extractLipidInformation() {
     VBox panelOther = new VBox();
     panelOther.setAlignment(Pos.TOP_LEFT);
-    Label annotation = new Label("Name: " + matchedLipid.getLipidAnnotation().getAnnotation());
+    Label annotation = new Label("Name: " + matchedLipid);
     annotation.setWrapText(true);
     panelOther.getChildren().addAll(annotation);
 

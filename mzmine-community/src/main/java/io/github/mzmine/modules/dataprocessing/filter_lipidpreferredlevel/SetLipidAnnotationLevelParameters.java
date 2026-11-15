@@ -36,7 +36,7 @@ public class SetLipidAnnotationLevelParameters extends SimpleParameterSet {
 
   public static final ComboParameter<LipidAnnotationLevel> level = new ComboParameter<>(
       "Annotation level",
-      "Select the lipid annotation level to set to. Setting to molecular species level will only apply to annotations that actually have enough evidence for a molecular species level annotation.",
+      "Select the preferred lipid annotation level. A requested level is applied only when the annotation contains evidence at that level.",
       LipidAnnotationLevel.values(), LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL);
 
   public SetLipidAnnotationLevelParameters() {

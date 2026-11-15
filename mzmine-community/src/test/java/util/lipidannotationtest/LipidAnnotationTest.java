@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.IChainedLipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleRating;
@@ -55,13 +56,14 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SterolSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.scene.paint.Color;
@@ -176,8 +178,7 @@ class LipidAnnotationTest {
     checkLipidAnnotation(testSpectrum);
 
     final MolecularSpeciesLevelAnnotation expected = (MolecularSpeciesLevelAnnotation) testSpectrum.getTestLipid();
-    final SpeciesLevelAnnotation speciesLevel = convertMolecularSpeciesLevelToSpeciesLevel(
-        expected);
+    final SpeciesLevelAnnotation speciesLevel = convertToSpeciesLevel(expected);
     final Set<LipidFragment> fragments = findAnnotatedFragments(testSpectrum, speciesLevel);
     final MassList massList = convertTestSpectrumToDataPoints(testSpectrum);
     final MZTolerance mzTolerance = new MZTolerance(0.01, 5);
@@ -534,6 +535,22 @@ class LipidAnnotationTest {
   }
 
   @Test
+  void msMsRuleTestCerPSingleClassFragmentDoesNotAnnotateDecoy() {
+    assertCerPSingleClassFragmentIsInsufficient(
+        MSMS_TEST_SPECTRA.getCerP_18_1_2O_12_0_OMPlusH());
+    assertCerPSingleClassFragmentIsInsufficient(
+        MSMS_TEST_SPECTRA.getCerP_18_1_2O_12_0_OMMinusH());
+  }
+
+  @Test
+  void msMsRuleTestCerPChainFragmentsRequireClassEvidence() {
+    assertCerPChainFragmentsRequireClassEvidence(
+        MSMS_TEST_SPECTRA.getCerP_18_1_2O_12_0_OMPlusH());
+    assertCerPChainFragmentsRequireClassEvidence(
+        MSMS_TEST_SPECTRA.getCerP_18_1_2O_12_0_OMMinusH());
+  }
+
+  @Test
   void msMsRuleTestHexCer_18_1_2O_24_0MMPlusH() {
     LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_18_1_2O_24_0MMPlusH();
     checkLipidAnnotation(testSpectrum);
@@ -554,7 +571,7 @@ class LipidAnnotationTest {
   @Test
   void msMsRuleTestHex2CerMPlusHRequiresAtLeastTwoMinorMolecularFragments() {
     final LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex2Cer_18_1_2O_16_0MMPlusH();
-    final SpeciesLevelAnnotation speciesLevelAnnotation = convertMolecularSpeciesLevelToSpeciesLevel(
+    final SpeciesLevelAnnotation speciesLevelAnnotation = convertToSpeciesLevel(
         (MolecularSpeciesLevelAnnotation) testSpectrum.getTestLipid());
     final Set<LipidFragment> annotatedFragments = findAnnotatedFragments(testSpectrum,
         speciesLevelAnnotation);
@@ -640,11 +657,7 @@ class LipidAnnotationTest {
   private void checkLipidAnnotation(LipidAnnotationMsMsTestResource testSpectrum) {
     final Set<MatchedLipid> matchedLipids = new HashSet<>();
     final ILipidAnnotation lipidAnnotation = testSpectrum.getTestLipid();
-    final SpeciesLevelAnnotation speciesLevelAnnotation = switch (lipidAnnotation) {
-      case SpeciesLevelAnnotation speciesLevel -> speciesLevel;
-      case MolecularSpeciesLevelAnnotation molecularSpecies ->
-          convertMolecularSpeciesLevelToSpeciesLevel(molecularSpecies);
-    };
+    final SpeciesLevelAnnotation speciesLevelAnnotation = convertToSpeciesLevel(lipidAnnotation);
 
     LipidFragmentationRule[] rules = speciesLevelAnnotation.getLipidClass().getFragmentationRules();
     Set<LipidFragment> annotatedFragments = new HashSet<>();
@@ -705,7 +718,7 @@ class LipidAnnotationTest {
           }
         }
       }
-      case MolecularSpeciesLevelAnnotation _ -> {
+      case IChainedLipidAnnotation _ -> {
         IMolecularSpeciesLevelMatchedLipidFactory matchedLipidFactory = null;
         switch (lipidAnnotation.getLipidClass().getMainClass().getLipidCategory()) {
           case FATTYACYLS -> {
@@ -803,14 +816,74 @@ class LipidAnnotationTest {
     return annotatedFragments;
   }
 
-  private SpeciesLevelAnnotation convertMolecularSpeciesLevelToSpeciesLevel(
-      MolecularSpeciesLevelAnnotation lipidAnnotation) {
-    int numberOfCarbons =
-        lipidAnnotation.getLipidChains().stream().mapToInt(ILipidChain::getNumberOfCarbons).sum();
-    int numberOfDBEs =
-        lipidAnnotation.getLipidChains().stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
-    return LIPID_FACTORY.buildSpeciesLevelLipid(lipidAnnotation.getLipidClass(), numberOfCarbons,
-        numberOfDBEs, 0);
+  private void assertCerPSingleClassFragmentIsInsufficient(
+      final @NotNull LipidAnnotationMsMsTestResource testSpectrum) {
+    final SpeciesLevelAnnotation speciesLevelAnnotation = convertToSpeciesLevel(
+        testSpectrum.getTestLipid());
+    final Set<LipidFragment> annotatedFragments = findAnnotatedFragments(testSpectrum,
+        speciesLevelAnnotation);
+    final Set<LipidFragment> speciesFragments = annotatedFragments.stream().filter(
+        fragment -> fragment.getLipidFragmentInformationLevelType()
+            == LipidAnnotationLevel.SPECIES_LEVEL).collect(Collectors.toSet());
+    Assertions.assertTrue(speciesFragments.size() >= 2,
+        "CerP reference spectrum must contain corroborating class fragments.");
+    Assertions.assertTrue(speciesFragments.stream().allMatch(
+        fragment -> fragment.getLipidFragmentationRuleRating()
+            == LipidFragmentationRuleRating.MINOR));
+
+    final MassList massList = convertTestSpectrumToDataPoints(testSpectrum);
+    final MZTolerance mzTolerance = new MZTolerance(0.01, 5);
+    final ISpeciesLevelMatchedLipidFactory factory = new SphingolipidSpeciesLevelMatchedLipidFactory();
+    for (final LipidFragment fragment : speciesFragments) {
+      final MatchedLipid decoyMatch = factory.validateSpeciesLevelAnnotation(0d,
+          speciesLevelAnnotation, Set.of(fragment), massList.getDataPoints(), 0d, mzTolerance,
+          testSpectrum.getIonizationType());
+      Assertions.assertNull(decoyMatch,
+          "A single CerP class fragment must not establish the class annotation.");
+    }
+    Assertions.assertNotNull(factory.validateSpeciesLevelAnnotation(0d, speciesLevelAnnotation,
+        speciesFragments, massList.getDataPoints(), 0d, mzTolerance,
+        testSpectrum.getIonizationType()));
+  }
+
+  private void assertCerPChainFragmentsRequireClassEvidence(
+      final @NotNull LipidAnnotationMsMsTestResource testSpectrum) {
+    final SpeciesLevelAnnotation speciesLevelAnnotation = convertToSpeciesLevel(
+        testSpectrum.getTestLipid());
+    final Set<LipidFragment> annotatedFragments = findAnnotatedFragments(testSpectrum,
+        speciesLevelAnnotation);
+    final Set<LipidFragment> molecularSpeciesFragments = annotatedFragments.stream().filter(
+        fragment -> fragment.getLipidFragmentInformationLevelType()
+            == LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL).collect(Collectors.toSet());
+    Assertions.assertFalse(molecularSpeciesFragments.isEmpty(),
+        "CerP reference spectrum must contain chain-specific fragments.");
+    Assertions.assertTrue(molecularSpeciesFragments.stream().allMatch(
+        fragment -> fragment.getLipidFragmentationRuleRating()
+            == LipidFragmentationRuleRating.MINOR));
+
+    final MassList massList = convertTestSpectrumToDataPoints(testSpectrum);
+    final MZTolerance mzTolerance = new MZTolerance(0.01, 5);
+    final IMolecularSpeciesLevelMatchedLipidFactory factory = new SphingoMolecularSpeciesLevelMatchedLipidFactory();
+    final Set<MatchedLipid> chainOnlyMatches = factory.predictMolecularSpeciesLevelMatches(
+        molecularSpeciesFragments, speciesLevelAnnotation, 0d, massList.getDataPoints(), 0d,
+        mzTolerance, testSpectrum.getIonizationType());
+    Assertions.assertTrue(chainOnlyMatches.isEmpty(),
+        "CerP chain fragments without class evidence must not produce an annotation.");
+  }
+
+  private @NotNull SpeciesLevelAnnotation convertToSpeciesLevel(
+      final @NotNull ILipidAnnotation lipidAnnotation) {
+    if (lipidAnnotation instanceof SpeciesLevelAnnotation speciesLevelAnnotation) {
+      return speciesLevelAnnotation;
+    }
+    final int fixedOxygens = Arrays.stream(lipidAnnotation.getLipidClass().getChainTypes())
+        .mapToInt(chainType -> chainType.getFixNumberOfOxygens()).sum();
+    final int additionalOxygens = Math.max(0,
+        lipidAnnotation.getSpeciesLevelOxygens() - fixedOxygens);
+    return Objects.requireNonNull(
+        LIPID_FACTORY.buildSpeciesLevelLipid(lipidAnnotation.getLipidClass(),
+            lipidAnnotation.getChainsCarbonCount(), lipidAnnotation.getChainsDoubleBondCount(),
+            additionalOxygens));
   }
 
   private void printMsMsSpectrumTestReport(Set<MatchedLipid> matchedLipids,

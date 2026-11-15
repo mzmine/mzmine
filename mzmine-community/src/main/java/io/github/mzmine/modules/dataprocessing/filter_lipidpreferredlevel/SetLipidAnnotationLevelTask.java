@@ -27,6 +27,8 @@ package io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
@@ -34,7 +36,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,16 +64,43 @@ public class SetLipidAnnotationLevelTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    for (FeatureListRow row : flist.getRows()) {
-      List<MatchedLipid> lipidMatches = row.getLipidMatches();
-      if (lipidMatches.isEmpty()) {
-        finishedItems.getAndIncrement();
-        continue;
+    for (final FeatureListRow row : flist.getRows()) {
+      final List<MatchedLipid> lipidMatches = row.getLipidMatches();
+      if (!lipidMatches.isEmpty()) {
+        final FeatureAnnotation preferredAnnotation = row.isUserPreferredAnnotation()
+            ? row.getPreferredAnnotation() : null;
+        MatchedLipid updatedPreferredLipid = null;
+        final List<MatchedLipid> updatedMatches = new ArrayList<>(lipidMatches.size());
+        for (final MatchedLipid match : lipidMatches) {
+          final MatchedLipid updatedMatch = match.copyWithPreferredAnnotationLevel(preferredLevel);
+          updatedMatches.add(updatedMatch);
+          if (updatedPreferredLipid == null && matchesPreferredAnnotation(match,
+              preferredAnnotation)) {
+            updatedPreferredLipid = updatedMatch;
+          }
+        }
+        row.setLipidAnnotations(updatedMatches);
+        if (updatedPreferredLipid != null) {
+          row.set(PreferredAnnotationType.class, updatedPreferredLipid);
+        }
       }
-      for (MatchedLipid lipidMatch : lipidMatches) {
-        lipidMatch.setPreferredAnnotationLevel(preferredLevel);
-      }
+      incrementFinishedItems();
     }
+  }
+
+  private static boolean matchesPreferredAnnotation(final @NotNull MatchedLipid candidate,
+      final @Nullable FeatureAnnotation preferredAnnotation) {
+    if (candidate == preferredAnnotation) {
+      return true;
+    }
+    if (!(preferredAnnotation instanceof MatchedLipid preferredLipid)) {
+      return false;
+    }
+    return Objects.equals(candidate.getLipidAnnotation().getAnnotation(),
+        preferredLipid.getLipidAnnotation().getAnnotation())
+        && Objects.equals(candidate.getAccurateMz(), preferredLipid.getAccurateMz())
+        && Objects.equals(candidate.getIonizationType(), preferredLipid.getIonizationType())
+        && Objects.equals(candidate.getMsMsScore(), preferredLipid.getMsMsScore());
   }
 
   @Override

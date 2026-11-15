@@ -53,16 +53,27 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.MLScore;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.DoubleBondPositionLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleRating;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.DoubleBondGeometry;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.DoubleBondPosition;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -79,13 +90,18 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import javafx.scene.paint.Color;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -155,6 +171,19 @@ public class RegularScanTypesTest {
     project = new MZmineProjectImpl();
     project.addFile(file);
     project.addFeatureList(flist);
+  }
+
+  @Test
+  void unknownFutureLipidAnnotationLevelIsSkipped() throws Exception {
+    final String xml = "<matchedlipid><lipidannotation lipidannotation=\"future_level\">"
+        + "<name>future lipid</name></lipidannotation></matchedlipid>";
+    final XMLStreamReader reader = XMLInputFactory.newFactory()
+        .createXMLStreamReader(new StringReader(xml));
+    reader.nextTag();
+
+    Assertions.assertNull(MatchedLipid.loadFromXML(reader, List.of()));
+    Assertions.assertTrue(reader.isEndElement());
+    Assertions.assertEquals(MatchedLipid.XML_ELEMENT, reader.getLocalName());
   }
 
   @Test
@@ -363,6 +392,18 @@ public class RegularScanTypesTest {
         LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, new int[]{12, 14}, new int[]{0, 2},
         new int[]{0, 0});
 
+    final LipidChainFactory chainFactory = new LipidChainFactory();
+    final List<ILipidChain> positionChains = new ArrayList<>();
+    positionChains.add(Objects.requireNonNull(
+        chainFactory.buildLipidChain(LipidChainType.ACYL_CHAIN, 16, 0, List.of())));
+    positionChains.add(Objects.requireNonNull(
+        chainFactory.buildLipidChain(LipidChainType.ACYL_CHAIN, 18, 2,
+            List.of(new DoubleBondPosition(9, DoubleBondGeometry.Z),
+                DoubleBondPosition.unknownGeometry(12)))));
+    final DoubleBondPositionLevelAnnotation positionLevelAnnotation = Objects.requireNonNull(
+        lipidFactory.buildDoubleBondPositionLevelLipidFromChains(
+            LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, positionChains));
+
     List<MatchedLipid> value = new ArrayList<>();
 
     value.add(new MatchedLipid(speciesLevelAnnotation, 785.59346 + 1.003,
@@ -370,6 +411,15 @@ public class RegularScanTypesTest {
 
     value.add(new MatchedLipid(molecularSpeciesLevelAnnotation, 785.59346 + 1.003,
         IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+
+    final LipidFragment oadFragment = new LipidFragment(
+        LipidFragmentationRuleType.OAD_DOUBLE_BOND_POSITION_FRAGMENT,
+        LipidAnnotationLevel.DOUBLE_BOND_POSITION_LEVEL, LipidFragmentationRuleRating.MAJOR,
+        663.44697, "C34H66NO9P+", new SimpleDataPoint(663.447, 1d),
+        LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, 18, 2, 0, LipidChainType.ACYL_CHAIN, null,
+        100, "precursor; omega-side +O-H; n-9", 9);
+    value.add(new MatchedLipid(positionLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(Set.of(oadFragment)), 0.0d));
 
     List<MatchedLipid> loaded = (List<MatchedLipid>) DataTypeTestUtils.saveAndLoad(type, value,
         project, flist, row, null, null);
@@ -386,6 +436,22 @@ public class RegularScanTypesTest {
     Assertions.assertEquals(second.getIonizationType(), secondLoaded.getIonizationType());
     Assertions.assertEquals(second.getMsMsScore(), secondLoaded.getMsMsScore());
     Assertions.assertEquals(second.getAccurateMz(), secondLoaded.getAccurateMz());
+
+    final MatchedLipid third = loaded.get(2);
+    final DoubleBondPositionLevelAnnotation loadedPositionAnnotation = Assertions.assertInstanceOf(
+        DoubleBondPositionLevelAnnotation.class, third.getLipidAnnotation());
+    Assertions.assertEquals("PC 16:0_18:2(9Z,12)", loadedPositionAnnotation.getAnnotation());
+    Assertions.assertEquals("PC 16:0_18:2",
+        loadedPositionAnnotation.getMolecularSpeciesLevelAnnotation());
+    Assertions.assertEquals(positionLevelAnnotation.getLipidChains().get(1).getDoubleBondPositions(),
+        loadedPositionAnnotation.getLipidChains().get(1).getDoubleBondPositions());
+    final LipidFragment loadedOadFragment = third.getMatchedFragments().iterator().next();
+    Assertions.assertEquals(LipidFragmentationRuleType.OAD_DOUBLE_BOND_POSITION_FRAGMENT,
+        loadedOadFragment.getRuleType());
+    Assertions.assertEquals(9, loadedOadFragment.getDoubleBondPosition());
+    Assertions.assertEquals(18, loadedOadFragment.getChainLength());
+    Assertions.assertEquals(2, loadedOadFragment.getNumberOfDBEs());
+    Assertions.assertEquals(0, loadedOadFragment.getNumberOfOxygens());
   }
 
   @Test

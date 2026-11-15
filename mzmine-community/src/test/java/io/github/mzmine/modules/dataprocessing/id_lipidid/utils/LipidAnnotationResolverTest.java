@@ -26,7 +26,9 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.utils;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.DoubleBondPositionLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleRating;
@@ -35,15 +37,46 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.DoubleBondPosition;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 class LipidAnnotationResolverTest {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
+
+  @Test
+  void keepsOnlyTheHighestRankedMatchForEqualPositionLevelShorthand() {
+    final LipidChainFactory chainFactory = new LipidChainFactory();
+    final List<ILipidChain> chains = List.of(
+        Objects.requireNonNull(
+            chainFactory.buildLipidChain(LipidChainType.ACYL_CHAIN, 16, 0, List.of())),
+        Objects.requireNonNull(chainFactory.buildLipidChain(LipidChainType.ACYL_CHAIN, 18, 1,
+            List.of(DoubleBondPosition.unknownGeometry(9)))));
+    final DoubleBondPositionLevelAnnotation annotation = Objects.requireNonNull(
+        LIPID_FACTORY.buildDoubleBondPositionLevelLipidFromChains(
+            LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, chains));
+    final MatchedLipid lowerScore = new MatchedLipid(annotation, 760.585d,
+        IonizationType.POSITIVE_HYDROGEN, Set.of(), 0.2d);
+    final MatchedLipid higherScore = new MatchedLipid(annotation, 760.585d,
+        IonizationType.POSITIVE_HYDROGEN, Set.of(), 0.8d);
+    final LipidAnnotationResolver resolver = LipidAnnotationResolver.forCandidateCollection(true,
+        null);
+
+    final List<MatchedLipid> resolved = resolver.resolveFeatureListRowMatchedLipids(
+        Mockito.mock(FeatureListRow.class), Set.of(lowerScore, higherScore));
+
+    Assertions.assertEquals(List.of(higherScore), resolved);
+  }
 
   @Test
   void relativeIntensityScoreFavorsClassCloserToObservedTwoAcylRatio() {

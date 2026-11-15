@@ -30,7 +30,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
@@ -41,7 +41,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public final class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
+public final class MolecularSpeciesLevelAnnotation implements IChainedLipidAnnotation {
 
   private static final String XML_ELEMENT = "lipidannotation";
   private static final String XML_LIPID_CLASS = "lipidclass";
@@ -227,7 +227,7 @@ public final class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
         .equals(XML_LIPID_CHAINS))) {
       reader.next();
       if (reader.isStartElement()) {
-        lipidChains.add(LipidChain.loadFromXML(reader));
+        lipidChains.add(LipidChainFactory.loadLipidChainFromXML(reader));
       }
     }
     return lipidChains;

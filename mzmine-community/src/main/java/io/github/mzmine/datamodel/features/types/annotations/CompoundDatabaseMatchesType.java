@@ -168,7 +168,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
         final FeatureAnnotation id = FeatureAnnotation.loadFromXML(reader, project, flist, row);
         if (id instanceof CompoundDBAnnotation cid) {
           ids.add(cid);
-        } else {
+        } else if (id != null) {
           logger.warning(
               () -> "Unexpected annotation type in compound annotations: " + id.getClass()
                   .getName());

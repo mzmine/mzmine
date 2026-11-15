@@ -89,13 +89,15 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
 
   @Override
   public NestedComboParameter cloneParameter() {
-    TreeMap<String, ParameterSet> clonedChoices = new TreeMap<>();
-    for (String choice : choices.keySet()) {
+    final TreeMap<String, ParameterSet> clonedChoices = new TreeMap<>();
+    for (final String choice : choices.keySet()) {
       clonedChoices.put(choice, choices.get(choice).cloneParameterSet());
     }
-    NestedComboParameter copy = new NestedComboParameter(name, description, clonedChoices, defaultChoice,
-            showNestedParamsOnStart, prefWidth);
-    copy.setValue(this.getValue());
+    final NestedComboParameter copy = new NestedComboParameter(name, description, clonedChoices,
+        defaultChoice, showNestedParamsOnStart, prefWidth);
+    if (value != null) {
+      copy.setValue(new NestedCombo(clonedChoices, value.getCurrentChoice()));
+    }
     return copy;
   }
 

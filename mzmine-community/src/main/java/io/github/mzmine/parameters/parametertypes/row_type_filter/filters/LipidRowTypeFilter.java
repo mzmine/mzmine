@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.DoubleBondPositionLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
@@ -138,6 +139,8 @@ class LipidRowTypeFilter extends AbstractRowTypeFilter {
         // class already matched
         yield matchesFlexible(flexible, false) || matchesLipidName(annotation.getAnnotation());
       }
+      case DoubleBondPositionLevelAnnotation positionLevel ->
+          matchesLipidName(positionLevel.getMolecularSpeciesLevelAnnotation());
     };
   }
 

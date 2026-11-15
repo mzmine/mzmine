@@ -43,6 +43,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,16 +87,18 @@ public class LipidSpectrumPlot extends SpectraPlot {
       clearPlot();
       return;
     }
+    matchedFragments.sort(Comparator.comparingDouble(fragment -> fragment.getDataPoint().getMZ()));
 
     final Scan matchedMsMsScan = matchedFragments.stream().map(LipidFragment::getMsMsScan)
         .findFirst().orElse(null);
 
     final SimpleColorPalette palette = ConfigService.getConfiguration().getDefaultColorPalette();
     final List<XYDatasetAndRenderer> datasets = new ArrayList<>();
+    final List<DoubleBondEvidenceAnnotation> doubleBondAnnotations = new ArrayList<>();
     if (matchedMsMsScan != null) {
-      PlotXYDataProvider spectrumProvider = new SingleSpectrumProvider(matchedMsMsScan,
+      final PlotXYDataProvider spectrumProvider = new SingleSpectrumProvider(matchedMsMsScan,
           "MS2 Spectrum", palette.getNegativeColor());
-      ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
+      final ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
       final ColoredXYBarRenderer spectrumRenderer = new ColoredXYBarRenderer(true);
       spectrumRenderer.setDefaultItemLabelsVisible(showSignalLabels);
       if (showSignalLabels) {
@@ -107,8 +110,8 @@ public class LipidSpectrumPlot extends SpectraPlot {
       datasets.add(new DatasetAndRenderer(spectrumDataSet, spectrumRenderer));
     }
 
-    List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint)
-        .toList();
+    final List<DataPoint> fragmentScanDps = matchedFragments.stream()
+        .map(LipidFragment::getDataPoint).toList();
     if (!fragmentScanDps.isEmpty()) {
       final PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(matchedFragments,
           fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
@@ -116,14 +119,24 @@ public class LipidSpectrumPlot extends SpectraPlot {
           "Matched Signals", palette.getPositiveColorAWT());
       final ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider,
           runOption);
-      final ColoredXYBarRenderer matchedRenderer = new StyledLipidSpectrumBarRenderer(true,
-          palette.getPositiveColorAWT());
+      final StyledLipidSpectrumBarRenderer matchedRenderer = new StyledLipidSpectrumBarRenderer(
+          true, palette.getPositiveColorAWT());
 
       matchedRenderer.setDefaultItemLabelsVisible(showSignalLabels);
       if (showSignalLabels) {
         final MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
             this, matchedFragments, true);
         matchedRenderer.setDefaultItemLabelGenerator(matchedLipidLabelGenerator);
+      }
+      matchedRenderer.setDefaultToolTipGenerator((dataset, series, item) ->
+          MatchedLipidLabelGenerator.buildFragmentAnnotation(matchedFragments.get(item), true)
+              .stripTrailing());
+      final DoubleBondEvidenceAnnotation doubleBondAnnotation = DoubleBondEvidenceAnnotation
+          .createAnnotation(matchedFragments, palette.getColorsAWT(),
+              matchedRenderer::getPlacedLabelBounds);
+      if (doubleBondAnnotation != null) {
+        matchedRenderer.setReservedLabelMzRanges(doubleBondAnnotation.evidenceMzRanges());
+        doubleBondAnnotations.add(doubleBondAnnotation);
       }
       datasets.add(new DatasetAndRenderer(fragmentDataSet, matchedRenderer));
     }
@@ -133,11 +146,13 @@ public class LipidSpectrumPlot extends SpectraPlot {
       getXYPlot().setDatasetsRenderers(datasets);
       setLegendVisible(showLegend);
       addPrecursorMarkers(matchedMsMsScan);
+      doubleBondAnnotations.forEach(annotation -> getXYPlot().addAnnotation(annotation, false));
     });
   }
 
   public void clearPlot() {
     getXYPlot().removeAllDatasets();
     getChart().getXYPlot().clearDomainMarkers();
+    getChart().getXYPlot().clearAnnotations();
   }
 }

@@ -31,7 +31,8 @@ import org.jetbrains.annotations.NotNull;
 public enum LipidAnnotationLevel implements UniqueIdSupplier {
 
   SPECIES_LEVEL("Species level"), //
-  MOLECULAR_SPECIES_LEVEL("Molecular species level"); //
+  MOLECULAR_SPECIES_LEVEL("Molecular species level"), //
+  DOUBLE_BOND_POSITION_LEVEL("Double bond position level"); //
 
   private final @NotNull String label;
 
@@ -49,6 +50,24 @@ public enum LipidAnnotationLevel implements UniqueIdSupplier {
     return switch (this) {
       case SPECIES_LEVEL -> "species_level";
       case MOLECULAR_SPECIES_LEVEL -> "molec_species_level";
+      case DOUBLE_BOND_POSITION_LEVEL -> "db_position_level";
     };
+  }
+
+  public int rank() {
+    return switch (this) {
+      case SPECIES_LEVEL -> 10;
+      case MOLECULAR_SPECIES_LEVEL -> 20;
+      case DOUBLE_BOND_POSITION_LEVEL -> 30;
+    };
+  }
+
+  public boolean isAtLeast(final @NotNull LipidAnnotationLevel other) {
+    return rank() >= other.rank();
+  }
+
+  public static @NotNull LipidAnnotationLevel min(final @NotNull LipidAnnotationLevel first,
+      final @NotNull LipidAnnotationLevel second) {
+    return first.rank() <= second.rank() ? first : second;
   }
 }

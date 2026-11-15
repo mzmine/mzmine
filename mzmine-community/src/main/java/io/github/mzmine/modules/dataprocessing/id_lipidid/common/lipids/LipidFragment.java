@@ -39,6 +39,8 @@ import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidFragment {
 
@@ -57,6 +59,7 @@ public class LipidFragment {
   private static final String XML_LIPID_CHAIN_TYPE = "lipidchaintype";
   private static final String XML_RELATIVE_INTENSITY_WEIGHT = "relativeintensityweight";
   private static final String XML_ORIGINATING_RULE_FORMULA = "originatingruleformula";
+  private static final String XML_DOUBLE_BOND_POSITION = "doublebondposition";
 
   private final LipidFragmentationRuleType ruleType;
   private final LipidAnnotationLevel lipidFragmentInformationLevelType;
@@ -72,13 +75,31 @@ public class LipidFragment {
   private final Scan msMsScan;
   private final int relativeIntensityWeight;
   private final String originatingRuleFormula;
+  private final Integer doubleBondPosition;
 
-  public LipidFragment(LipidFragmentationRuleType ruleType,
-      LipidAnnotationLevel lipidFragmentInformationLevelType,
-      LipidFragmentationRuleRating lipidFragmentationRuleRating, Double mzExact, String ionFormula,
-      DataPoint dataPoint, ILipidClass lipidClass, Integer chainLength, Integer numberOfDBEs,
-      Integer numberOfOxygens, LipidChainType lipidChainType, Scan msMsScan,
-      int relativeIntensityWeight, String originatingRuleFormula) {
+  public LipidFragment(final @NotNull LipidFragmentationRuleType ruleType,
+      final @NotNull LipidAnnotationLevel lipidFragmentInformationLevelType,
+      final @NotNull LipidFragmentationRuleRating lipidFragmentationRuleRating,
+      final @NotNull Double mzExact, final @NotNull String ionFormula,
+      final @NotNull DataPoint dataPoint, final @NotNull ILipidClass lipidClass,
+      final @Nullable Integer chainLength, final @Nullable Integer numberOfDBEs,
+      final @Nullable Integer numberOfOxygens, final @Nullable LipidChainType lipidChainType,
+      final @Nullable Scan msMsScan, final int relativeIntensityWeight,
+      final @Nullable String originatingRuleFormula) {
+    this(ruleType, lipidFragmentInformationLevelType, lipidFragmentationRuleRating, mzExact,
+        ionFormula, dataPoint, lipidClass, chainLength, numberOfDBEs, numberOfOxygens,
+        lipidChainType, msMsScan, relativeIntensityWeight, originatingRuleFormula, null);
+  }
+
+  public LipidFragment(final @NotNull LipidFragmentationRuleType ruleType,
+      final @NotNull LipidAnnotationLevel lipidFragmentInformationLevelType,
+      final @NotNull LipidFragmentationRuleRating lipidFragmentationRuleRating,
+      final @NotNull Double mzExact, final @NotNull String ionFormula,
+      final @NotNull DataPoint dataPoint, final @NotNull ILipidClass lipidClass,
+      final @Nullable Integer chainLength, final @Nullable Integer numberOfDBEs,
+      final @Nullable Integer numberOfOxygens, final @Nullable LipidChainType lipidChainType,
+      final @Nullable Scan msMsScan, final int relativeIntensityWeight,
+      final @Nullable String originatingRuleFormula, final @Nullable Integer doubleBondPosition) {
     this.ruleType = ruleType;
     this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
     this.lipidFragmentationRuleRating = lipidFragmentationRuleRating;
@@ -93,6 +114,7 @@ public class LipidFragment {
     this.msMsScan = msMsScan;
     this.relativeIntensityWeight = relativeIntensityWeight;
     this.originatingRuleFormula = originatingRuleFormula;
+    this.doubleBondPosition = doubleBondPosition;
   }
 
   public LipidFragmentationRuleType getRuleType() {
@@ -151,6 +173,10 @@ public class LipidFragment {
     return originatingRuleFormula;
   }
 
+  public @Nullable Integer getDoubleBondPosition() {
+    return doubleBondPosition;
+  }
+
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer.writeAttribute(XML_ELEMENT, lipidFragmentInformationLevelType.name());
@@ -178,6 +204,10 @@ public class LipidFragment {
     } else {
       writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
+    writer.writeEndElement();
+    writer.writeStartElement(XML_DOUBLE_BOND_POSITION);
+    writer.writeCharacters(doubleBondPosition == null ? CONST.XML_NULL_VALUE
+        : doubleBondPosition.toString());
     writer.writeEndElement();
     writer.writeStartElement(XML_DATA_POINT_INTENSITY);
     writer.writeCharacters(String.valueOf(dataPoint.getIntensity()));
@@ -245,6 +275,7 @@ public class LipidFragment {
     Scan msMsScan = null;
     int relativeIntensityWeight = 0;
     String originatingRuleFormula = "";
+    Integer doubleBondPosition = null;
 
     if (reader.getAttributeValue(null, XML_ELEMENT) != null) {
       lipidFragmentInformationLevelType = LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(
@@ -285,6 +316,13 @@ public class LipidFragment {
             originatingRuleFormula = "";
           }
           break;
+        case XML_DOUBLE_BOND_POSITION: {
+          final String text = reader.getElementText();
+          if (!CONST.XML_NULL_VALUE.equals(text)) {
+            doubleBondPosition = Integer.parseInt(text);
+          }
+          break;
+        }
         case XML_DATA_POINT_INTENSITY:
           intensity = Double.parseDouble(reader.getElementText());
           break;
@@ -300,31 +338,34 @@ public class LipidFragment {
             lipidClass = CustomLipidClass.loadFromXML(reader);
           }
           break;
-        case XML_CHAIN_LENGTH:
-          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-            chainLength = Integer.parseInt(reader.getElementText());
+        case XML_CHAIN_LENGTH: {
+          final String text = reader.getElementText();
+          if (!CONST.XML_NULL_VALUE.equals(text)) {
+            chainLength = Integer.parseInt(text);
           }
           break;
-        case XML_NUMBER_OF_DBES:
-          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-            numberOfDBEs = Integer.parseInt(reader.getElementText());
+        }
+        case XML_NUMBER_OF_DBES: {
+          final String text = reader.getElementText();
+          if (!CONST.XML_NULL_VALUE.equals(text)) {
+            numberOfDBEs = Integer.parseInt(text);
           }
           break;
-        case XML_NUMBER_OF_OXYGENS:
-          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-            numberOfOxygens = Integer.parseInt(reader.getElementText());
+        }
+        case XML_NUMBER_OF_OXYGENS: {
+          final String text = reader.getElementText();
+          if (!CONST.XML_NULL_VALUE.equals(text)) {
+            numberOfOxygens = Integer.parseInt(text);
           }
           break;
-        case XML_LIPID_CHAIN_TYPE:
-          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-            lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(
-                reader.getElementText());
+        }
+        case XML_LIPID_CHAIN_TYPE: {
+          final String text = reader.getElementText();
+          if (!CONST.XML_NULL_VALUE.equals(text)) {
+            lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(text);
           }
           break;
+        }
         case CONST.XML_RAW_FILE_SCAN_ELEMENT:
           msMsScan = Scan.loadScanFromXML(reader, possibleFiles);
           break;
@@ -335,7 +376,8 @@ public class LipidFragment {
 
     return new LipidFragment(ruleType, lipidFragmentInformationLevelType, rating, mzExact,
         ionFormula, new SimpleDataPoint(mz, intensity), lipidClass, chainLength, numberOfDBEs,
-        numberOfOxygens, lipidChainType, msMsScan, relativeIntensityWeight, originatingRuleFormula);
+        numberOfOxygens, lipidChainType, msMsScan, relativeIntensityWeight, originatingRuleFormula,
+        doubleBondPosition);
   }
 
 }

@@ -49,13 +49,8 @@ public class LipidParsingUtils {
 
     public static LipidFragmentationRuleRating lipidFragmentationRuleNameToLipidFragmentationRuleRaiting(
         String lipidFragmentationRuleName) {
-        LipidFragmentationRuleRating[] lipidFragmentationRuleRatings = LipidFragmentationRuleRating.class.getEnumConstants();
-        for (LipidFragmentationRuleRating lipidFragmentationRuleRating : lipidFragmentationRuleRatings) {
-            if (lipidFragmentationRuleRating.name().equals(lipidFragmentationRuleName)) {
-                return lipidFragmentationRuleRating;
-            }
-        }
-        return null;
+        return UniqueIdSupplier.parseOrElse(lipidFragmentationRuleName,
+            LipidFragmentationRuleRating.values(), null);
     }
 
     public static LipidAnnotationLevel lipidAnnotationLevelNameToLipidAnnotationLevel(

@@ -467,18 +467,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final Menu lipidAnnotationsMenu = new Menu("Lipid Annotations");
-    final MenuItem preferSpeciesLevel = new ConditionalMenuItem("Prefer species level",
-        () -> !selectedRows.isEmpty() && selectedRows.stream()
-            .anyMatch(this::rowHasMatchedLipidSignals));
-    preferSpeciesLevel.setOnAction(
-        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.SPECIES_LEVEL));
-
-    final MenuItem preferMolecularSpeciesLevel = new ConditionalMenuItem(
-        "Prefer molecular species level", () -> !selectedRows.isEmpty() && selectedRows.stream()
-        .anyMatch(this::rowHasMatchedLipidSignals));
-    preferMolecularSpeciesLevel.setOnAction(
-        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL));
-    lipidAnnotationsMenu.getItems().addAll(preferSpeciesLevel, preferMolecularSpeciesLevel);
+    for (final LipidAnnotationLevel level : LipidAnnotationLevel.values()) {
+      final MenuItem preferLevel = new ConditionalMenuItem("Prefer " + level.toString().toLowerCase(),
+          () -> !selectedRows.isEmpty() && selectedRows.stream()
+              .anyMatch(this::rowHasMatchedLipidSignals));
+      preferLevel.setOnAction(_ -> setPreferredLipidAnnotationLevel(level));
+      lipidAnnotationsMenu.getItems().add(preferLevel);
+    }
 
     idsMenu.getItems()
         .addAll(annotateManually, openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem,

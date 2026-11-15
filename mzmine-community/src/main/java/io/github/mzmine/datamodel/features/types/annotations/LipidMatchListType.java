@@ -151,7 +151,9 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
               && MatchedLipid.XML_ELEMENT.equals(
               reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)))) {
         MatchedLipid id = MatchedLipid.loadFromXML(reader, currentRawDataFiles);
-        ids.add(id);
+        if (id != null) {
+          ids.add(id);
+        }
       }
     }
 

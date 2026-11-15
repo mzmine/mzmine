@@ -27,7 +27,6 @@ package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.ArrayList;
@@ -39,23 +38,31 @@ import org.jfree.data.xy.XYDataset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Generates labels for a matched-lipid spectrum.
+ * <p>
+ * Conventional lipid fragments retain their detailed boxed labels. OAD position fragments are
+ * deliberately omitted here because they are summarized once per localized double bond by
+ * {@link DoubleBondEvidenceAnnotation}; their individual details remain available as tooltips.
+ */
 public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
 
   public static final int POINTS_RESERVE_X = 100;
   private static final double LABEL_X_DISTANCE_FRACTION = 0.03;
   private static final double LABEL_Y_DISTANCE_FRACTION = 0.05;
-  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords;
-  private final SpectraPlot plot;
-  private final List<LipidFragment> fragments;
+  private final @NotNull Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords;
+  private final @NotNull SpectraPlot plot;
+  private final @Nullable List<LipidFragment> fragments;
   private final boolean matchedSignals;
-  private final List<Double> matchedMzValues;
+  private final @NotNull List<Double> matchedMzValues;
 
-  public MatchedLipidLabelGenerator(SpectraPlot plot, List<LipidFragment> fragments) {
+  public MatchedLipidLabelGenerator(final @NotNull SpectraPlot plot,
+      final @Nullable List<LipidFragment> fragments) {
     this(plot, fragments, true);
   }
 
-  public MatchedLipidLabelGenerator(SpectraPlot plot, List<LipidFragment> fragments,
-      boolean matchedSignals) {
+  public MatchedLipidLabelGenerator(final @NotNull SpectraPlot plot,
+      final @Nullable List<LipidFragment> fragments, final boolean matchedSignals) {
     this.plot = plot;
     this.fragments = fragments;
     this.matchedSignals = matchedSignals;
@@ -70,7 +77,8 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
    *      int, int)
    */
   @Override
-  public String generateLabel(XYDataset dataset, int series, int item) {
+  public @Nullable String generateLabel(final @NotNull XYDataset dataset, final int series,
+      final int item) {
     if (!matchedSignals && (plot.getCanvas().getWidth() < 400
         || plot.getCanvas().getHeight() < 200)) {
       return null;
@@ -80,7 +88,9 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
       if (fragments == null || item >= fragments.size()) {
         return null;
       }
-      return buildFragmentAnnotation(fragments.get(item), true);
+      final LipidFragment fragment = fragments.get(item);
+      return usesGroupedPositionAnnotation(fragment) ? null
+          : buildFragmentAnnotation(fragment, true);
     }
 
     final double x = dataset.getXValue(series, item);
@@ -94,8 +104,8 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
     return ConfigService.getConfiguration().getMZFormat().format(x);
   }
 
-  private boolean canDrawLabel(XYDataset dataset, int series, int item, double originalX,
-      double originalY) {
+  private boolean canDrawLabel(final @NotNull XYDataset dataset, final int series, final int item,
+      final double originalX, final double originalY) {
     final double xLength = plot.getXYPlot().getDomainAxis().getRange().getLength();
     final double yLength = plot.getXYPlot().getRangeAxis().getRange().getLength();
     if (xLength <= 0 || yLength <= 0 || plot.getWidth() <= 0) {
@@ -124,8 +134,8 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
       }
     }
 
-    for (List<Pair<Double, Double>> coords : datasetToLabelsCoords.values()) {
-      for (Pair<Double, Double> coord : coords) {
+    for (final List<Pair<Double, Double>> coords : datasetToLabelsCoords.values()) {
+      for (final Pair<Double, Double> coord : coords) {
         if ((Math.abs(originalX - coord.getKey()) / xLength < LABEL_X_DISTANCE_FRACTION) && (
             Math.abs(originalY - coord.getValue()) / yLength < LABEL_Y_DISTANCE_FRACTION)) {
           return false;
@@ -138,8 +148,8 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
     return true;
   }
 
-  private boolean isMatchedMz(double mz) {
-    for (double matchedMz : matchedMzValues) {
+  private boolean isMatchedMz(final double mz) {
+    for (final double matchedMz : matchedMzValues) {
       if (Math.abs(mz - matchedMz) <= 0.01d) {
         return true;
       }
@@ -147,27 +157,46 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
     return false;
   }
 
-  private @NotNull String buildFragmentAnnotation(final @NotNull LipidFragment lipidFragment,
+  /**
+   * Formats complete fragment details for conventional labels and matched-signal tooltips.
+   *
+   * @param lipidFragment fragment to describe
+   * @param showAccuracy whether to append the measured mass error
+   * @return multiline description without presentation markup
+   */
+  static @NotNull String buildFragmentAnnotation(final @NotNull LipidFragment lipidFragment,
       final boolean showAccuracy) {
     final StringBuilder sb = new StringBuilder();
-    if (lipidFragment.getLipidFragmentInformationLevelType()
-        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+    if (lipidFragment.getLipidChainType() != null && lipidFragment.getChainLength() != null) {
       sb.append(lipidFragment.getLipidChainType().getName()).append(" ")
           .append(lipidFragment.getChainLength()).append(":")
           .append(lipidFragment.getNumberOfDBEs());
+      if (lipidFragment.getDoubleBondPosition() != null) {
+        sb.append("(").append(lipidFragment.getDoubleBondPosition()).append(")");
+      }
 
       //add info about oxygens
       if (lipidFragment.getNumberOfOxygens() != null && lipidFragment.getNumberOfOxygens() > 0) {
-        sb.append(";").append(lipidFragment.getNumberOfOxygens()).append("O");
+        sb.append(";O");
+        if (lipidFragment.getNumberOfOxygens() > 1) {
+          sb.append(lipidFragment.getNumberOfOxygens());
+        }
       }
       sb.append("\n");
+
+      if (lipidFragment.getRuleType()
+          == LipidFragmentationRuleType.OAD_DOUBLE_BOND_POSITION_FRAGMENT
+          && lipidFragment.getOriginatingRuleFormula() != null) {
+        sb.append(lipidFragment.getOriginatingRuleFormula()).append("\n");
+      }
 
       sb.append(lipidFragment.getIonFormula()).append("\n")
           .append(ConfigService.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()))
           .append("\n");
       // accuracy
       if (showAccuracy) {
-        float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
+        final float ppm = (float) ((lipidFragment.getMzExact()
+            - lipidFragment.getDataPoint().getMZ())
             / lipidFragment.getMzExact()) * 1000000;
         sb.append("Δ ").append(ConfigService.getConfiguration().getPPMFormat().format(ppm))
             .append("ppm\n");
@@ -182,13 +211,21 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
       sb.append(ConfigService.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()));
       // accuracy
       if (showAccuracy) {
-        float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
+        final float ppm = (float) ((lipidFragment.getMzExact()
+            - lipidFragment.getDataPoint().getMZ())
             / lipidFragment.getMzExact()) * 1000000;
         sb.append("Δ ").append(ConfigService.getConfiguration().getPPMFormat().format(ppm))
             .append("ppm\n");
       }
     }
     return sb.toString();
+  }
+
+  /** Returns whether this fragment is represented by a grouped double-bond bracket. */
+  static boolean usesGroupedPositionAnnotation(
+      final @NotNull LipidFragment lipidFragment) {
+    return lipidFragment.getRuleType()
+        == LipidFragmentationRuleType.OAD_DOUBLE_BOND_POSITION_FRAGMENT;
   }
 
   private static @Nullable String getHeadgroupNeutralLossFormula(
