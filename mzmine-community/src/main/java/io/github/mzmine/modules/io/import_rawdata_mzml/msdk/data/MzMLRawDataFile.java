@@ -42,7 +42,6 @@ public class MzMLRawDataFile {
   private static final @NotNull FileType fileType = FileType.MZML;
 
   private final File sourceFile;
-
   private final @NotNull List<String> msFunctions;
   /**
    * each element is one frame with all its mobility scans

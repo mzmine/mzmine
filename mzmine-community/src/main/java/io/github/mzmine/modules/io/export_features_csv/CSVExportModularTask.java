@@ -553,7 +553,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   }
 
   /**
-   * @return true if type should be exported
+   * @return true if type should be exported, e.g. not a {@link NoTextColumn},
+   * {@link NullColumnType}, or {@link LinkedGraphicalType}
    */
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType

@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -45,6 +46,43 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class FeatureIntensityNormalizationModuleTest {
+
+  @Test
+  void calculateNormalizationMetricUsesOnlyFiniteAbundances() {
+    final double[] abundances = {Double.NaN, Double.NEGATIVE_INFINITY, 2d, 6d,
+        Double.POSITIVE_INFINITY};
+
+    assertEquals(4d, FeatureIntensityNormalizationModule.calculateNormalizationMetric(abundances,
+        FeatureIntensityNormalizationMode.MEDIAN), 1e-12);
+    assertEquals(4d, FeatureIntensityNormalizationModule.calculateNormalizationMetric(abundances,
+        FeatureIntensityNormalizationMode.AVERAGE), 1e-12);
+    assertEquals(8d, FeatureIntensityNormalizationModule.calculateNormalizationMetric(abundances,
+        FeatureIntensityNormalizationMode.SUM_TIC), 1e-12);
+    assertEquals(6d, FeatureIntensityNormalizationModule.calculateNormalizationMetric(abundances,
+        FeatureIntensityNormalizationMode.MAX), 1e-12);
+    assertTrue(Double.isNaN(FeatureIntensityNormalizationModule.calculateNormalizationMetric(
+        new double[]{Double.NaN, Double.POSITIVE_INFINITY},
+        FeatureIntensityNormalizationMode.MEDIAN)));
+  }
+
+  @Test
+  void calculateReferenceFunctionsUsesTheSameFactorsAsNativeNormalization() {
+    final AbstractFactorNormalizationTypeModule.ReferenceFunctions<String> result =
+        AbstractFactorNormalizationTypeModule.calculateReferenceFunctions(
+            Map.of("first", 2d, "second", 6d));
+
+    assertEquals(4d, result.referenceMetric(), 1e-12);
+    assertEquals(2d, result.functions().get("first").getNormalizationFactor(0d, 0f), 1e-12);
+    assertEquals(2d / 3d, result.functions().get("second").getNormalizationFactor(0d, 0f),
+        1e-12);
+    assertThrows(UnsupportedOperationException.class,
+        () -> result.functions().put("third", new FactorNormalizationFunction(1d)));
+
+    final AbstractFactorNormalizationTypeModule.ReferenceFunctions<String> empty =
+        AbstractFactorNormalizationTypeModule.calculateReferenceFunctions(Map.of());
+    assertTrue(Double.isNaN(empty.referenceMetric()));
+    assertTrue(empty.functions().isEmpty());
+  }
 
   @Test
   void createReferenceFunctionsUsesMedianFeatureIntensity() {

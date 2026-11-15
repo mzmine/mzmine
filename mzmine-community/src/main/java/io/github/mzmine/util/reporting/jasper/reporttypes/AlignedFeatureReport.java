@@ -54,7 +54,7 @@ public class AlignedFeatureReport implements ReportModule {
   private final AtomicLong totalItemsToPrepare = new AtomicLong(1);
   private final AtomicLong preparedItems = new AtomicLong();
   private final AtomicBoolean isCanceled = new AtomicBoolean(false);
-  @NotNull
+  @Nullable
   private final MetadataColumn<?> groupingCol;
   private JRCountingBeanCollectionDataSource detailSource = null;
   private JRCountingBeanCollectionDataSource summarySource = null;
@@ -62,7 +62,8 @@ public class AlignedFeatureReport implements ReportModule {
   public AlignedFeatureReport() {
     includeSummary = true;
     includeEvidence = true;
-    groupingCol = ProjectService.getMetadata().getSampleTypeColumn();
+    // decision: report construction must not create project metadata as a side effect.
+    groupingCol = ProjectService.getMetadata().getColumnByName(MetadataColumn.SAMPLE_TYPE_HEADER);
   }
 
   public AlignedFeatureReport(ParameterSet parameters) {

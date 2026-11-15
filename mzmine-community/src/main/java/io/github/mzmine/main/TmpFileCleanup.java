@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 
 public class TmpFileCleanup implements Runnable {
@@ -60,11 +61,20 @@ public class TmpFileCleanup implements Runnable {
   }
 
   /**
-   * Runs cleanup in {@link System#getProperty(String)} ({@code java.io.tmpdir}) and
-   * {@link FileAndPathUtil#getTempDir()}
+   * Runs cleanup in all configured directories in {@link FileAndPathUtil#getTempDirs()} and in
+   * {@link System#getProperty(String)} ({@code java.io.tmpdir}), which may hold files from before
+   * the directories were configured.
    */
   public TmpFileCleanup() {
-    this(FileAndPathUtil.getTempDir(), new File(System.getProperty("java.io.tmpdir")));
+    this(defaultTempDirs());
+  }
+
+  private static File[] defaultTempDirs() {
+    final String systemTemp = System.getProperty("java.io.tmpdir");
+    final Stream<File> system =
+        systemTemp == null ? Stream.empty() : Stream.of(new File(systemTemp).getAbsoluteFile());
+    return Stream.concat(Arrays.stream(FileAndPathUtil.getTempDirs()), system).distinct()
+        .toArray(File[]::new);
   }
 
   public static void runCleanup(File... tempDirs) {
@@ -74,8 +84,7 @@ public class TmpFileCleanup implements Runnable {
   }
 
   /**
-   * Runs cleanup in {@link System#getProperty(String)} ({@code java.io.tmpdir}) and
-   * {@link FileAndPathUtil#getTempDir()}
+   * Runs cleanup in all configured temp directories and {@code java.io.tmpdir}.
    */
   public static void runCleanup() {
     Thread cleanupThread = new Thread(new TmpFileCleanup()); // check regular temp dir

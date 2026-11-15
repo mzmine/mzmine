@@ -49,6 +49,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -143,16 +144,28 @@ class SameRangeTask extends AbstractTask {
       return;
     }
 
+    // Add task description to peakList
+    processedPeakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range",
+            SameRangeGapFillerModule.class, parameters, getModuleCallDate()));
+
+    // row-dependent normalization needs the row of a feature, which is only set when the feature
+    // is added. Apply once to all features and update the row bindings again
+    if (NormalizationRowIdentity.applyRowDependentIntensityNormalization(processedPeakList)) {
+      processedPeakList.applyRowBindings();
+    }
+
+    // canceled while the normalization was applied: the gap-filled copy is not published and the
+    // original stays in the project
+    if (isCanceled()) {
+      return;
+    }
+
     // Append processed feature list to the project
     handleOriginal.reflectNewFeatureListToProject(suffix, project, processedPeakList, peakList);
 
     // Add quality parameters to peaks
     //QualityParameters.calculateQualityParameters(processedPeakList);
-
-    // Add task description to peakList
-    processedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range",
-            SameRangeGapFillerModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
