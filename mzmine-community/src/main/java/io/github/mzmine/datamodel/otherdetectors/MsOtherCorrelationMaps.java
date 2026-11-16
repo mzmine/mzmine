@@ -105,13 +105,7 @@ public class MsOtherCorrelationMaps {
    */
   public void setPreferredCorrelation(final int msRowId, final int otherRowId) {
     final List<OtherCorrelationLink> current = new ArrayList<>(getCorrelations(msRowId));
-    int idx = -1;
-    for (int i = 0; i < current.size(); i++) {
-      if (current.get(i).otherRowId() == otherRowId) {
-        idx = i;
-        break;
-      }
-    }
+    final int idx = indexOf(current, otherRowId);
     if (idx <= 0) {
       return; // not found or already preferred
     }
@@ -139,17 +133,15 @@ public class MsOtherCorrelationMaps {
   @Nullable
   public PerFileCorrelation getPerFileCorrelation(final int msRowId, final int otherRowId,
       final @NotNull RawDataFile file) {
-    for (final OtherCorrelationLink link : getCorrelations(msRowId)) {
-      if (link.otherRowId() == otherRowId) {
-        return link.perFile().get(file);
-      }
-    }
-    return null;
+    final List<OtherCorrelationLink> links = getCorrelations(msRowId);
+    final int idx = indexOf(links, otherRowId);
+    return idx < 0 ? null : links.get(idx).perFile().get(file);
   }
 
   /**
-   * Adds or replaces the correlation between an MS row and an aligned other-row for one file, e.g.,
-   * when a peak with its calculated correlation is moved to another other-row.
+   * Adds or replaces the correlation between an MS row and an aligned other-row for one file. An
+   * existing link keeps its position, so the preferred (first) trace does not change. A new link is
+   * appended.
    *
    * @param msRowId     the MS row ID
    * @param otherRowId  the aligned other-row ID
@@ -158,27 +150,7 @@ public class MsOtherCorrelationMaps {
    */
   public void setPerFileCorrelation(final int msRowId, final int otherRowId,
       final @NotNull RawDataFile file, final @NotNull PerFileCorrelation correlation) {
-    final List<OtherCorrelationLink> current = new ArrayList<>(getCorrelations(msRowId));
-    int idx = -1;
-    for (int i = 0; i < current.size(); i++) {
-      if (current.get(i).otherRowId() == otherRowId) {
-        idx = i;
-        break;
-      }
-    }
-    if (idx >= 0) {
-      // update the existing link in place so the order (and preferred/first entry) is preserved
-      final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>(
-          current.get(idx).perFile());
-      perFile.put(file, correlation);
-      current.set(idx, new OtherCorrelationLink(otherRowId, perFile));
-    } else {
-      // a newly correlated trace is appended (does not disturb existing preference)
-      final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>();
-      perFile.put(file, correlation);
-      current.add(new OtherCorrelationLink(otherRowId, perFile));
-    }
-    setCorrelations(msRowId, current);
+    updateFileCorrelation(msRowId, otherRowId, file, correlation);
   }
 
   /**
@@ -193,28 +165,127 @@ public class MsOtherCorrelationMaps {
    */
   public void removeCorrelation(final int msRowId, final int otherRowId,
       final @NotNull RawDataFile file) {
-    final List<OtherCorrelationLink> current = new ArrayList<>(getCorrelations(msRowId));
-    int idx = -1;
-    for (int i = 0; i < current.size(); i++) {
-      if (current.get(i).otherRowId() == otherRowId) {
-        idx = i;
-        break;
+    updateFileCorrelation(msRowId, otherRowId, file, null);
+  }
+
+  /**
+   * Sets the correlations of one MS row to two aligned other-rows in one file at once, e.g., when
+   * peaks move or swap between the two rows. A null correlation removes the file from the link, a
+   * link without any correlated file is removed. A new link takes the position right after the link
+   * to the other row, which it replaces if that link is removed. So moving a correlation from one
+   * row to another keeps the preferred (first) trace of the MS row.
+   *
+   * @param msRowId      the MS row ID
+   * @param otherRowIdA  the first aligned other-row ID
+   * @param correlationA the correlation to the first row in this file, null for none
+   * @param otherRowIdB  the second aligned other-row ID, different from the first
+   * @param correlationB the correlation to the second row in this file, null for none
+   * @param file         the raw data file
+   */
+  public void setPerFileCorrelations(final int msRowId, final int otherRowIdA,
+      final @Nullable PerFileCorrelation correlationA, final int otherRowIdB,
+      final @Nullable PerFileCorrelation correlationB, final @NotNull RawDataFile file) {
+    final List<OtherCorrelationLink> current = getCorrelations(msRowId);
+    final boolean hasA = indexOf(current, otherRowIdA) >= 0;
+    final boolean hasB = indexOf(current, otherRowIdB) >= 0;
+    final List<OtherCorrelationLink> result = new ArrayList<>(current.size() + 1);
+    for (final OtherCorrelationLink link : current) {
+      if (link.otherRowId() == otherRowIdA) {
+        addIfCorrelated(result, otherRowIdA, withFile(link.perFile(), file, correlationA));
+        if (!hasB) {
+          addIfCorrelated(result, otherRowIdB, withFile(Map.of(), file, correlationB));
+        }
+      } else if (link.otherRowId() == otherRowIdB) {
+        addIfCorrelated(result, otherRowIdB, withFile(link.perFile(), file, correlationB));
+        if (!hasA) {
+          addIfCorrelated(result, otherRowIdA, withFile(Map.of(), file, correlationA));
+        }
+      } else {
+        result.add(link);
       }
     }
-    if (idx < 0) {
+    if (!hasA && !hasB) {
+      addIfCorrelated(result, otherRowIdA, withFile(Map.of(), file, correlationA));
+      addIfCorrelated(result, otherRowIdB, withFile(Map.of(), file, correlationB));
+    }
+    setCorrelations(msRowId, result);
+  }
+
+  /**
+   * Sets or removes the correlation of an MS row to an other-row in one file. An existing link
+   * keeps its position, a new link is appended and a link without any correlated file is removed.
+   *
+   * @param msRowId     the MS row ID
+   * @param otherRowId  the aligned other-row ID
+   * @param file        the raw data file
+   * @param correlation the new correlation, null to remove it
+   */
+  private void updateFileCorrelation(final int msRowId, final int otherRowId,
+      final @NotNull RawDataFile file, final @Nullable PerFileCorrelation correlation) {
+    final List<OtherCorrelationLink> current = new ArrayList<>(getCorrelations(msRowId));
+    final int idx = indexOf(current, otherRowId);
+    if (idx < 0 && correlation == null) {
       return;
     }
-    final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>(
-        current.get(idx).perFile());
-    perFile.remove(file);
-    if (perFile.isEmpty()) {
+    final Map<RawDataFile, PerFileCorrelation> perFile = withFile(
+        idx < 0 ? Map.of() : current.get(idx).perFile(), file, correlation);
+    if (idx < 0) {
+      current.add(new OtherCorrelationLink(otherRowId, perFile));
+    } else if (perFile.isEmpty()) {
       // decision: not correlated in any file anymore - drop the whole link to this other-row
       current.remove(idx);
     } else {
-      // replace in place to keep the preference order
       current.set(idx, new OtherCorrelationLink(otherRowId, perFile));
     }
     setCorrelations(msRowId, current);
+  }
+
+  /**
+   * @param links      the links of an MS row
+   * @param otherRowId the other-row ID
+   * @return the index of the link to the other-row, -1 if there is none
+   */
+  private static int indexOf(final @NotNull List<OtherCorrelationLink> links,
+      final int otherRowId) {
+    for (int i = 0; i < links.size(); i++) {
+      if (links.get(i).otherRowId() == otherRowId) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * @param perFile     the per-file correlations of a link
+   * @param file        the raw data file
+   * @param correlation the new correlation in this file, null to remove the file
+   * @return a copy of the per-file correlations with the file updated
+   */
+  @NotNull
+  private static Map<RawDataFile, PerFileCorrelation> withFile(
+      final @NotNull Map<RawDataFile, PerFileCorrelation> perFile, final @NotNull RawDataFile file,
+      final @Nullable PerFileCorrelation correlation) {
+    final Map<RawDataFile, PerFileCorrelation> updated = new LinkedHashMap<>(perFile);
+    if (correlation == null) {
+      updated.remove(file);
+    } else {
+      updated.put(file, correlation);
+    }
+    return updated;
+  }
+
+  /**
+   * Adds a link to the list if it is correlated in at least one file.
+   *
+   * @param links      the links to add to
+   * @param otherRowId the other-row ID of the link
+   * @param perFile    the per-file correlations of the link
+   */
+  private static void addIfCorrelated(final @NotNull List<OtherCorrelationLink> links,
+      final int otherRowId, final @NotNull Map<RawDataFile, PerFileCorrelation> perFile) {
+    if (!perFile.isEmpty()) {
+      links.add(new OtherCorrelationLink(otherRowId, perFile));
+    }
   }
 
   /**

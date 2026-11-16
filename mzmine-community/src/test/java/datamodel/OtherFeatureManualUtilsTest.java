@@ -268,7 +268,8 @@ class OtherFeatureManualUtilsTest {
 
   /**
    * Misaligned in file B: the correct peak (1.3) is in row N, row M holds 1.4. Picking 1.3 for the
-   * MS row moves it to M with its calculated correlation.
+   * MS row moves it to M with its calculated correlation. 1.4 fits row N, so the peaks swap and the
+   * correlation of the other MS row follows the 1.4 peak.
    */
   @Test
   void testMisalignedPeakMovesWithCorrelations() {
@@ -297,21 +298,61 @@ class OtherFeatureManualUtilsTest {
     Assertions.assertSame(rowN, result.movedFrom());
     Assertions.assertTrue(OtherFeatureManualUtils.isSamePeak(b13, rowM.getFeature(fileB)));
     Assertions.assertTrue(OtherFeatureManualUtils.isSamePeak(b14, result.replaced()));
-    // the moved correlation keeps its score, the link to N is gone
+    // the moved correlation keeps its score, the MS row's correlation to 1.4 is gone
     Assertions.assertEquals(scoreFor13, maps.getPerFileCorrelation(1, rowM.getID(), fileB));
     Assertions.assertEquals(1, maps.getCorrelations(1).size());
-    // the other MS row now points to 1.3 without a score
-    final PerFileCorrelation msRow2InB = maps.getPerFileCorrelation(2, rowM.getID(), fileB);
-    Assertions.assertEquals(MsOtherCorrelationType.MANUAL, msRow2InB.origin());
-    Assertions.assertNull(msRow2InB.pearson());
-    // N only holds an aligned peak, no MS row correlates to it anymore
-    Assertions.assertNull(ofl.findRowByID(rowN.getID()));
+    // the peaks swapped: N holds both 1.4 peaks
+    Assertions.assertSame(rowN, ofl.findRowByID(rowN.getID()));
+    Assertions.assertTrue(OtherFeatureManualUtils.isSamePeak(b14, rowN.getFeature(fileB)));
+    Assertions.assertSame(a14, rowN.getFeature(fileA));
+    Assertions.assertEquals(1.4f, rowN.getRT(), 1e-5f);
+    // the other MS row follows the 1.4 peak with its score
+    Assertions.assertNull(maps.getPerFileCorrelation(2, rowM.getID(), fileB));
+    Assertions.assertEquals(MsOtherCorrelationType.CALCULATED,
+        maps.getPerFileCorrelation(2, rowN.getID(), fileB).origin());
   }
 
+  /**
+   * A moved correlation keeps the preference position of the MS row, even if the link to the source
+   * row is removed.
+   */
   @Test
-  void testMisalignedSourceRowKeptIfStillCorrelated() {
+  void testMovedCorrelationKeepsPreference() {
     final OtherFeatureList ofl = OtherFeatureManualUtils.getOrCreateAlignedList(flist);
-    final OtherFeatureListRow rowM = addRow(ofl, createFeature(fileB, 1.4f));
+    final OtherFeatureListRow target = addRow(ofl, createFeature(fileA, 13.3f));
+    final OtherFeatureListRow source = addRow(ofl, createFeature(fileA, 13.5f));
+    final OtherFeatureImpl otherTrace = createFeature(fileA, 13.5f);
+    otherTrace.set(ChromatogramTypeType.class, ChromatogramType.UNKNOWN);
+    final OtherFeatureListRow otherTraceRow = addRow(ofl, otherTrace);
+    final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
+    maps.setCorrelations(1, List.of(new OtherCorrelationLink(target.getID(), calculated(fileA))));
+    // MS row 2 prefers the trace of the moved peak over another trace
+    maps.setCorrelations(2, List.of(new OtherCorrelationLink(source.getID(), calculated(fileA)),
+        new OtherCorrelationLink(otherTraceRow.getID(), calculated(fileA))));
+
+    final ManualOtherCorrelationResult result = OtherFeatureManualUtils.correlateManually(flist,
+        msRow1, createFeature(fileA, 13.5f));
+
+    Assertions.assertSame(source, result.movedFrom());
+    // the source row is empty, the replaced 13.3 peak did not fit and left the list
+    Assertions.assertNull(ofl.findRowByID(source.getID()));
+    Assertions.assertEquals(2, ofl.getNumberOfRows());
+    final List<OtherCorrelationLink> links = maps.getCorrelations(2);
+    Assertions.assertEquals(List.of(target.getID(), otherTraceRow.getID()),
+        links.stream().map(OtherCorrelationLink::otherRowId).toList());
+    Assertions.assertEquals(MsOtherCorrelationType.CALCULATED,
+        links.getFirst().perFile().get(fileA).origin());
+  }
+
+  /**
+   * The replaced peak fits the source row: both rows keep their peaks, the source row stays even
+   * though the MS row no longer correlates to it.
+   */
+  @Test
+  void testSwapKeepsSourceRow() {
+    final OtherFeatureList ofl = OtherFeatureManualUtils.getOrCreateAlignedList(flist);
+    final OtherFeatureImpl b14 = createFeature(fileB, 1.4f);
+    final OtherFeatureListRow rowM = addRow(ofl, b14);
     final OtherFeatureListRow rowN = addRow(ofl, createFeature(fileB, 1.3f),
         createFeature(fileA, 1.4f));
     final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
@@ -324,8 +365,12 @@ class OtherFeatureManualUtilsTest {
 
     Assertions.assertSame(rowN, result.movedFrom());
     Assertions.assertSame(rowN, ofl.findRowByID(rowN.getID()));
-    Assertions.assertNull(rowN.getFeature(fileB));
+    Assertions.assertSame(b14, rowN.getFeature(fileB));
     Assertions.assertEquals(1.4f, rowN.getRT(), 1e-5f);
+    Assertions.assertEquals(List.of(rowM.getID()),
+        maps.getCorrelations(1).stream().map(OtherCorrelationLink::otherRowId).toList());
+    Assertions.assertEquals(MsOtherCorrelationType.CALCULATED,
+        maps.getPerFileCorrelation(2, rowN.getID(), fileA).origin());
   }
 
   @Test

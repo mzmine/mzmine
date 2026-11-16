@@ -404,12 +404,12 @@ public class FeatureListLoadTask extends AbstractTask {
     final OtherFeatureListRow row = new OtherFeatureListRow(ofl, id, key);
     for (final OtherFeature feature : features) {
       try {
-        // also recomputes row RT / RT range from the loaded features
-        row.setFeature(feature);
+        row.setFeature(feature, false);
       } catch (IllegalArgumentException e) {
         logger.log(Level.WARNING, "Skipping other feature with mismatching trace key on load", e);
       }
     }
+    ofl.applyRowBindings(row); // recompute row RT / RT range from the loaded features
     return row;
   }
 

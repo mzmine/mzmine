@@ -114,6 +114,22 @@ public class OtherFeatureListRow extends ModularDataModelMap {
    */
   @Nullable
   public OtherFeature setFeature(final @NotNull OtherFeature feature) {
+    return setFeature(feature, true);
+  }
+
+  /**
+   * Same as {@link #setFeature(OtherFeature)}, but the row bindings may be skipped when many
+   * features are set at once, e.g., during alignment or project load. Call
+   * {@link OtherFeatureList#applyRowBindings(OtherFeatureListRow)} once after the last feature.
+   *
+   * @param feature           the feature to set
+   * @param updateRowBindings true to re-apply the row bindings
+   * @return the replaced feature of the same raw data file or null if the cell was empty
+   * @throws IllegalArgumentException if the feature's {@link TraceKey} does not match this row
+   */
+  @Nullable
+  public OtherFeature setFeature(final @NotNull OtherFeature feature,
+      final boolean updateRowBindings) {
     final TraceKey featureKey = TraceKey.of(feature);
     if (!traceKey.equals(featureKey)) {
       throw new IllegalArgumentException(
@@ -122,7 +138,9 @@ public class OtherFeatureListRow extends ModularDataModelMap {
     }
     final OtherFeature previous = features.put(feature.getRawDataFile(), feature);
     otherFeatureList.addFeatureType(feature.getTypes().toArray(DataType[]::new));
-    otherFeatureList.applyRowBindings(this);
+    if (updateRowBindings) {
+      otherFeatureList.applyRowBindings(this);
+    }
     return previous;
   }
 

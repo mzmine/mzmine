@@ -36,13 +36,14 @@ import org.jetbrains.annotations.Nullable;
  * {@link OtherFeatureManualUtils#correlateManually}.
  *
  * @param aligned    the aligned row and the feature in this row that is now correlated
- * @param replaced   the feature of the same raw data file that was replaced in the row, null if the
- *                   cell was empty or already held the same peak
+ * @param replaced   the feature of the same raw data file that was replaced in the row. It is now
+ *                   in the movedFrom row if it fit there (in rt range), otherwise it left the list.
+ *                   Null if the cell was empty or already held the same peak
  * @param createdRow true if a new row was created for the feature
  * @param movedFrom  the row the peak was moved from together with its correlations, null if it was
  *                   not aligned before. The row may have been removed from the aligned list.
- * @param changed    false if the MS row was already correlated to this peak in this row and
- *                   nothing changed
+ * @param changed    false if the MS row was already correlated to this peak in this row and nothing
+ *                   changed
  */
 public record ManualOtherCorrelationResult(@NotNull OtherFeatureToOtherRowPair aligned,
                                            @Nullable OtherFeature replaced, boolean createdRow,

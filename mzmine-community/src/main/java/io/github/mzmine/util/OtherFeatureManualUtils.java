@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationMaps;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationType;
 import io.github.mzmine.datamodel.otherdetectors.OtherCorrelationLink;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
@@ -37,8 +38,10 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeatureListRow;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureToOtherRowPair;
 import io.github.mzmine.datamodel.otherdetectors.PerFileCorrelation;
 import io.github.mzmine.datamodel.otherdetectors.TraceKey;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,13 +124,16 @@ public final class OtherFeatureManualUtils {
    *   <li>The target already holds this peak: the correlation in this file is set to manual if it
    *   is missing, otherwise nothing changes.</li>
    *   <li>Otherwise the peak replaces the target's cell for this file, e.g., the user picks the peak
-   *   at 13.5 min instead of the correlated one at 13.3 min. The replaced peak leaves the aligned
-   *   list. The correlations of all MS rows to the replaced peak keep their link but become manual
-   *   without a score, as the score was calculated for the replaced peak.</li>
+   *   at 13.5 min instead of the correlated one at 13.3 min. If the peak was not aligned, the
+   *   replaced peak leaves the aligned list. The correlations of all MS rows to the replaced peak
+   *   keep their link but become manual without a score, as the score was calculated for the
+   *   replaced peak.</li>
    *   <li>If another row held the peak, the peak is moved, e.g., the peaks at 13.3 and 13.5 min
    *   were misaligned in this file. All correlations to the moved peak move with it and keep their
-   *   origin and score. The previous row is removed if it has no peaks left, or if it was
-   *   correlated to MS rows before and is not anymore (only aligned peaks remain).</li>
+   *   origin, score and preference position. If the replaced peak fits the RT range of the
+   *   remaining peaks of the previous row, the two peaks swap rows and the correlations to the
+   *   replaced peak move with it, except the one of this MS row. Otherwise the replaced peak leaves
+   *   the list as above. The previous row is removed if it has no peaks left.</li>
    * </ul>
    * Finally, the MS row gets a manual correlation in this file if it has none.
    *
@@ -174,8 +180,6 @@ public final class OtherFeatureManualUtils {
     }
 
     final OtherFeatureListRow source = aligned != null ? aligned.row() : null;
-    final boolean sourceWasCorrelated =
-        source != null && !maps.getMsRowsForOtherRow(source.getID()).isEmpty();
     final OtherFeature placed;
     if (source != null) {
       placed = aligned.feature();
@@ -185,17 +189,21 @@ public final class OtherFeatureManualUtils {
     }
 
     final OtherFeature replaced = target.setFeature(placed);
-    if (replaced != null) {
-      markCorrelationsManual(target, file);
+    // decision: swap only if the replaced peak fits the remaining peaks of the source row
+    final boolean swapped = source != null && replaced != null && fitsRow(source, replaced);
+    if (swapped) {
+      source.setFeature(replaced);
     }
     if (source != null) {
-      // overrides the manual correlations of MS rows that were correlated to both peaks
-      moveCorrelations(source, target, file);
-      final boolean onlyAlignedLeft =
-          sourceWasCorrelated && maps.getMsRowsForOtherRow(source.getID()).isEmpty();
-      if (source.getNumberOfFeatures() == 0 || onlyAlignedLeft) {
+      moveCorrelations(source, target, file, swapped);
+      if (swapped) {
+        // the user picked the moved peak for the MS row, not the replaced one
+        maps.removeCorrelation(msRowId, source.getID(), file);
+      } else if (source.getNumberOfFeatures() == 0) {
         ofl.removeRow(source);
       }
+    } else if (replaced != null) {
+      markCorrelationsManual(target, file);
     }
     if (maps.getPerFileCorrelation(msRowId, target.getID(), file) == null) {
       maps.addManualCorrelation(msRowId, target.getID(), file);
@@ -276,23 +284,55 @@ public final class OtherFeatureManualUtils {
   }
 
   /**
-   * Moves the correlations of all MS rows to the source row in one file to the target row. They
-   * keep their origin and score. A link to the source row without any remaining correlated file is
-   * removed.
+   * @param row     an aligned row
+   * @param feature a feature
+   * @return true if the RT of the feature is within the RT range of the row, false if the row has
+   * no RT range
+   */
+  private static boolean fitsRow(@NotNull final OtherFeatureListRow row,
+      @NotNull final OtherFeature feature) {
+    final Range<Float> range = row.getRtRange();
+    final Float rt = feature.getRT();
+    return range != null && rt != null && range.contains(rt);
+  }
+
+  /**
+   * Moves the correlations of all MS rows to the moved peak in one file from the source row to the
+   * target row. They keep their origin, score and preference position. If the peaks were swapped,
+   * the correlations to the replaced peak move from the target to the source row. Otherwise the
+   * replaced peak left the list and its correlations in the target row now refer to the moved peak,
+   * as manual correlations without a score.
    *
-   * @param source the row the peak was moved from
-   * @param target the row the peak was moved to
-   * @param file   the raw data file of the moved peak
+   * @param source  the row the peak was moved from
+   * @param target  the row the peak was moved to
+   * @param file    the raw data file of the moved peak
+   * @param swapped true if the replaced peak of the target row moved to the source row
    */
   private static void moveCorrelations(@NotNull final OtherFeatureListRow source,
-      @NotNull final OtherFeatureListRow target, @NotNull final RawDataFile file) {
+      @NotNull final OtherFeatureListRow target, @NotNull final RawDataFile file,
+      final boolean swapped) {
     final MsOtherCorrelationMaps maps = source.getOtherFeatureList().getMsOtherCorrelationMaps();
-    for (final Integer msRowId : List.copyOf(maps.getMsRowsForOtherRow(source.getID()))) {
-      final PerFileCorrelation moved = maps.getPerFileCorrelation(msRowId, source.getID(), file);
-      if (moved != null) {
-        maps.removeCorrelation(msRowId, source.getID(), file);
-        maps.setPerFileCorrelation(msRowId, target.getID(), file, moved);
+    final Set<Integer> msRowIds = new LinkedHashSet<>(maps.getMsRowsForOtherRow(source.getID()));
+    msRowIds.addAll(maps.getMsRowsForOtherRow(target.getID()));
+    for (final Integer msRowId : msRowIds) {
+      final PerFileCorrelation toSource = maps.getPerFileCorrelation(msRowId, source.getID(), file);
+      final PerFileCorrelation toTarget = maps.getPerFileCorrelation(msRowId, target.getID(), file);
+      if (toSource == null && toTarget == null) {
+        continue;
       }
+      final PerFileCorrelation newToTarget;
+      final PerFileCorrelation newToSource;
+      if (swapped) {
+        newToTarget = toSource;
+        newToSource = toTarget;
+      } else {
+        // decision: keep the links to the dropped peak, the score was calculated for that peak
+        newToTarget = toSource != null ? toSource
+            : new PerFileCorrelation(MsOtherCorrelationType.MANUAL, null);
+        newToSource = null;
+      }
+      maps.setPerFileCorrelations(msRowId, source.getID(), newToSource, target.getID(), newToTarget,
+          file);
     }
   }
 

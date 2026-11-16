@@ -94,7 +94,8 @@ public final class OtherFeatureListUtils {
     final OtherFeatureListRow copy = new OtherFeatureListRow(target, row.getID(),
         row.getTraceKey());
     for (final OtherFeature feature : row.getFeatures()) {
-      copy.setFeature(feature.copy());
+      // row values are copied below
+      copy.setFeature(feature.copy(), false);
     }
     copy.getMap().putAll(row.getMap());
     return copy;
