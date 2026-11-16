@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -80,6 +82,8 @@ public class MZTabmExportTask extends AbstractTask {
   private final File fileName;
   private final FeatureList[] featureLists;
   private final boolean exportAll;
+  private final MetadataTable projectMetadata;
+  private final @Nullable MetadataColumn<?> studyVariableColumn;
 
   /**
    * Captures the selected feature lists and export settings.
@@ -87,10 +91,15 @@ public class MZTabmExportTask extends AbstractTask {
    * @param project project owning the selected feature lists
    * @param parameters export settings
    * @param moduleCallDate module invocation time
+   * @param studyVariableColumn metadata column selected in the MS data files Group by selector,
+   *                            or null when no metadata grouping is selected
    */
   MZTabmExportTask(@NotNull final MZmineProject project, @NotNull final ParameterSet parameters,
-      @NotNull final Instant moduleCallDate) {
+      @NotNull final Instant moduleCallDate,
+      @Nullable final MetadataColumn<?> studyVariableColumn) {
     super(null, moduleCallDate);
+    projectMetadata = project.getProjectMetadata();
+    this.studyVariableColumn = studyVariableColumn;
     featureLists = parameters.getParameter(MZTabmExportParameters.featureLists).getValue()
         .getMatchingFeatureLists();
     fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
@@ -167,14 +176,9 @@ public class MZTabmExportTask extends AbstractTask {
     final Metadata metadata = createMetadata(featureList, hasAnnotations);
     final Map<String, Parameter> scoreMeasures = createScoreMeasures(rows, metadata);
     final Map<RawDataFile, Assay> assays = createAssays(featureList, metadata);
-    // decision: Without an experimental grouping, one undefined study variable contains all assays.
-    final StudyVariable studyVariable = new StudyVariable().id(1).name("undefined")
-        .description("All assays").assayRefs(new ArrayList<>(assays.values()))
-        .averageFunction(new Parameter().cvLabel("MS").cvAccession("MS:1002962").name("mean"))
-        .variationFunction(new Parameter().cvLabel("MS").cvAccession("MS:1002963")
-            .name("variation coefficient"));
-    final List<StudyVariable> studyVariables = List.of(studyVariable);
-    metadata.addStudyVariableItem(studyVariable);
+    final List<StudyVariable> studyVariables = MzTabmStudyVariables.create(projectMetadata, assays,
+        studyVariableColumn);
+    studyVariables.forEach(metadata::addStudyVariableItem);
     final Map<String, Database> databases = new LinkedHashMap<>();
     final MzTab mzTab = new MzTab().metadata(metadata);
     int rowId = 0;

@@ -11,6 +11,8 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.project.ProjectService;
@@ -87,7 +89,7 @@ class MZTabmWorkshopExportTest {
   }
 
   /**
-   * Preserves measured rows, assay areas and modern annotations from the workshop.
+   * Preserves measured rows, assay areas, factor groups and modern annotations from the workshop.
    *
    * @throws URISyntaxException if the bundled project resource has an invalid location
    * @throws InterruptedException if project loading is interrupted
@@ -113,7 +115,10 @@ class MZTabmWorkshopExportTest {
         new FeatureListsSelection(featureList));
     parameters.setParameter(MZTabmExportParameters.filename, output.toFile());
     parameters.setParameter(MZTabmExportParameters.exportAll, true);
-    final MZTabmExportTask exportTask = new MZTabmExportTask(project, parameters, Instant.EPOCH);
+    final MetadataColumn<?> factorColumn = project.getProjectMetadata().getColumnByName("factor");
+    Assertions.assertNotNull(factorColumn);
+    final MZTabmExportTask exportTask = new MZTabmExportTask(project, parameters, Instant.EPOCH,
+        factorColumn);
 
     exportTask.run();
 
@@ -133,7 +138,8 @@ class MZTabmWorkshopExportTest {
       Assertions.assertEquals("//" + rawFile.getName(), run.getLocation().getSchemeSpecificPart());
       filesByRun.put(run.getId(), rawFile);
     }
-    assertDefaultStudyVariable(featureList, exported);
+    final List<RawDataFile> studyVariableFiles = assertFactorStudyVariables(project, exported,
+        filesByRun);
     final Map<Integer, SmallMoleculeEvidence> evidenceById = exported.getSmallMoleculeEvidence()
         .stream().collect(Collectors.toMap(SmallMoleculeEvidence::getSmeId, Function.identity()));
 
@@ -153,6 +159,17 @@ class MZTabmWorkshopExportTest {
         final Double expectedArea = sourceArea == null ? null : sourceArea.doubleValue();
         Assertions.assertEquals(expectedArea, feature.getAbundanceAssay().get(assayIndex));
         Assertions.assertEquals(expectedArea, summary.getAbundanceAssay().get(assayIndex));
+      }
+      Assertions.assertEquals(studyVariableFiles.size(), summary.getAbundanceStudyVariable().size());
+      Assertions.assertEquals(studyVariableFiles.size(),
+          summary.getAbundanceVariationStudyVariable().size());
+      for (int groupIndex = 0; groupIndex < studyVariableFiles.size(); groupIndex++) {
+        final Feature sourceFeature = sourceRow.getFeature(studyVariableFiles.get(groupIndex));
+        final Float sourceArea = sourceFeature == null ? null : sourceFeature.getArea();
+        final Double expectedArea = sourceArea == null ? null : sourceArea.doubleValue();
+        Assertions.assertEquals(expectedArea, summary.getAbundanceStudyVariable().get(groupIndex));
+        Assertions.assertEquals(expectedArea == null ? null : Double.valueOf(0d),
+            summary.getAbundanceVariationStudyVariable().get(groupIndex));
       }
 
       final FeatureAnnotation annotation = sourceRow.getPreferredAnnotation();
@@ -233,28 +250,51 @@ class MZTabmWorkshopExportTest {
         }
       }
     }
+
+    final MetadataColumn<?> sampleTypeColumn = project.getProjectMetadata()
+        .getColumnByName(MetadataColumn.SAMPLE_TYPE_HEADER);
+    Assertions.assertNotNull(sampleTypeColumn, "The workshop must retain its sample-type metadata");
+    final ParameterSet sampleTypeParameters = parameters.cloneParameterSet(true);
+    final Path sampleTypeOutput = tempDir.resolve("workshop-sample-type.mzTab");
+    sampleTypeParameters.setParameter(MZTabmExportParameters.filename, sampleTypeOutput.toFile());
+    final MZTabmExportTask sampleTypeTask = new MZTabmExportTask(project, sampleTypeParameters,
+        Instant.EPOCH, sampleTypeColumn);
+
+    sampleTypeTask.run();
+
+    Assertions.assertEquals(TaskStatus.FINISHED, sampleTypeTask.getStatus(),
+        sampleTypeTask.getErrorMessage());
+    assertSampleTypeStudyVariable(project, featureList, parseExport(sampleTypeOutput));
   }
 
   /**
-   * Checks the single default study variable against both assays' measured values.
+   * Checks that selecting sample type merges both QC assays into their genuine common group.
    *
-   * @param featureList measured workshop feature list
-   * @param exported parsed export containing the default study variable
+   * @param project measured workshop project with its original metadata
+   * @param featureList measured feature list used for the second export
+   * @param exported parsed export grouped by sample type
    */
-  private static void assertDefaultStudyVariable(@NotNull final ModularFeatureList featureList,
-      @NotNull final MzTab exported) {
+  private static void assertSampleTypeStudyVariable(@NotNull final MZmineProject project,
+      @NotNull final ModularFeatureList featureList, @NotNull final MzTab exported) {
+    final MetadataColumn<?> sampleTypeColumn = project.getProjectMetadata()
+        .getColumnByName(MetadataColumn.SAMPLE_TYPE_HEADER);
+    Assertions.assertNotNull(sampleTypeColumn);
     final List<RawDataFile> rawFiles = featureList.getRawDataFiles();
     Assertions.assertEquals(2, rawFiles.size());
+    for (final RawDataFile rawFile : rawFiles) {
+      Assertions.assertEquals("qc", project.getProjectMetadata().getValue(sampleTypeColumn, rawFile));
+    }
     Assertions.assertEquals(120, exported.getSmallMoleculeSummary().size());
     Assertions.assertEquals(120, exported.getSmallMoleculeFeature().size());
     Assertions.assertEquals(8, exported.getSmallMoleculeEvidence().size());
     Assertions.assertEquals(2, exported.getMetadata().getAssay().size());
     Assertions.assertEquals(1, exported.getMetadata().getStudyVariable().size());
     final StudyVariable group = exported.getMetadata().getStudyVariable().getFirst();
-    Assertions.assertEquals("undefined", group.getName());
-    Assertions.assertTrue(group.getFactors().isEmpty());
-    Assertions.assertEquals("MS:1002962", group.getAverageFunction().getCvAccession());
-    Assertions.assertEquals("MS:1002963", group.getVariationFunction().getCvAccession());
+    Assertions.assertEquals("qc", group.getName());
+    Assertions.assertEquals(MetadataColumn.SAMPLE_TYPE_HEADER + " = qc", group.getDescription());
+    Assertions.assertEquals(1, group.getFactors().size());
+    Assertions.assertEquals(MetadataColumn.SAMPLE_TYPE_HEADER, group.getFactors().getFirst().getName());
+    Assertions.assertEquals("qc", group.getFactors().getFirst().getValue());
     Assertions.assertEquals(2, group.getAssayRefs().size());
     Assertions.assertEquals(exported.getMetadata().getAssay().stream().map(Assay::getId)
             .collect(Collectors.toSet()),
@@ -303,6 +343,54 @@ class MZTabmWorkshopExportTest {
     final Feature feature = row.getFeature(rawFile);
     final Float area = feature == null ? null : feature.getArea();
     return area == null ? null : area.doubleValue();
+  }
+
+  /**
+   * Verifies that factor values select the correct measured files regardless of assay order.
+   *
+   * @param project measured workshop project with its original metadata
+   * @param exported parsed export
+   * @param filesByRun original files indexed by exported run identifier
+   * @return measured file for each singleton study variable in exported column order
+   */
+  private static @NotNull List<RawDataFile> assertFactorStudyVariables(
+      @NotNull final MZmineProject project, @NotNull final MzTab exported,
+      @NotNull final Map<Integer, RawDataFile> filesByRun) {
+    final Map<String, Double> expectedFactors = Map.of(
+        "171103_PMA_TK_QC_04-4to5min.mzML", 1.5d,
+        "171103_PMA_TK_QC_05-4to5min.mzML", 2.0d);
+    final MetadataTable metadata = project.getProjectMetadata();
+    final MetadataColumn<?> factorColumn = metadata.getColumnByName("factor");
+    Assertions.assertNotNull(factorColumn, "The workshop project must retain its factor metadata");
+    for (final RawDataFile rawFile : filesByRun.values()) {
+      Assertions.assertTrue(expectedFactors.containsKey(rawFile.getName()));
+      Assertions.assertEquals(expectedFactors.get(rawFile.getName()),
+          metadata.getValue(factorColumn, rawFile));
+    }
+
+    final List<StudyVariable> groups = exported.getMetadata().getStudyVariable();
+    Assertions.assertEquals(List.of("1.5", "2.0"),
+        groups.stream().map(StudyVariable::getName).toList());
+    final Map<Integer, Assay> assaysById = exported.getMetadata().getAssay().stream()
+        .collect(Collectors.toMap(Assay::getId, Function.identity()));
+    final List<RawDataFile> studyVariableFiles = new ArrayList<>();
+    for (final StudyVariable group : groups) {
+      Assertions.assertEquals("factor = " + group.getName(), group.getDescription());
+      Assertions.assertEquals(1, group.getFactors().size());
+      final var factor = group.getFactors().getFirst();
+      Assertions.assertEquals("factor", factor.getName());
+      Assertions.assertEquals(group.getName(), factor.getValue());
+      Assertions.assertEquals(1, group.getAssayRefs().size());
+      final Assay assay = assaysById.get(group.getAssayRefs().getFirst().getId());
+      Assertions.assertNotNull(assay);
+      Assertions.assertEquals(1, assay.getMsRunRef().size());
+      final RawDataFile rawFile = filesByRun.get(assay.getMsRunRef().getFirst().getId());
+      Assertions.assertNotNull(rawFile);
+      Assertions.assertEquals(expectedFactors.get(rawFile.getName()).toString(), factor.getValue());
+      studyVariableFiles.add(rawFile);
+    }
+    Assertions.assertEquals(Set.copyOf(filesByRun.values()), Set.copyOf(studyVariableFiles));
+    return studyVariableFiles;
   }
 
   /**

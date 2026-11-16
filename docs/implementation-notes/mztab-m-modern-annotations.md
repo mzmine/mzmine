@@ -30,10 +30,17 @@ features that have no annotation. The bundled workshop project is the measured i
   per-file charges. Preserve one abundance cell per assay; missing measurements stay null and are
   excluded from each study-variable mean and variation calculation. Declare the arithmetic
   mean and variation-coefficient CV terms; report the coefficient as a ratio, not a percentage.
-- Use one `undefined` study variable containing all exported assays. Compute its
-  arithmetic mean and sample coefficient of variation from measured areas without rescaling them.
-  Missing measurements remain null and are excluded from the statistics. A singleton measurement
-  has zero variation; no measurements produce null mean and variation.
+- Derive study variables from the metadata column selected under `Group by` in `MS data files`.
+  Capture that column when scheduling the export and read its values from the owning project's
+  metadata, considering only exported assays. Use the column title as the factor parameter name
+  and each distinct value as its group name and parameter value, including zero and singleton
+  groups. Sort numeric values numerically and other values deterministically; place missing or
+  blank values in `undefined` last, as chosen by the user. `No grouping`, manual grouping,
+  headless exports and unavailable selected columns use one `undefined` group containing all
+  exported assays. The user chose this fallback rather than a hardcoded `factor` column.
+  Compute each group's mean and sample coefficient of variation from its own measured areas;
+  factors group samples and never rescale areas. Singleton groups have zero variation, while
+  groups with no measurements have null mean and variation.
 - Raw-file references retain filenames without source directories, as requested by the user.
   Spectral matches reference their actual query scans; merged queries resolve to measured source
   scans. Spectrum indices are zero-based positions in each raw file, not native scan numbers.
@@ -47,6 +54,6 @@ features that have no annotation. The bundled workshop project is the measured i
 The workshop test uses the unchanged bundled project and normal headless startup with a configured
 MZmine login. It is explicitly enabled with `-Dmzmine.test.workshopExport=true`, so ordinary unit
 tests do not depend on a personal account. No authentication checks or project loaders are bypassed.
-The test checks measured values, one `undefined` study variable containing both assays, its mean
-and coefficient of variation, annotation preservation, references and parser diagnostics. It does
-not perform network-dependent CV-semantic validation.
+The test checks measured values, the two groups obtained by selecting `factor` (`1.5` and `2.0`),
+one `qc` group when selecting `mzmine_sample_type`, annotation preservation, references and parser
+diagnostics; it does not perform network-dependent CV-semantic validation.

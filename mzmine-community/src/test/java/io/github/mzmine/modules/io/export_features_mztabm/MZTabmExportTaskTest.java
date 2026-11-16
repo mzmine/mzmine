@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.io.export_features_mztabm;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -10,9 +11,15 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineDesktop;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -25,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +54,7 @@ import org.lifstools.mztab2.model.SmallMoleculeEvidence;
 import org.lifstools.mztab2.model.SmallMoleculeFeature;
 import org.lifstools.mztab2.model.SmallMoleculeSummary;
 import org.lifstools.mztab2.model.StudyVariable;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 
@@ -141,6 +150,138 @@ class MZTabmExportTaskTest {
     Assertions.assertEquals("MS:1002963", studyVariable.getVariationFunction().getCvAccession());
     Assertions.assertEquals(List.of(1, 2), exported.getSmallMoleculeEvidence().getFirst()
         .getSpectraRef().stream().map(reference -> reference.getMsRun().getId()).toList());
+  }
+
+  /**
+   * Selected groups use the supplied project's metadata and exclude missing measurements from means.
+   *
+   * @throws IOException if the exported file cannot be inspected
+   */
+  @Test
+  void exportsSelectedMetadataGroupsWithIndependentStatisticsAndMissingMeasurements()
+      throws IOException {
+    final MZmineProject project = new MZmineProjectImpl();
+    final DoubleMetadataColumn grouping = new DoubleMetadataColumn("treatment");
+    final DoubleMetadataColumn factor = new DoubleMetadataColumn("factor");
+    final List<RawDataFile> files = new ArrayList<>();
+    final List<Feature> measurements = new ArrayList<>();
+    final float[] areas = {100f, 10f, 300f, 30f, 50f};
+    final Double[] factors = {2d, 1.5d, 2d, 1.5d, null};
+    final FeatureIdentity identity = createIdentity("https://example.org/compound/1");
+    final ModularFeatureList featureList = createFeatureList("Factor groups", "first.mzML", identity);
+    final FeatureListRow complete = featureList.getRows().getFirst();
+    for (int index = 0; index < areas.length; index++) {
+      final ModularFeatureList source = index == 0 ? featureList
+          : createFeatureList("Sample " + index, "sample" + index + ".mzML", identity);
+      final RawDataFile file = source.getRawDataFiles().getFirst();
+      final Feature measurement = source.getRows().getFirst().getFeature(file);
+      Mockito.when(measurement.getArea()).thenReturn(areas[index]);
+      Mockito.when(complete.getFeature(file)).thenReturn(measurement);
+      project.getProjectMetadata().setValue(grouping, file, factors[index]);
+      project.getProjectMetadata().setValue(factor, file, 99d);
+      files.add(file);
+      measurements.add(measurement);
+    }
+    final FeatureListRow partial = createFeatureList("Partial", "partial.mzML", identity)
+        .getRows().getFirst();
+    Mockito.when(partial.getID()).thenReturn(2);
+    Mockito.when(partial.getRawDataFiles()).thenReturn(List.of(files.get(1)));
+    Mockito.when(partial.getFeature(files.get(1))).thenReturn(measurements.get(1));
+    Mockito.when(complete.getRawDataFiles()).thenReturn(files);
+    Mockito.when(featureList.getRawDataFiles()).thenReturn(files);
+    Mockito.when(featureList.getRows()).thenReturn(FXCollections.observableArrayList(complete, partial));
+    Mockito.when(featureList.getNumberOfRows()).thenReturn(2);
+    final Path output = tempDir.resolve("factor-groups.mzTab");
+    final MZTabmExportTask task = createTask(project, grouping, output, true, featureList);
+
+    task.run();
+
+    Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus(), task.getErrorMessage());
+    final MzTab exported = parseExport(output);
+    final List<StudyVariable> variables = exported.getMetadata().getStudyVariable();
+    Assertions.assertEquals(List.of("1.5", "2.0", "undefined"),
+        variables.stream().map(StudyVariable::getName).toList());
+    Assertions.assertEquals("treatment", variables.getFirst().getFactors().getFirst().getName());
+    Assertions.assertEquals("treatment = 1.5", variables.getFirst().getDescription());
+    Assertions.assertEquals(List.of(2, 4),
+        variables.get(0).getAssayRefs().stream().map(Assay::getId).toList());
+    Assertions.assertEquals(List.of(1, 3),
+        variables.get(1).getAssayRefs().stream().map(Assay::getId).toList());
+    Assertions.assertEquals(List.of(5),
+        variables.get(2).getAssayRefs().stream().map(Assay::getId).toList());
+    final SmallMoleculeSummary allMeasured = exported.getSmallMoleculeSummary().getFirst();
+    Assertions.assertEquals(List.of(100d, 10d, 300d, 30d, 50d), allMeasured.getAbundanceAssay());
+    Assertions.assertEquals(List.of(20d, 200d, 50d), allMeasured.getAbundanceStudyVariable());
+    Assertions.assertEquals(Math.sqrt(0.5), allMeasured.getAbundanceVariationStudyVariable().get(0),
+        1e-8);
+    Assertions.assertEquals(Math.sqrt(0.5), allMeasured.getAbundanceVariationStudyVariable().get(1),
+        1e-8);
+    Assertions.assertEquals(0d, allMeasured.getAbundanceVariationStudyVariable().get(2));
+    final SmallMoleculeSummary someMissing = exported.getSmallMoleculeSummary().get(1);
+    Assertions.assertEquals(Arrays.asList(null, 10d, null, null, null), someMissing.getAbundanceAssay());
+    Assertions.assertEquals(Arrays.asList(10d, null, null), someMissing.getAbundanceStudyVariable());
+    Assertions.assertEquals(Arrays.asList(0d, null, null),
+        someMissing.getAbundanceVariationStudyVariable());
+  }
+
+  /**
+   * The module captures Group by once and never falls back to the factor column when ungrouped.
+   *
+   * @param grouped whether a metadata column is selected in the desktop
+   * @throws IOException if the exported file cannot be inspected
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void capturesDesktopGroupingWhenSchedulingExport(final boolean grouped) throws IOException {
+    final MZmineProject project = new MZmineProjectImpl();
+    final ModularFeatureList featureList = createMixedFeatureList();
+    final List<RawDataFile> files = featureList.getRawDataFiles();
+    final StringMetadataColumn grouping = new StringMetadataColumn("condition");
+    final DoubleMetadataColumn factor = new DoubleMetadataColumn("factor");
+    project.getProjectMetadata().setValue(grouping, files.get(0), "control");
+    project.getProjectMetadata().setValue(grouping, files.get(1), "treated");
+    project.getProjectMetadata().setValue(factor, files.get(0), 1d);
+    project.getProjectMetadata().setValue(factor, files.get(1), 2d);
+    final MZmineDesktop desktop = Mockito.mock(MZmineDesktop.class);
+    Mockito.<MetadataColumn<?>>when(desktop.getRawDataGroupingColumn())
+        .thenReturn(grouped ? grouping : null);
+    final Path output = tempDir.resolve("desktop-groups.mzTab");
+    final ParameterSet parameters = new MZTabmExportParameters().cloneParameterSet();
+    parameters.setParameter(MZTabmExportParameters.featureLists,
+        new FeatureListsSelection(featureList));
+    parameters.setParameter(MZTabmExportParameters.filename, output.toFile());
+    parameters.setParameter(MZTabmExportParameters.exportAll, true);
+    final List<Task> tasks = new ArrayList<>();
+    try (final MockedStatic<DesktopService> desktops = Mockito.mockStatic(DesktopService.class)) {
+      desktops.when(DesktopService::getDesktop).thenReturn(desktop);
+      new MZTabmExportModule().runModule(project, parameters, tasks, Instant.EPOCH);
+      Mockito.<MetadataColumn<?>>when(desktop.getRawDataGroupingColumn()).thenReturn(factor);
+    }
+    Assertions.assertEquals(1, tasks.size());
+
+    tasks.getFirst().run();
+
+    Assertions.assertEquals(TaskStatus.FINISHED, tasks.getFirst().getStatus(),
+        tasks.getFirst().getErrorMessage());
+    Mockito.verify(desktop, Mockito.times(1)).getRawDataGroupingColumn();
+    final MzTab exported = parseExport(output);
+    final List<StudyVariable> variables = exported.getMetadata().getStudyVariable();
+    if (grouped) {
+      Assertions.assertEquals(List.of("control", "treated"),
+          variables.stream().map(StudyVariable::getName).toList());
+      Assertions.assertEquals("condition", variables.getFirst().getFactors().getFirst().getName());
+      Assertions.assertEquals(Arrays.asList(1250d, null),
+          exported.getSmallMoleculeSummary().getFirst().getAbundanceStudyVariable());
+      Assertions.assertEquals(Arrays.asList(null, 1250d),
+          exported.getSmallMoleculeSummary().get(1).getAbundanceStudyVariable());
+    } else {
+      Assertions.assertEquals(1, variables.size());
+      Assertions.assertEquals("undefined", variables.getFirst().getName());
+      Assertions.assertEquals(List.of(1, 2),
+          variables.getFirst().getAssayRefs().stream().map(Assay::getId).toList());
+      Assertions.assertEquals(List.of(1250d),
+          exported.getSmallMoleculeSummary().getFirst().getAbundanceStudyVariable());
+    }
   }
 
   /**
@@ -522,12 +663,29 @@ class MZTabmExportTaskTest {
    */
   private static @NotNull MZTabmExportTask createTask(@NotNull final Path output,
       final boolean includeUnknown, @NotNull final ModularFeatureList... featureLists) {
+    return createTask(new MZmineProjectImpl(), null, output, includeUnknown, featureLists);
+  }
+
+  /**
+   * Supplies project metadata independently of the globally active project.
+   *
+   * @param project project owning the selected feature lists and metadata
+   * @param studyVariableColumn selected grouping column, or null for no metadata grouping
+   * @param output output file or filename pattern
+   * @param includeUnknown whether unidentified features are included
+   * @param featureLists selected feature lists
+   * @return task ready to run synchronously
+   */
+  private static @NotNull MZTabmExportTask createTask(@NotNull final MZmineProject project,
+      @Nullable final MetadataColumn<?> studyVariableColumn, @NotNull final Path output,
+      final boolean includeUnknown,
+      @NotNull final ModularFeatureList... featureLists) {
     final ParameterSet parameters = new MZTabmExportParameters().cloneParameterSet();
     parameters.setParameter(MZTabmExportParameters.featureLists,
         new FeatureListsSelection(featureLists));
     parameters.setParameter(MZTabmExportParameters.filename, output.toFile());
     parameters.setParameter(MZTabmExportParameters.exportAll, includeUnknown);
-    return new MZTabmExportTask(new MZmineProjectImpl(), parameters, Instant.EPOCH);
+    return new MZTabmExportTask(project, parameters, Instant.EPOCH, studyVariableColumn);
   }
 
   /**
