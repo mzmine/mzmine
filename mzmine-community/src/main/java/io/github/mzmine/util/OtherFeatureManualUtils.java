@@ -37,11 +37,8 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeatureListRow;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureToOtherRowPair;
 import io.github.mzmine.datamodel.otherdetectors.PerFileCorrelation;
 import io.github.mzmine.datamodel.otherdetectors.TraceKey;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +47,9 @@ import org.jetbrains.annotations.Nullable;
  * list, e.g., from the correlation dashboard. The list may be created here if no alignment was run,
  * so a fully manual workflow fills it step by step. Manual edits are saved with the project but are
  * not reproducible in batch mode.
+ * <p>
+ * Rule: a peak is held by at most one aligned row per raw data file. Correlating a peak that is
+ * already aligned moves it to the row that should hold it, together with its correlations.
  * <p>
  * The aligned list owns copies of the features, so features from
  * {@link io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData} (e.g., manually integrated
@@ -111,128 +111,31 @@ public final class OtherFeatureManualUtils {
   }
 
   /**
-   * @param ofl     the aligned other feature list
-   * @param feature the peak to look for
-   * @return all rows that hold this peak in the feature's raw data file, in row order. A peak may
-   * be in more than one row after manual edits.
-   */
-  @NotNull
-  public static List<OtherFeatureListRow> findRowsWithPeak(@NotNull final OtherFeatureList ofl,
-      @NotNull final OtherFeature feature) {
-    final RawDataFile file = feature.getRawDataFile();
-    final TraceKey key = TraceKey.of(feature);
-    final List<OtherFeatureListRow> result = new ArrayList<>();
-    for (final OtherFeatureListRow row : ofl.getRows()) {
-      if (!row.getTraceKey().equals(key)) {
-        continue;
-      }
-      final OtherFeature cell = row.getFeature(file);
-      if (cell != null && isSamePeak(cell, feature)) {
-        result.add(row);
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Adds a copy of the feature as a new single-file row.
-   *
-   * @param ofl     the aligned other feature list
-   * @param feature the feature to add, a copy is stored
-   * @return the new row and the stored copy
-   */
-  @NotNull
-  public static OtherFeatureToOtherRowPair addAsNewRow(@NotNull final OtherFeatureList ofl,
-      @NotNull final OtherFeature feature) {
-    final OtherFeatureListRow row = ofl.createRow(TraceKey.of(feature));
-    final OtherFeature copy = feature.copy();
-    row.setFeature(copy);
-    ofl.addRow(row);
-    return new OtherFeatureToOtherRowPair(row, copy);
-  }
-
-  /**
-   * Sets a copy of the feature into the row's cell of its raw data file and replaces the previous
-   * feature. Nothing changes if the cell already holds the same peak. A replaced feature only
-   * leaves this row, other rows that hold the same peak keep it. Correlations of the row stay, so
-   * they now refer to the new feature: if a different peak replaced the cell, the correlations of
-   * all MS rows to this row in this file become manual without a score, as their score was
-   * calculated for the replaced peak.
-   *
-   * @param row     the aligned row, must have the feature's trace key
-   * @param feature the feature to set, a copy is stored
-   * @return the row and the feature in its cell
-   */
-  @NotNull
-  public static OtherFeatureToOtherRowPair setFeature(@NotNull final OtherFeatureListRow row,
-      @NotNull final OtherFeature feature) {
-    final RawDataFile file = feature.getRawDataFile();
-    final OtherFeature current = row.getFeature(file);
-    if (current != null && isSamePeak(current, feature)) {
-      return new OtherFeatureToOtherRowPair(row, current);
-    }
-    final OtherFeature copy = feature.copy();
-    if (row.setFeature(copy) != null) {
-      markCorrelationsManual(row, file);
-    }
-    return new OtherFeatureToOtherRowPair(row, copy);
-  }
-
-  /**
-   * Removes the feature of a raw data file from a row and the correlations of all MS rows to this
-   * row in this file. A row without features is removed from its list, together with all its
-   * correlations.
-   *
-   * @param row  the aligned row
-   * @param file the raw data file
-   * @return the removed feature or null if the row had no feature for this file
-   */
-  @Nullable
-  public static OtherFeature removeFeature(@NotNull final OtherFeatureListRow row,
-      @NotNull final RawDataFile file) {
-    final OtherFeatureList ofl = row.getOtherFeatureList();
-    final OtherFeature removed = row.removeFeature(file);
-    if (removed == null) {
-      return null;
-    }
-    if (row.getNumberOfFeatures() == 0) {
-      ofl.removeRow(row);
-      return removed;
-    }
-    // decision: a correlation in this file cannot point to a missing peak
-    final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
-    for (final Integer msRowId : List.copyOf(maps.getMsRowsForOtherRow(row.getID()))) {
-      maps.removeCorrelation(msRowId, row.getID(), file);
-    }
-    return removed;
-  }
-
-  /**
    * Manually correlates an MS row to an other detector feature in the feature's raw data file. The
    * aligned list is created if needed.
    * <p>
-   * If the MS row already correlates to the feature's trace, the first such row (in preference
-   * order, in any file) takes the feature:
+   * The target row is the first row of the feature's trace that the MS row correlates to (in
+   * preference order, in any file). If there is none, the row that already holds the peak is the
+   * target, else a new single-file row is created.
    * <ul>
-   *   <li>Its cell already holds this peak: the correlation in this file is set to manual if it is
-   *   missing, otherwise nothing changes.</li>
-   *   <li>The MS row is correlated to this peak through another row of the trace (misaligned, e.g.,
-   *   the peaks at 1.3 and 1.4 min were swapped in this file): the peak is moved to the target row
-   *   together with all its correlations, which keep their scores. See
-   *   {@link #movePeak(OtherFeatureListRow, OtherFeatureListRow, RawDataFile)}.</li>
-   *   <li>Otherwise its cell for this file is replaced by a copy, e.g., the user picks the peak at
-   *   13.5 min instead of the correlated one at 13.3 min. See
-   *   {@link #setFeature(OtherFeatureListRow, OtherFeature)} for other MS rows linked to this
-   *   row. The correlation of the MS row in this file is set to manual.</li>
+   *   <li>The target already holds this peak: the correlation in this file is set to manual if it
+   *   is missing, otherwise nothing changes.</li>
+   *   <li>Otherwise the peak replaces the target's cell for this file, e.g., the user picks the peak
+   *   at 13.5 min instead of the correlated one at 13.3 min. The replaced peak leaves the aligned
+   *   list. The correlations of all MS rows to the replaced peak keep their link but become manual
+   *   without a score, as the score was calculated for the replaced peak.</li>
+   *   <li>If another row held the peak, the peak is moved, e.g., the peaks at 13.3 and 13.5 min
+   *   were misaligned in this file. All correlations to the moved peak move with it and keep their
+   *   origin and score. The previous row is removed if it has no peaks left, or if it was
+   *   correlated to MS rows before and is not anymore (only aligned peaks remain).</li>
    * </ul>
-   * If the MS row does not correlate to this trace, the first row that holds this peak or a new
-   * single-file row takes it, and the correlation in this file is set to manual.
+   * Finally, the MS row gets a manual correlation in this file if it has none.
    *
    * @param flist   the MS feature list
    * @param msRow   the MS row
    * @param feature the other detector feature, usually a processed feature of the raw file. A copy
    *                is stored if it is not in the aligned list yet.
-   * @return the row and feature that are now correlated
+   * @return the row and feature that are now correlated and what changed
    */
   @NotNull
   public static ManualOtherCorrelationResult correlateManually(
@@ -243,17 +146,21 @@ public final class OtherFeatureManualUtils {
     final RawDataFile file = feature.getRawDataFile();
     final int msRowId = msRow.getID();
 
-    final OtherFeatureListRow target = findCorrelatedRowOfTrace(ofl, msRowId, TraceKey.of(feature));
+    final OtherFeatureToOtherRowPair aligned = findAlignedPeak(ofl, feature);
+    final OtherFeatureListRow correlatedRow = findCorrelatedRowOfTrace(ofl, msRowId,
+        TraceKey.of(feature));
+    // decision: the MS row's preferred row of this trace takes the peak, else the row holding it
+    final OtherFeatureListRow target =
+        correlatedRow != null ? correlatedRow : aligned != null ? aligned.row() : null;
+
     if (target == null) {
-      final OtherFeatureListRow withPeak = findRowsWithPeak(ofl, feature).stream().findFirst()
-          .orElse(null);
-      final ManualOtherCorrelationResult result =
-          withPeak == null ? new ManualOtherCorrelationResult(addAsNewRow(ofl, feature), null, true,
-              null, false, true) : new ManualOtherCorrelationResult(
-              new OtherFeatureToOtherRowPair(withPeak, withPeak.getFeature(file)), null, false,
-              null, false, true);
-      maps.addManualCorrelation(msRowId, result.aligned().row().getID(), file);
-      return result;
+      final OtherFeatureListRow row = ofl.createRow(TraceKey.of(feature));
+      final OtherFeature copy = feature.copy();
+      row.setFeature(copy);
+      ofl.addRow(row);
+      maps.addManualCorrelation(msRowId, row.getID(), file);
+      return new ManualOtherCorrelationResult(new OtherFeatureToOtherRowPair(row, copy), null, true,
+          null, true);
     }
 
     final OtherFeature cell = target.getFeature(file);
@@ -263,84 +170,38 @@ public final class OtherFeatureManualUtils {
         maps.addManualCorrelation(msRowId, target.getID(), file);
       }
       return new ManualOtherCorrelationResult(new OtherFeatureToOtherRowPair(target, cell), null,
-          false, null, false, !correlated);
+          false, null, !correlated);
     }
 
-    // decision: correlated to this peak through another row of the same trace means misaligned
-    final OtherFeatureListRow source = findCorrelatedRow(ofl, msRowId, feature);
+    final OtherFeatureListRow source = aligned != null ? aligned.row() : null;
+    final boolean sourceWasCorrelated =
+        source != null && !maps.getMsRowsForOtherRow(source.getID()).isEmpty();
+    final OtherFeature placed;
     if (source != null) {
-      return movePeak(source, target, file);
+      placed = aligned.feature();
+      source.removeFeature(file);
+    } else {
+      placed = feature.copy();
     }
 
-    final OtherFeature copy = feature.copy();
-    final OtherFeature replaced = target.setFeature(copy);
+    final OtherFeature replaced = target.setFeature(placed);
     if (replaced != null) {
       markCorrelationsManual(target, file);
     }
-    maps.addManualCorrelation(msRowId, target.getID(), file);
-    return new ManualOtherCorrelationResult(new OtherFeatureToOtherRowPair(target, copy), replaced,
-        false, null, false, true);
-  }
-
-  /**
-   * Moves a misaligned peak of one raw data file from the source to the target row and replaces the
-   * target's peak in this file. All correlations of MS rows to the moved peak move with it and keep
-   * their origin and score. MS rows that were correlated to the replaced peak (but not to the moved
-   * one) keep the link, but it becomes manual without a score. A link to the source row without any
-   * remaining correlated file is removed. The source row is removed if it has no peaks left or no
-   * MS row correlates to it anymore (only aligned peaks remain).
-   *
-   * @param source the row that holds the peak
-   * @param target the row that takes the peak, must have the same trace key
-   * @param file   the raw data file of the peak
-   * @return the result with the target row and the moved peak
-   */
-  @NotNull
-  private static ManualOtherCorrelationResult movePeak(@NotNull final OtherFeatureListRow source,
-      @NotNull final OtherFeatureListRow target, @NotNull final RawDataFile file) {
-    final OtherFeatureList ofl = target.getOtherFeatureList();
-    final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
-    final OtherFeature moved = source.removeFeature(file);
-    if (moved == null) {
-      throw new IllegalStateException(
-          "Source row %d has no peak in file %s".formatted(source.getID(), file.getName()));
-    }
-    final OtherFeature replaced = target.setFeature(moved);
-
-    final Set<Integer> msRowIds = new LinkedHashSet<>(maps.getMsRowsForOtherRow(source.getID()));
-    msRowIds.addAll(maps.getMsRowsForOtherRow(target.getID()));
-    for (final Integer msRowId : msRowIds) {
-      final PerFileCorrelation movedCorrelation = maps.getPerFileCorrelation(msRowId,
-          source.getID(), file);
-      if (movedCorrelation != null) {
-        // drops the link to the source row if no other file is correlated
-        maps.removeCorrelation(msRowId, source.getID(), file);
-        maps.setPerFileCorrelation(msRowId, target.getID(), file, movedCorrelation);
-      } else if (replaced != null
-          && maps.getPerFileCorrelation(msRowId, target.getID(), file) != null) {
-        // decision: the score was calculated for the replaced peak
-        maps.addManualCorrelation(msRowId, target.getID(), file);
+    if (source != null) {
+      // overrides the manual correlations of MS rows that were correlated to both peaks
+      moveCorrelations(source, target, file);
+      final boolean onlyAlignedLeft =
+          sourceWasCorrelated && maps.getMsRowsForOtherRow(source.getID()).isEmpty();
+      if (source.getNumberOfFeatures() == 0 || onlyAlignedLeft) {
+        ofl.removeRow(source);
       }
     }
-
-    final boolean removeSource =
-        source.getNumberOfFeatures() == 0 || maps.getMsRowsForOtherRow(source.getID()).isEmpty();
-    if (removeSource) {
-      ofl.removeRow(source);
+    if (maps.getPerFileCorrelation(msRowId, target.getID(), file) == null) {
+      maps.addManualCorrelation(msRowId, target.getID(), file);
     }
-    return new ManualOtherCorrelationResult(new OtherFeatureToOtherRowPair(target, moved), replaced,
-        false, source, removeSource, true);
-  }
-
-  /**
-   * @param ofl     the aligned other feature list
-   * @param msRowId the MS row ID
-   * @param feature the other detector feature
-   * @return true if the MS row is correlated to this peak in the feature's raw data file
-   */
-  public static boolean isCorrelated(@NotNull final OtherFeatureList ofl, final int msRowId,
-      @NotNull final OtherFeature feature) {
-    return findCorrelatedRow(ofl, msRowId, feature) != null;
+    return new ManualOtherCorrelationResult(new OtherFeatureToOtherRowPair(target, placed),
+        replaced, false, source, true);
   }
 
   /**
@@ -373,6 +234,29 @@ public final class OtherFeatureManualUtils {
 
   /**
    * @param ofl     the aligned other feature list
+   * @param feature the peak to look for
+   * @return the first row (in row order) that holds this peak and the stored copy, null if the peak
+   * is not aligned
+   */
+  @Nullable
+  private static OtherFeatureToOtherRowPair findAlignedPeak(@NotNull final OtherFeatureList ofl,
+      @NotNull final OtherFeature feature) {
+    final RawDataFile file = feature.getRawDataFile();
+    final TraceKey key = TraceKey.of(feature);
+    for (final OtherFeatureListRow row : ofl.getRows()) {
+      if (!row.getTraceKey().equals(key)) {
+        continue;
+      }
+      final OtherFeature cell = row.getFeature(file);
+      if (cell != null && isSamePeak(cell, feature)) {
+        return new OtherFeatureToOtherRowPair(row, cell);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param ofl     the aligned other feature list
    * @param msRowId the MS row ID
    * @param key     the trace key
    * @return the first row of this trace in the preference order of the MS row's correlations, null
@@ -389,6 +273,27 @@ public final class OtherFeatureManualUtils {
       }
     }
     return null;
+  }
+
+  /**
+   * Moves the correlations of all MS rows to the source row in one file to the target row. They
+   * keep their origin and score. A link to the source row without any remaining correlated file is
+   * removed.
+   *
+   * @param source the row the peak was moved from
+   * @param target the row the peak was moved to
+   * @param file   the raw data file of the moved peak
+   */
+  private static void moveCorrelations(@NotNull final OtherFeatureListRow source,
+      @NotNull final OtherFeatureListRow target, @NotNull final RawDataFile file) {
+    final MsOtherCorrelationMaps maps = source.getOtherFeatureList().getMsOtherCorrelationMaps();
+    for (final Integer msRowId : List.copyOf(maps.getMsRowsForOtherRow(source.getID()))) {
+      final PerFileCorrelation moved = maps.getPerFileCorrelation(msRowId, source.getID(), file);
+      if (moved != null) {
+        maps.removeCorrelation(msRowId, source.getID(), file);
+        maps.setPerFileCorrelation(msRowId, target.getID(), file, moved);
+      }
+    }
   }
 
   /**

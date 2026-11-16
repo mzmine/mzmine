@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,17 +27,23 @@ package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.TraceKey;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,5 +121,58 @@ public class OtherFeatureUtils {
     final DDAMsMsInfoImpl msmsInfo = new DDAMsMsInfoImpl(q1, null, energy, null, null, 2, method,
         null);
     feature.set(MsMsInfoType.class, List.of(msmsInfo));
+  }
+
+  /**
+   * @param feature a raw trace, a preprocessed trace or a processed feature
+   * @return the raw trace the feature was derived from, the feature itself if it is a raw trace
+   */
+  @NotNull
+  public static OtherFeature getRawTrace(@NotNull final OtherFeature feature) {
+    // a raw trace has no raw trace reference itself
+    return Objects.requireNonNullElse(feature.get(RawTraceType.class), feature);
+  }
+
+  /**
+   * @param feature a raw trace, a preprocessed trace or a processed feature
+   * @return the preprocessed trace of the feature's raw trace, or the raw trace if it was not
+   * preprocessed
+   */
+  @NotNull
+  public static OtherFeature getPreprocessedOrRawTrace(@NotNull final OtherFeature feature) {
+    final OtherFeature rawTrace = getRawTrace(feature);
+    final OtherTimeSeriesData data = rawTrace.getOtherDataFile().getOtherTimeSeriesData();
+    final OtherFeature preprocessed =
+        data != null ? data.getPreProcessedFeatureForTrace(rawTrace) : null;
+    return preprocessed != null ? preprocessed : rawTrace;
+  }
+
+  /**
+   * Finds the trace with a {@link TraceKey} in a raw data file, e.g., the trace of an aligned row
+   * in a blank without a peak. Processed features keep the name of the preprocessed trace they were
+   * resolved from, which may differ from the raw trace name (e.g., baseline correction adds a
+   * suffix), so the keys of both traces are compared.
+   *
+   * @param file the raw data file
+   * @param key  the trace key, e.g., of an aligned row
+   * @return the preprocessed trace (or the raw trace if it was not preprocessed) that matches the
+   * key, null if the file has no such trace
+   */
+  @Nullable
+  public static OtherFeature findTraceByKey(@NotNull final RawDataFile file,
+      @NotNull final TraceKey key) {
+    for (final OtherDataFile otherFile : file.getOtherDataFiles()) {
+      final OtherTimeSeriesData data = otherFile.getOtherTimeSeriesData();
+      if (data == null) {
+        continue;
+      }
+      for (final OtherFeature rawTrace : data.getRawTraces()) {
+        final OtherFeature trace = getPreprocessedOrRawTrace(rawTrace);
+        if (key.equals(TraceKey.of(trace)) || key.equals(TraceKey.of(rawTrace))) {
+          return trace;
+        }
+      }
+    }
+    return null;
   }
 }

@@ -57,7 +57,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests manual edits of the aligned other detector features: creating the list, adding unaligned
- * peaks, replacing a correlated peak and removing features.
+ * peaks, replacing a correlated peak and moving aligned peaks with their correlations.
  */
 class OtherFeatureManualUtilsTest {
 
@@ -100,6 +100,20 @@ class OtherFeatureManualUtilsTest {
     return perFile;
   }
 
+  /**
+   * Adds a row with the given features (stored as is) to the list. All features need the same trace
+   * key.
+   */
+  private static @NotNull OtherFeatureListRow addRow(@NotNull final OtherFeatureList ofl,
+      @NotNull final OtherFeature... features) {
+    final OtherFeatureListRow row = ofl.createRow(TraceKey.of(features[0]));
+    for (final OtherFeature feature : features) {
+      row.setFeature(feature);
+    }
+    ofl.addRow(row);
+    return row;
+  }
+
   @Test
   void testSamePeak() {
     final OtherFeatureImpl a = createFeature(fileA, 2f);
@@ -132,23 +146,22 @@ class OtherFeatureManualUtilsTest {
     final OtherCorrelationLink link = ofl.getMsOtherCorrelationMaps().getCorrelations(1).getFirst();
     Assertions.assertEquals(result.aligned().row().getID(), link.otherRowId());
     Assertions.assertEquals(MsOtherCorrelationType.MANUAL, link.perFile().get(fileA).origin());
-    Assertions.assertTrue(OtherFeatureManualUtils.isCorrelated(ofl, 1, processed));
-    Assertions.assertFalse(OtherFeatureManualUtils.isCorrelated(ofl, 2, processed));
+    Assertions.assertSame(result.aligned().row(),
+        OtherFeatureManualUtils.findCorrelatedRow(ofl, 1, processed));
+    Assertions.assertNull(OtherFeatureManualUtils.findCorrelatedRow(ofl, 2, processed));
   }
 
+  /**
+   * The user picks an unaligned peak at 13.5 instead of the correlated one at 13.3: the peak
+   * replaces the cell, the replaced peak leaves the list.
+   */
   @Test
-  void testReplaceCorrelatedPeakKeepsDuplicate() {
+  void testReplaceCorrelatedPeakWithUnalignedPeak() {
     final OtherFeatureList ofl = OtherFeatureManualUtils.getOrCreateAlignedList(flist);
     final OtherFeatureImpl a1 = createFeature(fileA, 13.3f);
     final OtherFeatureImpl b1 = createFeature(fileB, 13.4f);
     final OtherFeatureImpl a2 = createFeature(fileA, 13.5f);
-    final OtherFeatureListRow row1 = ofl.createRow(TraceKey.of(a1));
-    row1.setFeature(a1);
-    row1.setFeature(b1);
-    ofl.addRow(row1);
-    final OtherFeatureListRow row2 = ofl.createRow(TraceKey.of(a2));
-    row2.setFeature(a2);
-    ofl.addRow(row2);
+    final OtherFeatureListRow row1 = addRow(ofl, a1, b1);
     final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
     maps.setCorrelations(1,
         List.of(new OtherCorrelationLink(row1.getID(), calculated(fileA, fileB))));
@@ -156,19 +169,17 @@ class OtherFeatureManualUtilsTest {
     maps.setCorrelations(2,
         List.of(new OtherCorrelationLink(row1.getID(), calculated(fileA, fileB))));
 
-    // the user picks the aligned peak at 13.5 instead of the correlated one at 13.3
     final ManualOtherCorrelationResult result = OtherFeatureManualUtils.correlateManually(flist,
         msRow1, a2);
 
     Assertions.assertSame(row1, result.aligned().row());
     Assertions.assertSame(a1, result.replaced());
     Assertions.assertFalse(result.createdRow());
+    Assertions.assertNull(result.movedFrom());
+    Assertions.assertNotSame(a2, row1.getFeature(fileA));
     Assertions.assertTrue(OtherFeatureManualUtils.isSamePeak(a2, row1.getFeature(fileA)));
     Assertions.assertEquals((13.5f + 13.4f) / 2, row1.getRT(), 1e-5f);
-    // the peak stays in its own row as well
-    Assertions.assertSame(a2, row2.getFeature(fileA));
-    Assertions.assertEquals(2, ofl.getNumberOfRows());
-    Assertions.assertEquals(List.of(row1, row2), OtherFeatureManualUtils.findRowsWithPeak(ofl, a2));
+    Assertions.assertEquals(1, ofl.getNumberOfRows());
 
     final OtherCorrelationLink link = maps.getCorrelations(1).getFirst();
     Assertions.assertEquals(MsOtherCorrelationType.MANUAL, link.perFile().get(fileA).origin());
@@ -183,6 +194,45 @@ class OtherFeatureManualUtilsTest {
     Assertions.assertNull(otherMsRowInA.pearson());
     Assertions.assertEquals(MsOtherCorrelationType.CALCULATED,
         maps.getCorrelations(2).getFirst().perFile().get(fileB).origin());
+  }
+
+  /**
+   * The picked peak is aligned in a row without correlations: it moves to the correlated row, no
+   * duplicate stays. The source row keeps its other peaks, as it was never correlated.
+   */
+  @Test
+  void testAlignedOnlyPeakMovesWithoutDuplicate() {
+    final OtherFeatureList ofl = OtherFeatureManualUtils.getOrCreateAlignedList(flist);
+    final OtherFeatureImpl a13 = createFeature(fileA, 13.3f);
+    final OtherFeatureImpl a15 = createFeature(fileA, 13.5f);
+    final OtherFeatureImpl b15 = createFeature(fileB, 13.5f);
+    final OtherFeatureListRow correlated = addRow(ofl, a13);
+    final OtherFeatureListRow alignedOnly = addRow(ofl, a15, b15);
+    final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
+    maps.setCorrelations(1,
+        List.of(new OtherCorrelationLink(correlated.getID(), calculated(fileA))));
+
+    final ManualOtherCorrelationResult result = OtherFeatureManualUtils.correlateManually(flist,
+        msRow1, createFeature(fileA, 13.5f));
+
+    Assertions.assertSame(correlated, result.aligned().row());
+    Assertions.assertSame(alignedOnly, result.movedFrom());
+    Assertions.assertSame(a13, result.replaced());
+    // the stored copy moved, no new copy
+    Assertions.assertSame(a15, correlated.getFeature(fileA));
+    Assertions.assertNull(alignedOnly.getFeature(fileA));
+    Assertions.assertSame(alignedOnly, ofl.findRowByID(alignedOnly.getID()));
+    Assertions.assertSame(b15, alignedOnly.getFeature(fileB));
+    Assertions.assertEquals(MsOtherCorrelationType.MANUAL,
+        maps.getPerFileCorrelation(1, correlated.getID(), fileA).origin());
+
+    // the last peak of a row moves: the empty row is removed
+    final ManualOtherCorrelationResult second = OtherFeatureManualUtils.correlateManually(flist,
+        msRow1, createFeature(fileB, 13.5f));
+    Assertions.assertSame(alignedOnly, second.movedFrom());
+    Assertions.assertNull(second.replaced());
+    Assertions.assertNull(ofl.findRowByID(alignedOnly.getID()));
+    Assertions.assertEquals(1, ofl.getNumberOfRows());
   }
 
   @Test
@@ -205,7 +255,7 @@ class OtherFeatureManualUtilsTest {
   void testAlreadyCorrelatedKeepsCalculated() {
     final OtherFeatureList ofl = OtherFeatureManualUtils.getOrCreateAlignedList(flist);
     final OtherFeatureImpl a1 = createFeature(fileA, 2f);
-    final OtherFeatureListRow row = OtherFeatureManualUtils.addAsNewRow(ofl, a1).row();
+    final OtherFeatureListRow row = addRow(ofl, a1);
     ofl.getMsOtherCorrelationMaps()
         .setCorrelations(1, List.of(new OtherCorrelationLink(row.getID(), calculated(fileA))));
 
@@ -227,10 +277,8 @@ class OtherFeatureManualUtilsTest {
     final OtherFeatureImpl b14 = createFeature(fileB, 1.4f);
     final OtherFeatureImpl b13 = createFeature(fileB, 1.3f);
     final OtherFeatureImpl a14 = createFeature(fileA, 1.4f);
-    final OtherFeatureListRow rowM = OtherFeatureManualUtils.addAsNewRow(ofl, a13).row();
-    OtherFeatureManualUtils.setFeature(rowM, b14);
-    final OtherFeatureListRow rowN = OtherFeatureManualUtils.addAsNewRow(ofl, b13).row();
-    OtherFeatureManualUtils.setFeature(rowN, a14);
+    final OtherFeatureListRow rowM = addRow(ofl, a13, b14);
+    final OtherFeatureListRow rowN = addRow(ofl, b13, a14);
 
     final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
     final PerFileCorrelation scoreFor13 = new PerFileCorrelation(MsOtherCorrelationType.CALCULATED,
@@ -257,18 +305,15 @@ class OtherFeatureManualUtilsTest {
     Assertions.assertEquals(MsOtherCorrelationType.MANUAL, msRow2InB.origin());
     Assertions.assertNull(msRow2InB.pearson());
     // N only holds an aligned peak, no MS row correlates to it anymore
-    Assertions.assertTrue(result.removedSourceRow());
     Assertions.assertNull(ofl.findRowByID(rowN.getID()));
   }
 
   @Test
   void testMisalignedSourceRowKeptIfStillCorrelated() {
     final OtherFeatureList ofl = OtherFeatureManualUtils.getOrCreateAlignedList(flist);
-    final OtherFeatureListRow rowM = OtherFeatureManualUtils.addAsNewRow(ofl,
-        createFeature(fileB, 1.4f)).row();
-    final OtherFeatureListRow rowN = OtherFeatureManualUtils.addAsNewRow(ofl,
-        createFeature(fileB, 1.3f)).row();
-    OtherFeatureManualUtils.setFeature(rowN, createFeature(fileA, 1.4f));
+    final OtherFeatureListRow rowM = addRow(ofl, createFeature(fileB, 1.4f));
+    final OtherFeatureListRow rowN = addRow(ofl, createFeature(fileB, 1.3f),
+        createFeature(fileA, 1.4f));
     final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
     maps.setCorrelations(1, List.of(new OtherCorrelationLink(rowM.getID(), calculated(fileB)),
         new OtherCorrelationLink(rowN.getID(), calculated(fileB))));
@@ -278,31 +323,9 @@ class OtherFeatureManualUtilsTest {
         msRow1, createFeature(fileB, 1.3f));
 
     Assertions.assertSame(rowN, result.movedFrom());
-    Assertions.assertFalse(result.removedSourceRow());
     Assertions.assertSame(rowN, ofl.findRowByID(rowN.getID()));
     Assertions.assertNull(rowN.getFeature(fileB));
-  }
-
-  @Test
-  void testRemoveFeatureDropsCorrelationAndEmptyRow() {
-    final OtherFeatureList ofl = OtherFeatureManualUtils.getOrCreateAlignedList(flist);
-    final OtherFeatureImpl a1 = createFeature(fileA, 2f);
-    final OtherFeatureImpl b1 = createFeature(fileB, 2.1f);
-    final OtherFeatureListRow row = OtherFeatureManualUtils.addAsNewRow(ofl, a1).row();
-    OtherFeatureManualUtils.setFeature(row, b1);
-    final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
-    maps.setCorrelations(1,
-        List.of(new OtherCorrelationLink(row.getID(), calculated(fileA, fileB))));
-
-    Assertions.assertNotNull(OtherFeatureManualUtils.removeFeature(row, fileA));
-    Assertions.assertEquals(2.1f, row.getRT(), 1e-5f);
-    Assertions.assertFalse(maps.getCorrelations(1).getFirst().perFile().containsKey(fileA));
-    Assertions.assertNull(OtherFeatureManualUtils.removeFeature(row, fileA));
-
-    // the last feature removes the row and its correlations
-    Assertions.assertNotNull(OtherFeatureManualUtils.removeFeature(row, fileB));
-    Assertions.assertTrue(ofl.isEmpty());
-    Assertions.assertTrue(maps.isEmpty());
+    Assertions.assertEquals(1.4f, rowN.getRT(), 1e-5f);
   }
 
   @Test
