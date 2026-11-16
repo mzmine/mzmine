@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.preferences.AgilentImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetector;
@@ -146,6 +147,7 @@ public class MassDetectionErrorTests {
             VendorImportParameters.DEFAULT_WATERS_LOCKMASS_ENABLED,
             WatersLockmassParameters.createDefault(),
             VendorImportParameters.DEFAULT_THERMO_EXCEPTION_SIGNALS,
+            VendorImportParameters.DEFAULT_AGILENT_OPTION,
             VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION));
 
     final RawDataFile file = brukerImport.runImport().getFirst();

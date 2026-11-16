@@ -61,6 +61,7 @@ public record FilesToImport(@NotNull List<String> filePaths,
       VendorImportParameters.DEFAULT_WATERS_LOCKMASS_ENABLED,
       WatersLockmassParameters.createDefault(),
       VendorImportParameters.DEFAULT_THERMO_EXCEPTION_SIGNALS,
+      VendorImportParameters.DEFAULT_AGILENT_OPTION,
       VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
 
   public static FilesToImport factor5(@NotNull String fileName) {

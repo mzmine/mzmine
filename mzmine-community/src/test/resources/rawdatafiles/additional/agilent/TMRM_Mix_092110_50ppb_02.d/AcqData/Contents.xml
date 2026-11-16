@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- edited with XML Spy v4.4 U (http://www.xmlspy.com) by Malini Srikantarajeurs (private) -->
+<Contents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="X:\assembly\bin\Contents.xsd">
+	<Version>3</Version>
+	<!-- Acquisition Time should be of the US format YYYY-MM-DDTHH:MM:SSZ-->
+	<!-- example "2005-09-20T21:53:39Z" and "2005-11-20T5:53:39Z" - universal sortable datetime pattern-->
+	<AcquiredTime>2010-09-21T20:15:04Z</AcquiredTime>
+	<!--AcqStatus (0 = Init / 1 = Start / 2 = End)-->
+	<AcqStatus>2</AcqStatus>
+	<!--Name of the instrument-->
+	<InstrumentName>Limnos_6460</InstrumentName>
+	<!--LockedMode (0 = False / -1 = True)-->
+	<LockedMode>0</LockedMode>
+	<!--MeasurementType 0 - Unknown / 1- Infusion / 2 - Chromatographic -->
+	<MeasurementType>0</MeasurementType>
+	<!--SeparationTechnique - type of separation used. Unspecified   = 0, None = 1, GC  = 2, LC = 3, CE = 4 -->
+	<SeparationTechnique>0</SeparationTechnique>
+	<!--TotalRunDuration - Total time taken for acquisition in miliseconds -->
+	<TotalRunDuration>1107.36</TotalRunDuration>
+</Contents>

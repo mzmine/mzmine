@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Devices>
+    <Version>1</Version>
+    <Device DeviceID="1">
+        <Name>IM-QTOF</Name>
+        <DriverVersion>Driver Z.00.00</DriverVersion>
+        <FirmwareVersion>FW PI.3.14.15</FirmwareVersion>
+        <ModelNumber>G6560sim</ModelNumber>
+        <OrdinalNumber>1</OrdinalNumber>
+        <SerialNumber>SN123456</SerialNumber>
+        <Type>6</Type>
+        <StoredDataType>8</StoredDataType>
+        <Delay>0</Delay>
+        <Vendor>1</Vendor>
+    </Device>
+</Devices>

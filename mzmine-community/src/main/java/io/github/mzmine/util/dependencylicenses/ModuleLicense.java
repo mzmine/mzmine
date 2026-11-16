@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.util.dependencylicenses;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import org.jetbrains.annotations.NotNull;
 
 public record ModuleLicense(String moduleLicense, String moduleLicenseUrl) implements
@@ -37,7 +38,13 @@ public record ModuleLicense(String moduleLicense, String moduleLicenseUrl) imple
    * @param relativePath  relative path to distributed license file. e.g. place in external_tools.
    */
   public ModuleLicense(String moduleLicense, @NotNull File relativePath) {
-    this(moduleLicense, relativePath.getAbsolutePath());
+    String url = "";
+    try {
+      url = relativePath.toURI().toURL().toString();
+    } catch (MalformedURLException e) {
+      // do nothing
+    }
+    this(moduleLicense, url);
   }
 
   @Override

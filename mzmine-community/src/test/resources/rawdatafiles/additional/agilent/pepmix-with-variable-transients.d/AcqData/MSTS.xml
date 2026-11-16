@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TimeSegments xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="X:\assembly\bin\MSTS.xsd">
+  <Version>2</Version>
+  <TimeSegment TimeSegmentID="1">
+    <StartTime>0.032966666666666665</StartTime>
+    <EndTime>5.5109333333333339</EndTime>
+    <NumOfScans>1561</NumOfScans>
+    <FixedCycleLength>0</FixedCycleLength>
+  </TimeSegment>
+  <IRMStatus>0</IRMStatus>
+</TimeSegments>

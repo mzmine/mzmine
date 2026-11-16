@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_wiff2;
 
 import com.sun.jna.Platform;
+import io.github.mzmine.util.DotNetUtils;
 import io.github.mzmine.util.ShellUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.concurrent.CloseableResourceLock;
@@ -74,13 +75,6 @@ public class ClearcoreServer {
    * name, so the presence of the directory itself signals that this version was already copied.
    */
   private static final String SCIEX_USER_DIR = SCIEX_SOURCE_DIR + "_" + SERVER_VERSION;
-  // 461808 is the minimum release key for .NET Framework 4.7.2. Later versions use larger keys.
-  private static final int DOT_NET_FRAMEWORK_472_RELEASE_KEY = 461808;
-  private static final Pattern WINDOWS_DOT_NET_RELEASE_PATTERN = Pattern.compile(
-      "(?m)^\\s*Release\\s+REG_DWORD\\s+(0x[0-9a-fA-F]+|\\d+)\\s*$");
-  private static final String WINDOWS_DOT_NET_RELEASE_REGISTRY_PATH = "HKLM\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full";
-  private static final Pattern LINUX_DOT_NET_RUNTIME_PATTERN = Pattern.compile(
-      "(?m)^Microsoft\\.NETCore\\.App\\s+([\\d]+)\\.\\d+\\.\\d+\\b.*$");
 
   /**
    * current instance. may change if the server crashes or so.
@@ -348,40 +342,10 @@ public class ClearcoreServer {
   }
 
   private static boolean checkDependenciesWindows() {
-    // decision: query the 64-bit registry view because the bundled Clearcore server is x64.
-    final String output = ShellUtils.runGetOutput("reg", "query",
-        WINDOWS_DOT_NET_RELEASE_REGISTRY_PATH, "/v", "Release", "/reg:64");
-    if (output == null || output.isBlank()) {
-      return false;
-    }
-
-    final var matcher = WINDOWS_DOT_NET_RELEASE_PATTERN.matcher(output);
-    if (!matcher.find()) {
-      return false;
-    }
-
-    try {
-      final int releaseKey = Integer.decode(matcher.group(1));
-      return releaseKey >= DOT_NET_FRAMEWORK_472_RELEASE_KEY;
-    } catch (NumberFormatException e) {
-      logger.fine("Cannot parse .NET Framework release key from registry output: " + output);
-      return false;
-    }
+    return DotNetUtils.isWindowsFrameworkInstalled(DotNetUtils.NET_FRAMEWORK_472_RELEASE_KEY);
   }
 
   private static boolean checkDependenciesLinux() {
-    final String output = ShellUtils.runGetOutput("dotnet", "--list-runtimes");
-    if (output == null || output.isBlank()) {
-      return false;
-    }
-
-    Matcher matcher = LINUX_DOT_NET_RUNTIME_PATTERN.matcher(output);
-    if (matcher.find()) {
-      String versionStr = matcher.group(1);
-      if (Integer.parseInt(versionStr) >= 6) {
-        return true;
-      }
-    }
-    return false;
+    return DotNetUtils.isLinuxRuntimeInstalled(6);
   }
 }

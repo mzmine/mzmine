@@ -52,10 +52,15 @@ public record Dependencies(List<Dependency> dependencies) {
       // thermo
       new Dependency("ThermoFisher RawFileReader", "", List.of(), List.of(
           new ModuleLicense("SOFTWARE LICENSE AGREEMENT (“License”) FOR RawFileReader",
-              FileAndPathUtil.resolveInExternalToolsDir("thermo_raw_file_parser/THERMO_LICENSE.txt")
-                  .getAbsolutePath()))), new Dependency("Compomics ThermoRawFileParser", "",
+              FileAndPathUtil.resolveInExternalToolsDir("thermo_raw_file_parser/LICENSE")))),
+      new Dependency("Compomics ThermoRawFileParser", "",
           List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
-          new ModuleLicense("Apache-2.0 license", "https://www.apache.org/licenses/LICENSE-2.0"))));
+          new ModuleLicense("Apache-2.0 license", "https://www.apache.org/licenses/LICENSE-2.0"))),
+
+      // agilent
+      new Dependency("Agilent MHDAC_MIDAC", "B.08.00", List.of(), List.of(
+          new ModuleLicense("Agilent MIDAC_MHDAC EULA",
+              FileAndPathUtil.resolveInExternalToolsDir("agilent_bridge/101018 MHDAC EULA.pdf")))));
 
   public static List<Dependency> of(String resourcePath) {
     final ObjectMapper mapper = new ObjectMapper();

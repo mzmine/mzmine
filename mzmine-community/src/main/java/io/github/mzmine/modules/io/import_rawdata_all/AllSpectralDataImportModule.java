@@ -39,6 +39,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.io.import_rawdata_agilent_d.AgilentImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessorList;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -455,9 +456,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case SCIEX_WIFF2, SCIEX_WIFF ->
           new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
           scanProcessorConfig);
-      case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
+      case SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
+      case AGILENT_D, AGILENT_D_IMS ->
+          new AgilentImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
+              project, parameters, module);
       case WATERS_RAW, WATERS_RAW_IMS ->
           new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
               project, parameters, module);
@@ -508,9 +512,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
           scanProcessorConfig);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
+      case SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
+      case AGILENT_D, AGILENT_D_IMS ->
+          new AgilentImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
+              project, parameters, module);
       // all unsupported tasks are wrapped to apply import and mass detection separately
       case MZDATA, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, scanProcessorConfig, module,
