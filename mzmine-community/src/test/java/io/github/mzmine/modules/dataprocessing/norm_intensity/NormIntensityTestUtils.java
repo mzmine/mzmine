@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -38,14 +39,17 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +64,28 @@ final class NormIntensityTestUtils {
     final RawDataFileImpl rawDataFile = new RawDataFileImpl(name, null, null);
     rawDataFile.setStartTimeStamp(timestamp);
     return rawDataFile;
+  }
+
+  /**
+   * Makes the project current and registers the files in its metadata like a raw data import: the
+   * run date and the sample type guessed from the file name. Project metadata always has the sample
+   * type column, so files that are not registered have no sample type.
+   */
+  static void setCurrentProjectWithFiles(final @NotNull MZmineProject project,
+      final @NotNull Collection<? extends RawDataFile> files) {
+    ProjectService.getProjectManager().setCurrentProject(project);
+    files.forEach(project.getProjectMetadata()::addFile);
+  }
+
+  /**
+   * @return project metadata with the files registered like a raw data import, see
+   * {@link #setCurrentProjectWithFiles(MZmineProject, Collection)}
+   */
+  static @NotNull MetadataTable metadataWithFiles(
+      final @NotNull Collection<? extends RawDataFile> files) {
+    final MetadataTable metadata = new MetadataTable();
+    files.forEach(metadata::addFile);
+    return metadata;
   }
 
   static @NotNull ParameterSet createMainParameters(

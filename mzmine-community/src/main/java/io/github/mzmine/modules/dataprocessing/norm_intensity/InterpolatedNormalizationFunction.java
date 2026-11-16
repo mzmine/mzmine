@@ -26,7 +26,11 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.maths.Precision;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.OptionalDouble;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -65,6 +69,29 @@ public record InterpolatedNormalizationFunction(@NotNull NormalizationFunction p
   public double getNormalizationFactor(@NotNull final Double mz, @NotNull final Float rt) {
     return previousFunction.getNormalizationFactor(mz, rt) * previousWeight
         + nextFunction.getNormalizationFactor(mz, rt) * nextWeight;
+  }
+
+  @Override
+  public @NotNull OptionalDouble getNormalizationFactor(@Nullable final FeatureListRow row,
+      @NotNull final Double mz, @NotNull final Float rt) {
+    final OptionalDouble previous = previousFunction.getNormalizationFactor(row, mz, rt);
+    final OptionalDouble next = nextFunction.getNormalizationFactor(row, mz, rt);
+    if (previous.isEmpty() || next.isEmpty()) return OptionalDouble.empty();
+    return OptionalDouble.of(previous.getAsDouble() * previousWeight + next.getAsDouble() * nextWeight);
+  }
+
+  @Override public boolean isRowDependent() {
+    return previousFunction.isRowDependent() || nextFunction.isRowDependent();
+  }
+
+  @Override
+  public @NotNull NormalizationFunction remapRowIds(
+      @NotNull final Map<Integer, Integer> oldToNewIds) {
+    if (!isRowDependent()) {
+      return this;
+    }
+    return new InterpolatedNormalizationFunction(previousFunction.remapRowIds(oldToNewIds),
+        previousWeight, nextFunction.remapRowIds(oldToNewIds), nextWeight);
   }
 
   @Override

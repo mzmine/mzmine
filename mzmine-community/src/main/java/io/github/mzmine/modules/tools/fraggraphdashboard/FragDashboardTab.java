@@ -120,6 +120,11 @@ public class FragDashboardTab extends SimpleTab {
     MZmineCore.getDesktop().addTab(new FragDashboardTab(parameters));
   }
 
+  /** Returns the source row when this dashboard was opened from a feature-list row. */
+  public @Nullable FeatureListRow getFeatureListRow() {
+    return controller.rowProperty().get();
+  }
+
   /**
    * Creates a new fragment dashboard tab for the row. Uses all row annotations as possible
    * formulae.

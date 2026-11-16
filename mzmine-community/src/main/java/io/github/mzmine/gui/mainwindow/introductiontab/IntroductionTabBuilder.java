@@ -31,6 +31,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.UsersTab;
+import io.github.mzmine.gui.update.UpdateCheckService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
 import io.github.mzmine.javafx.components.factories.FxButtons;
@@ -44,7 +45,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import io.mzio.links.MzioMZmineLinks;
-import io.mzio.users.service.UserType;
 import io.mzio.users.user.CurrentUserService;
 import io.mzio.users.user.MZmineUser;
 import java.util.logging.Logger;
@@ -55,7 +55,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -206,7 +205,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final Button downloadButton = FxButtons.createButton(
         FxIconUtil.getFontIcon(FxIcons.DOWNLOAD, 60, Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
-            .openWebPage("https://github.com/mzmine/mzmine3/releases/latest"));
+            .openWebPage(UpdateCheckService.RELEASE_URL));
     box.getChildren().addAll(label, downloadButton);
 //    box.visibleProperty().bindBidirectional(model.newVersionAvailableProperty());
     box.setAlignment(Pos.CENTER);
@@ -216,8 +215,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private void createAndAddQuickStartLink(ObservableList<Node> children) {
     final MZmineUser user = CurrentUserService.getUser();
     // only show if not clicked yet, or the is null or trial
-    if (!ConfigService.getPreference(MZminePreferences.showQuickStart) || (user != null
-        && user.getUserType() != UserType.TRIAL_PRO)) {
+    if (!ConfigService.getPreference(MZminePreferences.showQuickStart) || (user != null)) {
       return;
     }
 

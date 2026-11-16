@@ -81,8 +81,8 @@ public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
     final ButtonBase toggle = FxIconUtil.newIconButton(FxIcons.TOGGLE_SWITCH,
         FxIconUtil.LIST_ICON_SIZE, () -> normActive.set(!normActive.get()));
     final Label title = FxLabels.newLabel(normActive.and(normVisible).map(
-        normalized -> (normalized ? "Normalized " + rawAbundanceMeasure.toString().toLowerCase()
-            : rawAbundanceMeasure.toString())));
+        normalized -> (normalized ? "Normalized " + dataType.getHeaderString().toLowerCase()
+            : dataType.getHeaderString())));
 
     toggle.visibleProperty().bind(normVisible);
     toggle.managedProperty().bind(normVisible);

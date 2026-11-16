@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createFeatureIntensityParameters;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
+import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.setCurrentProjectWithFiles;
 import static io.github.mzmine.util.FeatureListTestUtils.addRow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -126,7 +127,7 @@ class IntensityNormalizerBatchTest {
 
   @BeforeEach
   void setUp() {
-    ProjectService.getProjectManager().setCurrentProject(project);
+    setCurrentProjectWithFiles(project, allFiles);
     metadata = ProjectService.getMetadata();
     batchCol = new StringMetadataColumn(BATCH_COL, "Test batch grouping column");
     dilutionCol = new DoubleMetadataColumn(DILUTION_COL, "Test dilution factor column");

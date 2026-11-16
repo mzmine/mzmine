@@ -48,7 +48,8 @@ public class SpectraIdentificationResultsModule implements MZmineModule {
     if (!spectralID.isEmpty()) {
       SpectraIdentificationResultsWindowFX tab = new SpectraIdentificationResultsWindowFX(table);
       tab.setTitle(rows);
-      tab.setText("Spectral matches "+spectralID.size());
+      // setTitle is overridden for the column header, set the tab title via the property
+      tab.titleProperty().set("Spectral matches " + spectralID.size());
       tab.addMatches(spectralID);
       MZmineCore.getDesktop().addTab(tab);
     }

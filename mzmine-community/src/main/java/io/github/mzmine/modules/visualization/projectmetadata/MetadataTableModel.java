@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
@@ -43,9 +45,12 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.StringConverter;
+import org.controlsfx.control.tableview2.cell.TextField2TableCell;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Model/Wrapper for displaying a MetadataTable in a JavaFX TableView. Handles row creation, column
@@ -181,23 +186,36 @@ public class MetadataTableModel {
   }
 
   /**
-   * Helper method to create an appropriate TextFieldTableCell with a StringConverter based on the
-   * target data type defined in the MetadataColumn.
+   * Creates a text field cell that commits the edit on Enter and when the text field loses focus.
+   *
+   * @param metaColumn the metadata column used to validate the input
+   * @return the editing cell
    */
-  private TextFieldTableCell<MetadataRow, ?> createEditingCell(MetadataColumn<?> metaColumn) {
-    StringConverter<?> converter = getConverterForType(metaColumn);
-    // Cast needed because forTableColumn expects TableColumn<S, T>, CellFactory<S, T, U>
-    // Here S=MetadataRow, T=Object. The converter handles String <-> String and validation.
-    return new TextFieldTableCell<>(converter);
+  private @NotNull TextFieldTableCell<MetadataRow, Object> createEditingCell(
+      @NotNull MetadataColumn<?> metaColumn) {
+    // TextField2TableCell captures the converter at construction, but the converter needs the cell
+    // to restore the previous value on invalid input. Resolve the cell lazily.
+    final AtomicReference<TextFieldTableCell<MetadataRow, Object>> cellRef = new AtomicReference<>();
+    final TextField2TableCell<MetadataRow, Object> cell = new TextField2TableCell<>(
+        createValidatingConverter(metaColumn, cellRef::get));
+    cellRef.set(cell);
+    return cell;
   }
 
   /**
-   * Use the string converter as a validator
+   * Use the string converter as a validator. Invalid input shows an error dialog and is replaced by
+   * the previous cell value.
+   *
+   * @param column       the metadata column used to validate the input
+   * @param cellSupplier supplies the cell this converter is used in
+   * @return a converter that never returns null from {@link StringConverter#fromString(String)}
    */
-  private StringConverter<?> getConverterForType(MetadataColumn<?> column) {
+  private @NotNull StringConverter<Object> createValidatingConverter(
+      @NotNull MetadataColumn<?> column,
+      @NotNull Supplier<@Nullable TextFieldTableCell<MetadataRow, Object>> cellSupplier) {
     return new StringConverter<>() {
       @Override
-      public String toString(Object o) {
+      public @NotNull String toString(@Nullable Object o) {
         if (o == null) {
           return "";
         }
@@ -205,20 +223,31 @@ public class MetadataTableModel {
       }
 
       @Override
-      public Object fromString(String s) {
+      public @NotNull Object fromString(@Nullable String s) {
         if (StringUtils.isBlank(s)) {
           return "";
         }
 
         final var converted = column.convertOrElse(s, null);
-        if (converted == null) {
-          DialogLoggerUtil.showErrorDialog("Cannot convert input",
-              "The input %s is invalid for the column %s of type %s. Please adhere to the format %s.".formatted(
-                  inQuotes(s), inQuotes(column.getTitle()), inQuotes(column.getType().toString()),
-                  inQuotes(column.exampleValue().toString())));
-          return null;
+        if (converted != null) {
+          return s;
         }
-        return s;
+
+        // decision: keep the previous value instead of committing null. TextField2TableCell
+        // calls item.equals() on commit and would throw on null.
+        final TextFieldTableCell<MetadataRow, Object> cell = cellSupplier.get();
+        final String previous = cell == null ? "" : toString(cell.getItem());
+        // reset the editor text first. Enter commits and the following focus loss commits again,
+        // this way the second commit does not show the dialog a second time.
+        if (cell != null && cell.getGraphic() instanceof TextField textField) {
+          textField.setText(previous);
+        }
+
+        DialogLoggerUtil.showErrorDialog("Cannot convert input",
+            "The input %s is invalid for the column %s of type %s. Please adhere to the format %s.".formatted(
+                inQuotes(s), inQuotes(column.getTitle()), inQuotes(column.getType().toString()),
+                inQuotes(column.exampleValue().toString())));
+        return previous;
       }
     };
   }

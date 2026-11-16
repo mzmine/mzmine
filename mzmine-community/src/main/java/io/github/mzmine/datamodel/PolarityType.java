@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.Collection;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -88,6 +89,27 @@ public enum PolarityType implements UniqueIdSupplier {
     return fromInt(i, UNKNOWN);
   }
 
+
+  /**
+   * Reduces multiple polarities, e.g., of all scans in a data file, to a single polarity. Only
+   * defined polarities ({@link #isDefined()}) are considered.
+   *
+   * @param polarities the polarities to combine, e.g., {@link RawDataFile#getDataPolarity()}
+   * @return positive or negative if only one of them is present, {@link #ANY} for both, and
+   * {@link #UNKNOWN} if none is present
+   */
+  public static @NotNull PolarityType fromPolarities(
+      @NotNull Collection<@Nullable PolarityType> polarities) {
+    final boolean positive = polarities.contains(POSITIVE);
+    final boolean negative = polarities.contains(NEGATIVE);
+    if (positive && negative) {
+      return ANY;
+    }
+    if (positive) {
+      return POSITIVE;
+    }
+    return negative ? NEGATIVE : UNKNOWN;
+  }
 
   /**
    * @return Get polarity from scan selection or if scan selection is undefined, then use data file

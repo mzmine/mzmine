@@ -42,6 +42,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -66,6 +67,7 @@ import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.mzmine.startup.MZmineExit;
+import io.mzio.mzmine.startup.MaxRuntimeWatchdog;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
@@ -75,6 +77,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -115,10 +118,14 @@ public final class MZmineCore {
   public static void main(final String[] args) {
     try {
       printDebugInfo(args);
+      DeepLinkRouter.queueLaunchArguments(args);
 
-      final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
+      final String[] launchArguments = DeepLinkRouter.withoutDeepLinkArguments(args);
+      // the argument parser already logs in users from the command line so init trust store
+      NativeTrustStoreManager.initTrustStore();
+      final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(launchArguments);
       getInstance().startUp(argsParser);
-      launchBatchOrGui(args, argsParser);
+      launchBatchOrGui(launchArguments, argsParser);
 
     } catch (Exception ex) {
       StartupSplash.hide();
@@ -139,6 +146,7 @@ public final class MZmineCore {
 
     showStartupSplash(argsParser);
 
+    // no-op if an entry point already initialized it before parsing the arguments
     NativeTrustStoreManager.initTrustStore();
 
     ProxyTestUtils.logProxyState("Proxy on startup:");
@@ -151,31 +159,18 @@ public final class MZmineCore {
     // so log state after load
     ProxyTestUtils.logProxyState("Auto proxy after config loading:");
 
-    // In GUI mode the user is restored asynchronously below. Capture the saved username now,
-    // before subscribing — the subscription fires immediately with user=null and would otherwise
-    // overwrite the saved preference with null before the async thread can read it.
-    final String savedUsername =
-        argsParser.isGuiMode() && argsParser.getUserFile() == null ? ConfigService.getPreference(
-            MZminePreferences.username) : null;
-
+    // Sync preferences with CurrentUserService->activeUser + Show warning if the currently active user is about to expire
     CurrentUserService.subscribe(user -> {
-      var nickname = user == null ? null : user.getNickname();
-      ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
-
-      checkUserRemainingDays(user);
+      if (user != null) {
+        checkUserRemainingDays(user);
+        ConfigService.getPreferences().setParameter(MZminePreferences.username, user.getUsername());
+      }
     });
 
     addUserRequiredListener();
 
     // after loading the config and numCores
     TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
-
-    // GUI mode: restore the previously active user on a virtual thread so that file I/O and
-    // optional network validation (every 5 days) do not block GUI startup.
-    if (savedUsername != null) {
-      Thread.ofVirtual().name("user-restore")
-          .start(() -> ArgsToConfigUtils.restoreUserFromConfig(savedUsername));
-    }
   }
 
   public static void checkUserRemainingDays(MZmineUser user) {
@@ -196,8 +191,8 @@ public final class MZmineCore {
   private static void addUserRequiredListener() {
     // add event listener
     EventService.subscribe(mzEvent -> {
-      if (mzEvent instanceof AuthRequiredEvent(String message)) {
-        DialogLoggerUtil.showMessageDialog("Invalid user", requireNonNullElse(message, ""));
+      if (mzEvent instanceof AuthRequiredEvent(String title, String message)) {
+        DialogLoggerUtil.showMessageDialog(title, requireNonNullElse(message, ""));
 
         if (DesktopService.isGUI()) {
           getDesktop().addTab(UsersTab.showTab());
@@ -205,18 +200,16 @@ public final class MZmineCore {
           try {
             if (DesktopService.hasTerminalInput()) {
               UsersController.getInstance()
-                  .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+                  .loginOrRegisterConsoleBlocking(LoginOptions.CLI_TOKEN);
               if (CurrentUserService.isValid()) {
                 // login was successful
                 return;
               }
             }
-            getDesktop().displayMessage(
-                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
             MZmineExit.exit(1);
           } catch (Exception ex) {
-            getDesktop().displayMessage(
-                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
             MZmineExit.exit(1);
           }
         }
@@ -274,26 +267,38 @@ public final class MZmineCore {
     // set headless desktop globally
     DesktopService.setDesktop(new HeadLessDesktop());
 
+    // decision: start before the console login so that a login waiting for input is also ended
+    final Duration maxRuntime = argsParser.getMaxRuntime();
+    if (isCliBatchProcessing && maxRuntime != null) {
+      MaxRuntimeWatchdog.start(maxRuntime);
+    }
+
     // ask for login if terminal input is available
     if (DesktopService.hasTerminalInput() && CurrentUserService.isInvalid()) {
       // requires user
       try {
         logger.info("User login required.");
         UsersController.getInstance()
-            .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+            .loginOrRegisterConsoleBlocking(LoginOptions.CLI_TOKEN);
       } catch (Exception ex) {
-        getDesktop().displayMessage(
-            "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+        logger.warning("Console login failed: " + ex.getMessage());
       }
       if (CurrentUserService.isInvalid()) {
-        logger.warning(
-            "No valid user. Please login via the GUI or CLI or provide a user via command line argument -user path/user.mzuser");
+        getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
         MZmineExit.exit(1);
       }
     }
 
     Task batchTask = null;
     if (batchFile != null) {
+      // decision: every batch requires a valid user with a claimed license. Check before the batch
+      // starts, also without terminal input where no console login was attempted above
+      if (CurrentUserService.isInvalid()) {
+        getDesktop().displayMessage(ArgsToConfigUtils.CLI_LOGIN_REQUIRED_MESSAGE);
+        MZmineExit.exit(1);
+        return;
+      }
+
       // load batch
       if ((!batchFile.exists()) || (!batchFile.canRead())) {
         logger.severe("Cannot read batch file " + batchFile);
@@ -613,7 +618,7 @@ public final class MZmineCore {
       // basically a headless check when DesktopService is not initialized (always headless at this point)
       return;
     }
-    if (argsParser.isCliLogin() || argsParser.isCliLoginPassword()) {
+    if (argsParser.isCliLogin() || argsParser.isCliLoginToken()) {
       return;
     }
     if (argsParser.isKeepRunningAfterBatch()) {

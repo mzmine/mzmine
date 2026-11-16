@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -73,27 +72,53 @@ public abstract sealed class AbstractFactorNormalizationTypeModule extends
             file -> getNormalizationMetricForFile(summary, file, featureList, mainParameters,
                 normalizerSpecificParam)));
 
-    // batch median qc metric - used to correct this batch and later inter batch correction
-    final double medianNormMetric = MathUtils.calcMedian(
-        referenceToNormalizationMetric.values().stream().mapToDouble(Double::doubleValue)
-            .toArray());
+    final ReferenceFunctions<RawDataFile> referenceFunctions = calculateReferenceFunctions(
+        referenceToNormalizationMetric);
+    samplesBatch.setMedianReferenceNormMetric(referenceFunctions.referenceMetric());
 
-    samplesBatch.setMedianReferenceNormMetric(medianNormMetric);
-
-    final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> functions = new HashMap<>();
-    for (final Entry<@NotNull RawDataFile, @NotNull Double> entry : referenceToNormalizationMetric.entrySet()) {
+    for (final Entry<RawDataFile, NormalizationFunction> entry : referenceFunctions.functions().entrySet()) {
       final RawDataFile file = entry.getKey();
-      final double normalizationFactor = medianNormMetric / entry.getValue();
-
-      final NormalizationFunction function = new FactorNormalizationFunction(normalizationFactor);
+      final NormalizationFunction function = entry.getValue();
       // add or merge function into a new instance within summary
       summary.addMergeFunction(file, function);
-
-      // add the correct function of this module and not the merged/composite function here
-      // important for interpolation
-      functions.put(file, function);
     }
-    return functions;
+    return referenceFunctions.functions();
+  }
+
+  /**
+   * Derives the common reference metric and one constant normalization function per reference.
+   * The returned functions are the unmerged functions used later for interpolation.
+   *
+   * @param <T> reference-sample key, such as a {@link RawDataFile} or an external sample ID;
+   *            the input keys are retained in the returned function map
+   */
+  public static <T> @NotNull ReferenceFunctions<T> calculateReferenceFunctions(
+      @NotNull final Map<T, Double> metrics) {
+    if (metrics.isEmpty()) {
+      return new ReferenceFunctions<>(Double.NaN, Map.of());
+    }
+
+    final double referenceMetric = MathUtils.calcMedian(
+        metrics.values().stream().mapToDouble(Double::doubleValue).toArray());
+    final Map<T, NormalizationFunction> functions = metrics.entrySet().stream()
+        .collect(Collectors.toMap(Entry::getKey,
+            entry -> new FactorNormalizationFunction(referenceMetric / entry.getValue())));
+    return new ReferenceFunctions<>(referenceMetric, functions);
+  }
+
+  /**
+   * Result of calculating factor-normalization reference functions.
+   *
+   * @param <T> reference-sample key, such as a {@link RawDataFile} or an external sample ID,
+   *            matching the keys supplied to
+   *            {@link AbstractFactorNormalizationTypeModule#calculateReferenceFunctions(Map)}
+   */
+  public record ReferenceFunctions<T>(double referenceMetric,
+                                      @NotNull Map<T, NormalizationFunction> functions) {
+
+    public ReferenceFunctions {
+      functions = Map.copyOf(functions);
+    }
   }
 
   protected abstract double getNormalizationMetricForFile(
