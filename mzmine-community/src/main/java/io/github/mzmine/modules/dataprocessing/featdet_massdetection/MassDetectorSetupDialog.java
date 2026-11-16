@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -39,6 +40,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 import io.github.mzmine.util.color.ColorUtils;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
@@ -76,7 +78,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
         .getValueWithParameters();
     MassDetector massDetector = detector.value().createMassDetector(detector.parameters());
 
-    double[][] mzValues = massDetector.getMassValues(previewScan);
+    double[][] mzValues = massValues(massDetector, previewScan);
 
     // If the detector preprocessed (e.g. smoothed) the intensities, show that series as a line in a
     // distinct color so the user can see what maximum and edge detection ran on.
@@ -100,6 +102,27 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 
     spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false, true);
+  }
+
+  /**
+   * Mobility scans are centroided like in the {@link MassDetectionTask}: all mobility scans of the
+   * frame at once, which some detectors need (e.g., the saturation handling of the adaptive local
+   * maximum detector).
+   *
+   * @return [mzs, intensities] of the scan
+   */
+  private static double[][] massValues(final MassDetector massDetector, final Scan scan) {
+    if (!(scan instanceof MobilityScan mobilityScan)) {
+      return massDetector.getMassValues(scan);
+    }
+    final List<double[][]> values = massDetector.getMobilityScanMassValues(
+        mobilityScan.getFrame().getMobilityScans());
+    if (massDetector instanceof PreprocessedIntensitiesProvider) {
+      // the frame path leaves the preprocessed intensities of the last mobility scan, redo the
+      // selected scan for the smoothed series
+      massDetector.getMassValues(scan);
+    }
+    return values.get(mobilityScan.getMobilityScanNumber());
   }
 
 }

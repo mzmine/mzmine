@@ -46,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensitiesProvider {
 
+  public static final String NAME = "Local maximum mass detector";
   private static final Logger logger = Logger.getLogger(LocalMaxMassDetector.class.getName());
 
   // Thresholds for peak resolving and centroiding
@@ -432,7 +433,7 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
 
   @Override
   public @NotNull String getName() {
-    return "Local maximum mass detector";
+    return NAME;
   }
 
   @Override

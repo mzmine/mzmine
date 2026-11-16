@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -119,6 +119,16 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
 
   public ParameterSet getEmbeddedParameters(EnumType option) {
     return parametersMap.get(option);
+  }
+
+  /**
+   * Replaces the parameter set instance of an option, e.g., with a specialized parameter set class.
+   * Use before an editing component is created; {@link #setEmbeddedParameters(ParameterSet)} only
+   * copies values into the existing instance.
+   */
+  public void replaceOptionParameters(@NotNull final EnumType option,
+      @NotNull final ParameterSet parameters) {
+    parametersMap.put(option, parameters);
   }
 
   @Override
