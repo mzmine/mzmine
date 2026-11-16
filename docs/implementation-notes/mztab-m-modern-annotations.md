@@ -8,6 +8,12 @@ features that have no annotation. The bundled workshop project is the measured i
 
 ## Decisions
 
+- Expose `Export mzTab-M` through `Feature list methods` → `Export feature list` using the normal
+  module parameter dialog. On each interactive opening, suggest `{}_quant.mzTab` beside the saved
+  project archive, so switching projects cannot retain an earlier project's export folder. The
+  user can edit the destination before exporting. For unsaved projects, the user chose to require
+  an explicit output file. Apply these defaults only when opening the GUI; batch and programmatic
+  exports keep their supplied filenames.
 - Use `FeatureListRow.getPreferredAnnotation()` so the existing annotation priority and explicit user
   selection apply. Fall back to the deprecated `FeatureIdentity` only when no modern annotation is
   selected. Export one selected annotation per row; do not invent additional candidates.

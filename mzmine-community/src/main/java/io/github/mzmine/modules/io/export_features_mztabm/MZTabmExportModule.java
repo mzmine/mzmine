@@ -39,14 +39,13 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Currently still in redevelopment
+ * Exports feature lists and their selected annotations to mzTab-M.
  */
 public class MZTabmExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to mzTab-m file.";
-  //TODO modify desc
-  private static final String MODULE_DESCRIPTION = //
-      "This method exports the feature list contents into a mzTab-m file.";
+  private static final String MODULE_NAME = "Export mzTab-M";
+  private static final String MODULE_DESCRIPTION =
+      "Exports feature lists and their selected annotations to mzTab-M files.";
 
   @Override
   public @NotNull String getDescription() {
@@ -76,7 +75,6 @@ public class MZTabmExportModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  //TODO update on addition of SMF and SME support
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTEXPORT;

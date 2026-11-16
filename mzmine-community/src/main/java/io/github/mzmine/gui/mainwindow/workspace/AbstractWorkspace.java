@@ -93,6 +93,7 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
+import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sql.SQLExportModule;
 import io.github.mzmine.modules.io.export_features_venn.VennExportModule;
@@ -165,6 +166,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractWorkspace implements Workspace {
 
@@ -279,12 +281,18 @@ public abstract class AbstractWorkspace implements Workspace {
         NoiseAmplitudeResolverModule.class, SavitzkyGolayResolverModule.class);
   }
 
-  protected Menu buildDefaultFeatureListExportSubMenu() {
+  /**
+   * Creates the feature-list export menu.
+   *
+   * @return menu containing the available feature-list export modules
+   */
+  protected @NotNull Menu buildDefaultFeatureListExportSubMenu() {
     final Menu menu = new Menu("Export feature list");
 
     addModuleMenuItems(menu, "Graphics", ExportAllIdsGraphicalModule.class);
-    addModuleMenuItems(menu, CSVExportModularModule.class, CompoundAnnotationsCSVExportModule.class,
-        LegacyCSVExportModule.class, SQLExportModule.class,
+    FxMenuUtil.addModuleMenuItems(menu, CSVExportModularModule.class,
+        CompoundAnnotationsCSVExportModule.class, LegacyCSVExportModule.class,
+        MZTabmExportModule.class, SQLExportModule.class,
         // scans
         ExportScansFeatureModule.class, AdapMspExportModule.class, AdapMgfExportModule.class,
         GnpsFbmnExportAndSubmitModule.class, GnpsGcExportAndSubmitModule.class,

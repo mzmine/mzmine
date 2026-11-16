@@ -67,6 +67,34 @@ class MZTabmExportTaskTest {
   Path tempDir;
 
   /**
+   * The GUI's default filename must produce a real export alongside the saved project archive.
+   *
+   * @throws IOException if the exported file cannot be inspected
+   */
+  @Test
+  void exportsUsingTheProjectDirectoryDialogDefault() throws IOException {
+    final MZmineProjectImpl project = new MZmineProjectImpl();
+    project.setProjectFile(tempDir.resolve("project.mzmine").toFile());
+    final ModularFeatureList featureList = createFeatureList("Features", "sample.mzML",
+        createIdentity("https://example.org/compound/1"));
+    final MZTabmExportParameters parameters = (MZTabmExportParameters) new MZTabmExportParameters()
+        .cloneParameterSet();
+    parameters.setParameter(MZTabmExportParameters.featureLists,
+        new FeatureListsSelection(featureList));
+    parameters.setParameter(MZTabmExportParameters.exportAll, true);
+    parameters.initializeOutputFile(project.getProjectFile());
+    final MZTabmExportTask task = new MZTabmExportTask(project, parameters, Instant.EPOCH, null);
+
+    task.run();
+
+    Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus(), task.getErrorMessage());
+    final MzTab exported = parseExport(tempDir.resolve("Features_quant.mzTab"));
+    Assertions.assertEquals(1, exported.getSmallMoleculeSummary().size());
+    Assertions.assertEquals(List.of(1250d),
+        exported.getSmallMoleculeSummary().getFirst().getAbundanceAssay());
+  }
+
+  /**
    * A finished export must produce a nonempty file, rather than merely complete the task.
    *
    * @throws IOException if the exported file cannot be inspected
