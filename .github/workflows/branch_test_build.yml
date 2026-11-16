@@ -1,15 +1,33 @@
 name: Specific branch release
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      linux:
+        description: Build Linux
+        type: boolean
+        default: true
+      macos:
+        description: Build macOS
+        type: boolean
+        default: true
+      windows:
+        description: Build Windows
+        type: boolean
+        default: true
 
 jobs:
   gradle_dev_build:
     name: test and build
+    if: ${{ inputs.linux || inputs.macos || inputs.windows }}
     strategy:
       matrix:
-#        os: [ ubuntu-latest, windows-latest ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
+        # An empty runner label matches no matrix entry, keeping selected platforms included.
+        exclude:
+          - os: ${{ !inputs.linux && 'ubuntu-latest' || '' }}
+          - os: ${{ !inputs.macos && 'macos-latest' || '' }}
+          - os: ${{ !inputs.windows && 'windows-latest' || '' }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
