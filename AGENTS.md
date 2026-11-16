@@ -50,3 +50,16 @@ maintainable.
 # Verification
 
 - Always ask the user for input from the user if uncertainties arise during implementation
+
+# Design philosophy
+
+- There is no "undo" in mzmine, processing module creates a new output instead via the
+  `OriginalFeatureListOption`. If a step can produce an undesired result, the user can simply
+  reapply the step.
+  - This also applies to task canceling. If the cancel comes in too late, it's ok to
+    add the result to the project, as it can simply be removed.
+- A module should rather perform a single task than multiple ones. Potentially split large steps
+  into multiple modules. Ask for verification in that case.
+- If multiple algorithms can be used to perform a task, use a `ModuleOptionsEnumComboParameter` to
+  create a single entry point in a larger module (see `IntensityNormalizerParameters`)  
+  
