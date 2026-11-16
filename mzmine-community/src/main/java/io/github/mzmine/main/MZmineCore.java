@@ -67,6 +67,7 @@ import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.mzmine.startup.MZmineExit;
+import io.mzio.mzmine.startup.MaxRuntimeWatchdog;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
@@ -76,6 +77,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -264,6 +266,12 @@ public final class MZmineCore {
 
     // set headless desktop globally
     DesktopService.setDesktop(new HeadLessDesktop());
+
+    // decision: start before the console login so that a login waiting for input is also ended
+    final Duration maxRuntime = argsParser.getMaxRuntime();
+    if (isCliBatchProcessing && maxRuntime != null) {
+      MaxRuntimeWatchdog.start(maxRuntime);
+    }
 
     // ask for login if terminal input is available
     if (DesktopService.hasTerminalInput() && CurrentUserService.isInvalid()) {
