@@ -77,7 +77,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -298,17 +297,7 @@ public class FeatureListLoadTask extends AbstractTask {
     }
     try (InputStream in = new FileInputStream(file)) {
       final XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
-      while (reader.hasNext()) {
-        if (reader.next() != XMLEvent.START_ELEMENT) {
-          continue;
-        }
-        final String name = reader.getLocalName();
-        if (CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT.equals(name)) {
-          parseAlignedOtherFeatures(reader, project, storage, flist);
-        } else if (CONST.XML_MS_OTHER_CORRELATION_MAPS_ELEMENT.equals(name)) {
-          parseMsOtherCorrelationMaps(reader, project, flist);
-        }
-      }
+      parseOtherDetectorData(reader, project, storage, flist);
       reader.close();
     } catch (Exception e) {
       logger.log(Level.WARNING,
@@ -316,7 +305,33 @@ public class FeatureListLoadTask extends AbstractTask {
     }
   }
 
-  private void parseAlignedOtherFeatures(XMLStreamReader reader, MZmineProject project,
+  /**
+   * Parses the aligned other detector features and the MS-to-other correlations of a feature list
+   * (see {@link FeatureListSaveTask#writeOtherDetectorData}) and attaches them to the feature
+   * list.
+   *
+   * @param reader  the reader, positioned before the aligned list element
+   * @param project the project with the raw data files
+   * @param storage the storage for the loaded data, may be null
+   * @param flist   the MS feature list, its rows must be loaded already
+   */
+  public static void parseOtherDetectorData(@NotNull final XMLStreamReader reader,
+      @NotNull final MZmineProject project, @Nullable final MemoryMapStorage storage,
+      @NotNull final ModularFeatureList flist) throws XMLStreamException {
+    while (reader.hasNext()) {
+      if (reader.next() != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      final String name = reader.getLocalName();
+      if (CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT.equals(name)) {
+        parseAlignedOtherFeatures(reader, project, storage, flist);
+      } else if (CONST.XML_MS_OTHER_CORRELATION_MAPS_ELEMENT.equals(name)) {
+        parseMsOtherCorrelationMaps(reader, project, flist);
+      }
+    }
+  }
+
+  private static void parseAlignedOtherFeatures(XMLStreamReader reader, MZmineProject project,
       MemoryMapStorage storage, ModularFeatureList flist) throws XMLStreamException {
     final String name = reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR);
     final String date = reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR);
@@ -347,15 +362,6 @@ public class FeatureListLoadTask extends AbstractTask {
       }
     }
 
-    // rebuild the per-feature type index from the actual features (mirrors the alignment task)
-    final Set<DataType> presentTypes = new LinkedHashSet<>();
-    for (final OtherFeatureListRow row : ofl.getRows()) {
-      for (final OtherFeature feature : row.getFeatures()) {
-        presentTypes.addAll(feature.getTypes());
-      }
-    }
-    ofl.addFeatureType(presentTypes.toArray(DataType[]::new));
-
     // addRow already raised the counter to the highest row ID; the saved counter may be higher if
     // rows were created and removed before saving
     if (rowIdCounter != null) {
@@ -371,7 +377,7 @@ public class FeatureListLoadTask extends AbstractTask {
     flist.setAlignedOtherFeatures(ofl);
   }
 
-  private OtherFeatureListRow parseOtherRow(XMLStreamReader reader, MZmineProject project,
+  private static OtherFeatureListRow parseOtherRow(XMLStreamReader reader, MZmineProject project,
       ModularFeatureList flist, OtherFeatureList ofl, ModularFeatureListRow contextRow)
       throws XMLStreamException {
     final int id = Integer.parseInt(
@@ -413,7 +419,7 @@ public class FeatureListLoadTask extends AbstractTask {
     return row;
   }
 
-  private OtherFeature parseOtherFeature(XMLStreamReader reader, MZmineProject project,
+  private static OtherFeature parseOtherFeature(XMLStreamReader reader, MZmineProject project,
       ModularFeatureList flist, ModularFeatureListRow contextRow) throws XMLStreamException {
     final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
     final RawDataFile resolved = project.getCurrentRawDataFiles().stream()
@@ -450,7 +456,7 @@ public class FeatureListLoadTask extends AbstractTask {
     return file == null ? null : feature;
   }
 
-  private void parseMsOtherCorrelationMaps(XMLStreamReader reader, MZmineProject project,
+  private static void parseMsOtherCorrelationMaps(XMLStreamReader reader, MZmineProject project,
       ModularFeatureList flist) throws XMLStreamException {
     final OtherFeatureList ofl = flist.getAlignedOtherFeatures();
     if (ofl == null) {
@@ -475,7 +481,7 @@ public class FeatureListLoadTask extends AbstractTask {
     }
   }
 
-  private List<OtherCorrelationLink> parseOtherCorrelationLinks(XMLStreamReader reader,
+  private static List<OtherCorrelationLink> parseOtherCorrelationLinks(XMLStreamReader reader,
       MZmineProject project) throws XMLStreamException {
     final List<OtherCorrelationLink> links = new ArrayList<>();
     while (reader.hasNext()) {

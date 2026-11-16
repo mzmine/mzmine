@@ -209,8 +209,6 @@ public class FeatureListSaveTask extends AbstractTask {
     if (ofl == null) {
       return true; // no alignment -> no other-detector data (correlations live on the aligned list)
     }
-    final MsOtherCorrelationMaps corrMaps = ofl.getMsOtherCorrelationMaps();
-
     final File tempFile;
     try {
       tempFile = FileAndPathUtil.createTempFile("mzmine_featurelist_otherdetectors", ".tmp");
@@ -224,12 +222,7 @@ public class FeatureListSaveTask extends AbstractTask {
       final XMLStreamWriter writer = new IndentingXMLStreamWriter(
           XMLOutputFactory.newInstance().createXMLStreamWriter(os));
       writer.writeStartDocument("UTF-8", "1.0");
-      writer.writeStartElement(CONST.XML_OTHER_DETECTOR_DATA_ELEMENT);
-      writeAlignedOtherFeatures(writer, ofl);
-      if (!corrMaps.isEmpty()) {
-        writeMsOtherCorrelationMaps(writer, corrMaps);
-      }
-      writer.writeEndElement();
+      writeOtherDetectorData(writer, flist, ofl);
       writer.writeEndDocument();
       writer.flush();
       writer.close();
@@ -255,8 +248,27 @@ public class FeatureListSaveTask extends AbstractTask {
     return true;
   }
 
-  private void writeAlignedOtherFeatures(XMLStreamWriter writer, OtherFeatureList ofl)
+  /**
+   * Writes the aligned other detector features and the MS-to-other correlations of a feature list,
+   * read by {@link FeatureListLoadTask#parseOtherDetectorData}.
+   *
+   * @param writer the writer
+   * @param flist  the MS feature list
+   * @param ofl    the aligned other feature list of the MS feature list
+   */
+  public static void writeOtherDetectorData(@NotNull final XMLStreamWriter writer,
+      @NotNull final ModularFeatureList flist, @NotNull final OtherFeatureList ofl)
       throws XMLStreamException {
+    writer.writeStartElement(CONST.XML_OTHER_DETECTOR_DATA_ELEMENT);
+    writeAlignedOtherFeatures(writer, flist, ofl);
+    if (!ofl.getMsOtherCorrelationMaps().isEmpty()) {
+      writeMsOtherCorrelationMaps(writer, ofl.getMsOtherCorrelationMaps());
+    }
+    writer.writeEndElement();
+  }
+
+  private static void writeAlignedOtherFeatures(XMLStreamWriter writer, ModularFeatureList flist,
+      OtherFeatureList ofl) throws XMLStreamException {
     writer.writeStartElement(CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT);
     writer.writeAttribute(CONST.XML_FLIST_NAME_ATTR, ofl.getName());
     writer.writeAttribute(CONST.XML_DATE_CREATED_ATTR, ofl.getDateCreated());
@@ -264,30 +276,23 @@ public class FeatureListSaveTask extends AbstractTask {
         String.valueOf(ofl.getRowIdCounter()));
 
     // the data type saveToXML signatures require a non-null (but content-irrelevant) row for
-    // other-feature types; reuse an MS row as placeholder
-    final ModularFeatureListRow contextRow = placeholderRow();
+    // other-feature types
+    final ModularFeatureListRow contextRow = new ModularFeatureListRow(FeatureList.createDummy(),
+        -1);
     for (final OtherFeatureListRow row : ofl.getRows()) {
       writer.writeStartElement(CONST.XML_OTHER_ROW_ELEMENT);
       writer.writeAttribute(idType.getUniqueID(), String.valueOf(row.getID()));
       row.getTraceKey().saveToXML(writer);
       for (final OtherFeature feature : row.getFeatures()) {
-        writeOtherFeature(writer, feature, contextRow);
+        writeOtherFeature(writer, flist, feature, contextRow);
       }
       writer.writeEndElement();
     }
     writer.writeEndElement();
   }
 
-  /**
-   * @return an MS feature-list row used only as a non-null placeholder for other-feature data type
-   * serialization (its content is never read); a throwaway row is created if the list has none.
-   */
-  private ModularFeatureListRow placeholderRow() {
-    return new ModularFeatureListRow(FeatureList.createDummy(), -1);
-  }
-
-  private void writeOtherFeature(XMLStreamWriter writer, OtherFeature feature,
-      ModularFeatureListRow contextRow) throws XMLStreamException {
+  private static void writeOtherFeature(XMLStreamWriter writer, ModularFeatureList flist,
+      OtherFeature feature, ModularFeatureListRow contextRow) throws XMLStreamException {
     final RawDataFile file = feature.getRawDataFile();
     writer.writeStartElement(CONST.XML_OTHER_FEATURE_ELEMENT);
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
@@ -306,7 +311,8 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeEndElement();
   }
 
-  private void writeMsOtherCorrelationMaps(XMLStreamWriter writer, MsOtherCorrelationMaps maps)
+  private static void writeMsOtherCorrelationMaps(XMLStreamWriter writer,
+      MsOtherCorrelationMaps maps)
       throws XMLStreamException {
     writer.writeStartElement(CONST.XML_MS_OTHER_CORRELATION_MAPS_ELEMENT);
     for (final Entry<Integer, List<OtherCorrelationLink>> msEntry : maps.getAllCorrelations()

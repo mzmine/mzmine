@@ -120,21 +120,18 @@ public final class MsOtherCorrelationResolver {
     if (links.isEmpty()) {
       return null;
     }
-    final MsOtherCorrelationRowResult preferred = resolveCorrelation(ofl, links.getFirst());
-    if (preferred == null) {
+    // direct lookup: called for every feature cell, resolving all files of the link is too slow
+    final OtherCorrelationLink preferred = links.getFirst();
+    final OtherFeatureListRow otherRow = ofl.findRowByID(preferred.otherRowId());
+    final OtherFeature feature = otherRow != null ? otherRow.getFeature(file) : null;
+    if (feature == null) {
       return null;
     }
-    // per-file correlated result for this file, if the preferred trace correlated here
-    for (final CorrelatedOtherFeature result : preferred.perFileResults()) {
-      if (result.otherFeature().getRawDataFile().equals(file)) {
-        return result;
-      }
-    }
+    final PerFileCorrelation pfc = preferred.perFile().get(file);
     // aligned into this file but not correlated here - derived ALIGNED status, not stored
-    final OtherFeature feature = preferred.otherRow().getFeature(file);
-    return feature == null ? null
-        : new CorrelatedOtherFeature(preferred.otherRow(), feature, MsOtherCorrelationType.ALIGNED,
-            null);
+    return pfc == null ? new CorrelatedOtherFeature(otherRow, feature,
+        MsOtherCorrelationType.ALIGNED, null)
+        : new CorrelatedOtherFeature(otherRow, feature, pfc.origin(), pfc.pearson());
   }
 
   /**
