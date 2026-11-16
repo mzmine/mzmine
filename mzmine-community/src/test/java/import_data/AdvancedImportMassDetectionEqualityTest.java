@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package import_data;
 
 import io.github.mzmine.datamodel.Frame;
@@ -83,12 +108,19 @@ class AdvancedImportMassDetectionEqualityTest {
 
   /**
    * Copies all mass lists to memory, so they stay available after the project is replaced
+   *
+   * @param raw           the imported file
+   * @param compareFrames false to only copy the mobility scan mass lists of frames
+   * @return the mass lists in scan order
    */
-  private static @NotNull List<SpectrumMassList> extractMassLists(@NotNull final RawDataFile raw) {
+  private static @NotNull List<SpectrumMassList> extractMassLists(@NotNull final RawDataFile raw,
+      final boolean compareFrames) {
     final List<SpectrumMassList> massLists = new ArrayList<>();
     for (final Scan scan : raw.getScans()) {
       final String scanId = "scan #" + scan.getScanNumber();
-      massLists.add(SpectrumMassList.of(scanId, scan.getMassList()));
+      if (compareFrames || !(scan instanceof Frame)) {
+        massLists.add(SpectrumMassList.of(scanId, scan.getMassList()));
+      }
       if (scan instanceof Frame frame) {
         for (final MobilityScan mobilityScan : frame.getMobilityScans()) {
           massLists.add(SpectrumMassList.of(
@@ -101,14 +133,18 @@ class AdvancedImportMassDetectionEqualityTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"rawdatafiles/DOM_a.mzML, false", "rawdatafiles/additional/orbi_idx_msn.mzML, true",
-      "rawdatafiles/additional/lc-tims-ms-pasef-a.d, false"})
+  // decision: mzML frames are built from the mobility scans, merging them is configured
+  // separately by the user, so only the mobility scans are compared for ims mzML
+  @CsvSource({"rawdatafiles/DOM_a.mzML, false, true",
+      "rawdatafiles/additional/orbi_idx_msn.mzML, true, true",
+      "rawdatafiles/additional/lc-tims-ms-pasef-a.d, false, true",
+      "rawdatafiles/additional/lc-tims-ms-pasef-a_2frames.mzML, false, false"})
   void advancedImportEqualsMassDetection(@NotNull final String file,
-      final boolean denormalizeMSnScans) throws InterruptedException {
+      final boolean denormalizeMSnScans, final boolean compareFrames) throws InterruptedException {
     MZmineTestUtil.cleanProject();
     MZmineTestUtil.importFiles(List.of(file), 360,
         advancedImportParameters(denormalizeMSnScans));
-    final List<SpectrumMassList> advancedImport = extractMassLists(getRaw(file));
+    final List<SpectrumMassList> advancedImport = extractMassLists(getRaw(file), compareFrames);
 
     MZmineTestUtil.cleanProject();
     MZmineTestUtil.importFiles(List.of(file), 360);
@@ -116,7 +152,7 @@ class AdvancedImportMassDetectionEqualityTest {
     final TaskResult result = MZmineTestUtil.callModuleWithTimeout(360, MassDetectionModule.class,
         massDetectionParameters(raw, denormalizeMSnScans));
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, result, result.description());
-    final List<SpectrumMassList> massDetection = extractMassLists(raw);
+    final List<SpectrumMassList> massDetection = extractMassLists(raw, compareFrames);
 
     Assertions.assertEquals(massDetection.size(), advancedImport.size(),
         "Number of spectra differs in " + file);
