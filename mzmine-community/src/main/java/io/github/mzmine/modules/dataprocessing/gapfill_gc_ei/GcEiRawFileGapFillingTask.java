@@ -66,6 +66,9 @@ class GcEiRawFileGapFillingTask extends AbstractTask {
 
   // decision: additional scans around the window so that smoothing has data at the window edges
   private static final int PADDING_SCANS = 10;
+  // decision: an apex is the maximum of 2 data points on each side, so that single noise spikes on
+  // a rising or continuous background do not confirm a signal
+  private static final int APEX_NEIGHBOURS = 2;
 
   private final @NotNull ModularFeatureList flist;
   private final @NotNull RawDataFile file;
@@ -247,19 +250,19 @@ class GcEiRawFileGapFillingTask extends AbstractTask {
 
   /**
    * A peak apex is the highest local maximum within the range with at least the minimum number of
-   * consecutive scans of the chromatogram builder.
+   * consecutive scans of the chromatogram builder. A local maximum needs to be higher than the
+   * {@link #APEX_NEIGHBOURS} data points on each side.
    *
    * @return the apex or null if there is no peak apex within the range
    */
   private @Nullable GcEiSignalApex findApex(@NotNull final IonTimeSeries<? extends Scan> series,
       @NotNull final Range<Float> range) {
     GcEiSignalApex best = null;
-    // decision: the first and last data points cannot be a confirmed apex
-    for (int i = 1; i < series.getNumberOfValues() - 1; i++) {
+    // decision: data points without enough neighbours on both sides cannot be a confirmed apex
+    for (int i = APEX_NEIGHBOURS; i < series.getNumberOfValues() - APEX_NEIGHBOURS; i++) {
       final float rt = series.getRetentionTime(i);
       final double intensity = series.getIntensity(i);
-      if (!range.contains(rt) || intensity <= 0 || intensity <= series.getIntensity(i - 1)
-          || intensity < series.getIntensity(i + 1)) {
+      if (!range.contains(rt) || intensity <= 0 || !isLocalMaximum(series, i)) {
         continue;
       }
       if ((best == null || intensity > best.height())
@@ -268,6 +271,25 @@ class GcEiRawFileGapFillingTask extends AbstractTask {
       }
     }
     return best;
+  }
+
+  /**
+   * Plateaus are assigned to their first data point: left neighbours need to be lower, right
+   * neighbours may be equal.
+   *
+   * @return true if the data point is the maximum of the {@link #APEX_NEIGHBOURS} data points on
+   * each side. The index needs these neighbours on both sides.
+   */
+  private static boolean isLocalMaximum(@NotNull final IonTimeSeries<? extends Scan> series,
+      final int index) {
+    final double intensity = series.getIntensity(index);
+    for (int offset = 1; offset <= APEX_NEIGHBOURS; offset++) {
+      if (intensity <= series.getIntensity(index - offset) || intensity < series.getIntensity(
+          index + offset)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

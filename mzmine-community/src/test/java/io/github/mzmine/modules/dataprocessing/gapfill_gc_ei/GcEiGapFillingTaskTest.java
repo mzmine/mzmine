@@ -70,6 +70,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.IntToDoubleFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
@@ -168,6 +169,21 @@ class GcEiGapFillingTaskTest {
     runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
 
     Assertions.assertNull(flist.getRow(0).getFeature(sample), "second signal does not co-elute");
+  }
+
+  @Test
+  void doesNotFillGapIfTopSignalIsOnlyNoiseOnRisingBackground() {
+    // the third signal has no peak, only a rising background with a spike on every second scan.
+    // each spike is higher than its direct neighbours, but lower than the scans 2 to the right
+    final IntToDoubleFunction risingSawtooth = scan -> 1E3 + 100 * scan + (scan % 2 == 0 ? 150 : 0);
+    final RawDataFile sample = createFile("sample",
+        Map.of(QUANTIFIER_MZ, ROW_RT, SECOND_MZ, ROW_RT), 1d, Map.of(THIRD_MZ, risingSawtooth));
+    final ModularFeatureList flist = createAlignedList(false, reference, sample);
+
+    runGapFilling(flist, OriginalFeatureListOption.PROCESS_IN_PLACE);
+
+    Assertions.assertNull(flist.getRow(0).getFeature(sample),
+        "noise spikes must not confirm the third signal");
   }
 
   @Test
@@ -347,6 +363,16 @@ class GcEiGapFillingTaskTest {
    */
   private static @NotNull RawDataFile createFile(@NotNull final String name,
       @NotNull final Map<Double, Float> apexRtPerMz, final double scale) {
+    return createFile(name, apexRtPerMz, scale, Map.of());
+  }
+
+  /**
+   * @param scale           factor for all peak intensities
+   * @param backgroundPerMz background intensity per scan index, added to the peaks of the m/z
+   */
+  private static @NotNull RawDataFile createFile(@NotNull final String name,
+      @NotNull final Map<Double, Float> apexRtPerMz, final double scale,
+      @NotNull final Map<Double, IntToDoubleFunction> backgroundPerMz) {
     final Map<Double, Double> relativeHeights = Map.of(QUANTIFIER_MZ, 1d, SECOND_MZ, 0.8d, THIRD_MZ,
         0.6d, MINOR_MZ, 0.1d);
     final RawDataFile file = new RawDataFileImpl(name, null, null);
@@ -360,6 +386,9 @@ class GcEiGapFillingTaskTest {
         if (intensity > 10) {
           signals.put(entry.getKey(), intensity);
         }
+      }
+      for (final Map.Entry<Double, IntToDoubleFunction> entry : backgroundPerMz.entrySet()) {
+        signals.merge(entry.getKey(), entry.getValue().applyAsDouble(i), Double::sum);
       }
       final SimpleScan scan = new SimpleScan(file, i, 1, rt, null,
           signals.keySet().stream().mapToDouble(Double::doubleValue).toArray(),
