@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.features.Feature;
@@ -35,6 +33,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Comparator;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +82,7 @@ record GcEiDuplicateCandidate(@NotNull FeatureListRow row, double quantifierMz, 
       }
     }
     return new GcEiDuplicateCandidate(row, row.getAverageMZ(), row.getAverageRT(), spectrum,
-        numDetected, requireNonNullElse(row.getMaxHeight(), 0f));
+        numDetected, Objects.requireNonNullElse(row.getMaxHeight(), 0f));
   }
 
   static boolean isDetected(@NotNull final FeatureStatus status) {

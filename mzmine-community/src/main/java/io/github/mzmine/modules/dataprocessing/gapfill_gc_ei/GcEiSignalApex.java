@@ -28,10 +28,9 @@ package io.github.mzmine.modules.dataprocessing.gapfill_gc_ei;
 /**
  * The apex of a peak found in an extracted chromatogram during GC-EI gap filling.
  *
- * @param index  index of the apex in the chromatogram
  * @param rt     retention time of the apex
  * @param height intensity of the apex
  */
-record GcEiSignalApex(int index, float rt, double height) {
+record GcEiSignalApex(float rt, double height) {
 
 }

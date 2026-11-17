@@ -43,8 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Gap filling for GC-EI data. A gap is only filled if the top signals of the pseudo spectrum of a
- * row are re-detected as co-eluting features with the original chromatogram builder and resolver
- * settings.
+ * row are re-detected as co-eluting peaks, using the smoothing of the processing history.
  */
 public class GcEiGapFillingModule extends TaskPerFeatureListModule {
 
@@ -52,9 +51,9 @@ public class GcEiGapFillingModule extends TaskPerFeatureListModule {
 
   public GcEiGapFillingModule() {
     super(NAME, GcEiGapFillingParameters.class, MZmineModuleCategory.GAPFILLING, true, """
-        Fills missing features (gaps) of GC-EI feature lists. Re-detects the most intense signals \
-        of the pseudo spectrum of each row with the original chromatogram builder and resolver \
-        settings and adds the quantifier feature if all signals co-elute.""");
+        Fills missing features (gaps) of GC-EI feature lists. Re-detects the most intense signals
+        of the pseudo spectrum of each row with the smoothing of the processing history and adds
+        the quantifier feature if all signals co-elute.""");
   }
 
   @Override

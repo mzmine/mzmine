@@ -264,7 +264,7 @@ class GcEiRawFileGapFillingTask extends AbstractTask {
       }
       if ((best == null || intensity > best.height())
           && countConsecutiveScans(series, i) >= minConsecutiveScans) {
-        best = new GcEiSignalApex(i, rt, intensity);
+        best = new GcEiSignalApex(rt, intensity);
       }
     }
     return best;

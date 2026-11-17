@@ -195,6 +195,20 @@ class GcEiDuplicateFilterTaskTest {
     assertEquals(2, flist.getNumberOfRows());
   }
 
+  @Test
+  void duplicatesAreNotChainedOverSeveralRows() {
+    // row 2 is within the RT tolerance of rows 1 and 3, but rows 1 and 3 are not
+    addRow(1, MZ_A, RT, SPECTRUM_X,
+        features(fileA, FeatureStatus.DETECTED, fileB, FeatureStatus.DETECTED));
+    addRow(2, MZ_A, RT + 0.03f, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    addRow(3, MZ_A, RT + 0.06f, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+
+    run(GcEiDuplicateMzCheck.SAME_QUANTIFIER, GcEiDuplicateHandling.REMOVE);
+
+    assertEquals(List.of(1, 3), flist.getRows().stream().map(FeatureListRow::getID).toList(),
+        "row 2 is a duplicate of the best row 1, row 3 must not be removed via row 2");
+  }
+
   private void run(@NotNull final GcEiDuplicateMzCheck mzCheck,
       @NotNull final GcEiDuplicateHandling handling) {
     project.addFeatureList(flist);

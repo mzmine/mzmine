@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -93,6 +94,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final int minNumberOfSignalsInDeconSpectra;
   private final Boolean exportAnnotationGraphics;
   private final Boolean applySpectralNetworking;
+  private final boolean applyGapFillingAndDuplicateFilter;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -143,6 +145,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         WorkflowGcElectronImpactWizardParameters.exportAnnotationGraphics);
     applySpectralNetworking = getValue(params,
         WorkflowGcElectronImpactWizardParameters.applySpectralNetworking);
+    applyGapFillingAndDuplicateFilter = getValue(params,
+        WorkflowGcElectronImpactWizardParameters.applyGapFillingAndDuplicateFilter);
     minNumberOfSignalsInDeconSpectra = getValue(params,
         WorkflowGcElectronImpactWizardParameters.MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA);
 
@@ -171,8 +175,10 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     }
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
-    makeAndAddGcEiGapFillingStep(q);
-    makeAndAddGcEiDuplicateFilterStep(q);
+    if (applyGapFillingAndDuplicateFilter) {
+      makeAndAddGcEiGapFillingStep(q);
+      makeAndAddGcEiDuplicateFilterStep(q);
+    }
     if (applySpectralNetworking) {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, true);
     }
