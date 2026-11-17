@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 /**
  * Rich descriptor of a single peak detected by the {@link LocalMaxMassDetector}. Indices refer to
  * the spectrum's data point indices (aligned with the spectrum's m/z values). Used for
- * analysis/diagnostics via {@link LocalMaxMassDetector#detectPeaks}.
+ * analysis/diagnostics via {@link AdaptiveLocalMaxMassDetector#detectPeaks}.
  *
  * @param apexIndex           index of the apex (maximum of the original intensities within the
  *                            detected edges).

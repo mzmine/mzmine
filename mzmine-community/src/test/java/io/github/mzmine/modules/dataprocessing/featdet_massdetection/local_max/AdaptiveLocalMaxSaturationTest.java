@@ -117,6 +117,68 @@ class AdaptiveLocalMaxSaturationTest {
     Assertions.assertEquals(fixedMz, centroid(manual.getMassValues(spectrum)), 1e-12);
   }
 
+  /**
+   * Narrow profile peaks on a TOF grid (~0.0002 spacing at m/z 500). Each peak is (center, sigma,
+   * height), clipped with a small ripple at the ceiling.
+   */
+  private static @NotNull SimpleMassSpectrum narrowPeaks(final double ceiling,
+      final double @NotNull []... peaks) {
+    final int n = 151;
+    final double[] mzs = new double[n];
+    final double[] intensities = new double[n];
+    final double sqrtStart = Math.sqrt(499.99);
+    final double sqrtStep = 0.0002 / (2 * Math.sqrt(500));
+    for (int i = 0; i < n; i++) {
+      mzs[i] = Math.pow(sqrtStart + i * sqrtStep, 2);
+      double intensity = 0;
+      for (final double[] peak : peaks) {
+        final double delta = (mzs[i] - peak[0]) / peak[1];
+        intensity += peak[2] * Math.exp(-0.5 * delta * delta);
+      }
+      intensities[i] = Math.min(ceiling - 25 * (i % 3), intensity);
+    }
+    intensities[0] = 0;
+    intensities[n - 1] = 0;
+    return new SimpleMassSpectrum(mzs, intensities, MassSpectrumType.PROFILE);
+  }
+
+  /**
+   * Saturated centroids of a frame get the m/z of the unsaturated flank scans of the same ion. The
+   * correction moves ion A (distorted to 500.006 in the saturated scans) below ion B at 500.003, so
+   * the scan is sorted again and each intensity must stay with its m/z.
+   */
+  @Test
+  void saturatedMobilityScansGetTheFlankMzAndStaySorted() {
+    final double threshold = 50_000;
+    final double ceiling = 60_000;
+    final double[] flankA = {500.000, 0.0004, 20_000};
+    final double[] saturatedA = {500.006, 0.0004, 200_000};
+    final double[] ionB = {500.003, 0.0004, 20_000};
+    final SimpleMassSpectrum flank = narrowPeaks(ceiling, flankA);
+    final SimpleMassSpectrum saturated = narrowPeaks(ceiling, saturatedA, ionB);
+    final List<SimpleMassSpectrum> scans = List.of(flank, flank, saturated, saturated, flank,
+        flank);
+
+    final List<double[][]> values = detector(
+        new SaturationThresholdValue(SaturationThresholdOption.MANUAL,
+            threshold)).getMobilityScanMassValues(scans);
+
+    final double flankMz = centroid(values.getFirst());
+    Assertions.assertEquals(500.000, flankMz, 1e-4);
+    for (final int scan : new int[]{2, 3}) {
+      final double[] mzs = values.get(scan)[0];
+      final double[] intensities = values.get(scan)[1];
+      Assertions.assertEquals(2, mzs.length, "expected ion A and B in scan " + scan);
+      Assertions.assertTrue(MobilityFlankConsolidator.isSorted(mzs), Arrays.toString(mzs));
+      // corrected ion A is first now and keeps its saturated height
+      Assertions.assertEquals(flankMz, mzs[0], 1e-9);
+      Assertions.assertTrue(intensities[0] >= threshold, Arrays.toString(intensities));
+      // ion B is unchanged and keeps its height
+      Assertions.assertEquals(500.003, mzs[1], 1e-4);
+      Assertions.assertEquals(20_000, intensities[1], 500);
+    }
+  }
+
   @Test
   void metadataThresholdIsHalfTheAbundanceLimitOfTheMsLevel() {
     final SimpleMassSpectrum spectrum = clippedPeak();
@@ -311,6 +373,35 @@ class AdaptiveLocalMaxSaturationTest {
     final MobilityScan scan = spectrumMock(MobilityScan.class, file, msLevel, spectrum);
     Mockito.when(scan.getFrame()).thenReturn(frame);
     return List.of(scan);
+  }
+
+  /**
+   * The preview creates a new detector for each parameter change. The new detector takes over the
+   * file cache and does not scan all mobility scans of the file again.
+   */
+  @Test
+  void takenOverFileCacheSkipsTheFileScan() {
+    final SimpleMassSpectrum spectrum = clippedPeak();
+    final IMSRawDataFile file = imsFile(plateau(49_500), 80_000, 60_000, 40_000);
+    final Frame frame = spectrumMock(Frame.class, file, 1, spectrum);
+
+    final AdaptiveLocalMaxMassDetector first = detector(
+        new SaturationThresholdValue(SaturationThresholdOption.AUTO, 0));
+    final double expectedMz = centroid(first.getMassValues(frame));
+
+    final AdaptiveLocalMaxMassDetector sameOption = detector(
+        new SaturationThresholdValue(SaturationThresholdOption.AUTO, 0));
+    sameOption.takeOverFileCache(first);
+    Assertions.assertEquals(expectedMz, centroid(sameOption.getMassValues(frame)), 1e-12);
+    Mockito.verify(file, Mockito.times(1)).getScans();
+
+    // other option: the file thresholds are resolved again, the mobility scan plateau is reused
+    final AdaptiveLocalMaxMassDetector otherOption = detector(
+        new SaturationThresholdValue(SaturationThresholdOption.RAW_FILE_METADATA, 0));
+    otherOption.takeOverFileCache(sameOption);
+    Assertions.assertEquals(expectedMz, centroid(otherOption.getMassValues(frame)), 1e-12);
+    Mockito.verify(file, Mockito.times(2)).getScans();
+    Mockito.verify(file, Mockito.times(1)).getFrames();
   }
 
   @Test

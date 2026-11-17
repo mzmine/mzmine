@@ -156,6 +156,20 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
 
   @Override
   public double[][] getMassValues(final MassSpectrum spectrum) {
+    return centroid(spectrum, LocalMaxPeakMz.WEIGHTED_CENTROID, null);
+  }
+
+  /**
+   * Detects the peaks of the spectrum and calculates their m/z with the given function. The state of
+   * one call is kept local, so the detector can be shared between threads (except for the preview
+   * series, see {@link #getLastPreprocessedIntensities()}).
+   *
+   * @param peakMz   calculates the m/z of each peak
+   * @param peakSink receives one peak per centroid in the same order, or null
+   * @return [mzs, intensities]
+   */
+  double @NotNull [][] centroid(@NotNull final MassSpectrum spectrum,
+      @NotNull final LocalMaxPeakMz peakMz, @Nullable final List<LocalMaxPeak> peakSink) {
     // reset so the preview never shows a stale preprocessed series for an unprocessed spectrum
     lastPreprocessedIntensities = null;
 
@@ -168,10 +182,15 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
     final double[] mzs = new double[numPoints];
     final double[] intensities = new double[numPoints];
 
-    // Bulk extraction loop
+    // Bulk extraction loop, also tracks the base peak intensity for the peak m/z function
+    double baseIntensity = 0;
     for (int i = 0; i < numPoints; i++) {
       mzs[i] = spectrum.getMzValue(i);
-      intensities[i] = spectrum.getIntensityValue(i);
+      final double intensity = spectrum.getIntensityValue(i);
+      intensities[i] = intensity;
+      if (intensity > baseIntensity) {
+        baseIntensity = intensity;
+      }
     }
 
     final double maxDiff = getMaxMzDiff(mzs, intensities, numPoints);
@@ -236,8 +255,8 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
     lastPreprocessedIntensities = (detectIntensities == intensities) ? null : detectIntensities;
 
     for (final IndexRange range : consecutiveRanges) {
-      findAndCentroidPeaks(mzs, detectIntensities, intensities, range, absMinIntensity, resultMzs,
-          resultIntensities);
+      findAndCentroidPeaks(mzs, detectIntensities, intensities, range, absMinIntensity,
+          baseIntensity, peakMz, resultMzs, resultIntensities, peakSink);
     }
 
     final double[][] result = new double[2][];
@@ -253,10 +272,15 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
    * @param detectIntensities the (potentially smoothed) intensities used for maximum and edge
    *                          detection.
    * @param origIntensities   the original intensities used for the intensity calculation.
+   * @param baseIntensity     highest intensity of the spectrum, passed to the peak m/z function
+   * @param peakMz            calculates the m/z of each peak
+   * @param peakSink          receives one peak per centroid, or null
    */
   private void findAndCentroidPeaks(final double[] mzs, final double[] detectIntensities,
       final double[] origIntensities, final IndexRange range, final double minIntensity,
-      final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
+      final double baseIntensity, @NotNull final LocalMaxPeakMz peakMz,
+      final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities,
+      @Nullable final List<LocalMaxPeak> peakSink) {
 
     // Find all raw local maxima (candidates) in the region above noise
     final IntArrayList candidateIndices = findLocalMaximaIndices(detectIntensities, range);
@@ -290,7 +314,7 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
         // The right boundary for the current peak is the valley.
         // include valleyIdx in this peak and also as potential new peak - similar to belows use of range.maxExclusive
         processSinglePeak(mzs, origIntensities, leftBoundary, valleyIdx + 1, minIntensity,
-            resultMzs, resultIntensities);
+            baseIntensity, peakMz, resultMzs, resultIntensities, peakSink);
 
         // Move to the next peak
         activePeakIdx = nextCandidateIdx;
@@ -306,7 +330,7 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
     }
 
     processSinglePeak(mzs, origIntensities, leftBoundary, range.maxExclusive(), minIntensity,
-        resultMzs, resultIntensities);
+        baseIntensity, peakMz, resultMzs, resultIntensities, peakSink);
   }
 
   /**
@@ -359,10 +383,14 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
    * @param startIdx        Inclusive start of peak region (valley or range start).
    * @param endIdx          Exclusive end of peak region (valley or range end).
    * @param absMinIntensity Absolute minimum intensity of the whole spectrum.
+   * @param baseIntensity   Highest intensity of the whole spectrum.
+   * @param peakMz          Calculates the m/z of the peak.
+   * @param peakSink        Receives the peak if it is added to the results, or null.
    */
   private void processSinglePeak(final double[] mzs, final double[] intensities, final int startIdx,
-      final int endIdx, final double absMinIntensity,
-      final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
+      final int endIdx, final double absMinIntensity, final double baseIntensity,
+      @NotNull final LocalMaxPeakMz peakMz, final DoubleArrayList resultMzs,
+      final DoubleArrayList resultIntensities, @Nullable final List<LocalMaxPeak> peakSink) {
 
     if (endIdx - startIdx < minNonZeroDp) {
       return;
@@ -423,12 +451,17 @@ public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensiti
       return;
     }
 
-    final double centroidMz = sumMzInt / sumIntForMz;
+    final double centroidMz = peakMz.peakMz(mzs, intensities, baseIntensity, startIdx, endIdx,
+        peakMaxIdx, sumMzInt / sumIntForMz);
     final double finalIntensity =
         (intensityCalculation == AbundanceMeasure.Area) ? totalArea : maxIntensity;
 
     resultMzs.add(centroidMz);
     resultIntensities.add(finalIntensity);
+
+    if (peakSink != null) {
+      peakSink.add(new LocalMaxPeak(peakMaxIdx, startIdx, endIdx, centroidMz, maxIntensity));
+    }
   }
 
   @Override

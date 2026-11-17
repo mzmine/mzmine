@@ -25,13 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -65,15 +63,5 @@ public class AdaptiveLocalMaxMassDetectorParameters extends SimpleParameterSet {
   public int getVersion() {
     // same version as the local maximum parameters this set was split from
     return 2;
-  }
-
-  @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
-      final int loadedVersion) {
-    super.handleLoadedParameters(loadedParams, loadedVersion);
-    // smoothing was added without a version bump - disable it for configs that did not store it
-    if (!loadedParams.containsKey(smoothing.getName())) {
-      setParameter(smoothing, LocalMaxSmoothingOptions.NONE);
-    }
   }
 }
