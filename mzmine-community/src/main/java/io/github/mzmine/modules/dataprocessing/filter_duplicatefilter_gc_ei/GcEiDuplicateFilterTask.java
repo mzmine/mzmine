@@ -28,14 +28,23 @@ package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCConsensusAlignerPostProcessor;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.FeatureSmoothingOptions;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -129,6 +138,13 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
     final Set<FeatureListRow> mergedRows = Collections.newSetFromMap(new IdentityHashMap<>());
     int mergedFeatures = 0;
 
+    // assumption: GC-EI workflows smooth at most once, usually before resolving
+    final FeatureListAppliedMethod smoothing = ParameterUtils.getLatestModuleCall(
+        originalList.getAppliedMethods(), SmoothingModule.class);
+    final SmoothingAlgorithm smoother =
+        smoothing != null ? FeatureSmoothingOptions.createSmoother(smoothing.getParameters())
+            : null;
+
     // decision: greedy from the best row, so that duplicates are never chained over several rows
     for (final GcEiDuplicateCandidate best : bestFirst) {
       if (isCanceled()) {
@@ -150,7 +166,7 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
         }
         duplicates.add(other.row());
         final int merged = switch (handling) {
-          case MERGE -> mergeInto(targetList, best, other);
+          case MERGE -> mergeInto(targetList, best, other, smoother);
           case REMOVE -> 0;
         };
         if (merged > 0) {
@@ -177,12 +193,14 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
    * Transfers features of the duplicate to the best row if the best row has no feature or only an
    * estimated (gap-filled) feature in this sample. Features with a different m/z are re-extracted
    * at the quantifier m/z of the best row, so that all features of a row are quantified on the
-   * same m/z.
+   * same m/z. Re-extracted features are smoothed like the other features of the row.
    *
+   * @param smoother the smoother of the processing history or null if there was no smoothing
    * @return the number of transferred features
    */
   private int mergeInto(@NotNull final ModularFeatureList flist,
-      @NotNull final GcEiDuplicateCandidate best, @NotNull final GcEiDuplicateCandidate duplicate) {
+      @NotNull final GcEiDuplicateCandidate best, @NotNull final GcEiDuplicateCandidate duplicate,
+      @Nullable final SmoothingAlgorithm smoother) {
     int merged = 0;
     for (final ModularFeature duplicateFeature : duplicate.row().getFeatures()) {
       final RawDataFile file = duplicateFeature.getRawDataFile();
@@ -192,19 +210,46 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
         continue;
       }
 
-      final ModularFeature newFeature =
-          mzTolerance.checkWithinTolerance(duplicateFeature.getMZ(), best.quantifierMz())
-              ? new ModularFeature(flist, duplicateFeature)
-              : GCConsensusAlignerPostProcessor.extractNewFeature(flist, duplicateFeature,
-                  mzTolerance.getToleranceRange(best.quantifierMz()));
-      // no signal at the quantifier m/z of the best row
-      if (newFeature == null) {
-        continue;
+      final ModularFeature newFeature;
+      if (mzTolerance.checkWithinTolerance(duplicateFeature.getMZ(), best.quantifierMz())) {
+        newFeature = new ModularFeature(flist, duplicateFeature);
+      } else {
+        newFeature = GCConsensusAlignerPostProcessor.extractNewFeature(flist, duplicateFeature,
+            mzTolerance.getToleranceRange(best.quantifierMz()));
+        // no signal at the quantifier m/z of the best row
+        if (newFeature == null) {
+          continue;
+        }
+        smooth(flist, newFeature, smoother);
       }
       best.row().addFeature(file, newFeature, false);
       merged++;
     }
     return merged;
+  }
+
+  /**
+   * The re-extraction of the GC aligner returns raw intensities, while detected features were
+   * smoothed before resolving. Applies the smoothing of the processing history to the feature
+   * data.
+   *
+   * @param flist    the feature list that stores the smoothed data
+   * @param feature  the re-extracted feature, including zero intensities
+   * @param smoother the smoother or null if there was no smoothing
+   */
+  private static void smooth(@NotNull final ModularFeatureList flist,
+      @NotNull final ModularFeature feature, @Nullable final SmoothingAlgorithm smoother) {
+    if (smoother == null) {
+      return;
+    }
+    final IonTimeSeries<? extends Scan> data = feature.getFeatureData();
+    // null if retention time smoothing is disabled
+    final double[] smoothed = smoother.smoothRt(data);
+    if (smoothed == null) {
+      return;
+    }
+    feature.set(FeatureDataType.class, data.copyAndReplace(flist.getMemoryMapStorage(), smoothed));
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
   }
 
   /**

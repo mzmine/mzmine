@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -42,9 +43,14 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.FeatureSmoothingOptions;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -196,6 +202,25 @@ class GcEiDuplicateFilterTaskTest {
   }
 
   @Test
+  void reExtractedFeatureIsSmoothedLikeTheProcessingHistory() {
+    flist.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(SmoothingModule.class, createSmoothingParameters(),
+            Instant.now()));
+    addRow(1, MZ_A, RT, SPECTRUM_X,
+        features(fileA, FeatureStatus.DETECTED, fileB, FeatureStatus.DETECTED));
+    addRow(2, MZ_B, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+
+    run(GcEiDuplicateMzCheck.QUANTIFIER_IN_BOTH_SPECTRA, GcEiDuplicateHandling.MERGE);
+
+    final Feature merged = flist.getRow(0).getFeature(fileC);
+    assertNotNull(merged);
+    assertEquals(MZ_A, merged.getMZ(), 0.001);
+    // smoothing lowers the apex of the synthetic gaussian peak slightly
+    final float height = merged.getHeight();
+    assertTrue(height < HEIGHT * 0.999 && height > HEIGHT * 0.9, "unexpected height " + height);
+  }
+
+  @Test
   void duplicatesAreNotChainedOverSeveralRows() {
     // row 2 is within the RT tolerance of rows 1 and 3, but rows 1 and 3 are not
     addRow(1, MZ_A, RT, SPECTRUM_X,
@@ -284,6 +309,21 @@ class GcEiDuplicateFilterTaskTest {
       file.addScan(scan);
     }
     return file;
+  }
+
+  /**
+   * Retention time smoothing like in the processing wizard
+   */
+  private static @NotNull ParameterSet createSmoothingParameters() {
+    final ParameterSet params = new SmoothingParameters().cloneParameterSet();
+    params.getParameter(SmoothingParameters.smoothingAlgorithm)
+        .setValue(FeatureSmoothingOptions.SAVITZKY_GOLAY);
+    final ParameterSet sgParams = params.getEmbeddedParameterValue(
+        SmoothingParameters.smoothingAlgorithm);
+    sgParams.setParameter(SavitzkyGolayParameters.rtSmoothing, true);
+    sgParams.getParameter(SavitzkyGolayParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+    sgParams.setParameter(SavitzkyGolayParameters.mobilitySmoothing, false);
+    return params;
   }
 
   private static double gaussian(final float rt, final float apexRt) {
