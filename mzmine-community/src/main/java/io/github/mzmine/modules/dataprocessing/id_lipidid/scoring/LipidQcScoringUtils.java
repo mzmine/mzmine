@@ -664,6 +664,38 @@ public final class LipidQcScoringUtils {
   }
 
   /**
+   * Computes QC quality using the latest lipid annotation settings, including custom weights and
+   * MS/MS inclusion. Lists without annotation provenance use the default weights and include
+   * MS/MS.
+   *
+   * @param featureList              feature list containing the annotation settings
+   * @param row                      row providing measured values and interference context
+   * @param match                    lipid annotation to evaluate
+   * @param includeElutionOrderScore whether retention-time QC is enabled
+   * @return configured overall quality score in {@code [0, 1]}
+   */
+  public static double computeConfiguredAnnotationScore(
+      final @NotNull ModularFeatureList featureList, final @NotNull FeatureListRow row,
+      final @NotNull MatchedLipid match, final boolean includeElutionOrderScore) {
+    final LipidAnalysisType analysisType = detectLipidAnalysisType(featureList);
+    final FeatureListAppliedMethod method = ParameterUtils.getLatestModuleCall(
+        featureList.getAppliedMethods(), LipidAnnotationModule.class);
+    boolean includeMs2Score = true;
+    ComponentWeights customWeights = null;
+    if (method != null) {
+      final ParameterSet parameters = method.getParameters();
+      includeMs2Score = parameters.tryGetParameter(LipidAnnotationParameters.searchForMSMSFragments)
+          .map(parameter -> parameter.getValue()).orElse(true);
+      customWeights = parameters.tryGetParameter(LipidAnnotationParameters.customQcWeights)
+          .filter(parameter -> Boolean.TRUE.equals(parameter.getValue()))
+          .map(parameter -> parameter.getEmbeddedParameters().toComponentWeights(analysisType))
+          .orElse(null);
+    }
+    return computeCombinedAnnotationScore(featureList, row, match, includeMs2Score,
+        includeElutionOrderScore, analysisType, customWeights, detectMs1Tolerance(featureList));
+  }
+
+  /**
    * Computes the weighted overall quality score from normalized component scores.
    * <p>
    * All provided component scores are clamped to {@code [0, 1]} before weighting.
