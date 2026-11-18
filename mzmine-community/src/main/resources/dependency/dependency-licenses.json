@@ -104,21 +104,8 @@
             ]
         },
         {
-            "moduleName": "com.brsanthu:migbase64",
-            "moduleVersion": "2.2",
-            "moduleUrls": [
-                "http://sourceforge.net/projects/migbase64/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Prior BSD License",
-                    "moduleLicenseUrl": "http://en.wikipedia.org/wiki/BSD_licenses"
-                }
-            ]
-        },
-        {
             "moduleName": "com.fasterxml.jackson.core:jackson-annotations",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson"
             ],
@@ -131,7 +118,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-core",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-core"
             ],
@@ -144,7 +131,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-databind",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson"
             ],
@@ -157,7 +144,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-csv",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-dataformats-text"
             ],
@@ -170,7 +157,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-xml",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-dataformat-xml"
             ],
@@ -183,7 +170,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jdk8"
             ],
@@ -195,21 +182,8 @@
             ]
         },
         {
-            "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-joda",
-            "moduleVersion": "2.18.4",
-            "moduleUrls": [
-                "https://github.com/FasterXML/jackson-datatype-joda"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
             "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310"
             ],
@@ -222,7 +196,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.jaxrs:jackson-jaxrs-base",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-jaxrs-providers/jackson-jaxrs-base"
             ],
@@ -235,7 +209,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-jaxrs-providers/jackson-jaxrs-json-provider"
             ],
@@ -248,7 +222,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.module:jackson-module-jaxb-annotations",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-modules-base"
             ],
@@ -261,7 +235,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.module:jackson-module-parameter-names",
-            "moduleVersion": "2.18.4",
+            "moduleVersion": "2.22.3",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-modules-java8/jackson-module-parameter-names"
             ],
@@ -274,7 +248,7 @@
         },
         {
             "moduleName": "com.fasterxml.woodstox:woodstox-core",
-            "moduleVersion": "7.0.0",
+            "moduleVersion": "7.2.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/woodstox"
             ],
@@ -290,6 +264,19 @@
             "moduleVersion": "1.3.2",
             "moduleUrls": [
                 "https://github.com/FasterXML/aalto-xml"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "com.fasterxml:classmate",
+            "moduleVersion": "1.7.1",
+            "moduleUrls": [
+                "https://github.com/FasterXML/java-classmate"
             ],
             "moduleLicenses": [
                 {
@@ -693,19 +680,6 @@
             ]
         },
         {
-            "moduleName": "com.sun.xml.bind:jaxb-core",
-            "moduleVersion": "2.3.0.1",
-            "moduleUrls": [
-                "http://www.oracle.com/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "CDDL+GPL License",
-                    "moduleLicenseUrl": "http://glassfish.java.net/public/CDDL+GPL_1_1.html"
-                }
-            ]
-        },
-        {
             "moduleName": "com.vdurmont:semver4j",
             "moduleVersion": "3.1.0",
             "moduleUrls": [
@@ -802,26 +776,6 @@
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-logging/"
             ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "de.isas.mztab:jmztabm-api",
-            "moduleVersion": "1.0.6",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "de.isas.mztab:jmztabm-io",
-            "moduleVersion": "1.0.6",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1291,7 +1245,7 @@
         },
         {
             "moduleName": "io.micrometer:micrometer-commons",
-            "moduleVersion": "1.14.10",
+            "moduleVersion": "1.15.12",
             "moduleUrls": [
                 "https://github.com/micrometer-metrics/micrometer"
             ],
@@ -1304,7 +1258,7 @@
         },
         {
             "moduleName": "io.micrometer:micrometer-observation",
-            "moduleVersion": "1.14.10",
+            "moduleVersion": "1.15.12",
             "moduleUrls": [
                 "https://github.com/micrometer-metrics/micrometer"
             ],
@@ -1631,7 +1585,7 @@
         },
         {
             "moduleName": "io.swagger:swagger-annotations",
-            "moduleVersion": "1.5.24",
+            "moduleVersion": "1.5.22",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1745,7 +1699,7 @@
         },
         {
             "moduleName": "jakarta.validation:jakarta.validation-api",
-            "moduleVersion": "3.0.2",
+            "moduleVersion": "3.1.1",
             "moduleUrls": [
                 "https://beanvalidation.org",
                 "https://www.eclipse.org"
@@ -1878,14 +1832,15 @@
         },
         {
             "moduleName": "javax.xml.bind:jaxb-api",
-            "moduleVersion": "2.3.1",
+            "moduleVersion": "2.2.12",
             "moduleUrls": [
+                "http://jaxb.java.net/",
                 "http://www.oracle.com/"
             ],
             "moduleLicenses": [
                 {
-                    "moduleLicense": "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0",
-                    "moduleLicenseUrl": "https://oss.oracle.com/licenses/CDDL"
+                    "moduleLicense": null,
+                    "moduleLicenseUrl": "https://glassfish.java.net/public/CDDL+GPL_1_1.html, https://glassfish.java.net/public/CDDL+GPL_1_1.html"
                 },
                 {
                     "moduleLicense": "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.1",
@@ -1899,9 +1854,10 @@
         },
         {
             "moduleName": "joda-time:joda-time",
-            "moduleVersion": "2.12.7",
+            "moduleVersion": "2.2",
             "moduleUrls": [
-                "https://www.joda.org/joda-time/"
+                "http://joda-time.sourceforge.net",
+                "http://joda-time.sourceforge.net/"
             ],
             "moduleLicenses": [
                 {
@@ -2527,7 +2483,7 @@
         },
         {
             "moduleName": "org.codehaus.woodstox:stax2-api",
-            "moduleVersion": "4.2.2",
+            "moduleVersion": "4.3.0",
             "moduleUrls": [
                 "http://github.com/FasterXML/stax2-api"
             ],
@@ -2818,6 +2774,19 @@
             ]
         },
         {
+            "moduleName": "org.hibernate.validator:hibernate-validator",
+            "moduleVersion": "9.1.3.Final",
+            "moduleUrls": [
+                "https://hibernate.org/validator"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.itadaki:bzip2",
             "moduleVersion": "0.9.1",
             "moduleUrls": [
@@ -2832,9 +2801,10 @@
         },
         {
             "moduleName": "org.jboss.logging:jboss-logging",
-            "moduleVersion": "3.5.3.Final",
+            "moduleVersion": "3.6.3.Final",
             "moduleUrls": [
-                "http://www.jboss.org"
+                "http://www.jboss.org",
+                "https://www.jboss.org"
             ],
             "moduleLicenses": [
                 {
@@ -2844,10 +2814,6 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                },
-                {
-                    "moduleLicense": "PUBLIC DOMAIN",
-                    "moduleLicenseUrl": "http://repository.jboss.org/licenses/cc0-1.0.txt"
                 }
             ]
         },
@@ -3268,6 +3234,26 @@
             ]
         },
         {
+            "moduleName": "org.lifs-tools:jmztabm-api",
+            "moduleVersion": "1.0.8",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.lifs-tools:jmztabm-io",
+            "moduleVersion": "1.0.8",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.lz4:lz4-java",
             "moduleVersion": "1.4.1",
             "moduleUrls": [
@@ -3569,7 +3555,7 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-api",
-            "moduleVersion": "2.0.17",
+            "moduleVersion": "2.0.19",
             "moduleUrls": [
                 "http://www.slf4j.org"
             ],
@@ -3694,7 +3680,7 @@
         },
         {
             "moduleName": "org.springframework:spring-aop",
-            "moduleVersion": "6.2.10",
+            "moduleVersion": "6.2.19",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3707,7 +3693,7 @@
         },
         {
             "moduleName": "org.springframework:spring-beans",
-            "moduleVersion": "6.2.10",
+            "moduleVersion": "6.2.19",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3720,7 +3706,7 @@
         },
         {
             "moduleName": "org.springframework:spring-context",
-            "moduleVersion": "6.2.10",
+            "moduleVersion": "6.2.19",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3733,7 +3719,7 @@
         },
         {
             "moduleName": "org.springframework:spring-core",
-            "moduleVersion": "6.2.10",
+            "moduleVersion": "6.2.19",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3746,7 +3732,7 @@
         },
         {
             "moduleName": "org.springframework:spring-expression",
-            "moduleVersion": "6.2.10",
+            "moduleVersion": "6.2.19",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3759,7 +3745,7 @@
         },
         {
             "moduleName": "org.springframework:spring-jcl",
-            "moduleVersion": "6.2.10",
+            "moduleVersion": "6.2.19",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3772,7 +3758,7 @@
         },
         {
             "moduleName": "org.springframework:spring-web",
-            "moduleVersion": "6.2.10",
+            "moduleVersion": "6.2.19",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],

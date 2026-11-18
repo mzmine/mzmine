@@ -30,8 +30,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MZTabmExportParameters extends SimpleParameterSet {
 
@@ -45,12 +50,37 @@ public class MZTabmExportParameters extends SimpleParameterSet {
   public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
       "Filename", "Use pattern \"{}\" in the file name to substitute with feature list name. "
                   + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
-                  + "If the file already exists, it will be overwritten.", extensions, "quant");
+                  + "The dialog defaults to the saved project's directory. "
+                  + "If the file already exists, it will be overwritten.", extensions, "quant", false);
 
   public static final BooleanParameter exportAll = new BooleanParameter("Include all peaks"//
       , "Include peaks with unknown identity");
 
   public MZTabmExportParameters() {
     super(new Parameter[]{featureLists, filename, exportAll});
+  }
+
+  /**
+   * Opens the standard export dialog with a destination in the current project's directory.
+   *
+   * @param valueCheckRequired whether the dialog validates settings before accepting them
+   * @return the user's dialog choice
+   */
+  @Override
+  public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired) {
+    initializeOutputFile(ProjectService.getProject().getProjectFile());
+    return super.showSetupDialog(valueCheckRequired);
+  }
+
+  /**
+   * Prepares the destination for a new interactive export without changing batch settings.
+   *
+   * @param projectFile saved project archive, or null when the project has not been saved
+   */
+  void initializeOutputFile(@Nullable final File projectFile) {
+    // decision: Opening the GUI starts in this project's directory, not a previous project's folder.
+    final File output = projectFile == null ? null
+        : new File(projectFile.getAbsoluteFile().getParentFile(), "{}_quant.mzTab");
+    setParameter(filename, output);
   }
 }

@@ -26,17 +26,6 @@
 package io.github.mzmine.modules.io.import_features_mztabm;
 
 import com.google.common.collect.Range;
-import de.isas.mztab2.io.MzTabFileParser;
-import de.isas.mztab2.model.Assay;
-import de.isas.mztab2.model.MsRun;
-import de.isas.mztab2.model.MzTab;
-import de.isas.mztab2.model.MzTabAccess;
-import de.isas.mztab2.model.OptColumnMapping;
-import de.isas.mztab2.model.SmallMoleculeEvidence;
-import de.isas.mztab2.model.SmallMoleculeFeature;
-import de.isas.mztab2.model.SmallMoleculeSummary;
-import de.isas.mztab2.model.StudyVariable;
-import de.isas.mztab2.model.ValidationMessage;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -60,12 +49,24 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.lifstools.mztab2.io.MzTabFileParser;
+import org.lifstools.mztab2.model.Assay;
+import org.lifstools.mztab2.model.MsRun;
+import org.lifstools.mztab2.model.MzTab;
+import org.lifstools.mztab2.model.MzTabAccess;
+import org.lifstools.mztab2.model.OptColumnMapping;
+import org.lifstools.mztab2.model.SmallMoleculeEvidence;
+import org.lifstools.mztab2.model.SmallMoleculeFeature;
+import org.lifstools.mztab2.model.SmallMoleculeSummary;
+import org.lifstools.mztab2.model.StudyVariable;
+import org.lifstools.mztab2.model.ValidationMessage;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 
@@ -198,7 +199,15 @@ public class MzTabmImportTask extends AbstractTask {
     }
   }
 
-  private List<RawDataFile> importRawDataFiles(MzTab mzTabmFile) throws Exception {
+  /**
+   * Imports or creates the raw data files referenced by the mzTab-M runs.
+   *
+   * @param mzTabmFile parsed mzTab-M data
+   * @return files corresponding to the runs, or null if canceled
+   * @throws Exception if import setup fails or waiting for imports is interrupted
+   */
+  private @Nullable List<RawDataFile> importRawDataFiles(@NotNull final MzTab mzTabmFile)
+      throws Exception {
     List<MsRun> msrun = mzTabmFile.getMetadata().getMsRun();
     List<RawDataFile> rawDataFiles = new ArrayList<>();
 
@@ -206,7 +215,7 @@ public class MzTabmImportTask extends AbstractTask {
     if (importRawFiles) {
       List<File> filesToImport = new ArrayList<>();
       for (MsRun singleRun : msrun) {
-        File fileToImport = new File(singleRun.getLocation());
+        final File fileToImport = toRawDataFilePath(singleRun.getLocation());
         if (fileToImport.exists() && fileToImport.canRead()) {
           filesToImport.add(fileToImport);
         } else {
@@ -269,7 +278,7 @@ public class MzTabmImportTask extends AbstractTask {
 
     // Find a matching RawDataFile for each msRun object
     for (MsRun singleRun : msrun) {
-      String rawFileName = new File(singleRun.getLocation()).getName();
+      final String rawFileName = toRawDataFilePath(singleRun.getLocation()).getName();
       RawDataFile rawDataFile = null;
       // check whether we already have raw data file of that name
       for (RawDataFile f : project.getDataFiles()) {
@@ -289,6 +298,18 @@ public class MzTabmImportTask extends AbstractTask {
       rawDataFiles.add(rawDataFile);
     }
     return rawDataFiles;
+  }
+
+  /**
+   * Converts a run location to a path while decoding filename-only file references.
+   *
+   * @param location mzTab-M run location
+   * @return file path used for raw data lookup and filename fallback
+   */
+  private static @NotNull File toRawDataFilePath(@NotNull final URI location) {
+    final String path = "file".equalsIgnoreCase(location.getScheme())
+        ? location.getSchemeSpecificPart() : location.toString();
+    return new File(path);
   }
 
   private void importVariables(MzTab mzTabmFile, List<RawDataFile> rawDataFiles) {
@@ -318,8 +339,15 @@ public class MzTabmImportTask extends AbstractTask {
     }
   }
 
-  private void importTablesData(ModularFeatureList newFeatureList, MzTab mzTabmFile,
-      List<RawDataFile> rawDataFiles) {
+  /**
+   * Imports the mzTab-M tables into the feature list.
+   *
+   * @param newFeatureList destination feature list
+   * @param mzTabmFile parsed mzTab-M data
+   * @param rawDataFiles raw data files corresponding to the assays
+   */
+  private void importTablesData(@NotNull final ModularFeatureList newFeatureList,
+      @NotNull final MzTab mzTabmFile, @NotNull final List<RawDataFile> rawDataFiles) {
     List<Assay> assayList = mzTabmFile.getMetadata().getAssay();
     List<SmallMoleculeSummary> smallMoleculeSummaryList = mzTabmFile.getSmallMoleculeSummary();
 
@@ -354,7 +382,8 @@ public class MzTabmImportTask extends AbstractTask {
       // sm. (smile ->getSmiles(), inchikey -> getInchi(), database ->getDatabase(), reliability
       // ->getReliability)
       if (sml.getUri().size() != 0) {
-        url = sml.getUri().get(0);
+        final URI uri = sml.getUri().get(0);
+        url = uri == null ? null : uri.toString();
       }
       // Average Retention Time, convert to minutes for MZmine
       rtValue = smf.getRetentionTimeInSeconds().floatValue() / 60.0f;
