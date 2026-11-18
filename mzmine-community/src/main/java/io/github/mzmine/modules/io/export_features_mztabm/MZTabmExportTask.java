@@ -25,417 +25,546 @@
 
 package io.github.mzmine.modules.io.export_features_mztabm;
 
-import de.isas.mztab2.io.MzTabValidatingWriter;
-import de.isas.mztab2.model.Assay;
-import de.isas.mztab2.model.CV;
-import de.isas.mztab2.model.Database;
-import de.isas.mztab2.model.Metadata;
-import de.isas.mztab2.model.MsRun;
-import de.isas.mztab2.model.MzTab;
-import de.isas.mztab2.model.Parameter;
-import de.isas.mztab2.model.SmallMoleculeEvidence;
-import de.isas.mztab2.model.SmallMoleculeFeature;
-import de.isas.mztab2.model.SmallMoleculeSummary;
-import de.isas.mztab2.model.Software;
-import de.isas.mztab2.model.SpectraRef;
-import de.isas.mztab2.model.StudyVariable;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
-import uk.ac.ebi.pride.jmztab2.model.IOptColumnMappingBuilder;
+import org.jetbrains.annotations.Nullable;
+import org.lifstools.mztab2.io.MzTabValidatingWriter;
+import org.lifstools.mztab2.model.Assay;
+import org.lifstools.mztab2.model.CV;
+import org.lifstools.mztab2.model.Database;
+import org.lifstools.mztab2.model.Metadata;
+import org.lifstools.mztab2.model.MsRun;
+import org.lifstools.mztab2.model.MzTab;
+import org.lifstools.mztab2.model.MzTabProfile;
+import org.lifstools.mztab2.model.OptColumnMapping;
+import org.lifstools.mztab2.model.Parameter;
+import org.lifstools.mztab2.model.SmallMoleculeEvidence;
+import org.lifstools.mztab2.model.SmallMoleculeFeature;
+import org.lifstools.mztab2.model.SmallMoleculeSummary;
+import org.lifstools.mztab2.model.Software;
+import org.lifstools.mztab2.model.SpectraRef;
+import org.lifstools.mztab2.model.StudyVariable;
+import org.lifstools.mztab2.model.ValidationMessage;
 import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder;
 
+/**
+ * Exports measured features and their selected modern or legacy annotations to mzTab-M.
+ */
 public class MZTabmExportTask extends AbstractTask {
 
-  private int processedRows = 0, totalRows = 0;
-
-  // parameter values
-  private final MZmineProject project;
+  private int processedRows;
+  private int totalRows;
   private final File fileName;
-  private String plNamePattern = "{}";
-  private FeatureList[] featureLists;
+  private final FeatureList[] featureLists;
   private final boolean exportAll;
+  private final MetadataTable projectMetadata;
+  private final @Nullable MetadataColumn<?> studyVariableColumn;
 
-  MZTabmExportTask(MZmineProject project, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // no new data stored -> null
-    this.project = project;
-    this.featureLists = parameters.getParameter(MZTabmExportParameters.featureLists).getValue()
+  /**
+   * Captures the selected feature lists and export settings.
+   *
+   * @param project project owning the selected feature lists
+   * @param parameters export settings
+   * @param moduleCallDate module invocation time
+   * @param studyVariableColumn metadata column selected in the MS data files Group by selector,
+   *                            or null when no metadata grouping is selected
+   */
+  MZTabmExportTask(@NotNull final MZmineProject project, @NotNull final ParameterSet parameters,
+      @NotNull final Instant moduleCallDate,
+      @Nullable final MetadataColumn<?> studyVariableColumn) {
+    super(null, moduleCallDate);
+    projectMetadata = project.getProjectMetadata();
+    this.studyVariableColumn = studyVariableColumn;
+    featureLists = parameters.getParameter(MZTabmExportParameters.featureLists).getValue()
         .getMatchingFeatureLists();
-    this.fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
-    this.exportAll = parameters.getParameter(MZTabmExportParameters.exportAll).getValue();
+    fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
+    exportAll = parameters.getParameter(MZTabmExportParameters.exportAll).getValue();
   }
 
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0) {
-      return 0;
-    }
-    return (double) processedRows / (double) totalRows;
+    return totalRows == 0 ? 0 : (double) processedRows / totalRows;
   }
 
   @Override
-  public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MzTab-m file(s)";
+  public @NotNull String getTaskDescription() {
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to mzTab-M file(s)";
   }
 
+  /**
+   * Writes each selected list, reporting validation and filesystem failures through task status.
+   */
   @Override
   public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    boolean substitute = fileName.getPath().contains(plNamePattern);
-
-    // Total Number of rows
-    for (FeatureList featureList : featureLists) {
-      totalRows += featureList.getNumberOfRows();
+    if (isCanceled()) {
+      return;
     }
-
-    //Process feature Lists
-    for (FeatureList featureList : featureLists) {
-      File curFile = fileName;
-      try {
-        //Filename
-        if (substitute) {
-          // Cleanup from illegal filename characters
-          //not small alphabets, large alphabets, numbers, dots or dashes
-          String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
-          // Substitute
-          String newFilename = fileName.getPath()
-              .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
-          curFile = new File(newFilename);
-        }
-
-        MzTab mzTabFile = new MzTab();
-
-        //Metadata
-        Metadata mtd = new Metadata();
-        mtd.setMzTabVersion("2.0.0-M");
-        mtd.setMzTabID("1");
-        mtd.setDescription(featureList.getName());
-        mtd.addSoftwareItem(new Software().id(1).parameter(
-            new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine")
-                .value(String.valueOf(SemverVersionReader.getMZmineVersion()))));
-        mtd.setSmallMoleculeQuantificationUnit(
-            new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
-                .name("Arbitrary quantification unit"));
-        mtd.setSmallMoleculeFeatureQuantificationUnit(
-            new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
-                .name("Arbitrary quantification unit"));
-        mtd.addIdConfidenceMeasureItem(new Parameter().id(1).cvLabel("MS").cvAccession("MS:1001153")
-            .name("search engine specific score"));
-        mtd.setSmallMoleculeIdentificationReliability(
-            new Parameter().cvLabel("MS").cvAccession("MS:1002896")
-                .name("compound identification confidence level"));
-        mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834")
-            .name("LC-MS label-free quantification analysis"));
-        mtd.addCvItem(
-            new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary").version("4.0.9")
-                .uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
-
-        List<IOptColumnMappingBuilder> feature_mzList = new ArrayList<>();
-        List<IOptColumnMappingBuilder> feature_rtList = new ArrayList<>();
-        List<IOptColumnMappingBuilder> feature_heightList = new ArrayList<>();
-
-        final RawDataFile rawDataFiles[] = featureList.getRawDataFiles()
-            .toArray(RawDataFile[]::new);
-        int fileCounter = 0;
-        // Study Variable name and descriptions
-        Hashtable<String, List<RawDataFile>> svhash = new Hashtable<>();
-        Hashtable<RawDataFile, Assay> rawDataFileToAssay = new Hashtable<>();
-
-        for (RawDataFile file : rawDataFiles) {
-          fileCounter++;
-          // MS run location
-          MsRun msRun = new MsRun();
-          msRun.id(fileCounter);
-          msRun.setLocation("file://" + file.getName());
-          int dotIn = file.getName().indexOf(".");
-          String fileFormat = "";
-          if (dotIn != -1) {
-            fileFormat = file.getName().substring(dotIn + 1);
-          }
-          msRun.setFormat(
-              new Parameter().cvLabel("MS").cvAccession("MS:1000584").name(fileFormat + " file"));
-          msRun.setIdFormat(new Parameter().cvLabel("MS").cvAccession("MS:1000774")
-              .name("multiple peak list nativeID format"));
-
-          List<Parameter> polPara = new ArrayList<>();
-          for (PolarityType scanPol : file.getDataPolarity()) {
-            Integer pol = scanPol.getSign();
-            String polarity = "";
-            String polCVA = "";
-            if (pol == 1) {
-              polarity = "positive scan";
-              polCVA = "MS:1000130";
-            } else if (pol == -1) {
-              polarity = "negative scan";
-              polCVA = "MS:1000129";
-            } else {
-              setStatus(TaskStatus.ERROR);
-              setErrorMessage(
-                  "Invalid scan polarity " + pol + " encountered for file " + file.getName() + ".");
-              return;
-            }
-            Parameter p = new Parameter().cvLabel("MS").cvAccession(polCVA).name(polarity);
-            polPara.add(p);
-          }
-
-          msRun.setScanPolarity(polPara);
-          mtd.addMsRunItem(msRun);
-          // Add Assay
-          Assay assay = new Assay();
-          rawDataFileToAssay.put(file, assay);
-          assay.id(fileCounter);
-          assay.addMsRunRefItem(msRun);
-          mtd.addAssayItem(assay);
-
-          /*for (UserParameter<?, ?> p : project.getParameters()) {
-            if (p.getName().contains("study variable")) {
-              if (svhash.containsKey(String.valueOf(project.getParameterValue(p, file)))) {
-                svhash.get(String.valueOf(project.getParameterValue(p, file))).add(file);
-              } else {
-                List<RawDataFile> l = new ArrayList<>();
-                l.add(file);
-                svhash.put(String.valueOf(project.getParameterValue(p, file)), l);
-              }
-              break;
-            }
-          }*/
-
-          //Optional Columns
-          // TODO: rename "peak_mz" to "feature_mz" in both import and export and test if they work
-          feature_mzList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_mz"));
-          feature_rtList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_rt"));
-          feature_heightList.add(
-              OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_height"));
-        }
-        int studyVarCount = 0;
-        for (String key : svhash.keySet()) {
-          studyVarCount++;
-          StudyVariable studyVariable = new StudyVariable().id(studyVarCount).name(key)
-              .description(key).averageFunction(
-                  new Parameter().cvLabel("MS").cvAccession("MS:1002883").name("mean"));
-          for (RawDataFile file : svhash.get(key)) {
-            studyVariable = studyVariable.addAssayRefsItem(rawDataFileToAssay.get(file));
-          }
-          mtd.addStudyVariableItem(studyVariable);
-        }
-
-        //Write data rows
-        Map<Parameter, Database> databases = new LinkedHashMap<>();
-
-        for (int i = 0; i < featureList.getNumberOfRows(); ++i) {
-          FeatureListRow featureListRow = featureList.getRows().get(i);
-          SmallMoleculeSummary sm = new SmallMoleculeSummary();
-          sm.setSmlId(i + 1);
-          SmallMoleculeFeature smf = new SmallMoleculeFeature();
-          smf.setSmfId(i + 1);
-          SmallMoleculeEvidence sme = new SmallMoleculeEvidence();
-          sme.setSmeId(i + 1);
-
-          sme.setMsLevel(
-              new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level").value("1"));
-          sme.setEvidenceInputId(String.valueOf(i + 1));
-          List<Double> confidences = new ArrayList<>();
-          confidences.add(0.0);
-          sme.setIdConfidenceMeasure(confidences);
-
-          //Cancelled?
-          if (isCanceled()) {
+    setStatus(TaskStatus.PROCESSING);
+    totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
+    for (final FeatureList featureList : featureLists) {
+      if (isCanceled()) {
+        return;
+      }
+      final String cleanName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+      final File output = new File(fileName.getPath().replace("{}", cleanName));
+      for (final RawDataFile file : featureList.getRawDataFiles()) {
+        for (final PolarityType polarity : file.getDataPolarity()) {
+          if (polarity.getSign() == 0) {
+            error("Invalid scan polarity 0 encountered for file " + file.getName() + ".", null);
             return;
           }
-          sm.setReliability("2");
-          FeatureIdentity featureIdentity = featureListRow.getPreferredFeatureIdentity();
-          if (exportAll || featureIdentity != null) {
-            if (featureIdentity != null) {
-              boolean shouldAdd = true;
-              Parameter dbParam = new Parameter().name(
-                  featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_METHOD));
-              String dbURI = (featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL) == null
-                  || featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL).equals("")) ?
-                  "mzmine://" + featureIdentity.getClass().getSimpleName()
-                  : featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
-              databases.putIfAbsent(dbParam,
-                  new Database().param(dbParam).prefix(featureIdentity.getClass().getSimpleName())
-                      .version(String.valueOf(SemverVersionReader.getMZmineVersion())).uri(dbURI));
-
-              //Identity Information
-              String identifier = escapeString(
-                  featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_ID));
-              String method = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_METHOD);
-              String formula = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
-              String description = escapeString(
-                  featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_NAME));
-              String url = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
-              sm.addDatabaseIdentifierItem(identifier);
-              sme.setDatabaseIdentifier(identifier);
-              sme.setIdentificationMethod(new Parameter().name(method));
-              ArrayList<String> formulaList = new ArrayList<>();
-              formulaList.add(formula);
-              sm.setChemicalFormula(formulaList);
-              sme.setChemicalFormula(formula);
-              ArrayList<String> chemicalName = new ArrayList<>();
-              chemicalName.add(description);
-              sm.setChemicalName(chemicalName);
-              sme.setChemicalName(description);
-              ArrayList<String> uris = new ArrayList<>();
-              uris.add(url);
-              sm.setUri(uris);
-              sme.setUri(url);
-              if (url == null || url.equals("")) {
-                sme.setUri("null");
-              }
-            }
-
-            Double rowMZ = featureListRow.getAverageMZ();
-            int rowCharge = 0;
-            Float rowRT = featureListRow.getAverageRT();
-
-            if (rowMZ != null) {
-              smf.setExpMassToCharge(rowMZ);
-              sme.setExpMassToCharge(rowMZ);
-              //FIXME replace experimental by theoretical value from id method or database
-              sme.setTheoreticalMassToCharge(rowMZ);
-            }
-            if (rowRT != null) {
-              smf.setRetentionTimeInSeconds(Double.valueOf(rowRT));
-            }
-            int dataFileCount = 0;
-            Hashtable<String, List<Double>> sampleVariableAbundancehash = new Hashtable<>();
-            for (RawDataFile dataFile : rawDataFiles) {
-              dataFileCount++;
-              Feature feature = featureListRow.getFeature(dataFile);
-              if (feature != null) {
-                //Spectra ref
-                List<SpectraRef> sr = new ArrayList<>();
-                for (Scan scan : feature.getScanNumbers()) {
-                  sr.add(new SpectraRef().msRun(
-                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().get(0))
-                      .reference("index=" + scan.getScanNumber()));
-                }
-                if (sr.size() == 0) {
-                  sr.add(new SpectraRef().msRun(
-                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().get(0))
-                      .reference("index=0"));
-                }
-                sme.setSpectraRef(sr);
-                rowCharge = feature.getCharge();
-
-                String featureMZ = String.valueOf(feature.getMZ());
-                String featureRT = String.valueOf(feature.getRT());
-                String featureHeight = String.valueOf(feature.getHeight());
-                Double featureArea = (double) feature.getArea();
-                sm.addOptItem(feature_mzList.get(dataFileCount - 1).build(featureMZ));
-                sm.addOptItem(feature_rtList.get(dataFileCount - 1).build(featureRT));
-                sm.addOptItem(feature_heightList.get(dataFileCount - 1).build(featureHeight));
-                sm.addAbundanceAssayItem(featureArea);
-                smf.addAbundanceAssayItem(featureArea);
-                for (String sampleVariable : svhash.keySet()) {
-                  if (svhash.get(sampleVariable).contains(dataFile)) {
-                    if (sampleVariableAbundancehash.containsKey(sampleVariable)) {
-                      sampleVariableAbundancehash.get(sampleVariable).add(featureArea);
-                    } else {
-                      List<Double> l = new ArrayList<>();
-                      l.add(featureArea);
-                      sampleVariableAbundancehash.put(sampleVariable, l);
-                    }
-                  }
-                }
-              }
-            }
-            if (rowCharge > 0) {
-              smf.setCharge(rowCharge);
-              sme.setCharge(rowCharge);
-            }
-            for (String studyVariable : sampleVariableAbundancehash.keySet()) {
-              Double averageSV = 0.0;
-              //Using mean as average function for abundance of Study Variable
-              for (Double d : sampleVariableAbundancehash.get(studyVariable)) {
-                averageSV += d;
-              }
-              int totalSV = sampleVariableAbundancehash.get(studyVariable).size();
-              if (totalSV == 0) {
-                averageSV = 0.0;
-              } else {
-                averageSV /= totalSV;
-              }
-              //Coefficient of variation
-              Double covSV = 0.0;
-              for (Double d : sampleVariableAbundancehash.get(studyVariable)) {
-                covSV += (d - averageSV) * (d - averageSV);
-              }
-              if (totalSV == 0 || totalSV == 1) {
-                covSV = 0.0;
-              } else {
-                covSV /= (totalSV - 1);
-                covSV = Math.sqrt(covSV);
-                if (averageSV != 0.0) {
-                  covSV = (covSV / averageSV) * 100.0;
-                }
-              }
-              sm.addAbundanceStudyVariableItem(averageSV);
-              sm.addAbundanceVariationStudyVariableItem(covSV);
-            }
-
-          }
-
-          sm.addSmfIdRefsItem(smf.getSmfId());
-          smf.addSmeIdRefsItem(sme.getSmeId());
-          mzTabFile.addSmallMoleculeSummaryItem(sm);
-          mzTabFile.addSmallMoleculeFeatureItem(smf);
-          mzTabFile.addSmallMoleculeEvidenceItem(sme);
         }
-        //cv term
-        int dbId = 1;
-        //set ids sequentially, starting from 1
-        for (Map.Entry<Parameter, Database> entry : databases.entrySet()) {
-          mtd.addDatabaseItem(entry.getValue().id(dbId++));
-        }
-
-        mzTabFile.metadata(mtd);
-        MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
-        validatingWriter.write(curFile.toPath(), mzTabFile);
+      }
+      try {
+        exportFeatureList(featureList, output);
       } catch (Exception e) {
-        e.printStackTrace();
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not export feature list to file " + curFile + ": " + e.getMessage());
+        error("Could not export feature list to file " + output + ": " + e.getMessage(), e);
+        return;
+      }
+      if (isCanceled() || getStatus() == TaskStatus.ERROR) {
         return;
       }
     }
-    if (getStatus() == TaskStatus.PROCESSING) {
-      setStatus(TaskStatus.FINISHED);
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Builds annotation evidence only for identified rows and validates the complete output.
+   *
+   * @param featureList input measurements and annotations
+   * @param output destination file
+   * @throws IOException if writing or validation fails
+   * @throws URISyntaxException if a source filename cannot be represented as a URI
+   */
+  private void exportFeatureList(@NotNull final FeatureList featureList, @NotNull final File output)
+      throws IOException, URISyntaxException {
+    final Map<FeatureListRow, @Nullable MzTabmAnnotation> rows = new LinkedHashMap<>();
+    for (final FeatureListRow row : featureList.getRows()) {
+      final MzTabmAnnotation annotation = MzTabmAnnotation.fromRow(row);
+      if (exportAll || annotation != null) {
+        rows.put(row, annotation);
+      } else {
+        processedRows++;
+      }
+    }
+    final boolean hasAnnotations = rows.values().stream().anyMatch(annotation -> annotation != null);
+    final Metadata metadata = createMetadata(featureList, hasAnnotations);
+    final Map<String, Parameter> scoreMeasures = createScoreMeasures(rows, metadata);
+    final Map<RawDataFile, Assay> assays = createAssays(featureList, metadata);
+    final List<StudyVariable> studyVariables = MzTabmStudyVariables.create(projectMetadata, assays,
+        studyVariableColumn);
+    studyVariables.forEach(metadata::addStudyVariableItem);
+    final Map<String, Database> databases = new LinkedHashMap<>();
+    final MzTab mzTab = new MzTab().metadata(metadata);
+    int rowId = 0;
+    for (final Map.Entry<FeatureListRow, @Nullable MzTabmAnnotation> entry : rows.entrySet()) {
+      if (isCanceled()) {
+        return;
+      }
+      final FeatureListRow row = entry.getKey();
+      final MzTabmAnnotation annotation = entry.getValue();
+      final SmallMoleculeFeature feature = new SmallMoleculeFeature().smfId(++rowId)
+          .expMassToCharge(row.getAverageMZ()).charge(resolveCharge(row));
+      if (row.getAverageRT() != null) {
+        feature.setRetentionTimeInSeconds(row.getAverageRT().doubleValue() * 60d);
+      }
+      if (annotation != null) {
+        feature.setAdductIon(annotation.adduct());
+      }
+      mzTab.addSmallMoleculeFeatureItem(feature);
+
+      // decision: Unannotated-only data use M+F; mixed files retain unknown summaries without evidence.
+      final SmallMoleculeSummary summary = hasAnnotations ? new SmallMoleculeSummary().smlId(rowId)
+          .addSmfIdRefsItem(rowId).reliability(annotation == null ? "unannotated" : "annotated") : null;
+      addAbundances(row, feature, summary, assays, studyVariables);
+      if (summary != null) {
+        mzTab.addSmallMoleculeSummaryItem(summary);
+      }
+      if (annotation != null) {
+        final boolean legacy = row.getPreferredAnnotation() == null;
+        final Database database = registerDatabase(annotation, legacy, databases);
+        final String identifier = database.getPrefix() + ":"
+            + (annotation.databaseIdentifier() == null ? "null" : annotation.databaseIdentifier());
+        addSummaryAnnotation(summary, annotation, identifier);
+        final Parameter scoreMeasure = scoreMeasures.get(scoreAccession(annotation));
+        final List<Double> scores = new ArrayList<>(Collections.nCopies(scoreMeasures.size(), null));
+        scores.set(scoreMeasure.getId() - 1, annotation.score());
+        if (annotation.score() != null) {
+          summary.setBestIdConfidenceMeasure(scoreMeasure);
+          summary.setBestIdConfidenceValue(annotation.score());
+        }
+        final SmallMoleculeEvidence evidence = new SmallMoleculeEvidence().smeId(rowId)
+            .evidenceInputId(String.valueOf(row.getID())).databaseIdentifier(identifier)
+            .chemicalName(annotation.compoundName()).chemicalFormula(annotation.formula())
+            .smiles(annotation.smiles()).inchi(annotation.inchi()).uri(annotation.uri())
+            .adductIon(annotation.adduct()).expMassToCharge(row.getAverageMZ())
+            .charge(feature.getCharge()).identificationMethod(new Parameter().name(annotation.method()))
+            .idConfidenceMeasure(scores);
+        // decision: Retain the legacy fallback; modern annotations use their actual precursor m/z.
+        evidence.setTheoreticalMassToCharge(annotation.precursorMz() == null && legacy
+            ? row.getAverageMZ() : annotation.precursorMz());
+        final List<Scan> scans = evidenceScans(row, annotation.queryScan());
+        final int msLevel = annotation.queryScan() != null ? annotation.queryScan().getMSLevel()
+            : scans.isEmpty() ? 1 : scans.getFirst().getMSLevel();
+        evidence.setMsLevel(new Parameter().cvLabel("MS").cvAccession("MS:1000511")
+            .name("ms level").value(String.valueOf(msLevel)));
+        evidence.setSpectraRef(spectraReferences(scans, assays));
+        evidence.addOptItem(new OptColumnMapping().identifier("opt_global_annotation_score_name")
+            .value(annotation.scoreName()));
+        evidence.addOptItem(new OptColumnMapping().identifier("opt_global_database_accession")
+            .value(annotation.databaseIdentifier()));
+        feature.addSmeIdRefsItem(rowId);
+        mzTab.addSmallMoleculeEvidenceItem(evidence);
+      }
+      processedRows++;
+    }
+    for (final Database database : databases.values()) {
+      metadata.addDatabaseItem(database);
+    }
+    final List<ValidationMessage> messages = new MzTabValidatingWriter().write(output.toPath(), mzTab)
+        .orElse(List.of());
+    // decision: The default writer suppresses output for any validation message, including info.
+    if (!messages.isEmpty()) {
+      throw new IOException("mzTab-M validation failed:\n" + messages);
     }
   }
 
-  private String escapeString(final String inputString) {
-
-    if (inputString == null) {
-      return "";
+  /**
+   * Creates metadata appropriate to annotated or entirely unannotated measurements.
+   *
+   * @param featureList source list
+   * @param hasAnnotations whether identification evidence will be exported
+   * @return metadata with the declared annotation-status scheme
+   */
+  private static @NotNull Metadata createMetadata(@NotNull final FeatureList featureList,
+      final boolean hasAnnotations) {
+    final Metadata metadata = new Metadata().mzTabVersion("2.0.0-M").mzTabID("1")
+        .description(featureList.getName())
+        .mzTabProfile(hasAnnotations ? MzTabProfile.M_S_F_E : MzTabProfile.M_F);
+    metadata.addSoftwareItem(new Software().id(1).parameter(new Parameter().cvLabel("MS")
+        .cvAccession("MS:1002342").name("mzmine")
+        .value(String.valueOf(SemverVersionReader.getMZmineVersion()))));
+    metadata.setSmallMoleculeFeatureQuantificationUnit(new Parameter().cvLabel("PRIDE")
+        .cvAccession("PRIDE:0000330").name("Arbitrary quantification unit"));
+    metadata.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834")
+        .name("LC-MS label-free quantitation analysis"));
+    metadata.addCvItem(new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary")
+        .version("4.2.17").uri(URI.create("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/"
+            + "4d2a2346f7dd20d2da5eadfe93c0a897efe47a6b/psi-ms.obo")));
+    metadata.addCvItem(new CV().id(2).label("PRIDE").fullName("PRIDE controlled vocabulary")
+        .version("releases/2026-11-11").uri(URI.create(
+            "https://raw.githubusercontent.com/PRIDE-Utilities/pride-ontology/"
+                + "44aa3a3f72f0bacc4ee22e913b3d318c5624253e/pride_cv.obo")));
+    if (hasAnnotations) {
+      metadata.setSmallMoleculeQuantificationUnit(new Parameter().cvLabel("PRIDE")
+          .cvAccession("PRIDE:0000330").name("Arbitrary quantification unit"));
+      metadata.setSmallMoleculeIdentificationReliability(
+          new Parameter().name("MZmine annotation status"));
     }
-
-    // Remove all special characters e.g. \n \t
-    return inputString.replaceAll("[\\p{Cntrl}]", " ");
+    return metadata;
   }
 
+  /**
+   * Declares separate CV-defined columns for spectral similarity and other matching scores.
+   *
+   * @param rows selected row annotations
+   * @param metadata destination score definitions
+   * @return confidence measure by CV accession, in column order
+   */
+  private static @NotNull Map<String, Parameter> createScoreMeasures(
+      @NotNull final Map<FeatureListRow, @Nullable MzTabmAnnotation> rows,
+      @NotNull final Metadata metadata) {
+    final Map<String, Parameter> measures = new LinkedHashMap<>();
+    for (final MzTabmAnnotation annotation : rows.values()) {
+      if (annotation != null) {
+        final String accession = scoreAccession(annotation);
+        if (!measures.containsKey(accession)) {
+          final Parameter measure = new Parameter().id(measures.size() + 1).cvLabel("MS")
+              .cvAccession(accession).name(annotation.spectralMatch()
+                  ? "spectral similarity" : "search engine specific score");
+          measures.put(accession, measure);
+          metadata.addIdConfidenceMeasureItem(measure);
+        }
+      }
+    }
+    return measures;
+  }
 
+  /**
+   * Selects a score category without assigning an unsupported algorithm-specific CV accession.
+   *
+   * @param annotation annotation supplying the original score
+   * @return supported confidence-measure CV accession
+   */
+  private static @NotNull String scoreAccession(@NotNull final MzTabmAnnotation annotation) {
+    return annotation.spectralMatch() ? "MS:1003303" : "MS:1001153";
+  }
+
+  /**
+   * Preserves sample order and filename-only run locations.
+   *
+   * @param featureList source files
+   * @param metadata metadata to populate
+   * @return assay corresponding to each raw file
+   * @throws URISyntaxException if a raw filename cannot be represented as a URI
+   */
+  private static @NotNull Map<RawDataFile, Assay> createAssays(
+      @NotNull final FeatureList featureList, @NotNull final Metadata metadata)
+      throws URISyntaxException {
+    final Map<RawDataFile, Assay> assays = new LinkedHashMap<>();
+    for (final RawDataFile file : featureList.getRawDataFiles()) {
+      final int id = assays.size() + 1;
+      final int dot = file.getName().lastIndexOf('.');
+      final String format = dot < 0 ? "" : file.getName().substring(dot + 1);
+      final Parameter fileFormat = format.equalsIgnoreCase("mzML")
+          ? new Parameter().cvLabel("MS").cvAccession("MS:1000584").name("mzML format")
+          : new Parameter().name(format + " file");
+      final MsRun run = new MsRun().id(id).location(createRawDataFileLocation(file.getName()))
+          .format(fileFormat)
+          .idFormat(new Parameter().cvLabel("MS").cvAccession("MS:1000774")
+              .name("multiple peak list nativeID format"));
+      for (final PolarityType polarity : file.getDataPolarity()) {
+        run.addScanPolarityItem(new Parameter().cvLabel("MS")
+            .cvAccession(polarity.getSign() > 0 ? "MS:1000130" : "MS:1000129")
+            .name(polarity.getSign() > 0 ? "positive scan" : "negative scan"));
+      }
+      metadata.addMsRunItem(run);
+      final Assay assay = new Assay().id(id).addMsRunRefItem(run);
+      metadata.addAssayItem(assay);
+      assays.put(file, assay);
+    }
+    return assays;
+  }
+
+  /**
+   * Preserves assay measurements and summarizes each metadata-defined study variable independently.
+   *
+   * @param row source measurements
+   * @param feature mzTab feature row
+   * @param summary optional summary row
+   * @param assays ordered assays
+   * @param studyVariables factor groups in metadata and abundance-column order
+   */
+  private static void addAbundances(@NotNull final FeatureListRow row,
+      @NotNull final SmallMoleculeFeature feature, @Nullable final SmallMoleculeSummary summary,
+      @NotNull final Map<RawDataFile, Assay> assays,
+      @NotNull final List<StudyVariable> studyVariables) {
+    final Map<Integer, @Nullable Double> areasByAssay = new LinkedHashMap<>();
+    for (final Map.Entry<RawDataFile, Assay> entry : assays.entrySet()) {
+      final Feature measurement = row.getFeature(entry.getKey());
+      final Double area = measurement == null || measurement.getArea() == null ? null
+          : measurement.getArea().doubleValue();
+      feature.addAbundanceAssayItem(area);
+      areasByAssay.put(entry.getValue().getId(), area);
+      if (summary != null) {
+        summary.addAbundanceAssayItem(area);
+        summary.addOptItem(OptColumnMappingBuilder.forIndexedElement(entry.getValue())
+            .withName("peak_mz").build(measurement == null ? null : String.valueOf(measurement.getMZ())));
+        summary.addOptItem(OptColumnMappingBuilder.forIndexedElement(entry.getValue())
+            .withName("peak_rt").build(measurement == null ? null : String.valueOf(measurement.getRT())));
+        summary.addOptItem(OptColumnMappingBuilder.forIndexedElement(entry.getValue())
+            .withName("peak_height").build(measurement == null ? null : String.valueOf(measurement.getHeight())));
+      }
+    }
+    if (summary != null) {
+      final List<Double> means = new ArrayList<>();
+      final List<Double> variations = new ArrayList<>();
+      for (final StudyVariable studyVariable : studyVariables) {
+        final List<Double> measured = new ArrayList<>();
+        for (final Assay assay : studyVariable.getAssayRefs()) {
+          final Double area = areasByAssay.get(assay.getId());
+          if (area != null) {
+            measured.add(area);
+          }
+        }
+        final Double mean = measured.isEmpty() ? null
+            : measured.stream().mapToDouble(Double::doubleValue).average().orElseThrow();
+        final Double variation;
+        if (mean == null) {
+          variation = null;
+        } else {
+          final double squaredDifferences = measured.stream()
+              .mapToDouble(value -> (value - mean) * (value - mean)).sum();
+          variation = measured.size() < 2 || mean == 0d ? 0d
+              : Math.sqrt(squaredDifferences / (measured.size() - 1)) / mean;
+        }
+        means.add(mean);
+        variations.add(variation);
+      }
+      summary.setAbundanceStudyVariable(means);
+      summary.setAbundanceVariationStudyVariable(variations);
+    }
+  }
+
+  /**
+   * Registers a database source without treating absent compound accessions as real identifiers.
+   *
+   * @param annotation selected annotation
+   * @param legacy whether legacy source-URI behavior must be retained
+   * @param databases sources already registered
+   * @return matching database metadata
+   * @throws URISyntaxException if a local provenance URI cannot be represented
+   */
+  private static @NotNull Database registerDatabase(@NotNull final MzTabmAnnotation annotation,
+      final boolean legacy, @NotNull final Map<String, Database> databases) throws URISyntaxException {
+    final String name = annotation.databaseName() == null ? annotation.method() : annotation.databaseName();
+    final String key = annotation.sourceKey() + "\n" + name;
+    final Database existing = databases.get(key);
+    if (existing != null) {
+      return existing;
+    }
+    final int id = databases.size() + 1;
+    final URI sourceUri = legacy ? annotation.uri() == null
+        ? URI.create("mzmine://" + annotation.sourceKey()) : annotation.uri()
+        : new URI("mzmine", "annotation-source/" + annotation.sourceKey() + "/" + name, null);
+    // decision: A local source URI identifies provenance, not a fabricated external compound link.
+    final Database database = new Database().id(id).param(new Parameter().name(name))
+        .prefix(annotation.sourceKey() + "_" + id).uri(sourceUri);
+    databases.put(key, database);
+    return database;
+  }
+
+  /**
+   * Copies optional compound fields while preserving the standard missing-accession placeholder.
+   *
+   * @param summary destination summary
+   * @param annotation selected annotation
+   * @param identifier actual accession or database-prefix:null placeholder
+   */
+  private static void addSummaryAnnotation(@NotNull final SmallMoleculeSummary summary,
+      @NotNull final MzTabmAnnotation annotation, @NotNull final String identifier) {
+    summary.addDatabaseIdentifierItem(identifier);
+    summary.setChemicalName(Collections.singletonList(annotation.compoundName()));
+    summary.setChemicalFormula(Collections.singletonList(annotation.formula()));
+    summary.setSmiles(Collections.singletonList(annotation.smiles()));
+    summary.setInchi(Collections.singletonList(annotation.inchi()));
+    summary.setUri(Collections.singletonList(annotation.uri()));
+    if (annotation.adduct() != null) {
+      summary.addAdductIonsItem(annotation.adduct());
+    }
+  }
+
+  /**
+   * Uses the row-level charge first, retaining a known charge if a per-file feature lacks it.
+   *
+   * @param row source row
+   * @return absolute charge, or null when unknown
+   */
+  private static @Nullable Integer resolveCharge(@NotNull final FeatureListRow row) {
+    final Integer charge = row.getRowCharge();
+    if (charge != null && charge != 0) {
+      return Math.abs(charge);
+    }
+    for (final RawDataFile file : row.getRawDataFiles()) {
+      final Feature feature = row.getFeature(file);
+      if (feature != null && feature.getCharge() != null && feature.getCharge() != 0) {
+        return Math.abs(feature.getCharge());
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Selects actual query spectra, expanding merged matches to their measured source scans.
+   *
+   * @param row source feature row
+   * @param queryScan spectral-match query spectrum, when available
+   * @return measured scans suitable for evidence references
+   */
+  private static @NotNull List<Scan> evidenceScans(@NotNull final FeatureListRow row,
+      @Nullable final Scan queryScan) {
+    final List<Scan> scans = new ArrayList<>();
+    if (queryScan != null) {
+      addSourceScans(queryScan, scans);
+    } else {
+      for (final RawDataFile file : row.getRawDataFiles()) {
+        final Feature feature = row.getFeature(file);
+        if (feature != null) {
+          for (final Scan scan : feature.getScanNumbers()) {
+            addSourceScans(scan, scans);
+          }
+        }
+      }
+    }
+    return scans;
+  }
+
+  /**
+   * Recursively resolves merged spectra to scans present in the raw files.
+   *
+   * @param spectrum original or merged spectrum
+   * @param scans measured scans to collect
+   */
+  private static void addSourceScans(@NotNull final MassSpectrum spectrum,
+      @NotNull final List<Scan> scans) {
+    if (spectrum instanceof MergedMassSpectrum merged) {
+      for (final MassSpectrum source : merged.getSourceSpectra()) {
+        addSourceScans(source, scans);
+      }
+    } else if (spectrum instanceof Scan scan) {
+      scans.add(scan);
+    }
+  }
+
+  /**
+   * Refers to zero-based file positions, which need not equal native scan numbers.
+   *
+   * @param scans measured source scans
+   * @param assays raw-file to assay mapping
+   * @return unique spectrum references in source order
+   */
+  private static @NotNull List<SpectraRef> spectraReferences(@NotNull final List<Scan> scans,
+      @NotNull final Map<RawDataFile, Assay> assays) {
+    final Map<String, SpectraRef> references = new LinkedHashMap<>();
+    for (final Scan scan : scans) {
+      final Assay assay = assays.get(scan.getDataFile());
+      if (assay == null) {
+        continue;
+      }
+      final int index = scan.getDataFile().getScans().indexOf(scan);
+      if (index >= 0) {
+        references.putIfAbsent(assay.getId() + ":" + index, new SpectraRef()
+            .msRun(assay.getMsRunRef().getFirst()).reference("index=" + index));
+      }
+    }
+    return new ArrayList<>(references.values());
+  }
+
+  /**
+   * Creates a file URI containing the escaped filename without its source directory.
+   *
+   * @param fileName raw data filename
+   * @return filename-only run location
+   * @throws URISyntaxException if the filename cannot be represented as a URI
+   */
+  private static @NotNull URI createRawDataFileLocation(@NotNull final String fileName)
+      throws URISyntaxException {
+    final String encoded = new URI(null, null, "/" + fileName, null).getRawPath().substring(1);
+    return new URI("file://" + encoded);
+  }
 }
