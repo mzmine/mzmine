@@ -113,7 +113,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   }
 
   /**
-   * Define filters and processors for scans
+   * Define filters and processors for scans. Creates new processor instances, use one config per
+   * import task because processors may keep state.
+   *
+   * @param advanced the advanced import parameters or null for the default config
+   * @return a new config
    */
   public static @NotNull ScanImportProcessorConfig createSpectralProcessors(
       @Nullable final AdvancedSpectraImportParameters advanced) {
@@ -147,9 +151,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     }
 
     var scanFilter = advanced.getValue(AdvancedSpectraImportParameters.scanFilter);
-    var conf = new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors));
-    logger.info("Data import uses advanced direct data processing with these settings:\n" + conf);
-    return conf;
+    return new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors));
   }
 
   /**
@@ -302,8 +304,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     AdvancedSpectraImportParameters advancedParam = parameters.getEmbeddedParametersIfSelectedOrElse(
         AllSpectralDataImportParameters.advancedImport, null);
 
-    ScanImportProcessorConfig scanProcessorConfig = createSpectralProcessors(advancedParam);
-
     // start importing spectral libraries first
     final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
 
@@ -365,6 +365,14 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
       final RawDataFileType fileType = fileToImport.type();
       logger.finest("File " + fileToImport.originalFile() + " type detected as " + fileType);
+
+      // decision: one processor config per file task. The files are imported in parallel and
+      // processors (e.g., mass detectors) may keep per spectrum state, so they are not shared.
+      final ScanImportProcessorConfig scanProcessorConfig = createSpectralProcessors(advancedParam);
+      if (i == 0 && advancedParam != null) {
+        logger.info("Data import uses advanced direct data processing with these settings:\n"
+            + scanProcessorConfig);
+      }
 
       final Task newTask;//
       if (advancedParam != null) {
