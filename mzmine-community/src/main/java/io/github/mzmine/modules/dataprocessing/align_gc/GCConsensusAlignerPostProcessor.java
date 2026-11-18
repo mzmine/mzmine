@@ -125,8 +125,10 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
 
   /**
    * Extract a new feature within an mzTolRange and with the same scans as an old feature
+   *
+   * @return the new feature or null if there is no signal in the m/z range
    */
-  public @Nullable ModularFeature extractNewFeature(final ModularFeatureList flist,
+  public static @Nullable ModularFeature extractNewFeature(final ModularFeatureList flist,
       final ModularFeature feature, final Range<Double> mzTolRange) {
     // mz mismatch, because GC retains a random m/z as a representative for a feature (deconvoluted pseudo spectrum)
     RawDataFile dataFile = feature.getRawDataFile();
