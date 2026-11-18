@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.settings.FeatureListSettings;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -57,6 +58,7 @@ import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.OtherFeatureListUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.time.Instant;
@@ -132,6 +134,13 @@ public class ModularFeatureList implements FeatureList {
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
   private final R2RNetworkingMaps r2rNetworkingMaps = new R2RNetworkingMaps();
+
+  /**
+   * Aligned other-detector (UV/DAD, CAD, …) features, produced by the other-detector alignment step
+   * and stored as a sub-object of this MS feature list. May be null if no such alignment was run. The
+   * MS-to-other correlations live on this object ({@link OtherFeatureList#getMsOtherCorrelationMaps()}).
+   */
+  private @Nullable OtherFeatureList alignedOtherFeatures;
 
   @NotNull
   private String nameProperty = "";
@@ -556,6 +565,8 @@ public class ModularFeatureList implements FeatureList {
     }
 
     featureListRows.setAll(rows);
+    // rows that are not in the new set were removed (e.g., duplicate filter, isotope grouper)
+    OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this);
     applyRowBindings();
 
     // sorting
@@ -662,12 +673,17 @@ public class ModularFeatureList implements FeatureList {
     }
     detachFromCompoundListIfPresent(List.of(row));
     compoundListPropagationInFlight = true;
+    final boolean removed;
     try {
-      featureListRows.remove(row);
+      removed = featureListRows.remove(row);
     } finally {
       compoundListPropagationInFlight = false;
     }
     NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
+    if (removed) {
+      // the removed row is known, only drop its correlations
+      OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this, List.of(row));
+    }
   }
 
   /**
@@ -686,7 +702,8 @@ public class ModularFeatureList implements FeatureList {
     if (rowNum < 0 || rowNum >= featureListRows.size()) {
       return;
     }
-    detachFromCompoundListIfPresent(List.of(featureListRows.get(rowNum)));
+    final FeatureListRow row = featureListRows.get(rowNum);
+    detachFromCompoundListIfPresent(List.of(row));
     compoundListPropagationInFlight = true;
     try {
       featureListRows.remove(rowNum);
@@ -694,6 +711,7 @@ public class ModularFeatureList implements FeatureList {
       compoundListPropagationInFlight = false;
     }
     NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
+    OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this, List.of(row));
   }
 
   /**
@@ -719,8 +737,11 @@ public class ModularFeatureList implements FeatureList {
     } finally {
       compoundListPropagationInFlight = false;
     }
-    // a later row that reuses a removed row ID must not get its normalization factor
+    // a later row that reuses a removed row ID must not get its normalization factor or correlations
     NormalizationRowIdentity.dropFactorsOfRemovedRows(this);
+    // only rows of this list can have been removed, rows of other lists may share an ID
+    OtherFeatureListUtils.dropCorrelationsOfRemovedRows(this,
+        rowsToRemove.stream().filter(r -> r.getFeatureList() == this).toList());
   }
 
   /**
@@ -892,6 +913,23 @@ public class ModularFeatureList implements FeatureList {
   @NotNull
   public R2RNetworkingMaps getRowMaps() {
     return r2rNetworkingMaps;
+  }
+
+  /**
+   * @return the aligned other-detector features stored on this feature list, or null if the
+   * other-detector alignment step was not run.
+   */
+  @Nullable
+  public OtherFeatureList getAlignedOtherFeatures() {
+    return alignedOtherFeatures;
+  }
+
+  /**
+   * Attaches an aligned other-detector list (which carries its own MS-to-other correlations). A new
+   * alignment therefore replaces the previous correlations wholesale.
+   */
+  public void setAlignedOtherFeatures(@Nullable final OtherFeatureList alignedOtherFeatures) {
+    this.alignedOtherFeatures = alignedOtherFeatures;
   }
 
   @Override

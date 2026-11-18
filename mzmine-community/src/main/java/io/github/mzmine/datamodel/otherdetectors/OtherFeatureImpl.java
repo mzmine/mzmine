@@ -77,8 +77,7 @@ public class OtherFeatureImpl extends ModularDataModelMap implements OtherFeatur
 //    }
     if (getWavelength() != null) {
       sb.append(getWavelength()).append(" nm ");
-    }
-    if (getChromatogramType() != null) {
+    } else if (getChromatogramType() != null) {
       sb.append(getChromatogramType().getDescription()).append(" ");
     }
     if (getRT() != null && get(RawTraceType.class) != null) {
