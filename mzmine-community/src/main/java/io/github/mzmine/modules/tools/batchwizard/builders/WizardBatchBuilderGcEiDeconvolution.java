@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -42,6 +43,8 @@ import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEi
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateHandling;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateMzCheck;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
+import io.github.mzmine.modules.dataprocessing.id_gc_ei_ion_notation.GcEiIonNotationModule;
+import io.github.mzmine.modules.dataprocessing.id_gc_ei_ion_notation.GcEiIonNotationParameters;
 import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
@@ -50,6 +53,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
@@ -58,6 +62,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardPara
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -76,6 +82,7 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import java.io.File;
 import java.util.Objects;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder {
 
@@ -95,6 +102,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final Boolean exportAnnotationGraphics;
   private final Boolean applySpectralNetworking;
   private final boolean applyGapFillingAndDuplicateFilter;
+  // sub formula ion notations need accurate m/z values
+  private final boolean highResolutionMs;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -150,6 +159,13 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     minNumberOfSignalsInDeconSpectra = getValue(params,
         WorkflowGcElectronImpactWizardParameters.MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA);
 
+    final var instrument = (MassSpectrometerWizardParameterFactory) steps.get(WizardPart.MS)
+        .orElseThrow().getFactory();
+    highResolutionMs = switch (instrument) {
+      case QTOF, Orbitrap, Orbitrap_Astral, FTICR -> true;
+      case LOW_RES -> false;
+    };
+
   }
 
   @Override
@@ -183,8 +199,13 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, true);
     }
     makeAndAddLibrarySearchMS1Step(q, false);
+    makeAndAddIonNotationStep(q);
 
     if (isExportActive && exportPath != null) {
+      // decision: one row per deconvoluted compound like the previous GC-EI feature table, the
+      // compound list holds all EI ion rows
+      makeAndAddCsvModularExportStep(q, exportPath, CompoundRowSelection.COMPOUNDS,
+          "_compound_table.csv");
       if (exportGnps) {
         makeAndAddGnpsExportStep(q);
       }
@@ -333,8 +354,28 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   }
 
 
+  /**
+   * Ion notations from the formula of library matches. Only for positive mode and high resolution
+   * data, as the notations are calculated from exact sub formula masses.
+   */
+  private void makeAndAddIonNotationStep(@NotNull final BatchQueue q) {
+    if (!checkLibraryFiles() || polarity == WizardMsPolarity.Negative || !highResolutionMs) {
+      return;
+    }
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(GcEiIonNotationModule.class).cloneParameterSet();
+    param.setParameter(GcEiIonNotationParameters.flists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(GcEiIonNotationParameters.mzTolerance, mzTolScans);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GcEiIonNotationModule.class), param));
+  }
+
   protected void makeAndAddGnpsExportStep(final BatchQueue q) {
-    makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans, "_gc_ei_gnps");
+    // decision: only rows with pseudo spectra, ion notations of fragment rows would otherwise add
+    // all fragment rows without spectra to the GNPS quant table
+    makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans, "_gc_ei_gnps",
+        FeatureListRowsFilter.ONLY_WITH_MS2);
   }
 
   protected void makeAndAddMSPExportStep(final BatchQueue q) {

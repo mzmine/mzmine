@@ -101,6 +101,7 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProj
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
+import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerController;
 import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerTab;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTab;
@@ -775,8 +776,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showPseudoSpectrumItem = new ConditionalMenuItem("Show Pseudo Spectrum",
-        () -> selectedOrBestFeature != null
-            && selectedOrBestFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+        () -> PseudoSpectrumVisualizerController.hasPseudoSpectrum(selectedOrBestFeature));
     showPseudoSpectrumItem.visibleProperty().bind(hasPseudoSpectra);
     showPseudoSpectrumItem.setOnAction(_ -> showPseudoSpectrum());
 

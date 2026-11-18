@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.modules.dataprocessing.align_common.BaseFeatureListAlign
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.SimpleFeatureCloner;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -88,31 +89,72 @@ public class GCAlignerTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
 
-    // check if MS2 is available. users need to run spectral deconvolution first
-    final boolean allWithMS2 = featureLists.stream().flatMap(FeatureList::stream)
-        .allMatch(FeatureListRow::hasMs2Fragmentation);
-    if (!allWithMS2) {
-      error("There were features without pseudo MS2 spectrum. Please run %s before alignment.".formatted(
-          SpectralDeconvolutionGCModule.NAME));
-      return;
+    var mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
+    // compound lists from spectral deconvolution: align the representatives and then all members
+    // otherwise legacy feature lists with only representative rows
+    final boolean alignCompounds = GCCompoundAlignerPostProcessor.hasCompoundLists(featureLists);
+    if (alignCompounds) {
+      final boolean anyWithMS2 = featureLists.stream()
+          .anyMatch(flist -> !GCCompoundAlignerPostProcessor.getRowsToAlign(flist).isEmpty());
+      if (!anyWithMS2) {
+        error("There were no compounds with pseudo MS2 spectrum. Please run %s before alignment.".formatted(
+            SpectralDeconvolutionGCModule.NAME));
+        return;
+      }
+    } else {
+      // check if MS2 is available. users need to run spectral deconvolution first
+      final boolean allWithMS2 = featureLists.stream().flatMap(FeatureList::stream)
+          .allMatch(FeatureListRow::hasMs2Fragmentation);
+      if (!allWithMS2) {
+        // deconvolution keeps all grouped rows, only the representatives have pseudo spectra.
+        // Without a valid compound list, a step after deconvolution dropped the grouping
+        final boolean anyWithMS2 = featureLists.stream().flatMap(FeatureList::stream)
+            .anyMatch(FeatureListRow::hasMs2Fragmentation);
+        if (anyWithMS2) {
+          error("""
+              The compound grouping of %s was lost in at least one feature list, because a \
+              processing step after the deconvolution did not keep it. Please run %s directly \
+              before alignment or remove the steps in between.""".formatted(
+              SpectralDeconvolutionGCModule.NAME, SpectralDeconvolutionGCModule.NAME));
+        } else {
+          error(
+              "There were features without pseudo MS2 spectrum. Please run %s before alignment.".formatted(
+                  SpectralDeconvolutionGCModule.NAME));
+        }
+        return;
+      }
     }
 
     logger.info(() -> "Running parallel GC aligner on " + featureLists.size() + " feature lists.");
 
-    var mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
     // for now use a simple feature cloner that just uses the picked feature
     // later after alignment we will find the main consensus feature in the post processor
     FeatureCloner featureCloner = new SimpleFeatureCloner();
-    var postProcessor = new GCConsensusAlignerPostProcessor(mzTolerance);
     // create the row aligner that handles the scoring
     var rowAligner = new GcRowAlignScorer(parameters);
-    listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
-        getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
-        postProcessor);
+    final GCCompoundAlignerPostProcessor compoundPostProcessor;
+    if (alignCompounds) {
+      compoundPostProcessor = new GCCompoundAlignerPostProcessor(mzTolerance, featureLists);
+      listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
+          getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
+          compoundPostProcessor, GCCompoundAlignerPostProcessor::getRowsToAlign);
+    } else {
+      compoundPostProcessor = null;
+      listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
+          getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
+          new GCConsensusAlignerPostProcessor(mzTolerance));
+    }
 
     alignedFeatureList = listAligner.alignFeatureLists();
     if (alignedFeatureList == null || isCanceled()) {
       return;
+    }
+
+    if (compoundPostProcessor != null) {
+      // set after the aligner added all rows and set the final row IDs
+      alignedFeatureList.setCompoundList(
+          SpectralDeconvolutionUtils.createCompoundList(alignedFeatureList,
+              compoundPostProcessor.getAlignedCompounds(), getMemoryMapStorage()));
     }
 
     handleOriginal.reflectNewFeatureListToProject(project, alignedFeatureList, featureLists);

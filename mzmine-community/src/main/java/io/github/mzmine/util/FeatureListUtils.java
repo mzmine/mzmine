@@ -827,29 +827,27 @@ public class FeatureListUtils {
   }
 
   /**
-   * Copies the compound list of the source to the target, for targets that were created with
-   * {@link #createCopy(FeatureList, String, MemoryMapStorage, boolean)} and keep the row IDs of the
-   * source. Call this after all rows were added to or removed from the target, as structural
-   * changes invalidate the compound list. Members whose row is missing in the target are dropped,
-   * see {@link #copyCompoundList(List, ModularFeatureList, Function, Predicate, MemoryMapStorage)}.
-   * Outdated compound lists of the source are not copied.
+   * Transfers a remapped copy of the compound list of the source to the target. Members whose rows
+   * are not mapped are removed, see
+   * {@link #copyCompoundList(List, ModularFeatureList, Function, Predicate, MemoryMapStorage)}.
+   * Call this after all rows were added to the target, because adding rows invalidates the compound
+   * list of a feature list.
    *
-   * @param source  the feature list with the compound list
-   * @param target  the copy with the same row IDs
-   * @param storage storage of the new compound list
+   * @param source     the feature list the rows were copied from
+   * @param target     the feature list holding the copied rows
+   * @param rowMapping maps a source row to its row in the target, or to null if that row is gone
+   * @param storage    storage of the new compound list
    */
-  public static void copyCompoundListByRowId(@NotNull final FeatureList source,
-      @NotNull final ModularFeatureList target, @Nullable final MemoryMapStorage storage) {
-    if (!source.hasCompoundList()) {
+  public static void transferCompoundList(@NotNull final FeatureList source,
+      @NotNull final ModularFeatureList target,
+      @NotNull final Function<FeatureListRow, ModularFeatureListRow> rowMapping,
+      @Nullable final MemoryMapStorage storage) {
+    final CompoundList compoundList = source.getCompoundList();
+    if (compoundList == null || !source.hasCompoundList()) {
       return;
     }
-    final CompoundList sourceCompounds = source.getCompoundList();
-    final Map<Integer, ModularFeatureListRow> targetRowsById = new HashMap<>();
-    for (final FeatureListRow row : target.getRows()) {
-      targetRowsById.put(row.getID(), (ModularFeatureListRow) row);
-    }
-    target.setCompoundList(copyCompoundList(sourceCompounds.getRowsCopy(), target,
-        row -> targetRowsById.get(row.getID()), null, storage));
+    target.setCompoundList(
+        copyCompoundList(compoundList.getRowsCopy(), target, rowMapping, null, storage));
   }
 
   /**
@@ -929,6 +927,8 @@ public class FeatureListUtils {
       final Map<FeatureListRow, ModularFeatureListRow> rowMapping = copyRows(featureList, newFlist,
           renumberIDs);
       transferRowRelationsAndIIN(featureList, newFlist, rowMapping);
+      // all rows are copied so the grouping stays valid
+      transferCompoundList(featureList, newFlist, rowMapping::get, storage);
     }
 
     return newFlist;

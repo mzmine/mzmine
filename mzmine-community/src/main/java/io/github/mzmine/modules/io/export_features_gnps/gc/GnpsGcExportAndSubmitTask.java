@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -274,8 +274,10 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
         featureMeasure.equals(AbundanceMeasure.Area) ? LegacyExportRowDataFileElement.FEATURE_AREA
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
+    // only rows with pseudo spectra match the MGF, GC-EI deconvolution keeps all other features as
+    // members of the compounds
     LegacyCSVExportTask quanExport = new LegacyCSVExportTask(new FeatureList[]{featureList}, full,
-        ",", common, rawdata, false, ";", FeatureListRowsFilter.ALL, getModuleCallDate(),
+        ",", common, rawdata, false, ";", FeatureListRowsFilter.ONLY_WITH_MS2, getModuleCallDate(),
         CompoundRowSelection.ALL_FEATURE_ROWS);
     if (tasks != null) {
       tasks.add(quanExport);
