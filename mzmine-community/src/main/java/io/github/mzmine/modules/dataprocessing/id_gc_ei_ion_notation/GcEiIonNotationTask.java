@@ -148,6 +148,7 @@ public class GcEiIonNotationTask extends AbstractFeatureListTask {
     final List<FeatureListRow> members = compound.getMemberRows();
     // remove previous notations so that a rerun reflects the current annotation
     members.forEach(FeatureListRow::clearIonIdentites);
+    compound.set(NeutralMassType.class, null);
 
     final FeatureAnnotation annotation = representative.getPreferredAnnotation();
     final String formula = annotation == null ? null : annotation.getFormula();
