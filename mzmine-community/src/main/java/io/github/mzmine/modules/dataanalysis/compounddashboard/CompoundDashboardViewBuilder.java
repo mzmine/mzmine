@@ -51,11 +51,7 @@ import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.Ch
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -326,6 +322,8 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     // Rebuild on selection change to swap the bold marker; cheap because there are few entries.
     model.selectedAdductRowProperty().subscribe(_ -> rebuild.run());
     model.legendExpandedProperty().subscribe(_ -> rebuild.run());
+    // the collapsed legend ranks rows by height in the current sample
+    model.currentRawDataFileProperty().subscribe(_ -> rebuild.run());
 
     // the expanded legend of large compounds scrolls instead of pushing the feature table down
     final ScrollPane scroll = FxLayout.newScrollPane(pane, ScrollBarPolicy.NEVER,
@@ -343,10 +341,13 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     pane.getChildren().clear();
     final FeatureListRow selected = model.getSelectedAdductRow();
     final List<CompoundDashboardLegendEntry> allEntries = model.getLegendEntries();
-    final boolean collapsible = allEntries.size() > COLLAPSED_LEGEND_ENTRIES;
+    final CompoundRow compound = model.getSelectedCompoundRow();
+    final boolean collapsible = compound != null && allEntries.size() > COLLAPSED_LEGEND_ENTRIES;
     final boolean collapsed = collapsible && !model.isLegendExpanded();
-    final Set<FeatureListRow> shownRows = collapsed ? selectCollapsedLegendRows(allEntries, selected)
-        : null;
+    // same ranking as the plots, so the collapsed legend lists the drawn rows
+    final Set<FeatureListRow> shownRows =
+        collapsed ? CompoundDashboardDisplayedRows.select(compound, model.getCurrentRawDataFile(),
+            selected, COLLAPSED_LEGEND_ENTRIES) : null;
 
     final List<CompoundDashboardLegendEntry> ions = new ArrayList<>();
     final List<CompoundDashboardLegendEntry> unknowns = new ArrayList<>();
@@ -375,34 +376,6 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
       pane.getChildren().add(
           FxLabels.newHyperlink(() -> model.setLegendExpanded(collapsed), text));
     }
-  }
-
-  /**
-   * @return the rows of the collapsed legend: the selected row, the representative and then the
-   * most intense member rows up to {@link #COLLAPSED_LEGEND_ENTRIES}
-   */
-  private @NotNull Set<FeatureListRow> selectCollapsedLegendRows(
-      @NotNull final List<CompoundDashboardLegendEntry> entries,
-      @Nullable final FeatureListRow selected) {
-    final Set<FeatureListRow> shown = Collections.newSetFromMap(new IdentityHashMap<>());
-    if (selected != null) {
-      shown.add(selected);
-    }
-    final CompoundRow compound = model.getSelectedCompoundRow();
-    if (compound != null) {
-      shown.add(compound.getPreferredRow());
-    }
-    final List<FeatureListRow> byHeight = entries.stream().map(CompoundDashboardLegendEntry::row)
-        .sorted(Comparator.comparingDouble(
-            (FeatureListRow row) -> Objects.requireNonNullElse(row.getMaxHeight(), 0f)).reversed())
-        .toList();
-    for (final FeatureListRow row : byHeight) {
-      if (shown.size() >= COLLAPSED_LEGEND_ENTRIES) {
-        break;
-      }
-      shown.add(row);
-    }
-    return shown;
   }
 
   private @NotNull Label buildIonLegendLabel(@NotNull final CompoundDashboardLegendEntry entry,

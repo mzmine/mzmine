@@ -60,9 +60,24 @@ final class CompoundDashboardDisplayedRows {
    */
   static @NotNull Set<FeatureListRow> select(@NotNull final CompoundRow compound,
       @Nullable final RawDataFile file, @Nullable final FeatureListRow selected) {
+    return select(compound, file, selected, MAX_DISPLAYED_ROWS);
+  }
+
+  /**
+   * @param compound the compound
+   * @param file     the sample to rank rows by feature height, or null to use the maximum height of
+   *                 each row
+   * @param selected the selected member row, always included
+   * @param maxRows  maximum number of rows
+   * @return the representative, the selected row and the most intense member rows, at most maxRows
+   * unless the representative and selected row exceed it
+   */
+  static @NotNull Set<FeatureListRow> select(@NotNull final CompoundRow compound,
+      @Nullable final RawDataFile file, @Nullable final FeatureListRow selected,
+      final int maxRows) {
     final List<FeatureListRow> rows = CompoundDashboardColoring.flattenAllMemberRows(compound);
     final Set<FeatureListRow> displayed = Collections.newSetFromMap(new IdentityHashMap<>());
-    if (rows.size() <= MAX_DISPLAYED_ROWS) {
+    if (rows.size() <= maxRows) {
       displayed.addAll(rows);
       return displayed;
     }
@@ -74,7 +89,7 @@ final class CompoundDashboardDisplayedRows {
         .sorted(Comparator.comparingDouble((FeatureListRow row) -> height(row, file)).reversed())
         .toList();
     for (final FeatureListRow row : byHeight) {
-      if (displayed.size() >= MAX_DISPLAYED_ROWS) {
+      if (displayed.size() >= maxRows) {
         break;
       }
       displayed.add(row);

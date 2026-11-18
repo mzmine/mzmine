@@ -233,8 +233,9 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
   public boolean isSelectedRowHidden() {
     final CompoundRow compound = model.getSelectedCompoundRow();
     final FeatureListRow selected = model.getSelectedAdductRow();
+    // the drawn maps miss rows without a feature in this sample, so compare to the selection
     return compound != null && selected != null && CompoundDashboardDisplayedRows.isLimited(
-        compound) && !model.getMs1RenderersByRow().containsKey(selected)
-        && !model.getEicDatasetsByRow().containsKey(selected);
+        compound) && !CompoundDashboardDisplayedRows.select(compound, model.getCurrentRawDataFile(),
+        null).contains(selected);
   }
 }
