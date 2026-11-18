@@ -25,20 +25,6 @@
 
 package io.github.mzmine.modules.io.export_features_mztabm;
 
-import de.isas.mztab2.io.MzTabValidatingWriter;
-import de.isas.mztab2.model.Assay;
-import de.isas.mztab2.model.CV;
-import de.isas.mztab2.model.Database;
-import de.isas.mztab2.model.Metadata;
-import de.isas.mztab2.model.MsRun;
-import de.isas.mztab2.model.MzTab;
-import de.isas.mztab2.model.Parameter;
-import de.isas.mztab2.model.SmallMoleculeEvidence;
-import de.isas.mztab2.model.SmallMoleculeFeature;
-import de.isas.mztab2.model.SmallMoleculeSummary;
-import de.isas.mztab2.model.Software;
-import de.isas.mztab2.model.SpectraRef;
-import de.isas.mztab2.model.StudyVariable;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
@@ -53,6 +39,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +50,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.lifstools.mztab2.io.MzTabValidatingWriter;
+import org.lifstools.mztab2.model.Assay;
+import org.lifstools.mztab2.model.CV;
+import org.lifstools.mztab2.model.Database;
+import org.lifstools.mztab2.model.Metadata;
+import org.lifstools.mztab2.model.MsRun;
+import org.lifstools.mztab2.model.MzTab;
+import org.lifstools.mztab2.model.Parameter;
+import org.lifstools.mztab2.model.SmallMoleculeEvidence;
+import org.lifstools.mztab2.model.SmallMoleculeFeature;
+import org.lifstools.mztab2.model.SmallMoleculeSummary;
+import org.lifstools.mztab2.model.Software;
+import org.lifstools.mztab2.model.SpectraRef;
+import org.lifstools.mztab2.model.StudyVariable;
 import uk.ac.ebi.pride.jmztab2.model.IOptColumnMappingBuilder;
 import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder;
 
@@ -150,7 +152,7 @@ public class MZTabmExportTask extends AbstractTask {
             .name("LC-MS label-free quantification analysis"));
         mtd.addCvItem(
             new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary").version("4.0.9")
-                .uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
+                .uri(URI.create("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo")));
 
         List<IOptColumnMappingBuilder> feature_mzList = new ArrayList<>();
         List<IOptColumnMappingBuilder> feature_rtList = new ArrayList<>();
@@ -168,7 +170,7 @@ public class MZTabmExportTask extends AbstractTask {
           // MS run location
           MsRun msRun = new MsRun();
           msRun.id(fileCounter);
-          msRun.setLocation("file://" + file.getName());
+          msRun.setLocation(createRawDataFileLocation(file.getName()));
           int dotIn = file.getName().indexOf(".");
           String fileFormat = "";
           if (dotIn != -1) {
@@ -277,7 +279,8 @@ public class MZTabmExportTask extends AbstractTask {
                   : featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
               databases.putIfAbsent(dbParam,
                   new Database().param(dbParam).prefix(featureIdentity.getClass().getSimpleName())
-                      .version(String.valueOf(SemverVersionReader.getMZmineVersion())).uri(dbURI));
+                      .version(String.valueOf(SemverVersionReader.getMZmineVersion()))
+                      .uri(URI.create(dbURI)));
 
               //Identity Information
               String identifier = escapeString(
@@ -286,7 +289,8 @@ public class MZTabmExportTask extends AbstractTask {
               String formula = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
               String description = escapeString(
                   featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_NAME));
-              String url = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
+              final String url = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
+              final URI uri = url == null || url.isEmpty() ? null : URI.create(url);
               sm.addDatabaseIdentifierItem(identifier);
               sme.setDatabaseIdentifier(identifier);
               sme.setIdentificationMethod(new Parameter().name(method));
@@ -298,13 +302,10 @@ public class MZTabmExportTask extends AbstractTask {
               chemicalName.add(description);
               sm.setChemicalName(chemicalName);
               sme.setChemicalName(description);
-              ArrayList<String> uris = new ArrayList<>();
-              uris.add(url);
+              final ArrayList<URI> uris = new ArrayList<>();
+              uris.add(uri);
               sm.setUri(uris);
-              sme.setUri(url);
-              if (url == null || url.equals("")) {
-                sme.setUri("null");
-              }
+              sme.setUri(uri);
             }
 
             Double rowMZ = featureListRow.getAverageMZ();
@@ -425,6 +426,19 @@ public class MZTabmExportTask extends AbstractTask {
     if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
     }
+  }
+
+  /**
+   * Creates a file URI containing the escaped filename without its source directory.
+   *
+   * @param fileName raw data filename
+   * @return filename-only file URI
+   * @throws URISyntaxException if the filename cannot be represented as a URI
+   */
+  private static @NotNull URI createRawDataFileLocation(@NotNull final String fileName)
+      throws URISyntaxException {
+    final String encoded = new URI(null, null, "/" + fileName, null).getRawPath().substring(1);
+    return new URI("file://" + encoded);
   }
 
   private String escapeString(final String inputString) {
