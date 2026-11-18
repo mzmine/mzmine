@@ -202,7 +202,7 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
                   .add(otherCompound);
             }
             final int merged = mergeInto(targetList, best.row(), best.quantifierMz(), other.row(),
-                smoother);
+                smoother, null);
             if (merged > 0) {
               mergedFeatures += merged;
               mergedRows.add(best.row());
@@ -277,6 +277,7 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
       @Nullable final SmoothingAlgorithm smoother, @NotNull final Set<FeatureListRow> mergedRows,
       @NotNull final Set<FeatureListRow> rowsToRemove) {
     final List<FeatureListRow> bestMembers = bestCompound.getMemberRows();
+    final FeatureListRow bestRepresentative = bestCompound.getPreferredRow();
     int merged = 0;
     for (final FeatureListRow member : duplicateCompound.getMemberRows()) {
       // rows shared with the kept compound stay as they are
@@ -290,11 +291,19 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
       if (target == null) {
         continue;
       }
-      final int transferred = mergeInto(flist, target, target.getAverageMZ(), member, smoother);
+      // member features have no pseudo spectrum, the kept representative takes it from the
+      // representative of the duplicate
+      final FeatureListRow spectrumSource =
+          target == bestRepresentative ? duplicateRepresentative : null;
+      final int transferred = mergeInto(flist, target, target.getAverageMZ(), member, smoother,
+          spectrumSource);
       if (transferred > 0) {
         merged += transferred;
         mergedRows.add(target);
       }
+      // decision: the member is removed even if no feature was transferred. This only happens on
+      // m/z drifts between samples (no signal at the target m/z) or if several members map to the
+      // same target. The duplicate is the same compound, so merging it into the kept one is fine
       rowsToRemove.add(member);
     }
     return merged;
@@ -306,13 +315,17 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
    * at the m/z of the target row, so that all features of a row are quantified on the same m/z.
    * Re-extracted features are smoothed like the other features of the row.
    *
-   * @param targetMz the quantifier m/z of the target row
-   * @param smoother the smoother of the processing history or null if there was no smoothing
+   * @param targetMz       the quantifier m/z of the target row
+   * @param smoother       the smoother of the processing history or null if there was no
+   *                       smoothing
+   * @param spectrumSource row whose features provide the pseudo spectra of the transferred
+   *                       features, or null to keep the fragment scans of the duplicate features
    * @return the number of transferred features
    */
   private int mergeInto(@NotNull final ModularFeatureList flist,
       @NotNull final FeatureListRow target, final double targetMz,
-      @NotNull final FeatureListRow duplicate, @Nullable final SmoothingAlgorithm smoother) {
+      @NotNull final FeatureListRow duplicate, @Nullable final SmoothingAlgorithm smoother,
+      @Nullable final FeatureListRow spectrumSource) {
     int merged = 0;
     for (final ModularFeature duplicateFeature : duplicate.getFeatures()) {
       final RawDataFile file = duplicateFeature.getRawDataFile();
@@ -333,6 +346,11 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
           continue;
         }
         smooth(flist, newFeature, smoother);
+      }
+      if (spectrumSource != null) {
+        final Feature sourceFeature = spectrumSource.getFeature(file);
+        newFeature.setAllMS2FragmentScans(
+            sourceFeature != null ? sourceFeature.getAllMS2FragmentScans() : null);
       }
       target.addFeature(file, newFeature, false);
       merged++;

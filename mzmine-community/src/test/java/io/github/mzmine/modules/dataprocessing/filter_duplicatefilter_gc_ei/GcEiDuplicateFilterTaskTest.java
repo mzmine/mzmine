@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -272,6 +273,29 @@ class GcEiDuplicateFilterTaskTest {
   }
 
   @Test
+  void mergedMemberAtKeptQuantifierKeepsPseudoSpectrumOfDuplicate() {
+    addRow(1, MZ_A, RT, SPECTRUM_X,
+        features(fileA, FeatureStatus.DETECTED, fileB, FeatureStatus.DETECTED));
+    addRow(2, MZ_B, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    // members have no pseudo spectrum. Row 4 is the ion of the kept quantifier in the duplicate
+    addRow(3, MZ_C, RT, null, features(fileA, FeatureStatus.DETECTED));
+    addRow(4, MZ_A, RT, null, features(fileC, FeatureStatus.DETECTED));
+    setCompounds(List.of(1, 3), List.of(2, 4));
+    final List<Scan> duplicateSpectra = flist.findRowByID(2).getFeature(fileC)
+        .getAllMS2FragmentScans();
+
+    run(GcEiDuplicateMzCheck.QUANTIFIER_IN_BOTH_SPECTRA, GcEiDuplicateHandling.MERGE);
+
+    assertEquals(List.of(1, 3),
+        flist.getRows().stream().map(FeatureListRow::getID).sorted().toList());
+    final Feature merged = flist.findRowByID(1).getFeature(fileC);
+    assertNotNull(merged);
+    assertEquals(MZ_A, merged.getMZ(), 0.001);
+    assertEquals(duplicateSpectra, merged.getAllMS2FragmentScans(),
+        "the representative keeps the pseudo spectrum of the duplicate representative");
+  }
+
+  @Test
   void removeModeRemovesAllMemberRowsOfDuplicateCompounds() {
     addRow(1, MZ_A, RT, SPECTRUM_X,
         features(fileA, FeatureStatus.DETECTED, fileB, FeatureStatus.DETECTED));
@@ -358,12 +382,16 @@ class GcEiDuplicateFilterTaskTest {
   /**
    * Adds a row with one feature per file at the quantifier m/z. Each feature carries a pseudo
    * spectrum with the given signals.
+   *
+   * @param spectrumMzs signals of the pseudo spectrum or null for compound member rows without a
+   *                    pseudo spectrum
    */
   private void addRow(final int id, final double quantifierMz, final float rt,
-      final double @NotNull [] spectrumMzs, @NotNull final Map<RawDataFile, FeatureStatus> files) {
+      final double @Nullable [] spectrumMzs, @NotNull final Map<RawDataFile, FeatureStatus> files) {
     final ModularFeatureListRow row = new ModularFeatureListRow(flist, id);
-    final double[] spectrumIntensities = new double[spectrumMzs.length];
-    for (int i = 0; i < spectrumMzs.length; i++) {
+    final double[] spectrumIntensities =
+        spectrumMzs == null ? null : new double[spectrumMzs.length];
+    for (int i = 0; spectrumMzs != null && i < spectrumMzs.length; i++) {
       spectrumIntensities[i] = HEIGHT * (1 - 0.2 * i);
     }
     for (final Map.Entry<RawDataFile, FeatureStatus> entry : files.entrySet()) {
@@ -377,9 +405,11 @@ class GcEiDuplicateFilterTaskTest {
       }
       final ModularFeature feature = new ModularFeature(flist, file,
           new SimpleIonTimeSeries(null, mzs, intensities, scans), entry.getValue());
-      feature.setAllMS2FragmentScans(List.of(
-          new SimplePseudoSpectrum(file, 1, rt, null, spectrumMzs, spectrumIntensities,
-              PolarityType.POSITIVE, "Pseudo spectrum", PseudoSpectrumType.GC_EI)));
+      if (spectrumMzs != null) {
+        feature.setAllMS2FragmentScans(List.of(
+            new SimplePseudoSpectrum(file, 1, rt, null, spectrumMzs, spectrumIntensities,
+                PolarityType.POSITIVE, "Pseudo spectrum", PseudoSpectrumType.GC_EI)));
+      }
       row.addFeature(file, feature);
     }
     flist.addRow(row);
