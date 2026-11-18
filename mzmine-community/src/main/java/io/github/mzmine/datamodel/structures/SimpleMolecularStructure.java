@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -98,12 +98,25 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
    * @return a structure with precomputed values
    */
   public PrecomputedMolecularStructure precomputeValues() {
+    return precomputeValues(isomericSmiles());
+  }
+
+  /**
+   * Precompute values in case they are access more often.
+   *
+   * @param isomericSmiles the already generated {@link #isomericSmiles()} of this structure, so
+   *                       that a caller which needed it before precomputing does not generate it a
+   *                       second time (its often used in caches as a unique identifier for the
+   *                       structure)
+   * @return a structure with precomputed values
+   */
+  public PrecomputedMolecularStructure precomputeValues(@Nullable String isomericSmiles) {
     InchiStructure inchiStr = StructureUtils.getInchiStructure(structure);
     String inchi = inchiStr != null ? inchiStr.inchi() : null;
     String inchiKey = inchiStr != null ? inchiStr.inchiKey() : null;
 
     return new PrecomputedMolecularStructure(structure, formula(), canonicalSmiles(),
-        isomericSmiles(), inchi, inchiKey, monoIsotopicMass(), mostAbundantMass(),
+        isomericSmiles, inchi, inchiKey, monoIsotopicMass(), mostAbundantMass(),
         totalFormalCharge());
   }
 

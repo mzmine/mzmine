@@ -31,7 +31,10 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.github.mzmine.util.StringUtils;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +46,9 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.io.ISimpleChemObjectReader;
+import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.io.MDLV3000Reader;
 import org.openscience.cdk.smarts.SmartsPattern;
 import org.openscience.cdk.smiles.SmilesParser;
 
@@ -55,12 +61,20 @@ public class StructureParser {
 
   public static final Pattern SMILES_SPECIAL_CHARS = Pattern.compile("[\\[\\]()=#\\-./:\\\\@+%*]");
 
+  // molfile counts line, " 18 20  0  0  0  0  0  0  0  0999 V2000" for V2000 and
+  // "  0  0  0     0  0            999 V3000" for V3000, where the real counts move into the CTAB.
+  // decision: the version tag is required for the match. It is the only marker that cannot be
+  // confused with a title line, and molfiles written without it are pre-1992.
+  private static final Pattern MOL_COUNTS_LINE = Pattern.compile(
+      "\\s*\\d+\\s+\\d+[\\s\\d]*V[23]000\\s*");
+
   // decision: two-tier cache. RAW_CACHE stores the original (un-harmonized) input strings the
   // caller passed in — these may repeat exactly across imports but are not reused for downstream
-  // computations, so a smaller bound is fine. CLEAN_CACHE stores the canonical/isomeric SMILES,
-  // standard InChI and InChIKey derived after a successful parse; downstream code uses these
-  // strings repeatedly (lookups, joins, comparisons), so they get a much larger bound. Multiple
-  // clean keys point to the SAME MolecularStructure instance — instance identity is intentional.
+  // computations, so a smaller bound is fine. CLEAN_CACHE stores the isomeric SMILES, standard
+  // InChI and InChIKey derived after a successful parse; downstream code uses these strings
+  // repeatedly (lookups, joins, comparisons), so they get a much larger bound. Multiple clean keys
+  // point to the SAME MolecularStructure instance — instance identity is intentional and the
+  // isomeric SMILES is also what a newly parsed structure is deduplicated on.
   // assumption: callers treat MolecularStructure as immutable. Mutating a returned structure
   // will corrupt cached entries for other callers.
   private static final Cache<String, MolecularStructure> RAW_CACHE = Caffeine.newBuilder()
@@ -117,8 +131,8 @@ public class StructureParser {
 
   /**
    * Snapshot of cumulative clean-form cache statistics since JVM start. The clean cache is keyed by
-   * canonical SMILES, isomeric SMILES, standard InChI and InChIKey derived after a successful
-   * parse. Multiple keys can point to the same {@link MolecularStructure} instance.
+   * isomeric SMILES, standard InChI and InChIKey derived after a successful parse. Multiple keys
+   * can point to the same {@link MolecularStructure} instance.
    */
   @NotNull
   public static CacheStats getCleanCacheStats() {
@@ -136,7 +150,7 @@ public class StructureParser {
   /**
    * @return current number of entries in the clean-form cache (best-effort under concurrent
    * access). Note: this counts cache keys, not distinct structures — each structure contributes up
-   * to four keys.
+   * to three keys.
    */
   public static long getCleanCacheSize() {
     return CLEAN_CACHE.estimatedSize();
@@ -180,11 +194,18 @@ public class StructureParser {
       return parseStructureWithoutCache(structure, inputType, options);
     }
 
+    // decision: molblocks are multi kilobyte strings that hardly ever repeat verbatim, so they are
+    // neither looked up in nor written to RAW_CACHE. Caching them would evict smiles and inchi
+    // entries for keys that never hit. The derived clean forms are still cached below.
+    final boolean cacheRawInput = inputType != StructureInputType.MOL;
+
     // Cache lookup — raw first (smaller, more likely to hit on repeated identical inputs),
     // then clean (hits when the caller already passes a canonical form, e.g. an inchikey).
-    MolecularStructure cached = lookupCaches(structure);
-    if (cached != null) {
-      return cached;
+    if (cacheRawInput) {
+      final MolecularStructure cached = lookupCaches(structure);
+      if (cached != null) {
+        return cached;
+      }
     }
 
     final SimpleMolecularStructure parsed = parseStructureWithoutCache(structure, inputType,
@@ -193,22 +214,40 @@ public class StructureParser {
       return null;
     }
 
+    // deduplicate on the isomeric smiles before a new instance is built. It is the only clean form
+    // that identifies the molecule, being canonically ordered and carrying stereo and isotopes
+    final String parsedIsomericSmiles = parsed.isomericSmiles();
+    if (parsedIsomericSmiles != null) {
+      final MolecularStructure cached = CLEAN_CACHE.getIfPresent(parsedIsomericSmiles);
+      if (cached != null) {
+        // the raw input cannot be one of the cached structure's clean keys, the lookup above would
+        // have hit, so no putRaw guard is needed here
+        if (cacheRawInput) {
+          RAW_CACHE.put(structure, cached);
+        }
+        return cached;
+      }
+    }
+
     // decision: keep the derived values instead of discarding them. Generating them for the cache
     // keys costs roughly 1400 us per structure while an on demand inchiKey() call costs another
     // ~220 us and formulaString() ~16 us. Since a cached structure is handed to many callers,
     // storing what was already paid for makes value access about 8x cheaper at zero extra cost.
-    final MolecularStructure mol = parsed.precomputeValues();
+    // the isomeric smiles was already generated for the deduplication lookup above
+    final MolecularStructure mol = parsed.precomputeValues(parsedIsomericSmiles);
 
-    // Populate CLEAN_CACHE with all derivable clean keys → same MolecularStructure instance.
-    final HashSet<String> cleanKeys = HashSet.newHashSet(4);
-    putClean(cleanKeys, mol, mol.canonicalSmiles());
+    // Populate CLEAN_CACHE with all identifying clean keys → same MolecularStructure instance.
+    // the canonical smiles is not a key. It drops stereo, so a lookup might result in wrong structure
+    final HashSet<String> cleanKeys = HashSet.newHashSet(3);
     putClean(cleanKeys, mol, mol.isomericSmiles());
     putClean(cleanKeys, mol, mol.inchi());
     putClean(cleanKeys, mol, mol.inchiKey());
 
     // Populate RAW_CACHE with the original caller inputs — skip if the input string already
-    // appears in CLEAN_CACHE (avoids redundant storage of already-canonical inputs).
-    putRaw(cleanKeys, mol, structure);
+    // appears in CLEAN_CACHE (avoids redundant storage of inputs that are already a clean form).
+    if (cacheRawInput) {
+      putRaw(cleanKeys, mol, structure);
+    }
     return mol;
   }
 
@@ -244,6 +283,32 @@ public class StructureParser {
     return new SimpleMolecularStructure(harmonized);
   }
 
+  /**
+   * Parse a MDL molfile connection table with cache activated, see
+   * {@link #parseStructure(String, StructureInputType)}. V2000 and V3000 are both read, the version
+   * is taken from the counts line. The three molfile header lines (title, program, comment) are
+   * optional, a block that starts directly at the counts line is accepted.
+   *
+   * @param molBlock molfile content, V2000 or V3000, with or without header lines
+   * @return the structure or null
+   */
+  @Nullable
+  public MolecularStructure parseMol(@Nullable String molBlock) {
+    return parseStructure(molBlock, StructureInputType.MOL);
+  }
+
+  /**
+   * Parse a MDL molfile connection table, see {@link #parseMol(String)}.
+   *
+   * @param options harmonization to apply, see {@link StructureHarmonizer}
+   * @return the structure or null
+   */
+  @Nullable
+  public MolecularStructure parseMol(@Nullable String molBlock,
+      @NotNull HarmonizationOptions options) {
+    return parseStructure(molBlock, StructureInputType.MOL, options);
+  }
+
   @Nullable
   private IAtomContainer parseToContainer(@NotNull String structure,
       @NotNull StructureInputType inputType) {
@@ -253,8 +318,9 @@ public class StructureParser {
         case INCHI ->
             inchiFactory.getInChIToStructure(structure, DefaultChemObjectBuilder.getInstance())
                 .getAtomContainer();
+        case MOL -> parseMolToContainer(structure);
       };
-    } catch (CDKException e) {
+    } catch (CDKException | IOException | RuntimeException e) {
       final String message = "Cannot parse 'structure' %s as %s".formatted(structure, inputType);
       if (verbose) {
         logger.log(Level.WARNING, message, e);
@@ -263,6 +329,50 @@ public class StructureParser {
       }
       return null;
     }
+  }
+
+  /**
+   * A molfile starts with three header lines (title, program, comment), then the counts line that
+   * carries the format version, then the connection table. Both readers need the header lines and
+   * both refuse a block written in the other version, so the counts line decides.
+   */
+  @NotNull
+  private static IAtomContainer parseMolToContainer(@NotNull String molBlock)
+      throws CDKException, IOException {
+    // the counts line, which can only sit in the first four lines
+    final List<String> lines = molBlock.lines().limit(4).toList();
+    final int countsLine = indexOfCountsLine(lines);
+
+    // decision: the header lines are optional. Databases and web services often hand out the
+    // connection table alone, which the readers then misread as header plus a broken counts line
+    // (V2000) or reject outright (V3000).
+    // assumption: header lines are missing rather than the counts line being shifted, so padding
+    // to the expected offset restores a readable block
+    final String withHeader =
+        countsLine >= 0 && countsLine < 3 ? "\n".repeat(3 - countsLine) + molBlock : molBlock;
+
+    // decision: fall back to V2000 when no version tag was found. That covers pre-1992 molfiles
+    // written without one, and for anything else the reader reports its own error.
+    final boolean v3000 = countsLine >= 0 && lines.get(countsLine).contains("V3000");
+    final IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+    try (final ISimpleChemObjectReader reader = v3000 ? new MDLV3000Reader(
+        new StringReader(withHeader)) : new MDLV2000Reader(new StringReader(withHeader))) {
+      return reader.read(builder.newInstance(IAtomContainer.class));
+    }
+  }
+
+  /**
+   * @param lines the leading lines of a molfile, all of them are inspected
+   * @return index of the molfile counts line, or -1 if none of the given lines carries a version
+   * tag
+   */
+  private static int indexOfCountsLine(@NotNull List<String> lines) {
+    for (int i = 0; i < lines.size(); i++) {
+      if (MOL_COUNTS_LINE.matcher(lines.get(i)).matches()) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   @Nullable
