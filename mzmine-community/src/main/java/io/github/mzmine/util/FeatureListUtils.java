@@ -58,6 +58,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
@@ -68,11 +69,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -848,6 +851,32 @@ public class FeatureListUtils {
   }
 
   /**
+   * Copies the compound list of the source to the target, for targets that were created with
+   * {@link #createCopy(FeatureList, String, MemoryMapStorage, boolean)} and keep the row IDs of the
+   * source. Call this after all rows were added to or removed from the target, as structural
+   * changes invalidate the compound list. Members whose row is missing in the target are dropped,
+   * see {@link #copyCompoundList(List, ModularFeatureList, Function, Predicate, MemoryMapStorage)}.
+   * Outdated compound lists of the source are not copied.
+   *
+   * @param source  the feature list with the compound list
+   * @param target  the copy with the same row IDs
+   * @param storage storage of the new compound list
+   */
+  public static void copyCompoundListByRowId(@NotNull final FeatureList source,
+      @NotNull final ModularFeatureList target, @Nullable final MemoryMapStorage storage) {
+    if (!source.hasCompoundList()) {
+      return;
+    }
+    final CompoundList sourceCompounds = source.getCompoundList();
+    final Map<Integer, ModularFeatureListRow> targetRowsById = new HashMap<>();
+    for (final FeatureListRow row : target.getRows()) {
+      targetRowsById.put(row.getID(), (ModularFeatureListRow) row);
+    }
+    target.setCompoundList(copyCompoundList(sourceCompounds.getRowsCopy(), target,
+        row -> targetRowsById.get(row.getID()), null, storage));
+  }
+
+  /**
    * Does not copy rows
    */
   public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
@@ -975,7 +1004,8 @@ public class FeatureListUtils {
   /**
    * Copies all input rows into the new feature list, sorted by
    * {@link #getDefaultRowSorter(FeatureList)}: a new feature list is expected to be sorted.
-   * Renumbering in that order.
+   * Renumbering in that order. Row-dependent normalization factors are remapped to the new row
+   * IDs. Without rows to copy, the normalization of the new feature list is removed.
    *
    * @return maps each source row to its copy. Pass this to
    * {@link #transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Function)} to also transfer
@@ -989,6 +1019,8 @@ public class FeatureListUtils {
 
     final Map<FeatureListRow, ModularFeatureListRow> rowMapping = new IdentityHashMap<>(
         rowsToCopy.size());
+    // row-dependent normalization factors are keyed by row ID
+    final Map<Integer, Integer> oldToNewIds = HashMap.newHashMap(rowsToCopy.size());
     int id = 1;
     for (final FeatureListRow row : orderedRows) {
       if (rowMapping.containsKey(row)) {
@@ -999,7 +1031,16 @@ public class FeatureListUtils {
           renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
       newFeatureList.addRow(copy);
       rowMapping.put(row, copy);
+      oldToNewIds.put(row.getID(), copy.getID());
       id++;
+    }
+    if (orderedRows.isEmpty()) {
+      // no rows, so no normalization applies. Also drops the factors of all removed rows that were
+      // transferred with the settings of the source
+      newFeatureList.setSettings(newFeatureList.getSettings().withNormalization(null));
+    } else {
+      NormalizationRowIdentity.remapRowFactors(orderedRows.getFirst().getFeatureList(),
+          newFeatureList, oldToNewIds);
     }
     return rowMapping;
   }
@@ -1073,6 +1114,9 @@ public class FeatureListUtils {
     if (sources.isEmpty()) {
       throw new IllegalArgumentException("No source feature list");
     }
+    if (sources.size() > 1) {
+      NormalizationRowIdentity.requireNoRowDependentNormalization(sources, "merge feature lists");
+    }
     final FeatureList source = sources.getFirst();
 
     FeatureListUtils.copyPeakListAppliedMethods(source, target);
@@ -1082,6 +1126,7 @@ public class FeatureListUtils {
     FeatureListUtils.transferSelectedScans(target, sources);
     target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
     target.setPreferences(source.getPreferences().copy());
+    target.setSettings(source.getSettings().copy());
   }
 
   /**

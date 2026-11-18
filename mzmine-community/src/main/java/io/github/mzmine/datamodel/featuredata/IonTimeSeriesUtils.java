@@ -146,8 +146,7 @@ public class IonTimeSeriesUtils {
     final double[] intensities = new double[scans.size()];
     final double[] mzs = new double[scans.size()];
 
-    final double avgTic = allSelectedScans.stream().mapToDouble(Scan::getTIC).average()
-        .orElseThrow(() -> new IllegalStateException("Cannot determine average TIC"));
+    final double avgTic = averageTic(allSelectedScans);
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
       intensities[i] = series.getIntensity(i) / scans.get(i).getTIC() * avgTic;
@@ -156,6 +155,14 @@ public class IonTimeSeriesUtils {
     series.getMzValues(mzs);
 
     return (T) series.copyAndReplace(storage, mzs, intensities);
+  }
+
+  /**
+   * @return the average TIC of the scans, the reference of the average TIC normalization
+   */
+  public static double averageTic(@NotNull final List<? extends Scan> allSelectedScans) {
+    return allSelectedScans.stream().mapToDouble(Scan::getTIC).average()
+        .orElseThrow(() -> new IllegalStateException("Cannot determine average TIC"));
   }
 
   /**

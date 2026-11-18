@@ -26,9 +26,6 @@ not-bio
 /src/test/java/import_data/speed/local/tims32subs/
 
 # AI Agent ignores
-codex.md
-AGENTS.md
-claude.md
 .claude/worktrees/
 .claude/settings.local.json
 
@@ -45,5 +42,3 @@ mlreader.txt
 
 dev-run.sh
 .sdkmanrc
-
-CLAUDE.md

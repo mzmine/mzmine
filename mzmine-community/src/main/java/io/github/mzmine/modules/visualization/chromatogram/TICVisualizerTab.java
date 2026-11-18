@@ -370,7 +370,7 @@ public class TICVisualizerTab extends MZmineTab {
     RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
     Arrays.sort(files, new SimpleSorter());
     String dataFileNames = Joiner.on(",").join(files);
-    setText(
+    setTitle(
         "Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
             + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 

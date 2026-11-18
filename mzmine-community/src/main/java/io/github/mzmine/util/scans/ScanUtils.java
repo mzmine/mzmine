@@ -355,7 +355,7 @@ public class ScanUtils {
    * @return data point containing base peak m/z and intensity
    */
   @Nullable
-  public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
+  public static DataPoint findBasePeak(@NotNull MassSpectrum scan, @NotNull Range<Double> mzRange) {
     return findBasePeak(scan, SimpleRange.ofDouble(mzRange));
   }
 
@@ -367,7 +367,8 @@ public class ScanUtils {
    * @return data point containing base peak m/z and intensity
    */
   @Nullable
-  public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull SimpleDoubleRange mzRange) {
+  public static DataPoint findBasePeak(@NotNull MassSpectrum scan,
+      @NotNull SimpleDoubleRange mzRange) {
     return findBasePeak(scan, mzRange.lower(), mzRange.upper());
   }
 
@@ -379,7 +380,7 @@ public class ScanUtils {
    * @param upper upper mz range
    * @return data point containing base peak m/z and intensity
    */
-  public static DataPoint findBasePeak(@NotNull Scan scan, double lower, double upper) {
+  public static DataPoint findBasePeak(@NotNull MassSpectrum scan, double lower, double upper) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
     if (scanBasePeakMz != null && lower <= scanBasePeakMz && scanBasePeakMz <= upper) {
       return new SimpleDataPoint(scanBasePeakMz,

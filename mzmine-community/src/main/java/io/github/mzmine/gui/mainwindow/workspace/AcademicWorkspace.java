@@ -53,6 +53,7 @@ import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatog
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
@@ -70,6 +71,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRem
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
 import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
@@ -91,16 +93,29 @@ import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.user.MZmineUser;
 import java.util.EnumSet;
+import java.util.function.Supplier;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class AcademicWorkspace extends AbstractWorkspace {
 
   public static final String uniqueId = "academic";
+
+  private final @NotNull Supplier<@Nullable Menu> additionalMenuFactory;
+
+  public AcademicWorkspace() {
+    this(() -> null);
+  }
+
+  /** Supplies a fresh optional menu on each rebuild, including after a user change. */
+  public AcademicWorkspace(final @NotNull Supplier<@Nullable Menu> additionalMenuFactory) {
+    this.additionalMenuFactory = additionalMenuFactory;
+  }
 
   @Override
   public String getName() {
@@ -113,7 +128,7 @@ public final class AcademicWorkspace extends AbstractWorkspace {
   }
 
   @Override
-  public MenuBar buildMainMenu(EnumSet<WorkspaceTags> tags) {
+  public @NotNull MenuBar buildMainMenu(final @NotNull EnumSet<WorkspaceTags> tags) {
     final MenuBar menuBar = new MenuBar();
 
     menuBar.getMenus().add(buildDefaultProjectMenu());
@@ -125,6 +140,10 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     menuBar.getMenus().add(buildDefaultToolsMenu());
     menuBar.getMenus().add(buildDefaultWindowsMenu());
     menuBar.getMenus().add(buildDefaultUsersMenu());
+    final Menu additionalMenu = additionalMenuFactory.get();
+    if (additionalMenu != null) {
+      menuBar.getMenus().add(additionalMenu);
+    }
     final Menu workspaces = buildDefaultWorkspacesMenu();
     if (WorkspaceMenuHelper.getWorkspaces().size() > 1) {
       menuBar.getMenus().add(workspaces);
@@ -193,14 +212,15 @@ public final class AcademicWorkspace extends AbstractWorkspace {
 
     addModuleMenuItems(menu, "Spectral deconvolution (GC)", SpectralDeconvolutionGCModule.class);
     addModuleMenuItems(menu, "Feature list filtering", DuplicateFilterModule.class,
-        RowsFilterModule.class, FeatureFilterModule.class, FeatureListBlankSubtractionModule.class,
+        GcEiDuplicateFilterModule.class, RowsFilterModule.class, FeatureFilterModule.class, FeatureListBlankSubtractionModule.class,
         ChromatogramBlankSubtractionModule.class, MobilityMzRegionExtractionModule.class,
         NeutralLossFilterModule.class, SplitAlignedFeatureListModule.class);
     addModuleMenuItems(menu, "Alignment", JoinAlignerModule.class, MergeAlignerModule.class,
         RansacAlignerModule.class, GCAlignerModule.class,
         LcImageAlignerModule.class); // HierarAlignerGcModule, ADAP3AlignerModule (not mit compatible)
     addModuleMenuItems(menu, "Gap filling/Recursive feature finding",
-        MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class);
+        MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
+        GcEiGapFillingModule.class);
     addModuleMenuItems(menu, "Normalization", RTCorrectionModule.class,
         ScanRtCorrectionModule.class, RemoveScanRtCorrectionModule.class,
         IntensityNormalizerModule.class, RICalculationModule.class);

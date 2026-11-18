@@ -126,6 +126,8 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
 
   /**
    * Extract a new feature within an mzTolRange and with the same scans as an old feature
+   *
+   * @return the new feature or null if there is no signal in the m/z range
    */
   public static @Nullable ModularFeature extractNewFeature(final ModularFeatureList flist,
       final ModularFeature feature, final Range<Double> mzTolRange) {

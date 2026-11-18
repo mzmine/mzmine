@@ -34,6 +34,12 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>jdk-jsobject</artifactId>
+      <version>26</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>org.controlsfx</groupId>
       <artifactId>controlsfx</artifactId>
       <version>11.2.4</version>

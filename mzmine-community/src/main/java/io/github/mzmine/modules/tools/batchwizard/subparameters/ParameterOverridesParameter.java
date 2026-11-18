@@ -126,7 +126,7 @@ public class ParameterOverridesParameter implements
           .orElse(null);
       parameter.loadValueFromXML(overrideElement);
 
-      overrides.add(new ParameterOverride(moduleClass, moduleUniqueId, parameter, scope));
+      overrides.add(ParameterOverride.fromParameter(moduleClass, moduleUniqueId, parameter, scope));
     }
 
     this.value = overrides;
@@ -184,4 +184,5 @@ public class ParameterOverridesParameter implements
   public Priority getComponentVgrowPriority() {
     return Priority.ALWAYS;
   }
+
 }

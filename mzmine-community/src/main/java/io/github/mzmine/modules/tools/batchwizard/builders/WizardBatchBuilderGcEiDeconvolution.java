@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -37,9 +38,15 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateHandling;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateMzCheck;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.id_gc_ei_ion_notation.GcEiIonNotationModule;
 import io.github.mzmine.modules.dataprocessing.id_gc_ei_ion_notation.GcEiIonNotationParameters;
+import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingModule;
+import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -94,6 +101,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final int minNumberOfSignalsInDeconSpectra;
   private final Boolean exportAnnotationGraphics;
   private final Boolean applySpectralNetworking;
+  private final boolean applyGapFillingAndDuplicateFilter;
   // sub formula ion notations need accurate m/z values
   private final boolean highResolutionMs;
 
@@ -146,6 +154,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         WorkflowGcElectronImpactWizardParameters.exportAnnotationGraphics);
     applySpectralNetworking = getValue(params,
         WorkflowGcElectronImpactWizardParameters.applySpectralNetworking);
+    applyGapFillingAndDuplicateFilter = getValue(params,
+        WorkflowGcElectronImpactWizardParameters.applyGapFillingAndDuplicateFilter);
     minNumberOfSignalsInDeconSpectra = getValue(params,
         WorkflowGcElectronImpactWizardParameters.MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA);
 
@@ -181,13 +191,17 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     }
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
+    if (applyGapFillingAndDuplicateFilter) {
+      makeAndAddGcEiGapFillingStep(q);
+      makeAndAddGcEiDuplicateFilterStep(q);
+    }
     if (applySpectralNetworking) {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, true);
     }
     makeAndAddLibrarySearchMS1Step(q, false);
     makeAndAddIonNotationStep(q);
 
-    if (isExportActive) {
+    if (isExportActive && exportPath != null) {
       // decision: one row per deconvoluted compound like the previous GC-EI feature table, the
       // compound list holds all EI ion rows
       makeAndAddCsvModularExportStep(q, exportPath, CompoundRowSelection.COMPOUNDS,
@@ -239,6 +253,30 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralDeconvolutionGCModule.class), param));
+  }
+
+  private void makeAndAddGcEiGapFillingStep(final BatchQueue q) {
+    // m/z tolerance and minimum data points of the chromatogram builder, co-elution tolerance of
+    // the deconvolution
+    final ParameterSet param = GcEiGapFillingParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS), mzTolScans,
+        3, 2, interSampleRtTol, intraSampleRtTol, minRtDataPoints, "gaps",
+        handleOriginalFeatureLists);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GcEiGapFillingModule.class), param));
+  }
+
+  private void makeAndAddGcEiDuplicateFilterStep(final BatchQueue q) {
+    // after gap filling, duplicates of one compound co-elute within the deconvolution tolerance
+    final ParameterSet param = GcEiDuplicateFilterParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+        intraSampleRtTol, mzTolScans, GcEiDuplicateMzCheck.QUANTIFIER_IN_BOTH_SPECTRA,
+        GcEiDuplicateFilterParameters.DEFAULT_MIN_COSINE, GcEiDuplicateHandling.MERGE, "dup",
+        handleOriginalFeatureLists);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GcEiDuplicateFilterModule.class), param));
   }
 
   private void makeAndAddAlignmentStep(final BatchQueue q) {

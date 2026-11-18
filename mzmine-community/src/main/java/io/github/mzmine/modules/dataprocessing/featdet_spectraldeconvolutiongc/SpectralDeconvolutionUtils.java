@@ -42,6 +42,9 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -286,6 +289,56 @@ public class SpectralDeconvolutionUtils {
     }
     final double denominator = Math.sqrt(denominator1) * Math.sqrt(denominator2);
     return denominator == 0 ? 0 : numerator / denominator;
+  }
+
+  /**
+   * @return the {@link PseudoSpectrum} fragment scans of all features of the row
+   */
+  public static @NotNull List<PseudoSpectrum> getPseudoSpectra(@NotNull final FeatureListRow row) {
+    final List<PseudoSpectrum> pseudoSpectra = new ArrayList<>();
+    for (final Scan scan : row.getAllFragmentScans()) {
+      if (scan instanceof PseudoSpectrum pseudoSpectrum) {
+        pseudoSpectra.add(pseudoSpectrum);
+      }
+    }
+    return pseudoSpectra;
+  }
+
+  /**
+   * Merges the pseudo spectra of all features of a row into one consensus spectrum. Signals within
+   * the m/z tolerance are combined and their intensities summed. Other fragment scans are ignored.
+   *
+   * @param row         the row with GC-EI pseudo spectra as fragment scans
+   * @param mzTolerance tolerance to merge signals
+   * @return double[2][] with sorted m/z values [0] and summed intensities [1]. Empty arrays if the
+   * row has no pseudo spectrum
+   */
+  public static double @NotNull [] @NotNull [] mergePseudoSpectra(
+      @NotNull final FeatureListRow row, @NotNull final MZTolerance mzTolerance) {
+    return mergePseudoSpectra(row, mzTolerance, 1);
+  }
+
+  /**
+   * Merges the pseudo spectra of all features of a row and only keeps signals that are shared by a
+   * minimum number of pseudo spectra (samples). Signals within the m/z tolerance are combined and
+   * their intensities summed. Other fragment scans are ignored.
+   *
+   * @param row           the row with GC-EI pseudo spectra as fragment scans
+   * @param mzTolerance   tolerance to merge signals
+   * @param minDetections minimum number of pseudo spectra that contain a signal. Limited to the
+   *                      number of pseudo spectra of the row
+   * @return double[2][] with sorted m/z values [0] and summed intensities [1]. Empty arrays if the
+   * row has no pseudo spectrum
+   */
+  public static double @NotNull [] @NotNull [] mergePseudoSpectra(
+      @NotNull final FeatureListRow row, @NotNull final MZTolerance mzTolerance,
+      final int minDetections) {
+    final List<PseudoSpectrum> pseudoSpectra = getPseudoSpectra(row);
+    // decision: rows with fewer pseudo spectra than required use all of their pseudo spectra
+    final int minNumPeaks = Math.min(minDetections, pseudoSpectra.size());
+    return SpectraMerging.calculatedMergedMzsAndIntensities(pseudoSpectra, mzTolerance,
+        IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null,
+        minNumPeaks);
   }
 
   /**

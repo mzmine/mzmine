@@ -55,6 +55,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +116,8 @@ public class SmoothingTask extends AbstractTask {
     final ModularFeatureList smoothedList = flist.createCopy(flist.getName() + " " + suffix,
         getMemoryMapStorage(), false);
     DataTypeUtils.copyTypes(flist, smoothedList, true, true);
+    // smoothed features have new intensities, an earlier normalization does not apply to them
+    NormalizationRowIdentity.removeIntensityNormalization(smoothedList);
     // init a new smoother instance, since the parameters have to be stored in the smoother itself.
     final SmoothingAlgorithm smoother = FeatureSmoothingOptions.createSmoother(parameters);
     if (smoother == null) {

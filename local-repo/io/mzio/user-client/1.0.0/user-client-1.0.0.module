@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 67790,
-          "sha512": "ea9bafbf3aa0cd90ea4c78deaab35e5b00dc18b35c7223f462e11d7cd1568182f708256bace11ddd7c23a8c7f0afc78b308cc9baff0d702a3e6a7ee44ada540d",
-          "sha256": "cc8a646e36c17dacc2254790acc2f0fbff001c00b592fab4ce624d71b1e9210f",
-          "sha1": "03cfc6893a5e4cec14e87276bf28277eec650810",
-          "md5": "6cd3527a1e3461623d7114efafc72e6f"
+          "size": 89493,
+          "sha512": "e3df7ccd50c38e908b1ceeb7644c940375e262bac2074f4faec96667083d2e0925c523e86edfa871dac10453d80edc05cf7edf37e15f93b44c207e844025b82b",
+          "sha256": "7440bfa524a359d5cfe04890a8dd2ec0c4a3fdeb6def3e963e5cfb7224f262ee",
+          "sha1": "fba6e4bf3dba1953db19692af655d21bd6bdf00b",
+          "md5": "397f630b1371f295a1d78b957a466105"
         }
       ]
     },
@@ -67,6 +67,17 @@
           }
         },
         {
+          "group": "io.github.mzmine",
+          "module": "utils"
+        },
+        {
+          "group": "com.vdurmont",
+          "module": "semver4j",
+          "version": {
+            "requires": "3.1.0"
+          }
+        },
+        {
           "group": "com.javax0.license3j",
           "module": "license3j",
           "version": {
@@ -86,17 +97,24 @@
           "version": {
             "requires": "24.0.3"
           }
+        },
+        {
+          "group": "com.microsoft",
+          "module": "credential-secure-storage",
+          "version": {
+            "requires": "1.0.3"
+          }
         }
       ],
       "files": [
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 67790,
-          "sha512": "ea9bafbf3aa0cd90ea4c78deaab35e5b00dc18b35c7223f462e11d7cd1568182f708256bace11ddd7c23a8c7f0afc78b308cc9baff0d702a3e6a7ee44ada540d",
-          "sha256": "cc8a646e36c17dacc2254790acc2f0fbff001c00b592fab4ce624d71b1e9210f",
-          "sha1": "03cfc6893a5e4cec14e87276bf28277eec650810",
-          "md5": "6cd3527a1e3461623d7114efafc72e6f"
+          "size": 89493,
+          "sha512": "e3df7ccd50c38e908b1ceeb7644c940375e262bac2074f4faec96667083d2e0925c523e86edfa871dac10453d80edc05cf7edf37e15f93b44c207e844025b82b",
+          "sha256": "7440bfa524a359d5cfe04890a8dd2ec0c4a3fdeb6def3e963e5cfb7224f262ee",
+          "sha1": "fba6e4bf3dba1953db19692af655d21bd6bdf00b",
+          "md5": "397f630b1371f295a1d78b957a466105"
         }
       ]
     }

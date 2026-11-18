@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -156,6 +155,17 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
     return true;
   }
 
+  /**
+   * Checks the parameters of all batch steps. This method must not open dialogs because it is also
+   * called by the live component validation of the parameter setup pane on every change of the
+   * queue, e.g., when steps are moved. Plausibility warnings of
+   * {@link BatchUtils#checkBatchParameters(BatchQueue)} are confirmed by the user in
+   * {@link BatchModeParameterSetupDialog} when checking or starting the batch and only logged in
+   * headless mode.
+   *
+   * @param errorMessages collects the error messages
+   * @return true if all step parameters are valid
+   */
   @Override
   public boolean checkValue(final Collection<String> errorMessages) {
 
@@ -191,19 +201,11 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
         }
       }
 
-      // do meta checks through all parameters
-      // check min samples filter
-      String warning = BatchUtils.checkBatchParameters(value);
-      if (warning != null) {
-        if (DesktopService.isGUI()) {
-          final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
-              %s
-              Continue anyway?""".formatted(warning));
-
-          allParamsOK = allParamsOK && continueAnyway;
-        } else {
-          // only add warning if not GUI as GUI otherwise shows two dialogs
-          // in CLI mode we will just log the warning but still continue with the batch
+      // decision: plausibility warnings never fail the check. The GUI asks for confirmation in
+      // BatchModeParameterSetupDialog, in CLI mode we only log them and continue with the batch
+      if (!DesktopService.isGUI()) {
+        final String warning = BatchUtils.checkBatchParameters(value);
+        if (warning != null) {
           logger.warning(warning);
           errorMessages.add(warning);
         }

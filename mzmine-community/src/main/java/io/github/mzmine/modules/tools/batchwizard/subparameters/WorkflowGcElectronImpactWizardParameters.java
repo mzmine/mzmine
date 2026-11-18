@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,14 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import java.io.File;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWizardParameters {
 
@@ -43,6 +46,12 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
       "Apply spectral / molecular networking", """
       Applies feature-based molecular networking by comparing all pseudo MS2 spectra.
       Adds graphml export and enables use of interactive network visualizer in mzmine.""", true);
+
+  public static final BooleanParameter applyGapFillingAndDuplicateFilter = new BooleanParameter(
+      "Apply gap filling and duplicate filter", """
+      Applies the GC-EI gap filling and the GC-EI duplicate row filter after alignment.
+      Gap filling adds missing features if the top signals of the pseudo spectrum co-elute.
+      The duplicate filter merges rows of the same compound.""", true);
 
   public static final BooleanParameter exportGnps = new BooleanParameter(
       "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
@@ -64,22 +73,34 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
   public WorkflowGcElectronImpactWizardParameters() {
     super(new WorkflowDeconvolution(),
         // actual parameters
-        MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, applySpectralNetworking, exportPath, exportGnps,
-        exportMsp, exportAnnotationGraphics);
+        MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, applyGapFillingAndDuplicateFilter,
+        applySpectralNetworking, exportPath, exportGnps, exportMsp, exportAnnotationGraphics);
   }
 
 
   public WorkflowGcElectronImpactWizardParameters(final int numberOfSignals,
-      final boolean applyNetworking, final boolean exportActive, final File exportBasePath,
+      final boolean applyGapFillingAndDuplicates, final boolean applyNetworking,
+      final boolean exportActive, final File exportBasePath,
       final boolean exportGnpsActive, final boolean exportMspActive,
       final boolean exportAnnotationGraphicsActive) {
     this();
     setParameter(exportPath, exportActive, exportBasePath);
     setParameter(MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, numberOfSignals);
+    setParameter(applyGapFillingAndDuplicateFilter, applyGapFillingAndDuplicates);
     setParameter(applySpectralNetworking, applyNetworking);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportMsp, exportMspActive);
     setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);
+  }
+
+  @Override
+  public void handleLoadedParameters(@NotNull final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    // presets saved before this option existed keep their previous workflow
+    if (!loadedParams.containsKey(applyGapFillingAndDuplicateFilter.getName())) {
+      setParameter(applyGapFillingAndDuplicateFilter, false);
+    }
   }
 
 }

@@ -26,9 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.List;
+import java.util.OptionalDouble;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -101,6 +105,32 @@ record CompositeNormalizationFunction(
       f *= function.getNormalizationFactor(mz, rt);
     }
     return f;
+  }
+
+  @Override
+  public @NotNull OptionalDouble getNormalizationFactor(@Nullable final FeatureListRow row,
+      @NotNull final Double mz, @NotNull final Float rt) {
+    double factor = 1d;
+    for (final NormalizationFunction function : functions) {
+      final OptionalDouble resolved = function.getNormalizationFactor(row, mz, rt);
+      if (resolved.isEmpty()) return OptionalDouble.empty();
+      factor *= resolved.getAsDouble();
+    }
+    return OptionalDouble.of(factor);
+  }
+
+  @Override public boolean isRowDependent() {
+    return functions.stream().anyMatch(NormalizationFunction::isRowDependent);
+  }
+
+  @Override
+  public @NotNull NormalizationFunction remapRowIds(
+      @NotNull final Map<Integer, Integer> oldToNewIds) {
+    if (!isRowDependent()) {
+      return this;
+    }
+    return new CompositeNormalizationFunction(
+        functions.stream().map(function -> function.remapRowIds(oldToNewIds)).toList());
   }
 
   @Override

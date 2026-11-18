@@ -71,6 +71,7 @@ import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeat
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter_gc_ei.GcEiDuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
@@ -94,6 +95,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersMod
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.gapfill_gc_ei.GcEiGapFillingModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
@@ -176,6 +178,8 @@ import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFinger
 import io.github.mzmine.modules.tools.siriusapi.modules.import_annotations.SiriusApiResultsImportModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
+import io.github.mzmine.modules.tools.tools_autoparam.AutoParamDashboardModule;
+import io.github.mzmine.modules.tools.tools_autoparam.statistics.AutoParamModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
@@ -183,9 +187,10 @@ import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.Equival
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap2DModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
@@ -205,7 +210,6 @@ import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.reporting.jasper.ReportingModule;
 import java.util.ArrayList;
@@ -333,6 +337,7 @@ public class BatchModeModulesList {
           PeakFinderModule.class, //
           MultiThreadPeakFinderModule.class, //
           SameRangeGapFillerModule.class, //
+          GcEiGapFillingModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_FILTERING}
@@ -344,6 +349,7 @@ public class BatchModeModulesList {
           FeatureListBlankSubtractionModule.class, //
           ChromatogramBlankSubtractionModule.class, //
           DuplicateFilterModule.class, //
+          GcEiDuplicateFilterModule.class, //
           MobilityMzRegionExtractionModule.class, //
           NeutralLossFilterModule.class, //
           PeakComparisonRowFilterModule.class, //
@@ -484,8 +490,8 @@ public class BatchModeModulesList {
           SpectraVisualizerModule.class, //
           FrameVisualizerModule.class, //
           ChromatogramVisualizerModule.class, //
-          TwoDVisualizerModule.class, //
-          Fx3DVisualizerModule.class, //
+          IntensityMap2DModule.class, //
+          IntensityMap3DModule.class, //
           MassvoltammogramFromFileModule.class, //
           MassvoltammogramFromFeatureListModule.class, //
           MSnTreeVisualizerModule.class, //
@@ -512,7 +518,9 @@ public class BatchModeModulesList {
           StatsDasboardModule.class, //
           ExternalRowHtmlVisualizerModule.class, //
           PCAModule.class, //
-          VolcanoPlotModule.class //
+          VolcanoPlotModule.class, //
+//          AutoParamModule.class, //
+          AutoParamDashboardModule.class //
 
 //      , CodingDemoModule.class // only test purpose
       ));
