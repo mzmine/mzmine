@@ -62,4 +62,13 @@ maintainable.
   into multiple modules. Ask for verification in that case.
 - If multiple algorithms can be used to perform a task, use a `ModuleOptionsEnumComboParameter` to
   create a single entry point in a larger module (see `IntensityNormalizerParameters`)  
-  
+
+# Parameters
+
+- Never create a ParameterSet with just `new XParameters()`; use
+  `new XParameters().cloneParameterSet()`. Exception: `WizardStepParameters` (cloning causes a
+  ClassCastException).
+- When adding a `Parameter` to an existing `ParameterSet`, override `handleLoadedParameters` so
+  batches saved before the change keep the old default behaviour.
+  - If the module's behaviour changes anyway, increment the ParameterSet version and add a short
+    user-facing message in `getVersionMessage`.
