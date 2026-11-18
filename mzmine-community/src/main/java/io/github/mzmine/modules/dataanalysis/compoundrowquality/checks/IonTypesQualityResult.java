@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -21,6 +46,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +66,7 @@ public final class IonTypesQualityResult extends QualityCheckResult {
   private final @NotNull List<@NotNull String> ionTypeNames;
   // shared by summary and chips, so one toggle unfolds both
   private final BooleanProperty expanded = new SimpleBooleanProperty(false);
+  private @Nullable Subscription chipsSubscription;
   private final @NotNull List<@NotNull FeatureListRow> distinctIonRows;
   private final @NotNull ColorAssignment colorAssignment;
   private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
@@ -84,7 +111,11 @@ public final class IonTypesQualityResult extends QualityCheckResult {
     final FlowPane chips = FxLayout.newFlowPane();
     chips.setPadding(Insets.EMPTY);
     chips.setMinWidth(0);
-    expanded.subscribe(isExpanded -> fillChips(chips, isExpanded));
+    // a rebuilt sub pane replaces the previous one, so only the latest chips listen
+    if (chipsSubscription != null) {
+      chipsSubscription.unsubscribe();
+    }
+    chipsSubscription = expanded.subscribe(isExpanded -> fillChips(chips, isExpanded));
     return chips;
   }
 
