@@ -71,6 +71,7 @@ import io.github.mzmine.util.web.ProxyUtils;
 import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import io.github.mzmine.util.web.proxy.ManualProxyConfig;
 import io.github.mzmine.util.web.proxy.ProxyConfigOption;
+import io.mzio.users.gui.fx.LoginBrowserOption;
 import io.mzio.users.gui.fx.UsersController;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -137,6 +138,12 @@ public class MZminePreferences extends SimpleParameterSet {
       Default is true (checked).""", true);
 
   public static final ProxyConfigParameter proxyConfig = new ProxyConfigParameter();
+  public static final ComboParameter<LoginBrowserOption> loginBrowser = new ComboParameter<>(
+      "User login in", """
+      Where the user sign in page opens.
+      mzmine: internal browser, continues in the system browser if the page cannot be loaded or shows an error.
+      System browser: always the default system browser.""", LoginBrowserOption.values(),
+      LoginBrowserOption.MZMINE);
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   //  public static final BooleanParameter sendStatistics = new BooleanParameter(
@@ -294,7 +301,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public MZminePreferences() {
     super(// start with performance
         new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxyConfig,
+            runGCafterBatchStep, deleteTempFiles, proxyConfig, loginBrowser,
             /*applyTimsPressureCompensation,*/
             // visuals
             // number formats
@@ -339,7 +346,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     final List<ParameterGroup> groups = List.of( //
         new ParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxyConfig
+            runGCafterBatchStep, deleteTempFiles, proxyConfig, loginBrowser
             /*, applyTimsPressureCompensation*/), //
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
@@ -379,6 +386,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public void applyConfig(final @Nullable Themes previousTheme) {
     // Update proxy settings
     updateSystemProxySettings();
+    UsersController.setLoginBrowser(getValue(MZminePreferences.loginBrowser));
 
     // enforce memory option (only applies to new data)
     final KeepInMemory keepInMemory = getValue(MZminePreferences.memoryOption);
@@ -541,6 +549,8 @@ public class MZminePreferences extends SimpleParameterSet {
   public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
       final int loadedVersion) {
     updateSystemProxySettings();
+    // set before the stored user is loaded, which may start a sign-in
+    UsersController.setLoginBrowser(getValue(MZminePreferences.loginBrowser));
     updateGuiFormat();
     darkModeProperty.set(getThemeConfig().isDark());
     String username = ConfigService.getPreference(MZminePreferences.username);
