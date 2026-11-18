@@ -24,12 +24,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
-import io.github.mzmine.datamodel.MetadataOnlyScan;
-
+/**
+ * Spectral data of a single mobility scan. Mobility scans of a frame are processed together by
+ * {@link MsProcessor#processMobilityScans}.
+ */
 public record MobilitySpectralArrays(double mobility, SimpleSpectralArrays spectrum) {
 
-  public MobilitySpectralArrays process(MetadataOnlyScan scan, ScanImportProcessorConfig config) {
-    final SimpleSpectralArrays arrays = config.processor().processScan(scan, spectrum);
-    return new MobilitySpectralArrays(mobility, arrays);
-  }
 }
