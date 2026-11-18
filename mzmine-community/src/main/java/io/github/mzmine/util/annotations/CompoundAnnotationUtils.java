@@ -116,6 +116,21 @@ public class CompoundAnnotationUtils {
   }
 
   /**
+   * Precalculates the values of the first annotation of a row's annotation list, the one the
+   * feature table shows ({@link #getTopAnnotationsPerType(ModularDataModel)}). The others compute
+   * their values on first use, so adding many matches per row does not parse a structure for each
+   * of them.
+   *
+   * @param rowAnnotations the row's whole list of one annotation type, after adding
+   */
+  public static void precalculateDisplayedAnnotationValues(
+      @NotNull List<? extends FeatureAnnotation> rowAnnotations, FeatureListRow row) {
+    if (!rowAnnotations.isEmpty()) {
+      precalculateAnnotationValues(rowAnnotations.getFirst(), row);
+    }
+  }
+
+  /**
    * Precalculates the isotope pattern and maybe other properties of a feature annotation to speed
    * up the feature table. This is usually done in {@link FeatureListRow} methods where annotations
    * are added.
