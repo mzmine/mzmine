@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -106,6 +108,10 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
               FeatureListUtils.estimateFeatures(numRows, numRaws));
     };
     processedList = targetList;
+    if (targetList != originalList) {
+      // gap filling keeps all rows, so the compound list stays valid and updates with new features
+      FeatureListUtils.copyCompoundListByRowId(originalList, targetList, getMemoryMapStorage());
+    }
 
     // collect all gaps before rows are modified in parallel
     final Map<RawDataFile, List<GcEiGapFillTarget>> gapsPerFile = collectGaps(targetList,
@@ -148,6 +154,32 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
   }
 
   /**
+   * GC-EI deconvolution keeps all features of a compound as rows and groups them in the compound
+   * list. Only the representative row of each compound holds the pseudo spectrum and is
+   * gap-filled.
+   *
+   * @param flist the feature list to gap-fill
+   * @return the representative rows of all compounds or all rows if the feature list has no
+   * up-to-date compound list
+   */
+  private static @NotNull List<FeatureListRow> getRowsToFill(
+      @NotNull final ModularFeatureList flist) {
+    final CompoundList compoundList = flist.getCompoundList();
+    if (compoundList == null) {
+      return flist.getRows();
+    }
+    if (compoundList.isStale()) {
+      // decision: a stale compound list may miss rows, so all rows are gap-filled
+      logger.warning(() -> """
+          The compound list of %s is outdated, rows were added or removed after compound grouping. \
+          Gap filling all rows instead of only the representative rows of compounds.""".formatted(
+          flist.getName()));
+      return flist.getRows();
+    }
+    return compoundList.getRows().stream().map(ModularCompoundRow::getPreferredRow).toList();
+  }
+
+  /**
    * @param flist       the feature list to gap-fill
    * @param mzTolerance tolerance to merge the pseudo spectra of each row
    * @return the gaps (rows without feature) for each raw data file. Rows without pseudo spectrum
@@ -157,7 +189,7 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
       @NotNull final ModularFeatureList flist, @NotNull final MZTolerance mzTolerance) {
     final Map<RawDataFile, List<GcEiGapFillTarget>> gapsPerFile = new LinkedHashMap<>();
     int rowsWithoutSignals = 0;
-    for (final FeatureListRow row : flist.getRows()) {
+    for (final FeatureListRow row : getRowsToFill(flist)) {
       final GcEiGapFillTarget target = GcEiGapFillTarget.fromRow(row, numTopSignals,
           minSignalDetections, mzTolerance);
       if (target == null) {

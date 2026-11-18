@@ -44,6 +44,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
@@ -74,6 +78,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import testutils.MZmineTestUtil;
 
 /**
@@ -234,14 +240,106 @@ class GcEiDuplicateFilterTaskTest {
         "row 2 is a duplicate of the best row 1, row 3 must not be removed via row 2");
   }
 
+  @Test
+  void mergesMemberRowsOfDuplicateCompounds() {
+    addRow(1, MZ_A, RT, SPECTRUM_X,
+        features(fileA, FeatureStatus.DETECTED, fileB, FeatureStatus.DETECTED));
+    addRow(2, MZ_B, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    // member ions: row 4 is the same ion as row 3, row 5 only exists in the duplicate compound
+    addRow(3, MZ_C, RT, SPECTRUM_X, features(fileA, FeatureStatus.DETECTED));
+    addRow(4, MZ_C, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    addRow(5, 301.2, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    setCompounds(List.of(1, 3), List.of(2, 4, 5));
+
+    run(GcEiDuplicateMzCheck.QUANTIFIER_IN_BOTH_SPECTRA, GcEiDuplicateHandling.MERGE,
+        OriginalFeatureListOption.KEEP);
+
+    final ModularFeatureList filtered = project.getCurrentFeatureLists().stream()
+        .map(ModularFeatureList.class::cast).filter(f -> f != flist).findFirst().orElseThrow();
+    assertEquals(List.of(1, 3, 5),
+        filtered.getRows().stream().map(FeatureListRow::getID).sorted().toList());
+    assertEquals(3, filtered.findRowByID(1).getNumberOfFeatures());
+    final Feature mergedMember = filtered.findRowByID(3).getFeature(fileC);
+    assertNotNull(mergedMember, "the member of the duplicate is merged into the same ion");
+    assertEquals(MZ_C, mergedMember.getMZ(), 0.001);
+
+    assertTrue(filtered.hasCompoundList(), "the compound list is copied");
+    final List<ModularCompoundRow> compounds = filtered.getCompoundList().getRows();
+    assertEquals(1, compounds.size(), "the duplicate compound is merged");
+    assertEquals(filtered.findRowByID(1), compounds.getFirst().getPreferredRow());
+    assertEquals(List.of(1, 3, 5),
+        compounds.getFirst().getMemberRows().stream().map(FeatureListRow::getID).sorted().toList());
+  }
+
+  @Test
+  void removeModeRemovesAllMemberRowsOfDuplicateCompounds() {
+    addRow(1, MZ_A, RT, SPECTRUM_X,
+        features(fileA, FeatureStatus.DETECTED, fileB, FeatureStatus.DETECTED));
+    addRow(2, MZ_B, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    addRow(3, MZ_C, RT, SPECTRUM_X, features(fileA, FeatureStatus.DETECTED));
+    addRow(4, 301.2, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    setCompounds(List.of(1, 3), List.of(2, 4));
+
+    run(GcEiDuplicateMzCheck.QUANTIFIER_IN_BOTH_SPECTRA, GcEiDuplicateHandling.REMOVE);
+
+    assertEquals(List.of(1, 3),
+        flist.getRows().stream().map(FeatureListRow::getID).sorted().toList());
+    assertEquals(1, flist.getCompoundList().getRows().size());
+  }
+
+  @ParameterizedTest
+  @EnumSource(GcEiDuplicateHandling.class)
+  void keepsMemberRowsSharedWithTheKeptCompound(@NotNull final GcEiDuplicateHandling handling) {
+    addRow(1, MZ_A, RT, SPECTRUM_X,
+        features(fileA, FeatureStatus.DETECTED, fileB, FeatureStatus.DETECTED));
+    addRow(2, MZ_B, RT, SPECTRUM_X, features(fileC, FeatureStatus.DETECTED));
+    addRow(3, MZ_C, RT, SPECTRUM_X, features(fileA, FeatureStatus.DETECTED));
+    // row 3 is a member of both compounds
+    setCompounds(List.of(1, 3), List.of(2, 3));
+
+    run(GcEiDuplicateMzCheck.QUANTIFIER_IN_BOTH_SPECTRA, handling);
+
+    assertEquals(List.of(1, 3),
+        flist.getRows().stream().map(FeatureListRow::getID).sorted().toList());
+    assertEquals(List.of(1, 3),
+        flist.getCompoundList().getRows().getFirst().getMemberRows().stream()
+            .map(FeatureListRow::getID).sorted().toList());
+  }
+
+  /**
+   * @param memberIdsPerCompound row IDs of each compound, the first row is the representative
+   */
+  @SafeVarargs
+  private void setCompounds(@NotNull final List<Integer>... memberIdsPerCompound) {
+    final CompoundList compoundList = new CompoundList(flist, null, memberIdsPerCompound.length);
+    final List<ModularCompoundRow> compounds = new ArrayList<>();
+    for (int c = 0; c < memberIdsPerCompound.length; c++) {
+      final List<CompoundFeatureMember> members = new ArrayList<>();
+      for (final int id : memberIdsPerCompound[c]) {
+        members.add(new CompoundFeatureMember(flist.findRowByID(id),
+            members.isEmpty() ? CompoundMemberRole.REPRESENTATIVE : CompoundMemberRole.CORRELATED,
+            1f));
+      }
+      compounds.add(
+          new ModularCompoundRow(compoundList, c + 1, members.getFirst().row(), members, 1f, null));
+    }
+    compoundList.setRows(compounds);
+    flist.setCompoundList(compoundList);
+  }
+
   private void run(@NotNull final GcEiDuplicateMzCheck mzCheck,
       @NotNull final GcEiDuplicateHandling handling) {
+    run(mzCheck, handling, OriginalFeatureListOption.PROCESS_IN_PLACE);
+  }
+
+  private void run(@NotNull final GcEiDuplicateMzCheck mzCheck,
+      @NotNull final GcEiDuplicateHandling handling,
+      @NotNull final OriginalFeatureListOption handleOriginal) {
     project.addFeatureList(flist);
     final ParameterSet params = GcEiDuplicateFilterParameters.create(
         new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS),
         new RTTolerance(0.04f, Unit.MINUTES), MZ_TOLERANCE, mzCheck,
-        GcEiDuplicateFilterParameters.DEFAULT_MIN_COSINE, handling, "dup",
-        OriginalFeatureListOption.PROCESS_IN_PLACE);
+        GcEiDuplicateFilterParameters.DEFAULT_MIN_COSINE, handling, "dup", handleOriginal);
     final GcEiDuplicateFilterTask task = new GcEiDuplicateFilterTask(project, flist, null,
         Instant.now(), params, GcEiDuplicateFilterModule.class);
     task.run();

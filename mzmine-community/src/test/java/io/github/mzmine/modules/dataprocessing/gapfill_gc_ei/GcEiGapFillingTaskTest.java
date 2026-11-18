@@ -39,6 +39,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
@@ -184,6 +188,42 @@ class GcEiGapFillingTaskTest {
 
     Assertions.assertNull(flist.getRow(0).getFeature(sample),
         "noise spikes must not confirm the third signal");
+  }
+
+  @Test
+  void fillsOnlyRepresentativeRowsOfCompounds() {
+    final RawDataFile sample = createFile("sample",
+        Map.of(QUANTIFIER_MZ, ROW_RT, SECOND_MZ, ROW_RT, THIRD_MZ, ROW_RT));
+    final ModularFeatureList flist = createAlignedList(false, reference, sample);
+    final FeatureListRow representative = flist.getRow(0);
+    // a compound member with the same signals and even a pseudo spectrum would be gap-filled
+    // without the compound list
+    final ModularFeatureListRow member = new ModularFeatureListRow(flist, 2,
+        new ModularFeature(flist, representative.getFeature(reference)));
+    flist.addRow(member);
+    // after adding rows, otherwise the compound list is stale
+    final CompoundList compoundList = new CompoundList(flist, null, 1);
+    compoundList.setRows(List.of(new ModularCompoundRow(compoundList, 1, representative,
+        List.of(new CompoundFeatureMember(representative, CompoundMemberRole.REPRESENTATIVE, 1f),
+            new CompoundFeatureMember(member, CompoundMemberRole.CORRELATED, 1f)), 1f, null)));
+    flist.setCompoundList(compoundList);
+
+    runGapFilling(flist, OriginalFeatureListOption.KEEP);
+
+    final ModularFeatureList gapFilled = project.getCurrentFeatureLists().stream()
+        .map(ModularFeatureList.class::cast).filter(f -> f != flist).findFirst().orElseThrow();
+    Assertions.assertNotNull(gapFilled.findRowByID(1).getFeature(sample),
+        "the representative row is gap-filled");
+    Assertions.assertNull(gapFilled.findRowByID(2).getFeature(sample),
+        "other compound members are not gap-filled");
+
+    Assertions.assertTrue(gapFilled.hasCompoundList(), "the compound list is copied");
+    final List<ModularCompoundRow> compounds = gapFilled.getCompoundList().getRows();
+    Assertions.assertEquals(1, compounds.size());
+    Assertions.assertSame(gapFilled.findRowByID(1),
+        compounds.getFirst().getMemberRowsByRole(CompoundMemberRole.REPRESENTATIVE).getFirst(),
+        "the compound references the rows of the new feature list");
+    Assertions.assertEquals(2, compounds.getFirst().compoundSize());
   }
 
   @Test

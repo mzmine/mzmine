@@ -37,6 +37,9 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCConsensusAlignerPostProcessor;
@@ -59,6 +62,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +71,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Removes duplicate rows of the same compound from GC-EI feature lists. Duplicates are rows within
  * the retention time tolerance that pass the quantifier m/z check and have similar pseudo spectra.
- * The best row of each group is kept and may receive the features of its duplicates.
+ * The best row of each group is kept and may receive the features of its duplicates. With a
+ * compound list, the representative rows of the compounds are compared and duplicate compounds are
+ * merged into or removed with all their member rows.
  */
 public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
 
@@ -110,15 +116,34 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
           FeatureListUtils.createCopy(originalList, suffix, getMemoryMapStorage(), true);
     };
     processedList = targetList;
+    if (targetList != originalList) {
+      // removed rows are detached from the compound list, so it stays valid
+      FeatureListUtils.copyCompoundListByRowId(originalList, targetList, getMemoryMapStorage());
+    }
+    final CompoundList compoundList = getUpToDateCompoundList(targetList);
+
+    // with a compound list, only the representative rows hold pseudo spectra and stand for their
+    // compound. Rows are identified by identity, as rows of different lists may share IDs
+    final Map<FeatureListRow, ModularCompoundRow> compoundOfRepresentative = new IdentityHashMap<>();
+    final List<FeatureListRow> rowsToCheck;
+    if (compoundList != null) {
+      rowsToCheck = new ArrayList<>(compoundList.getRows().size());
+      for (final ModularCompoundRow compound : compoundList.getRows()) {
+        rowsToCheck.add(compound.getPreferredRow());
+        compoundOfRepresentative.put(compound.getPreferredRow(), compound);
+      }
+    } else {
+      rowsToCheck = targetList.getRows();
+    }
 
     final List<GcEiDuplicateCandidate> candidates = new ArrayList<>();
-    for (final FeatureListRow row : targetList.getRows()) {
+    for (final FeatureListRow row : rowsToCheck) {
       final GcEiDuplicateCandidate candidate = GcEiDuplicateCandidate.fromRow(row, mzTolerance);
       if (candidate != null) {
         candidates.add(candidate);
       }
     }
-    final int skipped = targetList.getNumberOfRows() - candidates.size();
+    final int skipped = rowsToCheck.size() - candidates.size();
     if (skipped > 0) {
       logger.warning(() -> """
           %d rows of %s have no pseudo spectrum and were not checked for duplicates. \
@@ -132,10 +157,12 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
         .sorted(GcEiDuplicateCandidate.BEST_FIRST).toList();
     totalItems = bestFirst.size();
 
-    // rows are identified by identity, as rows of different lists may share IDs
     final Set<FeatureListRow> duplicates = Collections.newSetFromMap(new IdentityHashMap<>());
     final Set<FeatureListRow> processed = Collections.newSetFromMap(new IdentityHashMap<>());
+    final Set<FeatureListRow> rowsToRemove = Collections.newSetFromMap(new IdentityHashMap<>());
     final Set<FeatureListRow> mergedRows = Collections.newSetFromMap(new IdentityHashMap<>());
+    // kept compound -> duplicate compounds, merged after the loop
+    final Map<ModularCompoundRow, List<ModularCompoundRow>> compoundMerges = new IdentityHashMap<>();
     int mergedFeatures = 0;
 
     // assumption: GC-EI workflows smooth at most once, usually before resolving
@@ -165,13 +192,33 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
           continue;
         }
         duplicates.add(other.row());
-        final int merged = switch (handling) {
-          case MERGE -> mergeInto(targetList, best, other, smoother);
-          case REMOVE -> 0;
-        };
-        if (merged > 0) {
-          mergedFeatures += merged;
-          mergedRows.add(best.row());
+        rowsToRemove.add(other.row());
+        final ModularCompoundRow bestCompound = compoundOfRepresentative.get(best.row());
+        final ModularCompoundRow otherCompound = compoundOfRepresentative.get(other.row());
+        switch (handling) {
+          case MERGE -> {
+            if (bestCompound != null && otherCompound != null) {
+              // members first, so that ions measured in both compounds are copied, not re-extracted
+              mergedFeatures += mergeMembers(targetList, bestCompound, otherCompound, other.row(),
+                  smoother, mergedRows, rowsToRemove);
+              compoundMerges.computeIfAbsent(bestCompound, _ -> new ArrayList<>())
+                  .add(otherCompound);
+            }
+            final int merged = mergeInto(targetList, best.row(), best.quantifierMz(), other.row(),
+                smoother);
+            if (merged > 0) {
+              mergedFeatures += merged;
+              mergedRows.add(best.row());
+            }
+          }
+          case REMOVE -> {
+            if (bestCompound != null && otherCompound != null) {
+              final List<FeatureListRow> bestMembers = bestCompound.getMemberRows();
+              // rows shared with the kept compound stay
+              otherCompound.getMemberRows().stream().filter(row -> !bestMembers.contains(row))
+                  .forEach(rowsToRemove::add);
+            }
+          }
         }
       }
     }
@@ -180,49 +227,117 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
     for (final FeatureListRow row : mergedRows) {
       targetList.applyRowBindings(row);
     }
-    targetList.removeRows(new ArrayList<>(duplicates));
+    if (compoundList != null) {
+      // members without a counterpart in the kept compound move into the kept compound
+      for (final Map.Entry<ModularCompoundRow, List<ModularCompoundRow>> merge : compoundMerges.entrySet()) {
+        CompoundRowUtils.mergeCompoundRows(compoundList, merge.getKey(), merge.getValue(),
+            List.of());
+      }
+    }
+    // also detaches the removed rows from the compound list
+    targetList.removeRows(new ArrayList<>(rowsToRemove));
     handleOriginal.reflectNewFeatureListToProject(suffix, project, targetList, originalList);
 
     final int mergedTotal = mergedFeatures;
-    logger.info(
-        () -> "GC-EI duplicate filter on %s removed %d duplicate rows and merged %d features".formatted(
-            originalList.getName(), duplicates.size(), mergedTotal));
+    logger.info(() -> """
+        GC-EI duplicate filter on %s found %d duplicates, removed %d rows and merged %d features""".formatted(
+        originalList.getName(), duplicates.size(), rowsToRemove.size(), mergedTotal));
   }
 
   /**
-   * Transfers features of the duplicate to the best row if the best row has no feature or only an
-   * estimated (gap-filled) feature in this sample. Features with a different m/z are re-extracted
-   * at the quantifier m/z of the best row, so that all features of a row are quantified on the
-   * same m/z. Re-extracted features are smoothed like the other features of the row.
+   * @return the compound list or null if there is none or it is outdated
+   */
+  private static @Nullable CompoundList getUpToDateCompoundList(
+      @NotNull final ModularFeatureList flist) {
+    final CompoundList compoundList = flist.getCompoundList();
+    if (compoundList == null) {
+      return null;
+    }
+    if (compoundList.isStale()) {
+      // decision: a stale compound list may miss rows, so all rows are checked
+      logger.warning(() -> """
+          The compound list of %s is outdated, rows were added or removed after compound grouping. \
+          Checking all rows for duplicates instead of the compounds.""".formatted(flist.getName()));
+      return null;
+    }
+    return compoundList;
+  }
+
+  /**
+   * Merges each member row of the duplicate compound into the member row of the kept compound with
+   * the closest m/z. Merged member rows are removed. Members without a counterpart are kept and
+   * later moved into the kept compound.
    *
+   * @param duplicateRepresentative merged separately on the quantifier m/z of the kept compound
+   * @param mergedRows              receives the member rows that received features
+   * @param rowsToRemove            receives the merged member rows of the duplicate compound
+   * @return the number of transferred features
+   */
+  private int mergeMembers(@NotNull final ModularFeatureList flist,
+      @NotNull final ModularCompoundRow bestCompound,
+      @NotNull final ModularCompoundRow duplicateCompound,
+      @NotNull final FeatureListRow duplicateRepresentative,
+      @Nullable final SmoothingAlgorithm smoother, @NotNull final Set<FeatureListRow> mergedRows,
+      @NotNull final Set<FeatureListRow> rowsToRemove) {
+    final List<FeatureListRow> bestMembers = bestCompound.getMemberRows();
+    int merged = 0;
+    for (final FeatureListRow member : duplicateCompound.getMemberRows()) {
+      // rows shared with the kept compound stay as they are
+      if (member == duplicateRepresentative || bestMembers.contains(member)) {
+        continue;
+      }
+      final double mz = member.getAverageMZ();
+      final FeatureListRow target = bestMembers.stream()
+          .filter(row -> mzTolerance.checkWithinTolerance(row.getAverageMZ(), mz))
+          .min(Comparator.comparingDouble(row -> Math.abs(row.getAverageMZ() - mz))).orElse(null);
+      if (target == null) {
+        continue;
+      }
+      final int transferred = mergeInto(flist, target, target.getAverageMZ(), member, smoother);
+      if (transferred > 0) {
+        merged += transferred;
+        mergedRows.add(target);
+      }
+      rowsToRemove.add(member);
+    }
+    return merged;
+  }
+
+  /**
+   * Transfers features of the duplicate to the target row if the target row has no feature or only
+   * an estimated (gap-filled) feature in this sample. Features with a different m/z are re-extracted
+   * at the m/z of the target row, so that all features of a row are quantified on the same m/z.
+   * Re-extracted features are smoothed like the other features of the row.
+   *
+   * @param targetMz the quantifier m/z of the target row
    * @param smoother the smoother of the processing history or null if there was no smoothing
    * @return the number of transferred features
    */
   private int mergeInto(@NotNull final ModularFeatureList flist,
-      @NotNull final GcEiDuplicateCandidate best, @NotNull final GcEiDuplicateCandidate duplicate,
-      @Nullable final SmoothingAlgorithm smoother) {
+      @NotNull final FeatureListRow target, final double targetMz,
+      @NotNull final FeatureListRow duplicate, @Nullable final SmoothingAlgorithm smoother) {
     int merged = 0;
-    for (final ModularFeature duplicateFeature : duplicate.row().getFeatures()) {
+    for (final ModularFeature duplicateFeature : duplicate.getFeatures()) {
       final RawDataFile file = duplicateFeature.getRawDataFile();
-      final Feature bestFeature = best.row().getFeature(file);
+      final Feature targetFeature = target.getFeature(file);
       if (statusRank(duplicateFeature.getFeatureStatus()) <= statusRank(
-          bestFeature != null ? bestFeature.getFeatureStatus() : FeatureStatus.UNKNOWN)) {
+          targetFeature != null ? targetFeature.getFeatureStatus() : FeatureStatus.UNKNOWN)) {
         continue;
       }
 
       final ModularFeature newFeature;
-      if (mzTolerance.checkWithinTolerance(duplicateFeature.getMZ(), best.quantifierMz())) {
+      if (mzTolerance.checkWithinTolerance(duplicateFeature.getMZ(), targetMz)) {
         newFeature = new ModularFeature(flist, duplicateFeature);
       } else {
         newFeature = GCConsensusAlignerPostProcessor.extractNewFeature(flist, duplicateFeature,
-            mzTolerance.getToleranceRange(best.quantifierMz()));
-        // no signal at the quantifier m/z of the best row
+            mzTolerance.getToleranceRange(targetMz));
+        // no signal at the m/z of the target row
         if (newFeature == null) {
           continue;
         }
         smooth(flist, newFeature, smoother);
       }
-      best.row().addFeature(file, newFeature, false);
+      target.addFeature(file, newFeature, false);
       merged++;
     }
     return merged;

@@ -73,6 +73,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -821,6 +822,32 @@ public class FeatureListUtils {
     }
     newList.setRows(newTopRows);
     return newList;
+  }
+
+  /**
+   * Copies the compound list of the source to the target, for targets that were created with
+   * {@link #createCopy(FeatureList, String, MemoryMapStorage, boolean)} and keep the row IDs of the
+   * source. Call this after all rows were added to or removed from the target, as structural
+   * changes invalidate the compound list. Members whose row is missing in the target are dropped,
+   * see {@link #copyCompoundList(List, ModularFeatureList, Function, Predicate, MemoryMapStorage)}.
+   * Outdated compound lists of the source are not copied.
+   *
+   * @param source  the feature list with the compound list
+   * @param target  the copy with the same row IDs
+   * @param storage storage of the new compound list
+   */
+  public static void copyCompoundListByRowId(@NotNull final FeatureList source,
+      @NotNull final ModularFeatureList target, @Nullable final MemoryMapStorage storage) {
+    if (!source.hasCompoundList()) {
+      return;
+    }
+    final CompoundList sourceCompounds = source.getCompoundList();
+    final Map<Integer, ModularFeatureListRow> targetRowsById = new HashMap<>();
+    for (final FeatureListRow row : target.getRows()) {
+      targetRowsById.put(row.getID(), (ModularFeatureListRow) row);
+    }
+    target.setCompoundList(copyCompoundList(sourceCompounds.getRowsCopy(), target,
+        row -> targetRowsById.get(row.getID()), null, storage));
   }
 
   /**
