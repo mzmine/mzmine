@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,7 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
   private final @NotNull CompoundRow compound;
   private final @Nullable RawDataFile file;
   private final @NotNull SimpleColorPalette palette;
+  private final @NotNull Set<FeatureListRow> displayedRows;
 
   private List<DatasetAndRenderer> eicOut = List.of();
   private final Map<FeatureListRow, ColoredXYLineRenderer> eicRenderersOut = new IdentityHashMap<>();
@@ -39,11 +41,12 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
 
   public CompoundDashboardEicTask(@NotNull CompoundDashboardModel model,
       @NotNull CompoundRow compound, @Nullable RawDataFile file,
-      @NotNull SimpleColorPalette palette) {
+      @NotNull SimpleColorPalette palette, @NotNull Set<FeatureListRow> displayedRows) {
     super("Compound dashboard EIC", model);
     this.compound = compound;
     this.file = file;
     this.palette = palette;
+    this.displayedRows = displayedRows;
   }
 
   @Override
@@ -65,6 +68,9 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
     final ColorAssignment colors = CompoundDashboardColoring.assign(compound, palette);
     final List<DatasetAndRenderer> result = new ArrayList<>();
     for (final FeatureListRow row : CompoundDashboardColoring.flattenAllMemberRows(compound)) {
+      if (!displayedRows.contains(row)) {
+        continue;
+      }
       final Feature feat = row.getFeature(file);
       if (feat == null || feat.getFeatureStatus() == FeatureStatus.UNKNOWN
           || feat.getFeatureData() == null) {

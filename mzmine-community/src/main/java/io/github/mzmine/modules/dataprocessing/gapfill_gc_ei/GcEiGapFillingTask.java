@@ -1,0 +1,230 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.modules.dataprocessing.gapfill_gc_ei;
+
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
+import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Gap filling for GC-EI feature lists. Searches the top signals of the pseudo spectra of each row
+ * in samples without a feature, in the retention time window of the row. Each raw data file is
+ * processed in a {@link GcEiRawFileGapFillingTask}.
+ */
+public class GcEiGapFillingTask extends AbstractFeatureListTask {
+
+  private static final Logger logger = Logger.getLogger(GcEiGapFillingTask.class.getName());
+
+  private final @NotNull MZmineProject project;
+  private final @NotNull ModularFeatureList originalList;
+  private final @NotNull OriginalFeatureListOption handleOriginal;
+  private final @NotNull String suffix;
+  private final int numTopSignals;
+  private final int minSignalDetections;
+  private final @NotNull RTTolerance sampleToSampleRtTolerance;
+  private final @NotNull RTTolerance intraSampleCoelutionTolerance;
+  private @Nullable ModularFeatureList processedList;
+
+  public GcEiGapFillingTask(@NotNull final MZmineProject project,
+      @NotNull final FeatureList featureList, @Nullable final MemoryMapStorage storage,
+      @NotNull final Instant moduleCallDate, @NotNull final ParameterSet parameters,
+      @NotNull final Class<? extends MZmineModule> moduleClass) {
+    super(storage, moduleCallDate, parameters, moduleClass);
+    this.project = project;
+    originalList = (ModularFeatureList) featureList;
+    handleOriginal = parameters.getValue(GcEiGapFillingParameters.HANDLE_ORIGINAL);
+    suffix = parameters.getValue(GcEiGapFillingParameters.SUFFIX);
+    numTopSignals = parameters.getValue(GcEiGapFillingParameters.NUMBER_OF_TOP_SIGNALS);
+    minSignalDetections = parameters.getValue(GcEiGapFillingParameters.MIN_SIGNAL_DETECTIONS);
+    sampleToSampleRtTolerance = parameters.getValue(
+        GcEiGapFillingParameters.SAMPLE_TO_SAMPLE_RT_TOLERANCE);
+    intraSampleCoelutionTolerance = parameters.getValue(
+        GcEiGapFillingParameters.INTRA_SAMPLE_COELUTION_TOLERANCE);
+  }
+
+  @Override
+  protected void process() {
+    final GcEiFeatureFindingSettings settings = GcEiFeatureFindingSettings.of(parameters,
+        originalList.getAppliedMethods());
+
+    final int numRows = originalList.getNumberOfRows();
+    final int numRaws = originalList.getNumberOfRawDataFiles();
+    final ModularFeatureList targetList = switch (handleOriginal) {
+      case PROCESS_IN_PLACE -> originalList;
+      // estimate the number of features to avoid resizing
+      case KEEP, REMOVE ->
+          FeatureListUtils.createCopy(originalList, null, suffix, getMemoryMapStorage(), true,
+              originalList.getRawDataFiles(), false, numRows,
+              FeatureListUtils.estimateFeatures(numRows, numRaws));
+    };
+    processedList = targetList;
+    // createCopy transfers the compound list. Gap filling keeps all rows, so it stays valid and
+    // updates with new features
+
+    // collect all gaps before rows are modified in parallel
+    final Map<RawDataFile, List<GcEiGapFillTarget>> gapsPerFile = collectGaps(targetList,
+        settings.mzTolerance());
+    totalItems = gapsPerFile.size();
+    final long totalGaps = gapsPerFile.values().stream().mapToLong(List::size).sum();
+    logger.info(() -> "Started GC-EI gap filling of %d gaps in %d raw data files of %s".formatted(
+        totalGaps, gapsPerFile.size(), originalList.getName()));
+
+    final List<GcEiRawFileGapFillingTask> subTasks = new ArrayList<>(gapsPerFile.size());
+    for (final Map.Entry<RawDataFile, List<GcEiGapFillTarget>> entry : gapsPerFile.entrySet()) {
+      subTasks.add(new GcEiRawFileGapFillingTask(targetList, entry.getKey(), entry.getValue(),
+          settings, sampleToSampleRtTolerance, intraSampleCoelutionTolerance,
+          this::incrementFinishedItems, getModuleCallDate()));
+    }
+
+    // the task manager pool respects the maximum number of threads set by the user
+    final ThreadPoolTask poolTask = ThreadPoolTask.createDefaultTaskManagerPool(
+        getTaskDescription(), subTasks);
+    final var wrappedTask = MZmineCore.getTaskController().runTaskOnThisThreadBlocking(poolTask);
+    if (isCanceled()) {
+      return;
+    }
+    if (wrappedTask == null || poolTask.isCanceled()) {
+      // take over the status of the pool: canceled by the user or error of a sub task
+      final String errors = subTasks.stream().map(AbstractTask::getErrorMessage)
+          .filter(Objects::nonNull).distinct().collect(Collectors.joining(", "));
+      setErrorMessage(errors);
+      setStatus(poolTask.getStatus());
+      return;
+    }
+    final long filled = subTasks.stream().mapToLong(GcEiRawFileGapFillingTask::getFilledGaps)
+        .sum();
+
+    // row-dependent normalization needs the row of a feature, which is only set when the feature
+    // is added. Apply once to all features before the row bindings
+    NormalizationRowIdentity.applyRowDependentIntensityNormalization(targetList);
+    // features were added without updating the row bindings
+    targetList.applyRowBindings();
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, targetList, originalList);
+
+    logger.info(
+        () -> "Finished GC-EI gap filling of %s: filled %d of %d gaps".formatted(
+            originalList.getName(), filled, totalGaps));
+  }
+
+  /**
+   * GC-EI deconvolution keeps all features of a compound as rows and groups them in the compound
+   * list. Only the representative row of each compound holds the pseudo spectrum and is
+   * gap-filled.
+   *
+   * @param flist the feature list to gap-fill
+   * @return the representative rows of all compounds or all rows if the feature list has no
+   * up-to-date compound list
+   */
+  private static @NotNull List<FeatureListRow> getRowsToFill(
+      @NotNull final ModularFeatureList flist) {
+    final CompoundList compoundList = flist.getCompoundList();
+    if (compoundList == null) {
+      return flist.getRows();
+    }
+    if (compoundList.isStale()) {
+      // decision: a stale compound list may miss rows, so all rows are gap-filled
+      logger.warning(() -> """
+          The compound list of %s is outdated, rows were added or removed after compound grouping. \
+          Gap filling all rows instead of only the representative rows of compounds.""".formatted(
+          flist.getName()));
+      return flist.getRows();
+    }
+    return compoundList.getRows().stream().map(ModularCompoundRow::getPreferredRow).toList();
+  }
+
+  /**
+   * @param flist       the feature list to gap-fill
+   * @param mzTolerance tolerance to merge the pseudo spectra of each row
+   * @return the gaps (rows without feature) for each raw data file. Rows without pseudo spectrum
+   * signals shared by the minimum number of samples are skipped.
+   */
+  private @NotNull Map<RawDataFile, List<GcEiGapFillTarget>> collectGaps(
+      @NotNull final ModularFeatureList flist, @NotNull final MZTolerance mzTolerance) {
+    final Map<RawDataFile, List<GcEiGapFillTarget>> gapsPerFile = new LinkedHashMap<>();
+    int rowsWithoutSignals = 0;
+    for (final FeatureListRow row : getRowsToFill(flist)) {
+      final GcEiGapFillTarget target = GcEiGapFillTarget.fromRow(row, numTopSignals,
+          minSignalDetections, mzTolerance);
+      if (target == null) {
+        rowsWithoutSignals++;
+        continue;
+      }
+      for (final RawDataFile file : flist.getRawDataFiles()) {
+        final Feature feature = row.getFeature(file);
+        if (feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          gapsPerFile.computeIfAbsent(file, _ -> new ArrayList<>()).add(target);
+        }
+      }
+    }
+
+    if (rowsWithoutSignals > 0) {
+      final int skipped = rowsWithoutSignals;
+      logger.warning(() -> """
+          %d rows of %s have no pseudo spectrum signals shared by %d samples and were not gap-filled. \
+          Run the GC-EI spectral deconvolution before alignment and gap filling.""".formatted(
+          skipped, flist.getName(), minSignalDetections));
+    }
+    return gapsPerFile;
+  }
+
+  @Override
+  protected @NotNull List<FeatureList> getProcessedFeatureLists() {
+    return processedList == null ? List.of() : List.of(processedList);
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "GC-EI gap filling of " + originalList.getName();
+  }
+}
