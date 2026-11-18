@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -106,8 +106,21 @@ public class GCAlignerTask extends AbstractFeatureListTask {
       final boolean allWithMS2 = featureLists.stream().flatMap(FeatureList::stream)
           .allMatch(FeatureListRow::hasMs2Fragmentation);
       if (!allWithMS2) {
-        error("There were features without pseudo MS2 spectrum. Please run %s before alignment.".formatted(
-            SpectralDeconvolutionGCModule.NAME));
+        // deconvolution keeps all grouped rows, only the representatives have pseudo spectra.
+        // Without a valid compound list, a step after deconvolution dropped the grouping
+        final boolean anyWithMS2 = featureLists.stream().flatMap(FeatureList::stream)
+            .anyMatch(FeatureListRow::hasMs2Fragmentation);
+        if (anyWithMS2) {
+          error("""
+              The compound grouping of %s was lost in at least one feature list, because a \
+              processing step after the deconvolution did not keep it. Please run %s directly \
+              before alignment or remove the steps in between.""".formatted(
+              SpectralDeconvolutionGCModule.NAME, SpectralDeconvolutionGCModule.NAME));
+        } else {
+          error(
+              "There were features without pseudo MS2 spectrum. Please run %s before alignment.".formatted(
+                  SpectralDeconvolutionGCModule.NAME));
+        }
         return;
       }
     }
