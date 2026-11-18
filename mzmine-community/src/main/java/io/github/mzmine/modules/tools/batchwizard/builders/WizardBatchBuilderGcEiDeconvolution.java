@@ -147,7 +147,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectionStepForAllScans(q);
-    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
+    makeAndAddChromatogramBuilderStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
         minRtDataPoints, cropRtRange, polarity);
     if (rtSmoothing) {
       makeAndAddSmoothingStep(q, true, minRtDataPoints, false);

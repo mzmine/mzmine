@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.LegacyAdapChromatogramBuilderParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -42,7 +43,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * These parameters must have the same name as the ones in
  * {@link
- * io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters}
+ * io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.LegacyAdapChromatogramBuilderParameters}
+ * and the top level parameters of {@link ADAPChromatogramBuilderParameters}
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
@@ -52,7 +54,7 @@ public class ImageBuilderParameters extends SimpleParameterSet {
 
   public static final ScanSelectionParameter scanSelection = ADAPChromatogramBuilderParameters.scanSelection.cloneParameter();
 
-  public static final MZToleranceParameter mzTolerance = ADAPChromatogramBuilderParameters.mzTolerance.cloneParameter();
+  public static final MZToleranceParameter mzTolerance = LegacyAdapChromatogramBuilderParameters.mzTolerance.cloneParameter();
 
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
       "Minimum total signals", "Minimum number of signals (data points) to form an image", 50, true,
@@ -82,7 +84,7 @@ public class ImageBuilderParameters extends SimpleParameterSet {
     nameParameterMap.put("Min group size in # of scans", getParameter(minimumConsecutiveScans));
     nameParameterMap.put("Min highest intensity", getParameter(minHighest));
     nameParameterMap.put("Scan to scan accuracy (m/z)",
-        getParameter(ADAPChromatogramBuilderParameters.mzTolerance));
+        getParameter(mzTolerance));
     return nameParameterMap;
   }
 

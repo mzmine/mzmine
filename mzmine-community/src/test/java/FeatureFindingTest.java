@@ -227,7 +227,7 @@ public class FeatureFindingTest {
   @DisplayName("Test ADAP chromatogram builder")
   void chromatogramBuilderTest() throws InterruptedException {
 
-    ADAPChromatogramBuilderParameters paramChrom = ADAPChromatogramBuilderParameters.create(
+    ADAPChromatogramBuilderParameters paramChrom = ADAPChromatogramBuilderParameters.createLegacy(
         new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), new ScanSelection(1), 4,
         new MZTolerance(0.002, 10), chromSuffix, 1E5, 3E5, false);
 

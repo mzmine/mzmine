@@ -178,6 +178,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSched
 import io.github.mzmine.modules.tools.tools_autoparam.AutoParamDashboardModule;
 import io.github.mzmine.modules.tools.tools_autoparam.statistics.AutoParamModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram_comparison.ChromatogramComparisonModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
@@ -499,6 +500,7 @@ public class BatchModeModulesList {
           InjectTimeAnalysisModule.class, //
           ScatterPlotVisualizerModule.class, //
           IntensityPlotModule.class, //
+          ChromatogramComparisonModule.class, //
           KendrickMassPlotModule.class, //
           VanKrevelenDiagramModule.class, //
           EquivalentCarbonNumberModule.class, //
