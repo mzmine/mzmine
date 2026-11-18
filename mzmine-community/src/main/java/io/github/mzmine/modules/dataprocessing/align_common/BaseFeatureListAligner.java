@@ -233,8 +233,10 @@ public class BaseFeatureListAligner {
     long totalRows = allRows.stream().mapToLong(List::size).sum();
     progress.setTotal(totalRows);
 
-    // open dialog if there may be too much work
-    checkTotalWorkloadAndMemory(totalRows);
+    // open dialog if there may be too much work. Memory depends on all rows, as the post processor
+    // may add the rows that were not aligned, e.g., the members of GC-EI compounds
+    checkTotalWorkloadAndMemory(
+        featureLists.stream().mapToLong(FeatureList::getNumberOfRows).sum());
 
     var alignedFeatureList = createEmptyAlignedList(featureLists, featureListName, storage);
     if (alignedFeatureList == null) {
