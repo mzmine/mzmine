@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -130,18 +131,23 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
     final ThreadPoolTask poolTask = ThreadPoolTask.createDefaultTaskManagerPool(
         getTaskDescription(), subTasks);
     final var wrappedTask = MZmineCore.getTaskController().runTaskOnThisThreadBlocking(poolTask);
-    if (wrappedTask == null || poolTask.isCanceled()) {
-      final String errors = subTasks.stream().map(AbstractTask::getErrorMessage)
-          .filter(Objects::nonNull).distinct().collect(Collectors.joining(", "));
-      error("GC-EI gap filling failed or was canceled: " + errors);
+    if (isCanceled()) {
       return;
     }
-    if (isCanceled()) {
+    if (wrappedTask == null || poolTask.isCanceled()) {
+      // take over the status of the pool: canceled by the user or error of a sub task
+      final String errors = subTasks.stream().map(AbstractTask::getErrorMessage)
+          .filter(Objects::nonNull).distinct().collect(Collectors.joining(", "));
+      setErrorMessage(errors);
+      setStatus(poolTask.getStatus());
       return;
     }
     final long filled = subTasks.stream().mapToLong(GcEiRawFileGapFillingTask::getFilledGaps)
         .sum();
 
+    // row-dependent normalization needs the row of a feature, which is only set when the feature
+    // is added. Apply once to all features before the row bindings
+    NormalizationRowIdentity.applyRowDependentIntensityNormalization(targetList);
     // features were added without updating the row bindings
     targetList.applyRowBindings();
     handleOriginal.reflectNewFeatureListToProject(suffix, project, targetList, originalList);

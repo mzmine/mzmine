@@ -43,7 +43,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Gap filling for GC-EI data. A gap is only filled if the top signals of the pseudo spectrum of a
- * row are re-detected as co-eluting peaks, using the smoothing of the processing history.
+ * row are re-detected as co-eluting peaks, using the smoothing of the processing history. With a
+ * compound list, only the representative rows of compounds are filled, the other member rows keep
+ * their gaps.
  */
 public class GcEiGapFillingModule extends TaskPerFeatureListModule {
 
@@ -53,7 +55,9 @@ public class GcEiGapFillingModule extends TaskPerFeatureListModule {
     super(NAME, GcEiGapFillingParameters.class, MZmineModuleCategory.GAPFILLING, true, """
         Fills missing features (gaps) of GC-EI feature lists. Re-detects the most intense signals
         of the pseudo spectrum of each row with the smoothing of the processing history and adds
-        the quantifier feature if all signals co-elute.""");
+        the quantifier feature if all signals co-elute. With a compound list from the GC-EI
+        deconvolution, only the representative row of each compound is filled. The other EI ion
+        rows of a compound keep their gaps.""");
   }
 
   @Override
