@@ -90,6 +90,7 @@ import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportMod
 import io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule;
+import io.github.mzmine.modules.io.export_features_massdynamics.MassDynamicsExportModule;
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
@@ -293,7 +294,8 @@ public abstract class AbstractWorkspace implements Workspace {
         ImportFeatureNetworksSimpleModule.class, ExportCorrAnnotationModule.class,
         NetworkGraphMlExportModule.class, FeatureMLExportModularModule.class,
         CcsBaseExportModule.class, ExportFeaturesDataModule.class);
-    addModuleMenuItems(menu, "Statistics", VennExportModule.class, MetaboAnalystExportModule.class);
+    addModuleMenuItems(menu, "Statistics", VennExportModule.class, MetaboAnalystExportModule.class,
+        MassDynamicsExportModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryBatchGenerationModule.class,
         GNPSLibraryBatchExportModule.class, ExportScansFeatureModule.class);
 
