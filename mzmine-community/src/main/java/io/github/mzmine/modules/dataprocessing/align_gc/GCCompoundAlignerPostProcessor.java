@@ -30,6 +30,7 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -82,6 +83,7 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
       GCCompoundAlignerPostProcessor.class.getName());
 
   private final MZTolerance mzTol;
+  private final @NotNull List<SimpleDoubleRange> mzRangesToIgnore;
   // links a pseudo spectrum back to its source compound. Features copied during alignment keep the
   // same pseudo spectrum instance
   private final Map<Scan, CompoundRow> compoundBySpectrum;
@@ -90,12 +92,16 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
   private final AtomicInteger shiftedFeatures = new AtomicInteger(0);
 
   /**
-   * @param mzTol        tolerance to align member features by m/z
-   * @param featureLists the source feature lists with compound lists
+   * @param mzTol            tolerance to align member features by m/z
+   * @param featureLists     the source feature lists with compound lists
+   * @param mzRangesToIgnore m/z ranges that are not used as representative unless all m/z values
+   *                         of a compound are within these ranges
    */
   public GCCompoundAlignerPostProcessor(@NotNull final MZTolerance mzTol,
-      @NotNull final List<FeatureList> featureLists) {
+      @NotNull final List<FeatureList> featureLists,
+      @NotNull final List<SimpleDoubleRange> mzRangesToIgnore) {
     this.mzTol = mzTol;
+    this.mzRangesToIgnore = mzRangesToIgnore;
     compoundBySpectrum = new IdentityHashMap<>();
     for (final FeatureList flist : featureLists) {
       final CompoundList compoundList = flist.getCompoundList();
@@ -187,9 +193,13 @@ public class GCCompoundAlignerPostProcessor implements FeatureAlignmentPostProce
     final List<MemberCluster> clusters = clusterMemberFeatures(alignedFeatures);
     // decision: same consensus as the previous pseudo spectrum based approach
     // most detections across samples and then highest summed height
-    final MemberCluster consensus = clusters.stream().max(
-        Comparator.comparingInt(MemberCluster::numDetections)
-            .thenComparingDouble(MemberCluster::sumHeight)).orElseThrow();
+    final Comparator<MemberCluster> bestFirst = Comparator.comparingInt(
+        MemberCluster::numDetections).thenComparingDouble(MemberCluster::sumHeight);
+    // m/z values excluded by the deconvolution are only used if all m/z values are excluded
+    final MemberCluster consensus = clusters.stream().filter(
+            cluster -> !SpectralDeconvolutionUtils.isIgnoredMz(cluster.getAverageMz(),
+                mzRangesToIgnore)).max(bestFirst)
+        .orElseGet(() -> clusters.stream().max(bestFirst).orElseThrow());
 
     final List<CompoundFeatureMember> members = new ArrayList<>(clusters.size());
     members.add(SpectralDeconvolutionUtils.representativeMember(alignedRow));

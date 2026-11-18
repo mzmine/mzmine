@@ -30,9 +30,11 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -42,6 +44,8 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
@@ -339,6 +343,52 @@ public class SpectralDeconvolutionUtils {
     return SpectraMerging.calculatedMergedMzsAndIntensities(pseudoSpectra, mzTolerance,
         IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null,
         minNumPeaks);
+  }
+
+  /**
+   * Collects the m/z values that were excluded as main feature by the latest spectral deconvolution
+   * of each feature list, see {@link SpectralDeconvolutionGCParameters#MZ_VALUES_TO_IGNORE}.
+   *
+   * @param featureLists the feature lists with the deconvolution in their applied methods
+   * @return the merged and adjusted ranges of all feature lists, see
+   * {@link #getAdjustedRanges(List)}. Empty if no feature list excluded m/z values
+   */
+  public static @NotNull List<SimpleDoubleRange> getMzRangesToIgnore(
+      @NotNull final List<? extends FeatureList> featureLists) {
+    final List<SimpleDoubleRange> ranges = new ArrayList<>();
+    for (final FeatureList flist : featureLists) {
+      final FeatureListAppliedMethod deconvolution = ParameterUtils.getLatestModuleCall(
+          flist.getAppliedMethods(), SpectralDeconvolutionGCModule.class);
+      if (deconvolution == null) {
+        continue;
+      }
+      final ParameterSet params = deconvolution.getParameters();
+      if (!params.getValue(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE)) {
+        continue;
+      }
+      for (final Range<Double> range : getAdjustedRanges(
+          params.getParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE)
+              .getEmbeddedParameter().getValue())) {
+        final SimpleDoubleRange simpleRange = SimpleDoubleRange.of(range);
+        if (!ranges.contains(simpleRange)) {
+          ranges.add(simpleRange);
+        }
+      }
+    }
+    return ranges;
+  }
+
+  /**
+   * @return true if the m/z is within any of the ranges
+   */
+  public static boolean isIgnoredMz(final double mz,
+      @NotNull final List<SimpleDoubleRange> mzRangesToIgnore) {
+    for (final SimpleDoubleRange range : mzRangesToIgnore) {
+      if (range.contains(mz)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

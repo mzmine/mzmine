@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_gc;
 
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -132,9 +133,13 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     FeatureCloner featureCloner = new SimpleFeatureCloner();
     // create the row aligner that handles the scoring
     var rowAligner = new GcRowAlignScorer(parameters);
+    // keep the m/z values that the deconvolution excluded as main feature
+    final List<SimpleDoubleRange> mzRangesToIgnore = SpectralDeconvolutionUtils.getMzRangesToIgnore(
+        featureLists);
     final GCCompoundAlignerPostProcessor compoundPostProcessor;
     if (alignCompounds) {
-      compoundPostProcessor = new GCCompoundAlignerPostProcessor(mzTolerance, featureLists);
+      compoundPostProcessor = new GCCompoundAlignerPostProcessor(mzTolerance, featureLists,
+          mzRangesToIgnore);
       listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
           getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
           compoundPostProcessor, GCCompoundAlignerPostProcessor::getRowsToAlign);
@@ -142,7 +147,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
       compoundPostProcessor = null;
       listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
           getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
-          new GCConsensusAlignerPostProcessor(mzTolerance));
+          new GCConsensusAlignerPostProcessor(mzTolerance, mzRangesToIgnore));
     }
 
     alignedFeatureList = listAligner.alignFeatureLists();

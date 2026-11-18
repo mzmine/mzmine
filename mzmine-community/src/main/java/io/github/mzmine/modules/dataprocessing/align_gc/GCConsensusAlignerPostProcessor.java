@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.align_gc;
 
 import com.google.common.collect.Range;
@@ -7,6 +32,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
@@ -18,6 +44,7 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.numbers.GcAlignMissingNumFeaturesType;
 import io.github.mzmine.datamodel.features.types.numbers.GcAlignShiftedNumFeaturesType;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureAlignmentPostProcessor;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
@@ -40,9 +67,17 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
       GCConsensusAlignerPostProcessor.class.getName());
   private final AtomicInteger shiftedFeatures = new AtomicInteger(0);
   private final MZTolerance mzTol;
+  private final @NotNull List<SimpleDoubleRange> mzRangesToIgnore;
 
-  public GCConsensusAlignerPostProcessor(final MZTolerance mzTol) {
+  /**
+   * @param mzTol            tolerance to match the signals of the pseudo spectra
+   * @param mzRangesToIgnore m/z ranges that are not used as main feature unless all signals are
+   *                         within these ranges
+   */
+  public GCConsensusAlignerPostProcessor(@NotNull final MZTolerance mzTol,
+      @NotNull final List<SimpleDoubleRange> mzRangesToIgnore) {
     this.mzTol = mzTol;
+    this.mzRangesToIgnore = mzRangesToIgnore;
   }
 
   /**
@@ -75,7 +110,10 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
   private int setConsensusMainFeature(final ModularFeatureList flist, final FeatureListRow row) {
     final List<AlignedDataPoint> mostCommonDataPoints = countCommonSignalsInFragmentSpectra(row);
 
-    AlignedDataPoint best = mostCommonDataPoints.getFirst();
+    // m/z values excluded by the deconvolution are only used if all signals are excluded
+    final AlignedDataPoint best = mostCommonDataPoints.stream()
+        .filter(dp -> !SpectralDeconvolutionUtils.isIgnoredMz(dp.getAverageMz(), mzRangesToIgnore))
+        .findFirst().orElse(mostCommonDataPoints.getFirst());
     final double meanMz = best.getAverageMz();
     final var mzTolRange = mzTol.getToleranceRange(meanMz);
     final double mzTolRangeLength = RangeUtils.rangeLength(mzTolRange);
