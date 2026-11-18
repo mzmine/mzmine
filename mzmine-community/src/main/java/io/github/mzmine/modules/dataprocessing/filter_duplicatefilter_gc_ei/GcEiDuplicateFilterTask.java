@@ -116,10 +116,7 @@ public class GcEiDuplicateFilterTask extends AbstractFeatureListTask {
           FeatureListUtils.createCopy(originalList, suffix, getMemoryMapStorage(), true);
     };
     processedList = targetList;
-    if (targetList != originalList) {
-      // removed rows are detached from the compound list, so it stays valid
-      FeatureListUtils.copyCompoundListByRowId(originalList, targetList, getMemoryMapStorage());
-    }
+    // createCopy transfers the compound list. Removed rows are detached from it, so it stays valid
     final CompoundList compoundList = getUpToDateCompoundList(targetList);
 
     // with a compound list, only the representative rows hold pseudo spectra and stand for their

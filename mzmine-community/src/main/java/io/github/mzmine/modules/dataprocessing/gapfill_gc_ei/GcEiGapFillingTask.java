@@ -108,10 +108,8 @@ public class GcEiGapFillingTask extends AbstractFeatureListTask {
               FeatureListUtils.estimateFeatures(numRows, numRaws));
     };
     processedList = targetList;
-    if (targetList != originalList) {
-      // gap filling keeps all rows, so the compound list stays valid and updates with new features
-      FeatureListUtils.copyCompoundListByRowId(originalList, targetList, getMemoryMapStorage());
-    }
+    // createCopy transfers the compound list. Gap filling keeps all rows, so it stays valid and
+    // updates with new features
 
     // collect all gaps before rows are modified in parallel
     final Map<RawDataFile, List<GcEiGapFillTarget>> gapsPerFile = collectGaps(targetList,
