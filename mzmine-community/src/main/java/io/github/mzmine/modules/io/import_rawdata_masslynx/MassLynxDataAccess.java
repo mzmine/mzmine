@@ -451,6 +451,8 @@ public class MassLynxDataAccess implements AutoCloseable {
       final double[][] centroided = mzmineCentroider.getMassValues(mzs, intensities,
           MassSpectrumType.PROFILE);
       simpleSpectralArrays = new SimpleSpectralArrays(centroided[0], centroided[1]);
+      // data is centroided now, so advanced mass detection must not centroid again
+      metadataScan.setSpectrumType(MassSpectrumType.CENTROIDED);
     } else {
       simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
     }
@@ -528,6 +530,8 @@ public class MassLynxDataAccess implements AutoCloseable {
       final double[][] centroided = mzmineCentroider.getMassValues(mzs, intensities,
           MassSpectrumType.PROFILE);
       simpleSpectralArrays = new SimpleSpectralArrays(centroided[0], centroided[1]);
+      // data is centroided now, so advanced mass detection must not centroid again
+      metadataScan.setSpectrumType(MassSpectrumType.CENTROIDED);
     } else {
       simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
     }
@@ -657,6 +661,8 @@ public class MassLynxDataAccess implements AutoCloseable {
     } else {
       mobilityScans = rawMobilityScans;
     }
+
+    // all mobility scans of the frame are processed together
     final List<SimpleSpectralArrays> processedMobilityScans = processor.processor()
         .processMobilityScans(metadataScan, mobilityScans);
 
