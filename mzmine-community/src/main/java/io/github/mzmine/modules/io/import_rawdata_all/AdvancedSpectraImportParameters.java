@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import java.util.EnumMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,11 +77,14 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
    */
   private static @NotNull ModuleOptionsEnumComboParameter<MassDetectors> createDetectorCombo(
       @NotNull final String name, @NotNull final String description) {
-    final ModuleOptionsEnumComboParameter<MassDetectors> combo = new ModuleOptionsEnumComboParameter<>(
-        name, description, MassDetectors.FACTOR_OF_LOWEST);
-    combo.replaceOptionParameters(MassDetectors.LOCAL_MAX_ADAPTIVE,
+    final EnumMap<MassDetectors, ParameterSet> parameters = new EnumMap<>(MassDetectors.class);
+    for (final MassDetectors detector : MassDetectors.values()) {
+      parameters.put(detector, detector.getModuleParameters());
+    }
+    parameters.put(MassDetectors.LOCAL_MAX_ADAPTIVE,
         new AdaptiveLocalMaxImportParameters().cloneParameterSet());
-    return combo;
+    return new ModuleOptionsEnumComboParameter<>(name, description, MassDetectors.FACTOR_OF_LOWEST,
+        parameters, true);
   }
 
   /**
