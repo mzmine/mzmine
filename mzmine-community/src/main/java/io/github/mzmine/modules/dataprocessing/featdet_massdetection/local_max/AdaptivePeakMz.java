@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -32,7 +57,7 @@ public record AdaptivePeakMz(double saturationThreshold) implements LocalMaxPeak
   // half height missed tailing saturated frames (benchmark 2026-10-27).
   private static final double ASYMMETRY_HEIGHT_FRACTION = 0.1;
   // number of points (apex +/- (N-1)/2) used for the apex-centered parabola
-  private static final int PARABOLA_POINTS = 5;
+  public static final int PARABOLA_POINTS = 5;
   // saturation fit window: the saturated core plus this many non-zero points on each flank
   private static final int SATURATION_FLANK_POINTS = 3;
   private static final int SATURATION_MIN_FIT_POINTS = 3;
@@ -159,18 +184,26 @@ public record AdaptivePeakMz(double saturationThreshold) implements LocalMaxPeak
     return fit.mode();
   }
 
-  /**
-   * Ratio of the wider to the narrower half-width at {@link #ASYMMETRY_HEIGHT_FRACTION} of the apex
-   * (>= 1). The apex position is the vertex of the parabola through the apex and its neighbors, so
-   * the sampling position of the apex point does not change the ratio. The crossings of the height
-   * level are interpolated linearly.
-   *
-   * @return the asymmetry or NaN if one side does not fall below the level within the edges
-   */
   private static double widthAsymmetry(final double @NotNull [] mzs,
       final double @NotNull [] intensities, final int startIdx, final int endIdx,
       final int peakMaxIdx) {
-    final double level = intensities[peakMaxIdx] * ASYMMETRY_HEIGHT_FRACTION;
+    return widthAsymmetry(mzs, intensities, startIdx, endIdx, peakMaxIdx,
+        ASYMMETRY_HEIGHT_FRACTION);
+  }
+
+  /**
+   * Ratio of the wider to the narrower half-width at a fraction of the apex height (>= 1). The apex
+   * position is the vertex of the parabola through the apex and its neighbors, so the sampling
+   * position of the apex point does not change the ratio. The crossings of the height level are
+   * interpolated linearly. Public for the centroiding benchmark.
+   *
+   * @param heightFraction height level as fraction of the apex intensity
+   * @return the asymmetry or NaN if one side does not fall below the level within the edges
+   */
+  public static double widthAsymmetry(final double @NotNull [] mzs,
+      final double @NotNull [] intensities, final int startIdx, final int endIdx,
+      final int peakMaxIdx, final double heightFraction) {
+    final double level = intensities[peakMaxIdx] * heightFraction;
     double leftMz = Double.NaN;
     for (int i = peakMaxIdx; i > startIdx; i--) {
       if (intensities[i - 1] < level) {
@@ -230,12 +263,12 @@ public record AdaptivePeakMz(double saturationThreshold) implements LocalMaxPeak
   /**
    * Vertex m/z of the least-squares parabola over the {@code n} points centered on the apex
    * ({@code apex +/- (n-1)/2}), clamped to the peak edges. Apex-centered (not the n highest points)
-   * so a tailing flank does not skew the window.
+   * so a tailing flank does not skew the window. Public for the centroiding benchmark.
    *
    * @return the vertex or NaN if there are fewer than 3 points, the top is too flat (degenerate),
    * or the vertex falls outside the peak edges
    */
-  private static double apexParabolaVertexMz(final double @NotNull [] mzs,
+  public static double apexParabolaVertexMz(final double @NotNull [] mzs,
       final double @NotNull [] intensities, final int peakMaxIdx, final int startIdx,
       final int endIdx, final int n) {
     final int half = (n - 1) / 2;
