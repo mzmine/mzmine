@@ -145,9 +145,11 @@ public final class AgilentSpectraBuilder {
       centroided = true;
     }
 
-    final MassSpectrumType type = spectrumType(centroided, msLevel);
-    final var meta = new SimpleBuildingScan(0, msLevel, info.polarity(), type, info.rt(), 0, 0);
+    // the processors receive the actual input type; mass detection marks the metadata centroided
+    final var meta = new SimpleBuildingScan(0, msLevel, info.polarity(), inputType(centroided),
+        info.rt(), 0, 0);
     final SimpleSpectralArrays frameData = applyProcessor(meta, mzs, intensities);
+    final MassSpectrumType type = meta.getSpectrumType();
     final boolean massDetect = isMassDetectActive(msLevel);
     final Set<IonMobilityMsMsInfo> precursorInfos =
         msLevel > 1 && info.msMsInfo() != null ? Set.of(info.msMsInfo()) : null;
@@ -193,12 +195,12 @@ public final class AgilentSpectraBuilder {
       }
     }
 
-    // mobility scans are profile unless centroided by mzmine
-    final MassSpectrumType mobType = spectrumType(mzmineCentroiding, msLevel);
-    final var mobMeta = new SimpleBuildingScan(0, msLevel, info.polarity(), mobType, info.rt(), 0,
-        0);
+    // mobility scans are profile unless centroided by mzmine or by mass detection on import
+    final var mobMeta = new SimpleBuildingScan(0, msLevel, info.polarity(),
+        inputType(mzmineCentroiding), info.rt(), 0, 0);
     final List<SimpleSpectralArrays> processed = applyMobilityScanProcessor(mobMeta,
         mobilityScanData);
+    final MassSpectrumType mobType = mobMeta.getSpectrumType();
     final List<BuildingMobilityScan> mobScans = new ArrayList<>(processed.size());
     for (int i = 0; i < processed.size(); i++) {
       final SimpleSpectralArrays data = processed.get(i);
@@ -218,9 +220,11 @@ public final class AgilentSpectraBuilder {
   public @NotNull SimpleScan buildScan(@NotNull RawDataFileImpl file, int id, int msLevel, float rt,
       @NotNull PolarityType polarity, double precursorMz, @Nullable MsMsInfo msMsInfo,
       double @NotNull [] mzs, double @NotNull [] intensities, boolean centroided) {
-    final MassSpectrumType type = spectrumType(centroided, msLevel);
-    final var meta = new SimpleBuildingScan(0, msLevel, polarity, type, rt, (float) precursorMz, 0);
+    // the processors receive the actual input type; mass detection marks the metadata centroided
+    final var meta = new SimpleBuildingScan(0, msLevel, polarity, inputType(centroided), rt,
+        (float) precursorMz, 0);
     final SimpleSpectralArrays data = applyProcessor(meta, mzs, intensities);
+    final MassSpectrumType type = meta.getSpectrumType();
     final SimpleScan scan = new SimpleScan(file, id, msLevel, rt, msMsInfo, data.mzs(),
         data.intensities(), type, polarity, "scan=" + id, mzRange(data.mzs()));
     if (isMassDetectActive(msLevel)) {
@@ -359,11 +363,11 @@ public final class AgilentSpectraBuilder {
   }
 
   /**
-   * The data becomes centroided when mzmine mass detection runs during import.
+   * @param centroided whether the spectrum as read (before the import processors) is centroided
+   * @return the spectrum type passed to the import processors
    */
-  private @NotNull MassSpectrumType spectrumType(boolean centroided, int msLevel) {
-    return centroided || isMassDetectActive(msLevel) ? MassSpectrumType.CENTROIDED
-        : MassSpectrumType.PROFILE;
+  private static @NotNull MassSpectrumType inputType(final boolean centroided) {
+    return centroided ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
   }
 
   private static @NotNull Range<Double> mzRange(double @NotNull [] mzs) {
