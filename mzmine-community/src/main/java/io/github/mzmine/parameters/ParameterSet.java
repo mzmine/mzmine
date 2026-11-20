@@ -57,6 +57,8 @@ import org.w3c.dom.Element;
  */
 public interface ParameterSet extends ParameterContainer {
 
+  String MODULE_VERSION_ATTR = "parameter_version";
+
   /**
    * Version is saved to the batch file steps and compared when loaded. This version number should
    * change when parameter names change or if parameters are added or removed. Override the method

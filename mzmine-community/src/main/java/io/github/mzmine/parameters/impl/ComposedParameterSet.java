@@ -25,7 +25,6 @@
 
 package io.github.mzmine.parameters.impl;
 
-import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -91,8 +90,8 @@ public abstract class ComposedParameterSet implements ParameterSet {
     // needs to use this parameter map to load the corrected parameters
     var nameParameterMap = getNameParameterMap();
 
-    final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
-      case true -> Integer.parseInt(xmlElement.getAttribute(BatchQueue.MODULE_VERSION_ATTR));
+    final int loadedVersion = switch (xmlElement.hasAttribute(ParameterSet.MODULE_VERSION_ATTR)) {
+      case true -> Integer.parseInt(xmlElement.getAttribute(ParameterSet.MODULE_VERSION_ATTR));
       case false -> 1;
     };
 
