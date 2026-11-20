@@ -154,9 +154,10 @@ public final class AgilentSpectraBuilder {
     final Set<IonMobilityMsMsInfo> precursorInfos =
         msLevel > 1 && info.msMsInfo() != null ? Set.of(info.msMsInfo()) : null;
 
+    // decision: scanning range from the spectrum as read, not changed by cropping or mass detection
     final SimpleFrame frame = new SimpleFrame(file, frameId, msLevel, info.rt(), frameData.mzs(),
-        frameData.intensities(), type, info.polarity(), "frame=" + frameId,
-        mzRange(frameData.mzs()), MobilityType.DRIFT_TUBE, precursorInfos, null);
+        frameData.intensities(), type, info.polarity(), "frame=" + frameId, mzRange(tfsMzs),
+        MobilityType.DRIFT_TUBE, precursorInfos, null);
     if (massDetect) {
       frame.addMassList(new ScanPointerMassList(frame));
     }
@@ -225,8 +226,9 @@ public final class AgilentSpectraBuilder {
         (float) precursorMz, 0);
     final SimpleSpectralArrays data = applyProcessor(meta, mzs, intensities);
     final MassSpectrumType type = meta.getSpectrumType();
+    // decision: scanning range from the spectrum as read, not changed by cropping or mass detection
     final SimpleScan scan = new SimpleScan(file, id, msLevel, rt, msMsInfo, data.mzs(),
-        data.intensities(), type, polarity, "scan=" + id, mzRange(data.mzs()));
+        data.intensities(), type, polarity, "scan=" + id, mzRange(mzs));
     if (isMassDetectActive(msLevel)) {
       scan.addMassList(new ScanPointerMassList(scan));
     }

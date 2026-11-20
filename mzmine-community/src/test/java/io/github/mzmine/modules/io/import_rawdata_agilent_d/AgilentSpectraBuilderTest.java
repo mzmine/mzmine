@@ -40,5 +40,8 @@ class AgilentSpectraBuilderTest {
     Assertions.assertEquals(MassSpectrumType.CENTROIDED, scan.getSpectrumType());
     Assertions.assertEquals(1, scan.getNumberOfDataPoints(), "one centroid for one profile peak");
     Assertions.assertEquals(500.0, scan.getMzValue(0), 1e-3);
+    // the scanning range is the range of the spectrum as read
+    Assertions.assertEquals(499.97, scan.getScanningMZRange().lowerEndpoint(), 1e-9);
+    Assertions.assertEquals(500.03, scan.getScanningMZRange().upperEndpoint(), 1e-9);
   }
 }
