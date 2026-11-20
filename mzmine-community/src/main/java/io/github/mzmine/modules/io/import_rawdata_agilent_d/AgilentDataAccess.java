@@ -64,6 +64,19 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * Frame numbers are 1-based (1..{@link #getFrameCount()}); scans are 0-based
  * (0..{@link #getScanCount()}-1), matching the bridge.
+ * <p>
+ * IMS spectrum storage in Agilent {@code .d} files (checked on 21 IMS files, 2026-11): mobility
+ * scans are always stored as profile only. The frame spectrum (total frame spectrum, TFS) is always
+ * stored as profile. Native acquisitions from MassHunter B.09 onward additionally store vendor
+ * centroids of the frame spectrum (MSPeak.bin); B.07 files and PNNL PreProcessor output (DeMP,
+ * _MA) store profile only. No file stored frame spectrum centroids only. The stored centroids can
+ * be cut by the acquisition thresholds to only a few peaks per frame (e.g., 10-30 in
+ * MSV000096020).
+ * <p>
+ * decision: the frame spectra are always recentroided from the profile, the stored frame spectrum
+ * centroids are not used, also not with {@link AgilentCentroidingOption#PREFER_STORED}. Here, the
+ * bridge centroids the profile frame spectrum with the vendor peak filter (MHDAC sidecar), see
+ * {@link #readFrame(IMSRawDataFileImpl, int)}.
  */
 @NotThreadSafe
 public class AgilentDataAccess implements AgilentRawDataAccess {
@@ -242,6 +255,12 @@ public class AgilentDataAccess implements AgilentRawDataAccess {
   /**
    * Reads one IMS frame: the Total Frame Spectrum becomes the {@link SimpleFrame}, the per-bin
    * mobility scans its mobility scans. Returns null if filtered out by the scan selection.
+   * <p>
+   * With vendor centroiding, the bridge always recentroids the profile frame spectrum with the
+   * vendor peak filter (MHDAC), even if the file stores frame spectrum centroids. This is a
+   * conscious decision, see the class documentation. Mobility scans are always stored and returned
+   * as profile; they are only centroided by mzmine if
+   * {@link AgilentImportOptions#isMzmineImsCentroiding()}.
    */
   @Override
   public @Nullable SimpleFrame readFrame(@NotNull IMSRawDataFileImpl file, int frameId) {
