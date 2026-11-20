@@ -191,7 +191,10 @@ public class VendorImportParameters extends SimpleParameterSet {
           .setValue(DEFAULT_PRESSURE_COMPENSATION);
     }
     if (!loadedParams.containsKey(agilentImportChoice.getName())) {
-      getParameter(agilentImportChoice).getEmbeddedParameter().setValue(DEFAULT_AGILENT_OPTION);
+      // batches saved before the native readers imported Agilent files via MSConvert
+      getParameter(agilentImportChoice).getEmbeddedParameter().setValue(
+          new ComboWithComboInputValue<>(AgilentImportOptions.MSCONVERT,
+              DEFAULT_AGILENT_CENTROIDING));
     }
   }
 }
