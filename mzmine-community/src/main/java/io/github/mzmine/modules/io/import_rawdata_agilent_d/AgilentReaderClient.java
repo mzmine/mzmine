@@ -78,6 +78,11 @@ final class AgilentReaderClient implements AutoCloseable {
   private static final Pattern VCPP_INSTALLED_PATTERN = Pattern.compile(
       "(?m)^\\s*Installed\\s+REG_DWORD\\s+(0x0*[1-9a-fA-F][0-9a-fA-F]*|[1-9]\\d*)\\s*$");
 
+  /**
+   * True once the .NET and Visual C++ runtime checks passed in this session.
+   */
+  private static volatile boolean runtimeVerified = false;
+
   private final Process process;
   private final OutputStream stdin;
   private final BufferedInputStream stdout;
@@ -87,9 +92,13 @@ final class AgilentReaderClient implements AutoCloseable {
       .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS).build();
 
   AgilentReaderClient() {
-    ensureRuntimeAvailable();
+    // the runtime checks spawn reg query processes, only run them until they succeed once
+    if (!runtimeVerified) {
+      ensureRuntimeAvailable();
+      ensureVcppRuntimeAvailable(locateExecutable().getParentFile());
+      runtimeVerified = true;
+    }
     final File exe = locateExecutable();
-    ensureVcppRuntimeAvailable(exe.getParentFile());
     try {
       final ProcessBuilder builder = new ProcessBuilder(exe.getAbsolutePath());
       builder.directory(exe.getParentFile()); // so the vendor DLLs next to the exe are found
