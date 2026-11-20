@@ -53,7 +53,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class AgilentOtherData {
 
-  private static final Pattern wavelengthPattern = Pattern.compile("Sig=([0-9]+[,\\.]?[0-9]+)");
+  /**
+   * Agilent writes "Sig=wavelength,bandwidth", e.g. "Sig=272,16 Ref=360,100" or "Sig=220.0,4.0
+   * Ref=off" depending on the acquisition software. The comma separates the bandwidth.
+   */
+  private static final Pattern wavelengthPattern = Pattern.compile("Sig=(\\d+(?:\\.\\d+)?)");
 
   private AgilentOtherData() {
   }
@@ -151,13 +155,7 @@ public final class AgilentOtherData {
       return;
     }
 
-    final String strWavelength = matcher.group(1).replace(',', '.');
-    try {
-      final double v = Double.parseDouble(strWavelength);
-      feature.set(WavelengthType.class, v);
-    } catch (NumberFormatException e) {
-      // silent
-    }
+    feature.set(WavelengthType.class, Double.parseDouble(matcher.group(1)));
   }
 
   private record DeviceWithUnit(AgilentAnalogDevice device, AgilentAnalogUnit unit) {
