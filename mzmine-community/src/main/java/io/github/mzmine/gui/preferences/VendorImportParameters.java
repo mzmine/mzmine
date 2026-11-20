@@ -84,9 +84,9 @@ public class VendorImportParameters extends SimpleParameterSet {
           Select if Agilent .d data files shall be imported via the mzio reader, the native
           AgilentReader or MSConvert, and (for the native readers) how centroids are produced. The
           mzio reader reads regular MS and ion mobility (.d) data directly on all platforms, the
-          AgilentReader via a bundled Windows helper; MSConvert converts to mzML first. Centroiding is only applied when "Try vendor
-          centroiding" is enabled; the centroid source then selects stored vendor centroids vs.
-          recentroiding the profile.
+          AgilentReader via a bundled Windows helper; MSConvert converts to mzML first.
+          Centroiding is only applied when "Try vendor centroiding" is enabled; the centroid source
+          then selects stored vendor centroids vs. recentroiding the profile.
           
           %s
           
@@ -169,8 +169,7 @@ public class VendorImportParameters extends SimpleParameterSet {
    */
   public static VendorImportParameters createFromPreferences() {
     final MZminePreferences preferences = ConfigService.getConfiguration().getPreferences();
-    final VendorImportParameters param = create(
-        preferences.getValue(MZminePreferences.applyVendorCentroiding),
+    return create(preferences.getValue(MZminePreferences.applyVendorCentroiding),
         /*preferences.getValue(MZminePreferences.thermoImportChoice)*/
         preferences.getValue(MZminePreferences.massLynxImportChoice),
         preferences.getValue(MZminePreferences.watersLockmass),
@@ -178,8 +177,6 @@ public class VendorImportParameters extends SimpleParameterSet {
         preferences.getValue(MZminePreferences.excludeThermoExceptionMasses),
         preferences.getValue(MZminePreferences.agilentImportChoice),
         preferences.getValue(MZminePreferences.brukerPressureComp));
-
-    return param;
   }
 
   @Override
