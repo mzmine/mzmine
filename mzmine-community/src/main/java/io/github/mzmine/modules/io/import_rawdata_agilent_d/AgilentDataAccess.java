@@ -129,8 +129,15 @@ public class AgilentDataAccess implements AgilentRawDataAccess {
     final String centroidMode = requestCentroid ? centroiding.getWireCentroidMode() : "none";
 
     this.client = new AgilentReaderClient();
-    final JsonNode open = client.send(
-        Map.of("op", "open", "path", rawFile.getAbsolutePath(), "centroidMode", centroidMode));
+    final JsonNode open;
+    try {
+      open = client.send(
+          Map.of("op", "open", "path", rawFile.getAbsolutePath(), "centroidMode", centroidMode));
+    } catch (RuntimeException e) {
+      // the import task never receives this instance to close, so stop the bridge process here
+      client.close();
+      throw e;
+    }
 
     this.isIms = open.path("isIms").asBoolean(false);
     this.numScans = open.path("numScans").asLong(0);
