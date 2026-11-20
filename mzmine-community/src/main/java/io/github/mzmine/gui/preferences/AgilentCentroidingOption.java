@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.AdaptiveLocalMaxMassDetector;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -87,6 +88,11 @@ public enum AgilentCentroidingOption implements UniqueIdSupplier {
 
   public static String getTooltip() {
     return Arrays.stream(values()).map(opt -> opt.toString() + ": " + opt.getDescriptions())
-        .collect(Collectors.joining("\n"));
+        .collect(Collectors.joining("\n")) + """
+
+        Profile data is centroided by the vendor algorithm with the AgilentReader and by the %s \
+        with the custom reader. The centroid source only applies to regular MS scans, IMS frame \
+        spectra are always recentroided from the profile.""".formatted(
+        AdaptiveLocalMaxMassDetector.NAME);
   }
 }
