@@ -37,6 +37,7 @@ class AgilentSpectraBuilderTest {
     final SimpleScan scan = builder.buildScan(file, 1, 1, 1f, PolarityType.POSITIVE, 0, null, mzs,
         intensities, false);
 
+    Assertions.assertNotNull(scan);
     Assertions.assertEquals(MassSpectrumType.CENTROIDED, scan.getSpectrumType());
     Assertions.assertEquals(1, scan.getNumberOfDataPoints(), "one centroid for one profile peak");
     Assertions.assertEquals(500.0, scan.getMzValue(0), 1e-3);

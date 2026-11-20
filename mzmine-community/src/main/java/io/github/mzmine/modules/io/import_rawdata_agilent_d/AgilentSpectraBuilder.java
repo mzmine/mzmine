@@ -101,19 +101,88 @@ public final class AgilentSpectraBuilder {
   }
 
   /**
-   * @return true if the scan selection of the import excludes a spectrum with this metadata; its
-   * data does not need to be read then
+   * Checks the scan selection of the import before the data of a non-IMS scan is read. The
+   * spectrum type is only known after reading and is checked by {@link #buildScan}.
+   *
+   * @param id the scan id, also the scan number of the built scan
+   * @return true if the scan selection excludes this scan; its data does not need to be read then
    */
-  public boolean isFilteredOut(int msLevel, @NotNull PolarityType polarity, float rt,
+  public boolean isScanFilteredOut(int id, int msLevel, @NotNull PolarityType polarity, float rt,
       double precursorMz) {
-    if (processor == null || !processor.hasProcessors() || processor.scanFilter() == null
-        || !processor.scanFilter().isActiveFilter()) {
+    return isFilteredOut(id, msLevel, polarity, rt, precursorMz, scanDefinition(id), null);
+  }
+
+  /**
+   * Checks the scan selection of the import before the data of a frame is read. The spectrum type
+   * is only known after reading and is checked by {@link #buildFrame}.
+   *
+   * @param frameId    the frame id, also the scan number of the built frame
+   * @param driftTimes drift time per drift bin (ms), defines the mobility range of the frame
+   * @return true if the scan selection excludes this frame; its data does not need to be read then
+   */
+  public boolean isFrameFilteredOut(int frameId, int msLevel, @NotNull PolarityType polarity,
+      float rt, double @NotNull [] driftTimes) {
+    // same mobility range as the built frame
+    final Range<Double> mobilityRange = driftTimes.length == 0 ? null
+        : Range.singleton(driftTimes[0]).span(Range.singleton(driftTimes[driftTimes.length - 1]));
+    return isFilteredOut(frameId, msLevel, polarity, rt, 0, frameDefinition(frameId),
+        mobilityRange);
+  }
+
+  private boolean isFilteredOut(int scanNumber, int msLevel, @NotNull PolarityType polarity,
+      float rt, double precursorMz, @NotNull String scanDefinition,
+      @Nullable Range<Double> mobilityRange) {
+    final ScanSelection selection = activeScanFilter();
+    if (selection == null) {
       return false;
     }
-    final ScanSelection selection = processor.scanFilter();
-    return !selection.matches(
-        new SimpleBuildingScan(0, msLevel, polarity, MassSpectrumType.PROFILE, rt,
-            (float) precursorMz, 0));
+    // ScanSelection only checks the mobility range of a Frame, the metadata scan is none
+    final Range<Double> mobilityFilter = selection.scanMobilityRange();
+    if (mobilityFilter != null && mobilityRange != null && !mobilityRange.isConnected(
+        mobilityFilter)) {
+      return true;
+    }
+    // the spectrum type is checked after reading (isTypeFilteredOut), pass it here
+    final MassSpectrumType type =
+        selection.spectrumType() == MassSpectrumType.ANY ? MassSpectrumType.PROFILE
+            : selection.spectrumType();
+    final SimpleBuildingScan meta = new SimpleBuildingScan(scanNumber, msLevel, polarity, type, rt,
+        (float) precursorMz, 0) {
+      @Override
+      public @NotNull String getScanDefinition() {
+        return scanDefinition;
+      }
+    };
+    return !selection.matches(meta);
+  }
+
+  /**
+   * @param centroided the type of the spectrum as read, after mzmine centroiding on import
+   * @return true if the scan selection of the import excludes this spectrum type
+   */
+  private boolean isTypeFilteredOut(boolean centroided) {
+    final ScanSelection selection = activeScanFilter();
+    return selection != null && selection.spectrumType() != MassSpectrumType.ANY
+        && selection.spectrumType() != inputType(centroided);
+  }
+
+  /**
+   * @return the scan selection of the import, null if none is active
+   */
+  private @Nullable ScanSelection activeScanFilter() {
+    if (processor == null || !processor.hasProcessors() || processor.scanFilter() == null
+        || !processor.scanFilter().isActiveFilter()) {
+      return null;
+    }
+    return processor.scanFilter();
+  }
+
+  private static @NotNull String scanDefinition(int id) {
+    return "scan=" + id;
+  }
+
+  private static @NotNull String frameDefinition(int frameId) {
+    return "frame=" + frameId;
   }
 
   public boolean isMassDetectActive(int msLevel) {
@@ -128,8 +197,9 @@ public final class AgilentSpectraBuilder {
    * @param mzmineCentroiding centroid a profile TFS and all mobility scans with mzmine (mobility
    *                          scans with the mobility-aware saturation handling)
    * @param driftTimes        drift time per drift bin (ms)
+   * @return the frame, or null if the scan selection excludes its spectrum type
    */
-  public @NotNull SimpleFrame buildFrame(@NotNull IMSRawDataFileImpl file, int frameId,
+  public @Nullable SimpleFrame buildFrame(@NotNull IMSRawDataFileImpl file, int frameId,
       @NotNull AgilentFrameInfo info, double @NotNull [] tfsMzs, double @NotNull [] tfsIntensities,
       boolean tfsCentroided, @NotNull List<SimpleSpectralArrays> mobilityScans,
       boolean mzmineCentroiding, double @NotNull [] driftTimes) {
@@ -144,6 +214,9 @@ public final class AgilentSpectraBuilder {
       intensities = c[1];
       centroided = true;
     }
+    if (isTypeFilteredOut(centroided)) {
+      return null;
+    }
 
     // the processors receive the actual input type; mass detection marks the metadata centroided
     final var meta = new SimpleBuildingScan(0, msLevel, info.polarity(), inputType(centroided),
@@ -156,7 +229,7 @@ public final class AgilentSpectraBuilder {
 
     // decision: scanning range from the spectrum as read, not changed by cropping or mass detection
     final SimpleFrame frame = new SimpleFrame(file, frameId, msLevel, info.rt(), frameData.mzs(),
-        frameData.intensities(), type, info.polarity(), "frame=" + frameId, mzRange(tfsMzs),
+        frameData.intensities(), type, info.polarity(), frameDefinition(frameId), mzRange(tfsMzs),
         MobilityType.DRIFT_TUBE, precursorInfos, null);
     if (massDetect) {
       frame.addMassList(new ScanPointerMassList(frame));
@@ -217,10 +290,14 @@ public final class AgilentSpectraBuilder {
    * Builds one non-IMS scan.
    *
    * @param centroided whether the data is centroided (stored or mzmine centroids)
+   * @return the scan, or null if the scan selection excludes its spectrum type
    */
-  public @NotNull SimpleScan buildScan(@NotNull RawDataFileImpl file, int id, int msLevel, float rt,
-      @NotNull PolarityType polarity, double precursorMz, @Nullable MsMsInfo msMsInfo,
+  public @Nullable SimpleScan buildScan(@NotNull RawDataFileImpl file, int id, int msLevel,
+      float rt, @NotNull PolarityType polarity, double precursorMz, @Nullable MsMsInfo msMsInfo,
       double @NotNull [] mzs, double @NotNull [] intensities, boolean centroided) {
+    if (isTypeFilteredOut(centroided)) {
+      return null;
+    }
     // the processors receive the actual input type; mass detection marks the metadata centroided
     final var meta = new SimpleBuildingScan(0, msLevel, polarity, inputType(centroided), rt,
         (float) precursorMz, 0);
@@ -228,7 +305,7 @@ public final class AgilentSpectraBuilder {
     final MassSpectrumType type = meta.getSpectrumType();
     // decision: scanning range from the spectrum as read, not changed by cropping or mass detection
     final SimpleScan scan = new SimpleScan(file, id, msLevel, rt, msMsInfo, data.mzs(),
-        data.intensities(), type, polarity, "scan=" + id, mzRange(mzs));
+        data.intensities(), type, polarity, scanDefinition(id), mzRange(mzs));
     if (isMassDetectActive(msLevel)) {
       scan.addMassList(new ScanPointerMassList(scan));
     }

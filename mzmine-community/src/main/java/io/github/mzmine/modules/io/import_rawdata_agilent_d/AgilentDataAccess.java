@@ -281,7 +281,7 @@ public class AgilentDataAccess implements AgilentRawDataAccess {
     // TFS); NaN when not stored
     final double mobilityScanAbundLimit = abundanceLimit(mtd, "mobilityScanAbundLimit");
 
-    if (builder.isFilteredOut(msLevel, polarity, rt, 0)) {
+    if (builder.isFrameFilteredOut(frameId, msLevel, polarity, rt, driftTimes)) {
       // peak ops (tfs / mobilityScans) are never requested for a filtered frame
       return null;
     }
@@ -334,7 +334,7 @@ public class AgilentDataAccess implements AgilentRawDataAccess {
     final PolarityType polarity = parsePolarity(mtd.path("polarity").asText(null));
     final double precursorMz = mtd.path("precursorMz").asDouble(0);
 
-    if (builder.isFilteredOut(msLevel, polarity, rt, precursorMz)) {
+    if (builder.isScanFilteredOut(id, msLevel, polarity, rt, precursorMz)) {
       // the peak "scan" op is never requested for a filtered scan
       return null;
     }
