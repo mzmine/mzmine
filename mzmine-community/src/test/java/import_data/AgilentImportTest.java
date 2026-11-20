@@ -190,7 +190,7 @@ public class AgilentImportTest {
     final SimpleFrame centroidFrame = centroid.readFrame(
         (IMSRawDataFileImpl) centroid.createDataFile(), IMS_SIGNAL_FRAME);
     assertEquals(MassSpectrumType.CENTROIDED, centroidFrame.getSpectrumType());
-    assertEquals(80, centroidFrame.getNumberOfDataPoints(), "stored-centroid TFS data points");
+    assertEquals(80, centroidFrame.getNumberOfDataPoints(), "vendor-centroided TFS data points");
     assertEquals(MassSpectrumType.CENTROIDED, centroidFrame.getMobilityScan(0).getSpectrumType(),
         "auto-centroid centroids the mobility scans");
     final int centroidedPoints = totalMobilityPoints(centroidFrame);
@@ -204,13 +204,13 @@ public class AgilentImportTest {
   void imsImportOptionMobilityCentroiding() {
     assumeTrue(IMS_FILE.exists(), "IMS example file missing");
 
-    // Plain native reader: the total frame spectrum uses the stored centroids, but the mobility
+    // Plain native reader: the total frame spectrum is vendor-centroided (MHDAC), but the mobility
     // scans are left as profile (the reader has no IMS centroiding of its own).
     final AgilentDataAccess access = access(IMS_FILE, true, AgilentImportOptions.AGILENT_READER,
         AgilentCentroidingOption.PREFER_STORED);
     final SimpleFrame frame = access.readFrame((IMSRawDataFileImpl) access.createDataFile(),
         IMS_SIGNAL_FRAME);
-    assertEquals(MassSpectrumType.CENTROIDED, frame.getSpectrumType(), "TFS uses stored centroids");
+    assertEquals(MassSpectrumType.CENTROIDED, frame.getSpectrumType(), "TFS is vendor-centroided");
     assertEquals(80, frame.getNumberOfDataPoints());
     assertEquals(MassSpectrumType.PROFILE, frame.getMobilityScan(0).getSpectrumType(),
         "plain reader leaves mobility scans as profile");
@@ -221,7 +221,7 @@ public class AgilentImportTest {
   @DisplayName("IMS: stored vs recentroided centroid source produce the same TFS for this file")
   void imsCentroidSourceEquivalence() {
     assumeTrue(IMS_FILE.exists(), "IMS example file missing");
-    // The IMS (MIDAC) path produces centroids through a single code path, so the stored-vs-
+    // The IMS frame spectra are always recentroided from the profile (MHDAC), so the stored-vs-
     // recentroided choice does not change the result for this file. (The distinction matters for
     // non-IMS files that store both a profile and a vendor-centroid representation.)
     final AgilentDataAccess stored = access(IMS_FILE, true,
