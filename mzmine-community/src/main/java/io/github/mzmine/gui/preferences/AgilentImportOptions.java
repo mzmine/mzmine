@@ -27,7 +27,6 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.AdaptiveLocalMaxMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxSmoothingOptions;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -84,11 +83,11 @@ public enum AgilentImportOptions implements UniqueIdSupplier {
           "Import Agilent .d files using the native Agilent reader (Windows only)";
       case AGILENT_READER_AUTO_CENTROID -> """
           Import Agilent .d files using the native Agilent reader (Windows only) and automatically
-          centroid IMS datasets during import using an mzmine algorithm (%s with %s smoothing)
-          (Agilent reader does not support centroiding for IMS data). The "vendor centroiding" option
+          centroid IMS mobility scans during import using an mzmine algorithm (%s with %s smoothing)
+          (Agilent reader only centroids the frame spectra, not mobility scans). The "vendor centroiding" option
           must be enabled for the mzmine-centroiding to be applied. If advanced parameters are used
           during data import, they will be applied after centroiding.""".formatted(
-          LocalMaxMassDetector.NAME, LocalMaxSmoothingOptions.GAUSSIAN);
+          AdaptiveLocalMaxMassDetector.NAME, LocalMaxSmoothingOptions.GAUSSIAN);
       case MSCONVERT ->
           "Import Agilent .d files by converting them to mzML using MSConvert. (Windows only)";
     };

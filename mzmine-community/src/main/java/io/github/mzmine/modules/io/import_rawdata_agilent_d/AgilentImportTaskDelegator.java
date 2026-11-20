@@ -30,9 +30,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.AgilentImportOptions;
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,7 +48,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Decides whether an Agilent {@code .d} file is imported via the native AgilentBridge or MSConvert,
- * based on {@link MZminePreferences#agilentImportChoice}, and launches the matching task. Modeled
+ * based on {@link VendorImportParameters#agilentImportChoice} of the import module parameters, and
+ * launches the matching task. Modeled
  * on {@code MassLynxImportTaskDelegator}.
  */
 public class AgilentImportTaskDelegator extends AbstractSimpleTask implements RawDataImportTask {
@@ -64,8 +65,9 @@ public class AgilentImportTaskDelegator extends AbstractSimpleTask implements Ra
 
     super(storage, moduleCallDate, parameters, moduleClass);
 
-    final AgilentImportOptions importChoice = ConfigService.getPreference(
-        MZminePreferences.agilentImportChoice).getSelectedOption();
+    final AgilentImportOptions importChoice = parameters.getValue(
+            AllSpectralDataImportParameters.vendorOptions)
+        .getValue(VendorImportParameters.agilentImportChoice).getSelectedOption();
     actualTask = switch (importChoice) {
       case MSCONVERT ->
           new MSConvertImportTask(storage, moduleCallDate, file, processorConfig, project,
