@@ -53,9 +53,8 @@ public class FxVersionCheckTask extends FxUpdateTask<IntroductionTabModel> {
 
   @Override
   protected void updateGuiModel() {
-    if (result != null && result.type() == VersionCheckResultType.NEW_AVAILALABLE) {
-      model.setNewVersionAvailable(true);
-    }
+    model.setNewVersionAvailable(
+        result != null && result.type() == VersionCheckResultType.NEW_AVAILALABLE);
   }
 
   @Override

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
@@ -46,6 +47,7 @@ import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
@@ -262,6 +264,29 @@ public class MassLynxDataAccess implements AutoCloseable {
             isSonarFile(), getNumberOfFunctions(), analogChannelCount));
   }
 
+  /**
+   * @param detector      mass detector to apply to the entire frame
+   * @param type          spectrum type of the input mobility scans
+   * @param mobilityScans spectra in mobility scan number order
+   * @return detected spectra in the same order
+   */
+  public static @NotNull List<SimpleSpectralArrays> detectMobilityScans(
+      final @NotNull MassDetector detector, final @NotNull MassSpectrumType type,
+      final @NotNull List<SimpleSpectralArrays> mobilityScans) {
+    final List<MassSpectrum> spectra = new ArrayList<>(mobilityScans.size());
+    for (final SimpleSpectralArrays mobilityScan : mobilityScans) {
+      spectra.add(new SimpleMassSpectrum(mobilityScan.mzs(), mobilityScan.intensities(), type));
+    }
+
+    final List<double[][]> values = detector.getMobilityScanMassValues(spectra);
+
+    final List<SimpleSpectralArrays> processed = new ArrayList<>(values.size());
+    for (final double[][] mobilityScanValues : values) {
+      processed.add(new SimpleSpectralArrays(mobilityScanValues[0], mobilityScanValues[1]));
+    }
+    return processed;
+  }
+
   public @NotNull RawDataFileImpl createDataFile() {
     if (isImsFile) {
       if (isImagingFile && metadata != null && metadata.getImagingParameters() != null) {
@@ -426,6 +451,8 @@ public class MassLynxDataAccess implements AutoCloseable {
       final double[][] centroided = mzmineCentroider.getMassValues(mzs, intensities,
           MassSpectrumType.PROFILE);
       simpleSpectralArrays = new SimpleSpectralArrays(centroided[0], centroided[1]);
+      // data is centroided now, so advanced mass detection must not centroid again
+      metadataScan.setSpectrumType(MassSpectrumType.CENTROIDED);
     } else {
       simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
     }
@@ -503,6 +530,8 @@ public class MassLynxDataAccess implements AutoCloseable {
       final double[][] centroided = mzmineCentroider.getMassValues(mzs, intensities,
           MassSpectrumType.PROFILE);
       simpleSpectralArrays = new SimpleSpectralArrays(centroided[0], centroided[1]);
+      // data is centroided now, so advanced mass detection must not centroid again
+      metadataScan.setSpectrumType(MassSpectrumType.CENTROIDED);
     } else {
       simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
     }
@@ -563,11 +592,29 @@ public class MassLynxDataAccess implements AutoCloseable {
     }
   }
 
-  private @NotNull List<BuildingMobilityScan> readMobilityScansForFrame(int function, int scan,
-      int driftScanCount, @NotNull final ScanInfoWrapper scanInfo,
-      @NotNull ScanImportProcessorConfig processor) {
-    final List<BuildingMobilityScan> mobScans = new ArrayList<>();
+  /**
+   * @param function       MassLynx function index
+   * @param scan           frame index within the function
+   * @param driftScanCount number of mobility scans in the frame
+   * @param scanInfo       frame metadata
+   * @param processor      configured import processors
+   * @return processed mobility scans in acquisition order
+   */
+  private @NotNull List<BuildingMobilityScan> readMobilityScansForFrame(final int function,
+      final int scan, final int driftScanCount, @NotNull final ScanInfoWrapper scanInfo,
+      @NotNull final ScanImportProcessorConfig processor) {
+    final boolean centroidWithMzmine =
+        apiRequestedSpectrumType == MassSpectrumType.PROFILE && isRawSpectrumProfile(function)
+            && mzmineCentroider != null;
+    final MassSpectrumType processedSpectrumType = switch (apiRequestedSpectrumType) {
+      case MassSpectrumType.PROFILE -> centroidWithMzmine ? MassSpectrumType.CENTROIDED
+          : getProcessedSpectrumType(scanInfo, processor, mzmineCentroider);
+      case MassSpectrumType.CENTROIDED -> getProcessedSpectrumType(scanInfo, processor, null);
+      case MassSpectrumType.ANY, MassSpectrumType.THRESHOLDED, MassSpectrumType.MIXED ->
+          throw new IllegalStateException();
+    };
 
+    final List<SimpleSpectralArrays> rawMobilityScans = new ArrayList<>(driftScanCount);
     for (int i = 0; i < driftScanCount; i++) {
 
       final int numMobScanDp = switch (apiRequestedSpectrumType) {
@@ -602,30 +649,26 @@ public class MassLynxDataAccess implements AutoCloseable {
       final double[] mobScanIntensities = StorageUtils.sliceDoubles(intensityBuffer, 0,
           numMobScanDp).toArray(MassLynxLib.C_DOUBLE);
 
-      final MassSpectrumType processedSpectrumType;
-      final SimpleSpectralArrays dataPoints = switch (apiRequestedSpectrumType) {
-        case MassSpectrumType.PROFILE -> {
-          if (isRawSpectrumProfile(function) && mzmineCentroider != null) {
-            final double[][] centroided = mzmineCentroider.getMassValues(mobScanMzs,
-                mobScanIntensities, MassSpectrumType.PROFILE);
-            processedSpectrumType = MassSpectrumType.CENTROIDED;
-            yield processor.processor().processScan(scanInfo.metadataOnlyScan(),
-                new SimpleSpectralArrays(centroided[0], centroided[1]));
-          } else {
-            processedSpectrumType = getProcessedSpectrumType(scanInfo, processor, mzmineCentroider);
-            yield processor.processor().processScan(scanInfo.metadataOnlyScan(),
-                new SimpleSpectralArrays(mobScanMzs, mobScanIntensities));
-          }
-        }
-        case MassSpectrumType.CENTROIDED -> {
-          processedSpectrumType = getProcessedSpectrumType(scanInfo, processor, null);
-          yield this.processor.processor().processScan(scanInfo.metadataOnlyScan(),
-              new SimpleSpectralArrays(mobScanMzs, mobScanIntensities));
-        }
-        case MassSpectrumType.ANY, MassSpectrumType.THRESHOLDED, MassSpectrumType.MIXED ->
-            throw new IllegalStateException();
-      };
+      rawMobilityScans.add(new SimpleSpectralArrays(mobScanMzs, mobScanIntensities));
+    }
 
+    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan();
+    final List<SimpleSpectralArrays> mobilityScans;
+    if (centroidWithMzmine) {
+      mobilityScans = detectMobilityScans(mzmineCentroider, MassSpectrumType.PROFILE,
+          rawMobilityScans);
+      metadataScan.setSpectrumType(MassSpectrumType.CENTROIDED);
+    } else {
+      mobilityScans = rawMobilityScans;
+    }
+
+    // all mobility scans of the frame are processed together
+    final List<SimpleSpectralArrays> processedMobilityScans = processor.processor()
+        .processMobilityScans(metadataScan, mobilityScans);
+
+    final List<BuildingMobilityScan> mobScans = new ArrayList<>(processedMobilityScans.size());
+    for (int i = 0; i < processedMobilityScans.size(); i++) {
+      final SimpleSpectralArrays dataPoints = processedMobilityScans.get(i);
       mobScans.add(new BuildingMobilityScan(i, dataPoints.mzs(), dataPoints.intensities(),
           processedSpectrumType));
     }

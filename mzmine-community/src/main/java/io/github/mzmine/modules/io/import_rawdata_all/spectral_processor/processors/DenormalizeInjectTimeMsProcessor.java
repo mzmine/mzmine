@@ -40,10 +40,11 @@ public class DenormalizeInjectTimeMsProcessor implements MsProcessor {
 
   public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
       final @NotNull SimpleSpectralArrays spectrum) {
-    if (metadataOnlyScan == null) {
+    // only MSn, MS1 needs to stay normalized by the injection time (same as mass detection task)
+    if (metadataOnlyScan == null || metadataOnlyScan.getMSLevel() <= 1) {
       return spectrum;
     }
-    
+
     ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(spectrum.intensities(),
         metadataOnlyScan.getInjectionTime());
     return spectrum;

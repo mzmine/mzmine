@@ -85,6 +85,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
   protected int widthExpandedBySubParameters;
   protected DoubleProperty maxExtraHeightExpanded = new SimpleDoubleProperty(0);
   protected DoubleProperty maxExtraWidthExpanded = new SimpleDoubleProperty(0);
+  private boolean mainWindowAsOwner = true;
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
@@ -252,12 +253,20 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
   @Override
   public void showAndWait() {
-    if (MZmineCore.getDesktop() != null) {
+    if (mainWindowAsOwner && MZmineCore.getDesktop() != null) {
       // this should prevent the main stage tool tips from bringing the main stage to the front.
       Stage mainStage = MZmineCore.getDesktop().getMainWindow();
       this.initOwner(mainStage);
     }
     super.showAndWait();
+  }
+
+  /**
+   * Controls whether {@link #showAndWait()} assigns the mzmine main window as this dialog's owner.
+   * The default keeps normal desktop dialogs owned by the main window.
+   */
+  public void setMainWindowAsOwner(final boolean mainWindowAsOwner) {
+    this.mainWindowAsOwner = mainWindowAsOwner;
   }
 
   public ParameterSetupPane getParamPane() {

@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.features.settings.FeatureListSettings;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
@@ -639,6 +640,20 @@ public interface FeatureList {
    * Replaces the preferences of this feature list, see {@link #getPreferences()}.
    */
   void setPreferences(@NotNull FeatureListPreferences preferences);
+
+  /**
+   * Settings that are written by processing modules and never edited by the user, in contrast to
+   * {@link #getPreferences()}. Defaults to {@link FeatureListSettings#DEFAULT}, saved and loaded
+   * with the project.
+   *
+   * @return the settings of this feature list
+   */
+  @NotNull FeatureListSettings getSettings();
+
+  /**
+   * Replaces the settings of this feature list, see {@link #getSettings()}.
+   */
+  void setSettings(@NotNull FeatureListSettings settings);
 
   // --- Structural versioning for compound list invalidation ---
 

@@ -25,7 +25,11 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
@@ -33,7 +37,11 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
+import java.util.Map;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Reduced set of parameter for {@link LocalCSVDatabaseSearchParameters} used in the wizard
@@ -56,12 +64,43 @@ public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterS
       "Either use the precursor m/z from the database, or calculate various ions from the neutral mass/formula/smiles",
       MassOptions.values(), MassOptions.MASS_AND_IONS);
 
+  public static final OptionalParameter<IonLibraryParameter> adductLibrary = new OptionalParameter<>(
+      new IonLibraryParameter("Specific adducts",
+          "Select the adducts used to calculate ion m/z values from neutral mass, formula, or SMILES. "
+              + "When disabled, mzmine uses its default main adducts for the selected polarity.",
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN), false);
+
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.",
       LocalCSVDatabaseSearchParameters.importTypes);
 
   public AnnotationLocalCSVDatabaseSearchParameters() {
-    super(dataBaseFile, massOptionsComboParameter, filterSamplesColumn, columns);
+    super(dataBaseFile, massOptionsComboParameter, filterSamplesColumn, adductLibrary.cloneParameter(),
+        columns);
+  }
+
+  @Override
+  public void handleLoadedParameters(@NotNull final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    if (!loadedParams.containsKey(adductLibrary.getName())) {
+      setParameter(adductLibrary, false);
+    }
+  }
+
+  /**
+   * Returns the configured adduct override when selected, otherwise the same polarity-specific
+   * library that the wizard used before this setting was introduced.
+   */
+  public @NotNull IonLibrary getEffectiveIonLibrary(@NotNull final WizardMsPolarity polarity) {
+    if (getValue(adductLibrary)) {
+      return Objects.requireNonNull(getEmbeddedParameterValue(adductLibrary));
+    }
+    return switch (polarity) {
+      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_MAIN;
+      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_MAIN;
+      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN;
+    };
   }
 
   public enum MassOptions {

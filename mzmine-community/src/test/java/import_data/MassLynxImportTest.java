@@ -25,6 +25,7 @@
 
 package import_data;
 
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.ModularDataModel;
@@ -43,17 +44,21 @@ import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxDataAccess;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -122,7 +127,7 @@ public class MassLynxImportTest {
   @Test
   public void testProfileNonIms() throws Exception {
     final File ddaNonIms = new File(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029.raw");
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-MS DDA\\pos\\050325_029.raw");
     if (!ddaNonIms.exists()) {
       return;
     }
@@ -165,7 +170,7 @@ public class MassLynxImportTest {
   @Test
   public void testCentroidNonIms() throws Exception {
     final File ddaNonIms = new File(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029.raw");
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-MS DDA\\pos\\050325_029.raw");
     if (!ddaNonIms.exists()) {
       return;
     }
@@ -208,7 +213,7 @@ public class MassLynxImportTest {
   @Test
   public void testProfileIms() throws Exception {
     final File mseIms = new File(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-IMS-MS MSe\\20250303_FuncTest2_SST_POS_006R.raw");
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-IMS-MS MSe\\20250303_FuncTest2_SST_POS_006R.raw");
     if (!mseIms.exists()) {
       return;
     }
@@ -262,7 +267,7 @@ public class MassLynxImportTest {
   @Test
   public void testCentroidIms() throws Exception {
     final File mseIms = new File(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-IMS-MS MSe\\20250303_FuncTest2_SST_POS_006R.raw");
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-IMS-MS MSe\\20250303_FuncTest2_SST_POS_006R.raw");
     if (!mseIms.exists()) {
       return;
     }
@@ -316,7 +321,7 @@ public class MassLynxImportTest {
   @Test
   public void testAdvancedCentroiding() throws Exception {
     final File mseIms = new File(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-IMS-MS MSe\\20250303_FuncTest2_SST_POS_006R.raw");
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-IMS-MS MSe\\20250303_FuncTest2_SST_POS_006R.raw");
     if (!mseIms.exists()) {
       return;
     }
@@ -350,7 +355,7 @@ public class MassLynxImportTest {
   @Test
   public void testAlreadyCentroided() throws Exception {
     final File alreadyCentroided = new File(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\mse_20180205_0125.raw");
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\mse_20180205_0125.raw");
     if (!alreadyCentroided.exists()) {
       return;
     }
@@ -388,6 +393,84 @@ public class MassLynxImportTest {
     }
 
     Assertions.assertEquals(rawMz, mzmineMz);
+  }
+
+  /**
+   * mzmine centroiding with advanced AUTO mass detection (noise level 0)
+   */
+  public AllSpectralDataImportParameters generateMzmineCentroidingAdvancedAutoParam(File file) {
+    final VendorImportParameters vendorParam = VendorImportParameters.create(true,
+        MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING, true,
+        WatersLockmassParameters.createDefault(), true,
+        VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
+
+    final ParameterSet autoParam = MassDetectors.AUTO.getModuleParameters().cloneParameterSet();
+    autoParam.setParameter(AutoMassDetectorParameters.noiseLevel, 0d);
+    final var advancedParam = AdvancedSpectraImportParameters.create(MassDetectors.AUTO, autoParam,
+        MassDetectors.AUTO, autoParam, null, ScanSelection.ALL_SCANS, false);
+    return (AllSpectralDataImportParameters) AllSpectralDataImportParameters.create(vendorParam,
+        new File[]{file}, null, null, advancedParam);
+  }
+
+  private static @NotNull MassLynxDataAccess createAccess(@NotNull final File raw,
+      @NotNull final AllSpectralDataImportParameters param) {
+    final ScanImportProcessorConfig processor = AllSpectralDataImportModule.createSpectralProcessors(
+        param.getEmbeddedParametersIfSelectedOrElse(AllSpectralDataImportParameters.advancedImport,
+            null));
+    return new MassLynxDataAccess(raw, (VendorImportParameters) param.getEmbeddedParameterValue(
+        AllSpectralDataImportParameters.vendorOptions), null, processor);
+  }
+
+  private static void assertSameMzs(@NotNull final MassSpectrum expected,
+      @NotNull final MassSpectrum actual) {
+    Assertions.assertEquals(MassSpectrumType.CENTROIDED, actual.getSpectrumType());
+    Assertions.assertArrayEquals(
+        Arrays.copyOf(expected.getMzValues(new double[0]), expected.getNumberOfDataPoints()),
+        Arrays.copyOf(actual.getMzValues(new double[0]), actual.getNumberOfDataPoints()));
+  }
+
+  /**
+   * Data centroided by mzmine must be passed to advanced mass detection as centroided. Otherwise
+   * the auto mass detector centroids the centroids again and loses most signals.
+   */
+  @Test
+  public void testMzmineCentroidingWithAdvancedMassDetection() throws Exception {
+    final File mseIms = new File(
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-IMS-MS MSe\\20250303_FuncTest2_SST_POS_006R.raw");
+    final File ddaNonIms = new File(
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-MS DDA\\pos\\050325_029.raw");
+    if (!mseIms.exists() || !ddaNonIms.exists()) {
+      return;
+    }
+
+    // frames and mobility scans
+    final IMSRawDataFileImpl imsFile = new IMSRawDataFileImpl(mseIms.getName(),
+        mseIms.getAbsolutePath(), null);
+    final SimpleFrame centroidedFrame;
+    final SimpleFrame detectedFrame;
+    try (final var access = createAccess(mseIms, generateMzmineCentroidingParam(mseIms))) {
+      centroidedFrame = access.readFrame(imsFile, 0, 77);
+    }
+    try (final var access = createAccess(mseIms,
+        generateMzmineCentroidingAdvancedAutoParam(mseIms))) {
+      detectedFrame = access.readFrame(imsFile, 0, 77);
+    }
+    assertSameMzs(centroidedFrame, detectedFrame);
+    assertSameMzs(centroidedFrame.getMobilityScan(44), detectedFrame.getMobilityScan(44));
+
+    // scans of non ims files
+    final RawDataFileImpl ddaFile = new RawDataFileImpl(ddaNonIms.getName(),
+        ddaNonIms.getAbsolutePath(), null);
+    final SimpleScan centroidedScan;
+    final SimpleScan detectedScan;
+    try (final var access = createAccess(ddaNonIms, generateMzmineCentroidingParam(ddaNonIms))) {
+      centroidedScan = access.readScan(ddaFile, 0, 30);
+    }
+    try (final var access = createAccess(ddaNonIms,
+        generateMzmineCentroidingAdvancedAutoParam(ddaNonIms))) {
+      detectedScan = access.readScan(ddaFile, 0, 30);
+    }
+    assertSameMzs(centroidedScan, detectedScan);
   }
 
   @Test

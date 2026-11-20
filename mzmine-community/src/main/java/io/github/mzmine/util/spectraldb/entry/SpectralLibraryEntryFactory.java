@@ -425,7 +425,7 @@ public class SpectralLibraryEntryFactory {
     }
     switch (match) {
       case CompoundDBAnnotation dbmatch -> addAnnotationFields(entry, dbmatch);
-      case SpectralLibraryEntry dbmatch -> addAnnotationFields(entry, dbmatch);
+      case SpectralDBAnnotation dbmatch -> addAnnotationFields(entry, dbmatch.getEntry());
       case FeatureAnnotation _ -> {
         entry.putIfNotNull(DBEntryField.ION_TYPE, match.getAdductType());
         entry.putIfNotNull(DBEntryField.CCS, match.getCCS());
@@ -449,6 +449,12 @@ public class SpectralLibraryEntryFactory {
       if (field == DBEntryField.UNSPECIFIED) {
         continue;
       }
+      if (addExperimentalResults) {
+        // if experimental results are added, skip RT and CCS fields from the database to not override them
+        if (field == DBEntryField.RT || field == DBEntryField.CCS) {
+          continue;
+        }
+      }
       try {
         entry.putIfNotNull(field, dbentry.getValue());
       } catch (Exception ex) {
@@ -465,9 +471,16 @@ public class SpectralLibraryEntryFactory {
     }
     for (var dbentry : match.getFields().entrySet()) {
       switch (dbentry.getKey()) {
-        case RT, NAME, FORMULA, SMILES, ISOMERIC_SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE,
-             SYNONYMS, CAS, PUBCHEM, PUBMED, MOLWEIGHT ->
+        case NAME, FORMULA, SMILES, ISOMERIC_SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE,
+             SYNONYMS, CAS, PUBCHEM, PUBMED, MOLWEIGHT, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
+             CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
+             NPCLASSIFIER_PATHWAY, GNPS_ID, MONA_ID, CHEMSPIDER, PEPTIDE_SEQ, INTERNAL_ID,
+             IUPAC_NAME -> entry.putIfNotNull(dbentry.getKey(), dbentry.getValue());
+        case RT, CCS -> {
+          if (!addExperimentalResults) { // only add if exp results are not wanted
             entry.putIfNotNull(dbentry.getKey(), dbentry.getValue());
+          }
+        }
       }
     }
   }

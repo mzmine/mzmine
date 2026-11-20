@@ -93,7 +93,28 @@ public class BatchUtils {
    * @return false only if a GUI user declines to continue
    */
   public static boolean confirmModuleOrderWarnings(@NotNull final BatchQueue batch) {
-    final String warning = checkModuleOrder(batch);
+    return confirmWarning(checkModuleOrder(batch), "Processing order warnings");
+  }
+
+  /**
+   * Shows one confirmation for all plausibility warnings of {@link #checkBatchParameters} in GUI
+   * mode, e.g., when checking or starting a batch from the batch dialog. Headless execution logs
+   * the warning and continues because no interactive confirmation is possible.
+   *
+   * @param batch the batch queue to check
+   * @return false only if a GUI user declines to continue
+   */
+  public static boolean confirmBatchParameterWarnings(@NotNull final BatchQueue batch) {
+    return confirmWarning(checkBatchParameters(batch), "Batch parameter warnings");
+  }
+
+  /**
+   * @param warning the warning or null if there is nothing to confirm
+   * @param title   the dialog title
+   * @return false only if a GUI user declines to continue
+   */
+  private static boolean confirmWarning(@Nullable final String warning,
+      @NotNull final String title) {
     if (warning == null) {
       return true;
     }
@@ -102,9 +123,9 @@ public class BatchUtils {
     if (!DesktopService.isGUI()) {
       return true;
     }
-    return DialogLoggerUtil.showDialogYesNo("Processing order warnings", """
+    return DialogLoggerUtil.showDialogYesNo(title, """
         %s
-        
+
         Continue with this batch?""".formatted(warning));
   }
 
@@ -198,6 +219,7 @@ public class BatchUtils {
       final ParameterSet parameters = step.getParameterSet();
       final RawDataFilesSelectionType rawSelection = ParameterUtils.streamParametersDeep(parameters,
               RawDataFilesParameter.class).map(RawDataFilesParameter::getValue)
+          .filter(Objects::nonNull)
           .map(RawDataFilesSelection::getSelectionType).findFirst().orElse(null);
       if (rawSelection != null && previousRawFileSelection == null) {
         previousRawFileSelection = rawSelection;
@@ -216,6 +238,7 @@ public class BatchUtils {
 
       final FeatureListsSelectionType flistSelection = ParameterUtils.streamParametersDeep(
               parameters, FeatureListsParameter.class).map(FeatureListsParameter::getValue)
+          .filter(Objects::nonNull)
           .map(FeatureListsSelection::getSelectionType).findFirst().orElse(null);
       if (flistSelection != null && previousFlistSelection == null) {
         previousFlistSelection = flistSelection;
