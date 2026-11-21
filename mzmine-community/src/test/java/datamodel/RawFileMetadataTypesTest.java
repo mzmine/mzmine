@@ -43,6 +43,8 @@ import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationDateT
 import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationReferencePressureType;
 import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationStdDevPercentType;
 import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationUserType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MobilityScanAbundanceLimitType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MobilityScanAbundanceLimits;
 import io.github.mzmine.datamodel.features.rawfiletypes.MzCalibrationModeType;
 import io.github.mzmine.datamodel.features.rawfiletypes.MzCalibrationStdDevPpmType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
@@ -98,6 +100,9 @@ class RawFileMetadataTypesTest {
       Map.entry(MobilityCalibrationUserType.class, TEXT),
       Map.entry(MobilityCalibrationDateTimeType.class, LocalDateTime.of(2024, 1, 16, 16, 17, 53)),
       Map.entry(MobilityCalibrationReferencePressureType.class, 2.52874),
+      // NaN tests the unknown ms2 limit
+      Map.entry(MobilityScanAbundanceLimitType.class,
+          new MobilityScanAbundanceLimits(65535d, Double.NaN)),
       Map.entry(AcquisitionMzRangeType.class, Range.closed(50d, 1500d)),
       Map.entry(AcquisitionRtRangeType.class, Range.closed(0.05f, 15.3f)),
       Map.entry(RawDataFileFormatType.class, RawDataFileType.BRUKER_TDF));

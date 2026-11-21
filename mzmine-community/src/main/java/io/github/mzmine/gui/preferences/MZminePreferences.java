@@ -45,6 +45,7 @@ import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.ParameterGr
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithComboInputParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptOutParameter;
@@ -248,6 +249,8 @@ public class MZminePreferences extends SimpleParameterSet {
       .cloneParameter();
   public static final ComboParameter<MassLynxImportOptions> massLynxImportChoice = VendorImportParameters.massLynxImportChoice.getEmbeddedParameter()
       .cloneParameter();
+  public static final ComboWithComboInputParameter<AgilentImportOptions, AgilentCentroidingOption> agilentImportChoice = VendorImportParameters.agilentImportChoice.getEmbeddedParameter()
+      .cloneParameter();
   public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
       .cloneParameter();
   public static final ComboParameter<TdfPressureCompensation> brukerPressureComp = VendorImportParameters.applyTimsPressureCompensation.getEmbeddedParameter()
@@ -310,8 +313,8 @@ public class MZminePreferences extends SimpleParameterSet {
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             otherOptOutWarnings,
             // conversion, data handling
-            applyVendorCentroiding, watersLockmass, massLynxImportChoice, msConvertPath,
-            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses,
+            applyVendorCentroiding, watersLockmass, massLynxImportChoice, agilentImportChoice,
+            msConvertPath, keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses,
             brukerPressureComp},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
@@ -347,8 +350,8 @@ public class MZminePreferences extends SimpleParameterSet {
             chartParam, themeStyle, themeColors, presentationMode, showPrecursorWindow,
             imageTransformation, imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
-            watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,
-            excludeThermoExceptionMasses, brukerPressureComp) //
+            agilentImportChoice, watersLockmass, msConvertPath, keepConvertedFile,
+            thermoRawFileParserPath, excludeThermoExceptionMasses, brukerPressureComp) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 

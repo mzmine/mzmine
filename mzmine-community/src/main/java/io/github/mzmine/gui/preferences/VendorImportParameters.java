@@ -35,7 +35,10 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComponentWrapperParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithComboInputParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithComboInputValue;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javafx.scene.Node;
@@ -50,6 +53,10 @@ public class VendorImportParameters extends SimpleParameterSet {
           """, ThermoImportOptions.getOptionsForOs(), DEFAULT_THERMO_IMPORT),
       createJumpToPrefButton(VendorImportParameters.thermoImportChoice.getName()));*/
   public static final MassLynxImportOptions DEFAULT_WATERS_OPTION = MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING;
+  public static final AgilentImportOptions DEFAULT_AGILENT_READER = AgilentImportOptions.CUSTOM;
+  public static final AgilentCentroidingOption DEFAULT_AGILENT_CENTROIDING = AgilentCentroidingOption.PREFER_STORED;
+  public static final ComboWithComboInputValue<AgilentImportOptions, AgilentCentroidingOption> DEFAULT_AGILENT_OPTION = new ComboWithComboInputValue<>(
+      DEFAULT_AGILENT_READER, DEFAULT_AGILENT_CENTROIDING);
   public static final boolean DEFAULT_VENDOR_CENTROIDING = true;
   public static final boolean DEFAULT_WATERS_LOCKMASS_ENABLED = true;
   public static final boolean DEFAULT_THERMO_EXCEPTION_SIGNALS = true;
@@ -68,6 +75,28 @@ public class VendorImportParameters extends SimpleParameterSet {
           slow for IMS data. Centroiding is only applied if "Try vendor centroiding" is enabled.""",
           MassLynxImportOptions.values(), DEFAULT_WATERS_OPTION),
       createJumpToPrefButton("Waters MassLynx data import"));
+
+  // Main combo selects the import path (AgilentImportOptions); the embedded centroiding combo is
+  // shown only for the native reader options and hidden for the MSConvert path. The embedded
+  // combo carries the parameter name (see EmbeddedParameter#getName).
+  public static final ComponentWrapperParameter<ComboWithComboInputValue<AgilentImportOptions, AgilentCentroidingOption>, ComboWithComboInputParameter<AgilentImportOptions, AgilentCentroidingOption>> agilentImportChoice = new ComponentWrapperParameter<>(
+      new ComboWithComboInputParameter<>(new ComboParameter<>("Agilent .d data import", """
+          Select if Agilent .d data files shall be imported via the mzio reader, the native
+          AgilentReader or MSConvert, and (for the native readers) how centroids are produced. The
+          mzio reader reads regular MS and ion mobility (.d) data directly on all platforms, the
+          AgilentReader via a bundled Windows helper; MSConvert converts to mzML first.
+          Centroiding is only applied when "Try vendor centroiding" is enabled; the centroid source
+          then selects stored vendor centroids vs. recentroiding the profile.
+          
+          %s
+          
+          %s""".formatted(AgilentImportOptions.getTooltip(), AgilentCentroidingOption.getTooltip()),
+          AgilentCentroidingOption.values(), DEFAULT_AGILENT_CENTROIDING),
+          AgilentImportOptions.values(),
+          List.of(AgilentImportOptions.CUSTOM, AgilentImportOptions.AGILENT_READER,
+              AgilentImportOptions.AGILENT_READER_AUTO_CENTROID),
+          new ComboWithComboInputValue<>(DEFAULT_AGILENT_READER, DEFAULT_AGILENT_CENTROIDING)),
+      createJumpToPrefButton("Agilent .d data import"));
 
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
       new BooleanParameter("Try vendor centroiding", """
@@ -103,7 +132,7 @@ public class VendorImportParameters extends SimpleParameterSet {
 
   public VendorImportParameters() {
     super(applyVendorCentroiding, excludeThermoExceptionMasses, watersLockmass,
-        massLynxImportChoice, applyTimsPressureCompensation);
+        massLynxImportChoice, agilentImportChoice, applyTimsPressureCompensation);
   }
 
   private static @NotNull Supplier<Node> createJumpToPrefButton(String preferenceParameterName) {
@@ -114,11 +143,13 @@ public class VendorImportParameters extends SimpleParameterSet {
   public static VendorImportParameters create(boolean applyCentroiding,
       @NotNull MassLynxImportOptions massLynxOption, boolean watersLockmassEnabled,
       @NotNull WatersLockmassParameters lockmassParam, boolean removeThermoExceptionMasses,
+      @NotNull ComboWithComboInputValue<AgilentImportOptions, AgilentCentroidingOption> agilentSettings,
       @NotNull TdfPressureCompensation brukerPressureComp) {
     final VendorImportParameters param = (VendorImportParameters) new VendorImportParameters().cloneParameterSet();
 
     param.setParameter(applyVendorCentroiding, applyCentroiding);
     param.setParameter(massLynxImportChoice, massLynxOption);
+    param.setParameter(agilentImportChoice, agilentSettings);
     param.getParameter(watersLockmass).setValue(watersLockmassEnabled);
     param.getParameter(watersLockmass).getEmbeddedParameter().setEmbeddedParameters(lockmassParam);
     param.setParameter(excludeThermoExceptionMasses, removeThermoExceptionMasses);
@@ -129,7 +160,7 @@ public class VendorImportParameters extends SimpleParameterSet {
   public static VendorImportParameters createDefault() {
     return create(DEFAULT_VENDOR_CENTROIDING, DEFAULT_WATERS_OPTION,
         DEFAULT_WATERS_LOCKMASS_ENABLED, WatersLockmassParameters.createDefault(),
-        DEFAULT_THERMO_EXCEPTION_SIGNALS, DEFAULT_PRESSURE_COMPENSATION);
+        DEFAULT_THERMO_EXCEPTION_SIGNALS, DEFAULT_AGILENT_OPTION, DEFAULT_PRESSURE_COMPENSATION);
   }
 
   /**
@@ -144,6 +175,7 @@ public class VendorImportParameters extends SimpleParameterSet {
         preferences.getValue(MZminePreferences.watersLockmass),
         preferences.getParameter(MZminePreferences.watersLockmass).getEmbeddedParameters(),
         preferences.getValue(MZminePreferences.excludeThermoExceptionMasses),
+        preferences.getValue(MZminePreferences.agilentImportChoice),
         preferences.getValue(MZminePreferences.brukerPressureComp));
   }
 
@@ -154,6 +186,12 @@ public class VendorImportParameters extends SimpleParameterSet {
     if (!loadedParams.containsKey(applyTimsPressureCompensation.getName())) {
       getParameter(applyTimsPressureCompensation).getEmbeddedParameter()
           .setValue(DEFAULT_PRESSURE_COMPENSATION);
+    }
+    if (!loadedParams.containsKey(agilentImportChoice.getName())) {
+      // batches saved before the native readers imported Agilent files via MSConvert
+      getParameter(agilentImportChoice).getEmbeddedParameter().setValue(
+          new ComboWithComboInputValue<>(AgilentImportOptions.MSCONVERT,
+              DEFAULT_AGILENT_CENTROIDING));
     }
   }
 }

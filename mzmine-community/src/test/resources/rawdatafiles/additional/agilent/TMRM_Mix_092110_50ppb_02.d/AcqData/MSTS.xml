@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TimeSegments xmlns:xs="http://www.w3.org/2001/XMLSchema-instance">
+	<Version>1</Version>
+	<TimeSegment TimeSegmentID="1">
+		<StartTime>1.666666666667e-005</StartTime>
+		<EndTime>17.00071666667</EndTime>
+		<NumOfScans>13868</NumOfScans>
+		<FixedCycleLength>true</FixedCycleLength>
+	</TimeSegment>
+</TimeSegments>

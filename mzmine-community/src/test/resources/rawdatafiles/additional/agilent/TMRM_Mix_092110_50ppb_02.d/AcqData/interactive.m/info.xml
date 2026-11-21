@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!--Picard Method XML file-->
+<Properties><Version>A.00.01</Version><PreRunScript><ProjectName></ProjectName><ProcedureName></ProcedureName><InParameter></InParameter><DisplayString></DisplayString></PreRunScript><PostRunScript><ProjectName></ProjectName><ProcedureName></ProcedureName><InParameter></InParameter><DisplayString></DisplayString></PostRunScript><Description>ZORBAX Eclipse Plus RRHD C18 2.1 x 100 mm</Description><EstimatedRunTime>19</EstimatedRunTime></Properties>
