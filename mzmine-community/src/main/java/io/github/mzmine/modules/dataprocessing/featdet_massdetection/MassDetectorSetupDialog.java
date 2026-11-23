@@ -26,25 +26,30 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.javafx.mvci.LatestTaskScheduler;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
-import io.github.mzmine.util.color.ColorUtils;
-import java.awt.Color;
 import java.util.ArrayList;
+import javafx.util.Duration;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
  * how the selected mass detector and his parameters works over the raw data file.
  */
 public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview {
+
+  /**
+   * Runs the mass detection off the GUI thread, only the latest preview updates the plot
+   */
+  private final LatestTaskScheduler previewScheduler = new LatestTaskScheduler();
+  /**
+   * Detector of the last preview, hands its per file cache to the next detector
+   */
+  private @Nullable MassDetector lastDetector;
 
   /**
    * @param mainParams
@@ -65,41 +70,25 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     spectrumPlot.removeAllDataSets();
     spectrumPlot.addDataSet(spectraDataSet, previewScan.getDataFile().getColorAWT(), false, true);
 
-    // If there is some illegal value, do not load the preview but just exit
+    // If there is some illegal value, show no centroids. The empty task still replaces older
+    // previews, so they do not add their centroids.
     ArrayList<String> errorMessages = new ArrayList<String>();
     boolean paramsOK = parameterSet.checkParameterValues(errorMessages, true);
-    if (!paramsOK) {
-      return;
+    MassDetector massDetector = null;
+    if (paramsOK) {
+      var detector = parameterSet.getParameter(MassDetectionParameters.massDetector)
+          .getValueWithParameters();
+      massDetector = detector.value().createMassDetector(detector.parameters());
+    }
+    final MassDetector previousDetector = lastDetector;
+    if (massDetector != null) {
+      lastDetector = massDetector;
     }
 
-    var detector = parameterSet.getParameter(MassDetectionParameters.massDetector)
-        .getValueWithParameters();
-    MassDetector massDetector = detector.value().createMassDetector(detector.parameters());
-
-    double[][] mzValues = massDetector.getMassValues(previewScan);
-
-    // If the detector preprocessed (e.g. smoothed) the intensities, show that series as a line in a
-    // distinct color so the user can see what maximum and edge detection ran on.
-    if (massDetector instanceof PreprocessedIntensitiesProvider provider) {
-      final double[] preprocessedIntensities = provider.getLastPreprocessedIntensities();
-      if (preprocessedIntensities != null
-          && preprocessedIntensities.length == previewScan.getNumberOfDataPoints()) {
-        final double[] mzs = new double[preprocessedIntensities.length];
-        for (int i = 0; i < mzs.length; i++) {
-          mzs[i] = previewScan.getMzValue(i);
-        }
-        final MzIntensityDataSet preprocessedDataSet = new MzIntensityDataSet("Smoothed", mzs,
-            preprocessedIntensities);
-        final Color preprocessedColor = ColorUtils.getContrastPaletteColorAWT(
-            previewScan.getDataFile().getColorAWT(), ConfigService.getDefaultColorPalette());
-        spectrumPlot.addDataSet(preprocessedDataSet, preprocessedColor, false,
-            new ContinuousRenderer(preprocessedColor, false), false, true);
-      }
-    }
-
-    MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
-
-    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false, true);
+    // decision: detection off the GUI thread, some detectors scan the whole raw file first (e.g.,
+    // auto saturation threshold). The delay accumulates fast parameter changes.
+    previewScheduler.onTaskThreadDelayed(
+        new MassDetectorPreviewUpdateTask(spectrumPlot, massDetector, previousDetector,
+            previewScan), Duration.millis(100));
   }
-
 }

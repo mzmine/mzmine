@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -99,11 +99,16 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   }
 
   /**
-   * Used in clone parameter
+   * Used in clone parameter and to offer specialized parameter sets for some options, e.g., with
+   * fewer choices in a specific context.
+   *
+   * @param selectedValue the selected option
+   * @param parameters    the options and their parameters, used as is (not cloned)
+   * @param alwaysOpen    if the parameters of the selected option are always shown
    */
-  protected ModuleOptionsEnumComboParameter(final String name, final String description,
-      final EnumType selectedValue, final EnumMap<EnumType, ParameterSet> parameters,
-      boolean alwaysOpen) {
+  public ModuleOptionsEnumComboParameter(final String name, final String description,
+      @NotNull final EnumType selectedValue,
+      @NotNull final EnumMap<EnumType, ParameterSet> parameters, final boolean alwaysOpen) {
     this.name = name;
     this.description = description;
     this.selectedValue = selectedValue;
