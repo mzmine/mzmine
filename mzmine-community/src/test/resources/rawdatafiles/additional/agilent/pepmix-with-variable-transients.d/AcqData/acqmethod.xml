@@ -1,0 +1,351 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AcqMethod>
+  <Version>1.0</Version>
+  <!--Method Properties-->
+  <MethodName>43mm-DDE3.m</MethodName>
+  <MethodPath>D:\MassHunter\data\chris\cm-08July27-ddetest\DDE3-r003.d\AcqData\43mm-DDE3.m</MethodPath>
+  <MethodDescription>Default Method</MethodDescription>
+  <!--List of Devices-->
+  <DeviceList>uWPS</DeviceList>
+  <DeviceList>Nano Pump</DeviceList>
+  <DeviceList>Cap Pump</DeviceList>
+  <DeviceList>HPLC-Chip</DeviceList>
+  <DeviceList>MS Q-TOF</DeviceList>
+  <!--Device Specific Setpoints-->
+  <MicroWPS>
+    <ComponentModelName>uWPS</ComponentModelName>
+    <ComponentModel>G1377A</ComponentModel>
+    <ComponentOrdinal>1</ComponentOrdinal>
+    <ComponentOptions>THM</ComponentOptions>
+    <Version>1, 0, 0, 1; Base: 0.2.064.0</Version>
+    <Stoptime>As Pump</Stoptime>
+    <Posttime>Off</Posttime>
+    <Delay>0</Delay>
+    <CONTACT_1>0</CONTACT_1>
+    <CONTACT_2>0</CONTACT_2>
+    <CONTACT_3>0</CONTACT_3>
+    <CONTACT_4>0</CONTACT_4>
+    <ContactsTimetable />
+    <Signals>
+      <SignalDesc>Temperature</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <EnableRinse>No</EnableRinse>
+    <RinseDrawSpeed>100</RinseDrawSpeed>
+    <RinseEjectSpeed>100</RinseEjectSpeed>
+    <RinseVolume>1.3</RinseVolume>
+    <RinseVolume2>2</RinseVolume2>
+    <ValveSwitchTime1>0</ValveSwitchTime1>
+    <ValveSwitchTime2>0</ValveSwitchTime2>
+    <ValveSwitchTime3>0</ValveSwitchTime3>
+    <ValveSwitchTime4>0</ValveSwitchTime4>
+    <ValveMovements>0</ValveMovements>
+    <NRdyTemperatureRange />
+    <ThermostatTemperature />
+    <DrawPositionDetection>1</DrawPositionDetection>
+    <DrawSpeed>20</DrawSpeed>
+    <EjectSpeed>40</EjectSpeed>
+    <InjVolume>0.1</InjVolume>
+    <DrawPosition>-0.3</DrawPosition>
+    <InjectMode>Needle Wash</InjectMode>
+    <WashVessel>N/A</WashVessel>
+    <OverlapTime>Disable Overlapped Injection</OverlapTime>
+    <FlushOutFactor>5</FlushOutFactor>
+    <EnableBypass>No</EnableBypass>
+    <WaitAfterDraw>0</WaitAfterDraw>
+    <WashLocation>FlushPort</WashLocation>
+    <WashTime>5</WashTime>
+    <WashCycles>N/A</WashCycles>
+    <InjProgram />
+  </MicroWPS>
+  <NanoPump>
+    <ComponentModelName>Nano Pump</ComponentModelName>
+    <ComponentModel>G2226A</ComponentModel>
+    <ComponentOrdinal>1</ComponentOrdinal>
+    <AutoFastCompChange>Off</AutoFastCompChange>
+    <ComponentOptions>SSV_FS3_FCC</ComponentOptions>
+    <Version>0.2.041.0; Base: 0.2.064.0</Version>
+    <Stoptime>5.5</Stoptime>
+    <Posttime>Off</Posttime>
+    <Delay>0</Delay>
+    <CONTACT_1>0</CONTACT_1>
+    <CONTACT_2>0</CONTACT_2>
+    <CONTACT_3>0</CONTACT_3>
+    <CONTACT_4>0</CONTACT_4>
+    <ContactsTimetable />
+    <Signals>
+      <SignalDesc>Pressure</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Flow</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Solvent% A</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Solvent% B</SignalDesc>
+      <Store>1</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Direction of piston A</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Direction of piston B</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Flow Sensor Response</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <StrokeA>Auto</StrokeA>
+    <CompressA>50</CompressA>
+    <Flow>0.6</Flow>
+    <SolvRatioA>97</SolvRatioA>
+    <SolvNameA>0.1%FA in water</SolvNameA>
+    <PressureMin>0</PressureMin>
+    <PressureMax>175</PressureMax>
+    <FRamp>100</FRamp>
+    <FPTimetable>
+      <Time>0</Time>
+      <Flow>0.4</Flow>
+      <Pressure>No Change</Pressure>
+      <SolvRatioB>8</SolvRatioB>
+    </FPTimetable>
+    <FPTimetable>
+      <Time>4</Time>
+      <Flow>0.4</Flow>
+      <Pressure>No Change</Pressure>
+      <SolvRatioB>40</SolvRatioB>
+    </FPTimetable>
+    <FPTimetable>
+      <Time>4.1</Time>
+      <Flow>0.6</Flow>
+      <Pressure>No Change</Pressure>
+      <SolvRatioB>70</SolvRatioB>
+    </FPTimetable>
+    <FPTimetable>
+      <Time>4.5</Time>
+      <Flow>0.6</Flow>
+      <Pressure>No Change</Pressure>
+      <SolvRatioB>3</SolvRatioB>
+    </FPTimetable>
+    <PumpOpMode>Micro Flow</PumpOpMode>
+    <ColFlowNotRdyLimit>Within +/-3</ColFlowNotRdyLimit>
+    <PrimFlow>500</PrimFlow>
+    <AutoFastCompChange />
+    <FlowSensorIdx />
+    <StrokeA>Auto</StrokeA>
+    <CompressB>115</CompressB>
+    <SolvRatioB>3</SolvRatioB>
+    <SolvNameB>0.1%FA in 90%ACN/water</SolvNameB>
+    <SolvNameC />
+    <SolvNameD />
+    <SSVA>0</SSVA>
+    <SSVB>0</SSVB>
+  </NanoPump>
+  <CapPump>
+    <ComponentModelName>Cap Pump</ComponentModelName>
+    <ComponentModel>G1376A</ComponentModel>
+    <ComponentOrdinal>1</ComponentOrdinal>
+    <AutoFastCompChange>Off</AutoFastCompChange>
+    <ComponentOptions>SSV_FS1_FCC</ComponentOptions>
+    <Version>0.2.041.0; Base: 0.2.064.0</Version>
+    <Stoptime>No Limit</Stoptime>
+    <Posttime>Off</Posttime>
+    <Delay>0</Delay>
+    <CONTACT_1>0</CONTACT_1>
+    <CONTACT_2>0</CONTACT_2>
+    <CONTACT_3>0</CONTACT_3>
+    <CONTACT_4>0</CONTACT_4>
+    <ContactsTimetable />
+    <Signals>
+      <SignalDesc>Pressure</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Flow</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Solvent% A</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Solvent% B</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Direction of piston A</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Direction of piston B</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <Signals>
+      <SignalDesc>Flow Sensor Response</SignalDesc>
+      <Store>0</Store>
+    </Signals>
+    <StrokeA>Auto</StrokeA>
+    <CompressA>50</CompressA>
+    <Flow>4</Flow>
+    <SolvRatioA>98</SolvRatioA>
+    <SolvNameA>0.1%FA in water</SolvNameA>
+    <PressureMin>0</PressureMin>
+    <PressureMax>175</PressureMax>
+    <FRamp>100</FRamp>
+    <FPTimetable />
+    <PumpOpMode>Micro Flow</PumpOpMode>
+    <ColFlowNotRdyLimit>Always Ready</ColFlowNotRdyLimit>
+    <PrimFlow>200</PrimFlow>
+    <AutoFastCompChange />
+    <FlowSensorIdx />
+    <StrokeA>Auto</StrokeA>
+    <CompressB>115</CompressB>
+    <SolvRatioB>2</SolvRatioB>
+    <SolvNameB>0.1%FA in 90%ACN/water</SolvNameB>
+    <SolvNameC />
+    <SolvNameD />
+    <SSVA>0</SSVA>
+    <SSVB>0</SSVB>
+  </CapPump>
+  <ChipCube>
+    <ComponentModelName>HPLC-Chip</ComponentModelName>
+    <ComponentModel>G4240A</ComponentModel>
+    <ComponentOrdinal>1</ComponentOrdinal>
+    <ComponentOptions />
+    <Version>1.4.511.0; base: 1.4.515.0</Version>
+    <Stoptime>No Limit</Stoptime>
+    <Posttime>Off</Posttime>
+    <Delay>0</Delay>
+    <CONTACT_1>0</CONTACT_1>
+    <CONTACT_2>0</CONTACT_2>
+    <CONTACT_3>0</CONTACT_3>
+    <CONTACT_4>0</CONTACT_4>
+    <ContactsTimetable />
+    <Signals />
+    <ChipProductID>G4240-62001</ChipProductID>
+    <OuterValvePos />
+    <InnerValvePos />
+    <SetpointTimetable>
+      <Time>4.5</Time>
+      <OuterValvePos />
+      <InnerValvePos />
+    </SetpointTimetable>
+    <ChipProductID>G4240-62001</ChipProductID>
+  </ChipCube>
+  <QTOF>
+    <ComponentModel>G6510A</ComponentModel>
+    <ComponentName>MS Q-TOF</ComponentName>
+    <IonSource>HPLC-Chip</IonSource>
+    <TuneFile>AutoTune.tun</TuneFile>
+    <StopMode>NoLimit</StopMode>
+    <StopTime>30.00</StopTime>
+    <NoWaitForTemp>Enable</NoWaitForTemp>
+    <FastPolarityEnabled>N/A</FastPolarityEnabled>
+    <MS1CentroidDataAbsThreshold>200</MS1CentroidDataAbsThreshold>
+    <MS1CentroidDataRELThreshold>0.010</MS1CentroidDataRELThreshold>
+    <MS2CentroidDataAbsThreshold>5</MS2CentroidDataAbsThreshold>
+    <MS2CentroidDataRELThreshold>0.010</MS2CentroidDataRELThreshold>
+    <TimeSegment>
+      <Index>1</Index>
+      <StartTime>0.0</StartTime>
+      <DivertValveState>MS</DivertValveState>
+      <StorageMode>Centroid</StorageMode>
+      <IonMode>ESI</IonMode>
+      <TimeSourceParameter>
+        <Id>DGasHeater</Id>
+        <Value>325</Value>
+      </TimeSourceParameter>
+      <TimeSourceParameter>
+        <Id>DGasFlow</Id>
+        <Value>5.0</Value>
+      </TimeSourceParameter>
+      <ScanSegment>
+        <Index>1</Index>
+        <ionPolarity>Positive</ionPolarity>
+        <ScanSourceParameter>
+          <Id>VCap</Id>
+          <Value>1750</Value>
+        </ScanSourceParameter>
+        <ScanInstParameter>
+          <Id>Fragmentor</Id>
+          <Value>175</Value>
+        </ScanInstParameter>
+        <ScanInstParameter>
+          <Id>Skimmer1</Id>
+          <Value>65</Value>
+        </ScanInstParameter>
+        <ScanInstParameter>
+          <Id>OctopoleRFPeak</Id>
+          <Value>750</Value>
+        </ScanInstParameter>
+      </ScanSegment>
+      <Acquisition>
+        <AcqMode>AutoMS2</AcqMode>
+        <AcqAutoMS2>
+          <MS1MinRange>300</MS1MinRange>
+          <MS1MaxRange>2000</MS1MaxRange>
+          <MS1ScanRate>1.0</MS1ScanRate>
+          <MS2MinRange>50</MS2MinRange>
+          <MS2MaxRange>3000</MS2MaxRange>
+          <MS2ScanRate>1.0</MS2ScanRate>
+          <IsolationWidthMS2>Medium (~4 amu)</IsolationWidthMS2>
+          <CollisionEnergy>
+            <CollisionEnergyRamp>
+              <CollisionEnergySlope>3.0000</CollisionEnergySlope>
+              <CollisionEnergyOffset>2.0000</CollisionEnergyOffset>
+            </CollisionEnergyRamp>
+          </CollisionEnergy>
+          <PrecursorSelection>
+            <MaxPrecursorPerCycle>8</MaxPrecursorPerCycle>
+            <PrecursorThresholdAbs>500</PrecursorThresholdAbs>
+            <PrecursorThresholdRel>0.010</PrecursorThresholdRel>
+            <PrecursorBasedScanSpeed>False</PrecursorBasedScanSpeed>
+            <ExcludeMedWideIsolationRange>False</ExcludeMedWideIsolationRange>
+            <ActiveExclusionAfterCount>1</ActiveExclusionAfterCount>
+            <ActiveExclusionBeforeTime>0.10</ActiveExclusionBeforeTime>
+            <ChargeStatePreference>2</ChargeStatePreference>
+            <ChargeStatePreference>3</ChargeStatePreference>
+            <ChargeStatePreference>&gt;3</ChargeStatePreference>
+            <ChargeStatePreference>Unk</ChargeStatePreference>
+            <SortPrecursorByChargeState>False</SortPrecursorByChargeState>
+            <PrefExclude>
+              <PrefExcludeMass>1221.91</PrefExcludeMass>
+              <PrefExcludeDeltaMass>100.000000</PrefExcludeDeltaMass>
+              <PrefExcludeCharge>1</PrefExcludeCharge>
+              <PrefExcludeType>Exclude</PrefExcludeType>
+              <PrefExcludeRetentionTime>0.00</PrefExcludeRetentionTime>
+              <PrefExcludeDeltaRetentionTime>999.00</PrefExcludeDeltaRetentionTime>
+              <PrefExcludeIsolationWidth>Medium (~4 amu)</PrefExcludeIsolationWidth>
+              <PrefExcludeCollisionEnergy />
+            </PrefExclude>
+          </PrecursorSelection>
+        </AcqAutoMS2>
+      </Acquisition>
+    </TimeSegment>
+    <Chromatogram>
+      <TypeName>TIC</TypeName>
+      <Lable>TIC</Lable>
+      <ExperimentType>MS</ExperimentType>
+      <ActualOrSetpointType />
+      <OffsetOrMin>15</OffsetOrMin>
+      <YRangeOrMax>10000000</YRangeOrMax>
+    </Chromatogram>
+    <RefMassParameters>
+      <EnableRefMassCorrection>Enabled</EnableRefMassCorrection>
+      <UseBottleA>True</UseBottleA>
+      <RefNebulizer>0</RefNebulizer>
+      <AutoRecalibration>
+        <AverageScans>5</AverageScans>
+        <DetectionWindow>100</DetectionWindow>
+        <MinHeight>1000</MinHeight>
+      </AutoRecalibration>
+      <RefMass>1221.99063700</RefMass>
+    </RefMassParameters>
+  </QTOF>
+</AcqMethod>

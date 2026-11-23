@@ -58,6 +58,10 @@ public class LocalMaxGaussianModule implements MassDetectorPreprocessorModule,
     this.weights = GaussianFilter.getNormalizedWeights(3);
   }
 
+  public LocalMaxGaussianModule(int width) {
+    this(GaussianFilter.getNormalizedWeights(GaussianFilter.getClosestFilterWidth(width)));
+  }
+
   private LocalMaxGaussianModule(final double @NotNull [] weights) {
     this.weights = weights;
   }

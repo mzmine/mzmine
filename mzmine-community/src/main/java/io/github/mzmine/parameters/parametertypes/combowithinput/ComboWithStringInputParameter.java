@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.combowithinput;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import java.util.List;
 import javafx.collections.ObservableList;
 
 public class ComboWithStringInputParameter<EnumType extends UniqueIdSupplier> extends
@@ -38,7 +40,7 @@ public class ComboWithStringInputParameter<EnumType extends UniqueIdSupplier> ex
   }
 
   public ComboWithStringInputParameter(StringParameter embeddedParameter,
-      ObservableList<EnumType> values, EnumType inputTrigger,
+      ObservableList<EnumType> values, List<EnumType> inputTrigger,
       ComboWithStringInputValue<EnumType> defaultValue) {
     super(embeddedParameter, values, inputTrigger, defaultValue);
   }
@@ -49,7 +51,7 @@ public class ComboWithStringInputParameter<EnumType extends UniqueIdSupplier> ex
     final ComboWithStringInputValue<EnumType> clonedValue = new ComboWithStringInputValue<>(
         value.getSelectedOption(), value.embeddedValue());
     final ComboWithStringInputParameter<EnumType> clone = new ComboWithStringInputParameter<>(
-        embeddedClone, choices, inputTrigger, clonedValue);
+        embeddedClone, choices, inputTriggers, clonedValue);
     clone.setValue(clonedValue);
     return clone;
   }

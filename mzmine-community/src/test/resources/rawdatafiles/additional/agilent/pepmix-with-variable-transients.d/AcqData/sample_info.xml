@@ -1,0 +1,220 @@
+<SampleInfo>
+  <Version>1.0</Version>
+  <Field>
+    <Name>Sample ID</Name>
+    <DisplayName>Sample ID</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Sample Name</Name>
+    <DisplayName>Sample Name</DisplayName>
+    <Value>Mix A</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Rack Code</Name>
+    <DisplayName>Rack Code</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Rack Position</Name>
+    <DisplayName>Rack Position</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Plate Code</Name>
+    <DisplayName>Plate Code</DisplayName>
+    <Value>PlateOrVial</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Plate Position</Name>
+    <DisplayName>Plate Position</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Sample Position</Name>
+    <DisplayName>Sample Position</DisplayName>
+    <Value>P1-F1</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Method</Name>
+    <DisplayName>Method</DisplayName>
+    <Value>D:\MassHunter\methods\43mm-DDE3.m</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Override DA Method</Name>
+    <DisplayName>Override DA Method</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Data File</Name>
+    <DisplayName>Data File</DisplayName>
+    <Value>D:\MassHunter\data\chris\cm-08July27-ddetest\DDE3-r003.d</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Sample Type</Name>
+    <DisplayName>Sample Type</DisplayName>
+    <Value>Sample</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Method Type</Name>
+    <DisplayName>Method Type</DisplayName>
+    <Value>Acquisition Only</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Balance Override</Name>
+    <DisplayName>Balance Override</DisplayName>
+    <Value>No Override</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Inj Vol (µl)</Name>
+    <DisplayName>Inj Vol (µl)</DisplayName>
+    <Value>0.1</Value>
+    <DataType>5</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Equilib Time (min)</Name>
+    <DisplayName>Equilib Time (min)</DisplayName>
+    <Value>0</Value>
+    <DataType>5</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Dilution</Name>
+    <DisplayName>Dilution</DisplayName>
+    <Value>1</Value>
+    <DataType>5</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Wt/Vol</Name>
+    <DisplayName>Wt/Vol</DisplayName>
+    <Value>0</Value>
+    <DataType>5</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Comment</Name>
+    <DisplayName>Comment</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Barcode</Name>
+    <DisplayName>Barcode</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>Level Name</Name>
+    <DisplayName>Level Name</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>AcqTime</Name>
+    <DisplayName>Acquisition Time</DisplayName>
+    <Value>2008-07-27T23:23:35Z</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>SampleLockedRunMode</Name>
+    <DisplayName>Locked Run</DisplayName>
+    <Value>0</Value>
+    <DataType>11</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>RunCompletedFlag</Name>
+    <DisplayName>Run Completed</DisplayName>
+    <Value>-1</Value>
+    <DataType>11</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>OperatorName</Name>
+    <DisplayName>Operator Name</DisplayName>
+    <Value>C. Miller</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>InstrumentName</Name>
+    <DisplayName>Instrument Name</DisplayName>
+    <Value>AppsQTOF2</Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+  <Field>
+    <Name>CombinedExportOutputFile</Name>
+    <DisplayName>Combined Export Output File</DisplayName>
+    <Value>
+    </Value>
+    <DataType>8</DataType>
+    <Units>
+    </Units>
+  </Field>
+</SampleInfo>

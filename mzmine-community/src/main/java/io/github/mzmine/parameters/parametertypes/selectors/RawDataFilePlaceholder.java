@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawFileWarning;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularDataModel;
@@ -294,6 +295,12 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public boolean isContainsEmptyScans() {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public @NotNull List<RawFileWarning> getWarnings() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }

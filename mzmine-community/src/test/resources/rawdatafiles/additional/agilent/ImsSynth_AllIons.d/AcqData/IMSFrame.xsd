@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Graphical Representation of the MSSCan.bin file format for document purpose-->
+<xs:schema targetNamespace="http://tempuri.org/XMLSchema.xsd"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:mstns="http://tempuri.org/XMLSchema.xsd"
+  xmlns="http://tempuri.org/XMLSchema.xsd"
+  elementFormDefault="qualified"
+  version="1.0">
+  <xs:element name="MsFrameBin">
+    <xs:annotation>
+      <xs:documentation>MsFrame.bin binary file index record details</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="FrameRecord" type="FrameRecordType" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="FrameRecordType">
+    <xs:sequence>
+      <xs:element name="FrameId" type="xs:short"/>
+      <xs:element name="FrameMethodId" type="xs:short"/>
+      <xs:element name="TimeSegmentId" type="xs:short"/>
+      <xs:element name="ActualsOffset" type="xs:long" minOccurs="0"/>
+      <xs:element name="CycleNumber" type="xs:short" minOccurs="0"/>
+      <xs:element name="FirstNonzeroDriftBin" type="xs:short"/>
+      <xs:element name="FragClass" type="xs:short" minOccurs="0"/>
+      <xs:element name="FragEnergy" type="xs:float" minOccurs="0"/>
+      <xs:element name="FrameBaseAbund" type="xs:double"/>
+      <xs:element name="FrameBaseDriftBin" type="xs:short"/>
+      <xs:element name="FrameBaseMsBin" type="xs:int"/>
+      <xs:element name="FrameScanTime" type="xs:double"/>
+      <xs:element name="FrameSpecAbundLimit" type="xs:double" minOccurs="0"/>
+      <xs:element name="FrameTic" type="xs:double"/>
+      <xs:element name="ImsField" type="xs:double" minOccurs="0"/>
+      <xs:element name="ImsPressure" type="xs:double"/>
+      <xs:element name="ImsTemperature" type="xs:double"/>
+      <xs:element name="ImsTrapTime" type="xs:double" minOccurs="0"/>
+      <xs:element name="IsolationStartMz" type="xs:double" minOccurs="0"/>
+      <xs:element name="IsolationMz" type="xs:double" minOccurs="0"/>
+      <xs:element name="IsolationEndMz" type="xs:double" minOccurs="0"/>
+      <xs:element name="LastNonzeroDriftBin" type="xs:short"/>
+      <xs:element name="MassCalOffset" type="xs:long" minOccurs="0"/>
+      <xs:element name="NumTransients" type="xs:short" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

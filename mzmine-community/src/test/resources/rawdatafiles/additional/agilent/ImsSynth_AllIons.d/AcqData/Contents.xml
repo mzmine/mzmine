@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Contents>
+  <Version>3</Version>
+  <!--Acquisition Time should be universal time in the US format YYYY-MM-DDTHH:MM:SSZ-->
+  <!--example "2005-09-20T21:53:39Z" and "2005-11-20T5:53:39Z"-->
+  <AcquiredTime>2013-12-15T14:35:15Z</AcquiredTime>
+  <!--AcqStatus (0 = Init / 1 = Start / 2 = End)-->
+  <AcqStatus>2</AcqStatus>
+  <InstrumentName>IM-mS QTOF</InstrumentName>
+  <!--LockedMode (0 = False / -1 = True)-->
+  <LockedMode>0</LockedMode>
+  <!--MeasurementType 0 - Unknown / 1- Infusion / 2 - Chromatographic-->
+  <MeasurementType>2</MeasurementType>
+  <!--SeparationTechnique (Unspecified = 0, None = 1, GC  = 2, LC = 3, CE = 4)-->
+  <SeparationTechnique>3</SeparationTechnique>
+  <AcqSoftwareVersion>6200 series TOF/6500 series Q-TOF B.06.00 (B6000)</AcqSoftwareVersion>
+</Contents>

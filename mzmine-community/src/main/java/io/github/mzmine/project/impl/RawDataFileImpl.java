@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawFileWarning;
+import io.github.mzmine.datamodel.RawFileWarningType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularDataModel;
@@ -46,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -93,6 +96,7 @@ public class RawDataFileImpl implements RawDataFile {
   // msconvert needs to have the peak picker as first step / not even title maker before that
   private boolean containsZeroIntensity;
   private boolean containsEmptyScans;
+  private final CopyOnWriteArrayList<RawFileWarning> warnings = new CopyOnWriteArrayList<>();
   private MassSpectrumType spectraType;
   @Nullable
   private LocalDateTime startTimeStamp = null;
@@ -236,6 +240,28 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public boolean isContainsEmptyScans() {
     return containsEmptyScans;
+  }
+
+  /**
+   * Adds a warning detected by the import, e.g. incomplete data. Duplicates are ignored.
+   *
+   * @param warning the warning to add
+   */
+  public void addWarning(@NotNull RawFileWarning warning) {
+    warnings.addIfAbsent(warning);
+  }
+
+  @Override
+  public @NotNull List<RawFileWarning> getWarnings() {
+    final List<RawFileWarning> all = new ArrayList<>();
+    if (containsZeroIntensity && MassSpectrumType.isCentroided(spectraType)) {
+      all.add(new RawFileWarning(RawFileWarningType.ZERO_INTENSITY_CENTROIDS));
+    }
+    if (containsEmptyScans) {
+      all.add(new RawFileWarning(RawFileWarningType.EMPTY_SCANS));
+    }
+    all.addAll(warnings);
+    return all;
   }
 
   @Override

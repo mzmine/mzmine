@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
-import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
+import io.github.mzmine.gui.preferences.AgilentImportOptions;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
@@ -272,6 +272,14 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
           ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
               != MassLynxImportOptions.MSCONVERT)) {
         // if waters mass lynx files are imported via the sdk, apply no remapping
+        return file;
+      }
+      // shortcut: uses the preference like Waters, a batch with a different saved Agilent reader is
+      // still remapped. Pass the vendor import parameters to fix both.
+      if ((type == RawDataFileType.AGILENT_D || type == RawDataFileType.AGILENT_D_IMS)
+          && ConfigService.getPreference(MZminePreferences.agilentImportChoice).getSelectedOption()
+          != AgilentImportOptions.MSCONVERT) {
+        // agilent files imported by a native reader keep the .d path
         return file;
       }
       return getMzMLFileName(file);
