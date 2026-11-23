@@ -26,8 +26,11 @@
 package io.github.mzmine.modules.io.export_features_mztabm;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -36,14 +39,13 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Currently still in redevelopment
+ * Exports feature lists and their selected annotations to mzTab-M.
  */
 public class MZTabmExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to mzTab-m file.";
-  //TODO modify desc
-  private static final String MODULE_DESCRIPTION = //
-      "This method exports the feature list contents into a mzTab-m file.";
+  private static final String MODULE_NAME = "Export mzTab-M";
+  private static final String MODULE_DESCRIPTION =
+      "Exports feature lists and their selected annotations to mzTab-M files.";
 
   @Override
   public @NotNull String getDescription() {
@@ -51,16 +53,28 @@ public class MZTabmExportModule implements MZmineProcessingModule {
   }
 
 
+  /**
+   * Schedules an export with a snapshot of the MS data files metadata grouping selection.
+   *
+   * @param project project owning the selected feature lists
+   * @param parameters export settings
+   * @param tasks destination for the export task
+   * @param moduleCallDate module invocation time
+   * @return successful task scheduling status
+   */
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-    MZTabmExportTask task = new MZTabmExportTask(project, parameters, moduleCallDate);
+  public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
+      @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
+      @NotNull final Instant moduleCallDate) {
+    // decision: Capture the UI selection before the asynchronous export starts.
+    final MetadataColumn<?> groupingColumn = DesktopService.getDesktop() instanceof MZmineDesktop desktop
+        ? desktop.getRawDataGroupingColumn() : null;
+    final MZTabmExportTask task = new MZTabmExportTask(project, parameters, moduleCallDate,
+        groupingColumn);
     tasks.add(task);
     return ExitCode.OK;
   }
 
-  //TODO update on addition of SMF and SME support
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTEXPORT;
