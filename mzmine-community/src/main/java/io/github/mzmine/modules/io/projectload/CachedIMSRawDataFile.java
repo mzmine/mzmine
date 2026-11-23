@@ -221,7 +221,7 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
 
   @Override
   public @NotNull List<RawFileWarning> getWarnings() {
-    throw new UnsupportedOperationException("Unsupported during project load.");
+    return originalFile.getWarnings();
   }
 
   @Override
