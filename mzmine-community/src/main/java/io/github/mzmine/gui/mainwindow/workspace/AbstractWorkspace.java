@@ -80,6 +80,7 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
+import io.github.mzmine.modules.dataprocessing.id_postcolumnreaction.PostColumnReactionModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
@@ -310,7 +311,8 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(groupingMenu, CompoundGrouperModule.class,
         ConfigCompoundRepresentationModule.class);
     groupingMenu.getItems().add(new SeparatorMenuItem());
-    addModuleMenuItems(groupingMenu, OnlineLcReactivityModule.class, AnnotateIsomersModule.class);
+    addModuleMenuItems(groupingMenu, OnlineLcReactivityModule.class, PostColumnReactionModule.class,
+        AnnotateIsomersModule.class);
     groupingMenu.getItems().addAll(new SeparatorMenuItem(),
         new ModuleMenuItem(ImageCorrelateGroupingModule.class, null));
     return groupingMenu;

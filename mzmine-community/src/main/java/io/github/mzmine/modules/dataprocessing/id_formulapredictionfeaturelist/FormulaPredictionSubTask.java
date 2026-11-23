@@ -66,7 +66,7 @@ import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
-class FormulaPredictionSubTask extends AbstractTask {
+public class FormulaPredictionSubTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(FormulaPredictionSubTask.class.getName());
 
@@ -103,7 +103,7 @@ class FormulaPredictionSubTask extends AbstractTask {
   /**
    * @param parameters
    */
-  FormulaPredictionSubTask(ParameterSet parameters, @NotNull Instant moduleCallDate,
+  public FormulaPredictionSubTask(ParameterSet parameters, @NotNull Instant moduleCallDate,
       ConcurrentLinkedQueue<FeatureListRow> rows) {
     super(null, moduleCallDate); // no new data stored -> null
 
