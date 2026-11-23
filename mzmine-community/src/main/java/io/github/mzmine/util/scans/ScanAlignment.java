@@ -91,7 +91,7 @@ public class ScanAlignment {
   public static List<DataPoint[]> alignOfSorted(MZTolerance mzTol, DataPoint[] sortedA,
       List<DataPoint> sortedB) {
     // add all datapoints of sortedA to the aligned list
-    List<DataPoint[]> list = new ArrayList<>();
+    ArrayList<DataPoint[]> list = new ArrayList<>(sortedA.length);
     for (DataPoint dpa : sortedA) {
       // match or null
       DataPoint dpb = findMatch(mzTol, dpa, sortedB);
@@ -99,6 +99,7 @@ public class ScanAlignment {
     }
 
     // insert all remaining DP from sorted b
+    list.ensureCapacity(list.size() + sortedB.size());
     for (DataPoint dp : sortedB) {
       list.add(new DataPoint[]{null, dp});
     }
@@ -147,7 +148,7 @@ public class ScanAlignment {
   public static List<DataPoint[]> alignOfSortedModAware(MZTolerance mzTol, DataPoint[] sortedA,
       List<DataPoint> sortedB, double precursorMzA, double precursorMzB) {
     // add all datapoints of sortedA to the aligned list
-    List<DataPoint[]> list = new ArrayList<>();
+    ArrayList<DataPoint[]> list = new ArrayList<>(sortedA.length);
     for (DataPoint dpa : sortedA) {
       // match or null
       DataPoint dpb = findMatchModAware(mzTol, dpa, sortedB, precursorMzA, precursorMzB);
@@ -155,6 +156,7 @@ public class ScanAlignment {
     }
 
     // insert all remaining DP from sorted b
+    list.ensureCapacity(list.size() + sortedB.size());
     for (DataPoint dp : sortedB) {
       list.add(new DataPoint[]{null, dp});
     }
@@ -182,7 +184,6 @@ public class ScanAlignment {
     double max = intersect.upperEndpoint();
     max = mzTol.getToleranceRange(max).upperEndpoint();
     return Range.closed(min, max);
-
   }
 
   /**
@@ -251,21 +252,26 @@ public class ScanAlignment {
    */
   private static DataPoint findMatchModAware(MZTolerance mzTol, DataPoint dpa,
       List<DataPoint> sortedB, double precursorMzA, double precursorMzB) {
-    double deltaMZ = precursorMzB - precursorMzA;
-    for (DataPoint dpb : sortedB) {
+    final double mzA = dpa.getMZ();
+    final double mzAShifted = mzA + (precursorMzB - precursorMzA);
+    final double mzTolerance = mzTol.getMzToleranceForMass(mzA);
+    final double mzToleranceShifted = mzTol.getMzToleranceForMass(mzAShifted);
+
+    for (int i = 0; i < sortedB.size(); i++) {
+      final DataPoint dpb = sortedB.get(i);
       // TODO how to handle cases where we have both the direct fragment and the modified fragment
-      // as in shifted by the precursor m/z
-      // currently we just use the one with the highest intensity
-      if (mzTol.checkWithinTolerance(dpa.getMZ(), dpb.getMZ()) ||
-          mzTol.checkWithinTolerance(dpa.getMZ() + deltaMZ, dpb.getMZ())) {
+      // as in shifted by the precursor m/z currently we just use the first one we find
+      final double distA = Math.abs(mzA - dpb.getMZ());
+      final double distB = Math.abs(mzAShifted - dpb.getMZ());
+
+      if (distA <= mzTolerance || distB <= mzToleranceShifted) {
         // remove from list and return
-        sortedB.remove(dpb);
+        sortedB.remove(i);
         return dpb;
       }
     }
     return null;
   }
-
 
   public static double getTIC(DataPoint[] scan) {
     return Arrays.stream(scan).mapToDouble(DataPoint::getIntensity).sum();
