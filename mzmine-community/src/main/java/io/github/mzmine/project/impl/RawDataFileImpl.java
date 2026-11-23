@@ -180,8 +180,13 @@ public class RawDataFileImpl implements RawDataFile {
     });
   }
 
+  /**
+   * Adds a scan and records any file warnings detected while inspecting it.
+   *
+   * @param newScan the scan to add
+   */
   @Override
-  public synchronized void addScan(Scan newScan) {
+  public synchronized void addScan(final @NotNull Scan newScan) {
     scans.add(newScan);
     if (newScan.getNumberOfDataPoints() > maxRawDataPoints) {
       // TODO how to make sure changes to Frames are reflected
@@ -202,7 +207,7 @@ public class RawDataFileImpl implements RawDataFile {
     //check for empty scans (absent m/z range or absent intensity)
     if (!containsEmptyScans && newScan.isEmptyScan() && newScan.getMSLevel() == 1) {
       containsEmptyScans = true;
-      logger.warning("Some MS1 scans were recognized as empty (no detected peaks).");
+      addWarning(new RawFileWarning(RawFileWarningType.EMPTY_SCANS));
     }
 
     // check for zero intensity because this might indicate incorrect conversion by msconvert
@@ -212,15 +217,11 @@ public class RawDataFileImpl implements RawDataFile {
     if (!containsZeroIntensity && spectraType.isCentroided() && newScan.getMSLevel() == 1) {
       // just check a few data points as the conversion error just adds many centroid data points to
       // the sides of each centroid
-      int dataPointsToCheck = Math.min(16, newScan.getNumberOfDataPoints());
+      final int dataPointsToCheck = Math.min(16, newScan.getNumberOfDataPoints());
       for (int i = 0; i < dataPointsToCheck; i++) {
         if (newScan.getIntensityValue(i) <= 0) {
           containsZeroIntensity = true;
-          logger.warning("""
-              Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert.
-              Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses
-              a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
-              This leads to degraded mass accuracies.""");
+          addWarning(new RawFileWarning(RawFileWarningType.ZERO_INTENSITY_CENTROIDS));
           break;
         }
       }
@@ -243,25 +244,19 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   /**
-   * Adds a warning detected by the import, e.g. incomplete data. Duplicates are ignored.
+   * Adds and logs a warning about this file. Duplicates are ignored.
    *
    * @param warning the warning to add
    */
-  public void addWarning(@NotNull RawFileWarning warning) {
-    warnings.addIfAbsent(warning);
+  public void addWarning(final @NotNull RawFileWarning warning) {
+    if (warnings.addIfAbsent(warning)) {
+      logger.warning(() -> warning.type().toString() + " in " + getName());
+    }
   }
 
   @Override
   public @NotNull List<RawFileWarning> getWarnings() {
-    final List<RawFileWarning> all = new ArrayList<>();
-    if (containsZeroIntensity && MassSpectrumType.isCentroided(spectraType)) {
-      all.add(new RawFileWarning(RawFileWarningType.ZERO_INTENSITY_CENTROIDS));
-    }
-    if (containsEmptyScans) {
-      all.add(new RawFileWarning(RawFileWarningType.EMPTY_SCANS));
-    }
-    all.addAll(warnings);
-    return all;
+    return new ArrayList<>(warnings);
   }
 
   @Override

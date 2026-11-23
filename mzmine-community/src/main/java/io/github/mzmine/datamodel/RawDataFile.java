@@ -264,9 +264,9 @@ public interface RawDataFile extends Comparable<RawDataFile> {
   boolean isContainsEmptyScans();
 
   /**
-   * Problems detected during import, e.g. a suspicious conversion or incomplete data.
+   * Problems detected in this file, e.g. a suspicious conversion or incomplete data.
    *
-   * @return the warnings of this file, empty if there are none
+   * @return a snapshot of the warnings for this file, empty if there are none
    */
   @NotNull List<RawFileWarning> getWarnings();
 
