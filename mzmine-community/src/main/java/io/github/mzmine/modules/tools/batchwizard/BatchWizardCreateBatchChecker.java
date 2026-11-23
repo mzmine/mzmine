@@ -32,7 +32,11 @@ import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBui
 import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getValue;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.ImportFile;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
@@ -84,7 +88,8 @@ public class BatchWizardCreateBatchChecker {
 
     // map to actual filenames that will be the name after import
     File[] importFiles = getValue(importStep, DataImportWizardParameters.fileNames);
-    dataFiles = AllSpectralDataImportParameters.streamValidatedFiles(importFiles)
+    dataFiles = AllSpectralDataImportParameters.streamValidatedFiles(importFiles,
+            VendorImportParameters.createFromPreferences())
         .map(ImportFile::importedFile).toArray(File[]::new);
 
     // qc filter needs qc samples by filename or by
