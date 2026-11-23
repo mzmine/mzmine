@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,8 @@ import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.util.DescriptionProvider;
+import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -48,11 +50,13 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +67,12 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
     BorderPane implements EstimatedComponentHeightProvider, EstimatedComponentWidthProvider,
     FullColumnComponent, EmbeddedParameterComponentProvider {
 
+  private static final double TOOLTIP_MAX_WIDTH = 600;
+  // same as the parameter labels in the ParameterGridLayout
+  private static final Duration TOOLTIP_SHOW_DURATION = Duration.seconds(300);
+
   private final ComboBox<EnumType> combo;
+  private final Label nameLabel;
 
   protected final Map<EnumType, ParameterSetupPane> paramPanesMap;
   protected @Nullable ParameterSetupPane paramPane;
@@ -75,12 +84,20 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
   @Nullable
   private Runnable onSubParametersChanged = null;
 
-  public ModuleOptionsEnumComponent(String name,
-      final EnumMap<EnumType, ParameterSet> parametersMap, final EnumType startValue,
-      final boolean alwaysOpen) {
+  /**
+   * @param name          name of the parameter shown as label
+   * @param description   description of the parameter, shown as tooltip together with the
+   *                      descriptions of all options that implement {@link DescriptionProvider}
+   * @param parametersMap the options and their parameters
+   * @param startValue    the initially selected option
+   * @param alwaysOpen    if the parameters of the selected option are always shown
+   */
+  public ModuleOptionsEnumComponent(@NotNull final String name, @Nullable final String description,
+      @NotNull final EnumMap<EnumType, ParameterSet> parametersMap,
+      @NotNull final EnumType startValue, final boolean alwaysOpen) {
     super();
     this.selectedValue.set(startValue);
-    combo = FxComboBox.createComboBox("Options", parametersMap.keySet(), this.selectedValue);
+    combo = FxComboBox.createComboBox(null, parametersMap.keySet(), this.selectedValue);
 
     // create all parameter panes - this is important to keep listeners to components alive and stable
     paramPanesMap = parametersMap.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
@@ -148,11 +165,15 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
 
     if (parametersMap.size() == 1 && parametersMap.containsKey(startValue)
         && startValue == selectedValue.get()) {
-      topPane = new FlowPane(5, 5, FxLabels.newBoldLabel(name + ":"),
+      nameLabel = FxLabels.newBoldLabel(name + ":");
+      topPane = new FlowPane(5, 5, nameLabel,
           FxLabels.newItalicLabel(selectedValue.get().toString()));
     } else {
-      topPane = new FlowPane(5, 5, FxLabels.newBoldLabel(name), combo);
+      nameLabel = FxLabels.newBoldLabel(name);
+      topPane = new FlowPane(5, 5, nameLabel, combo);
     }
+
+    setToolTipText(DescriptionProvider.describeWithOptions(description, parametersMap.keySet()));
 
     if (!alwaysOpen) {
       topPane.getChildren().add(setButton);
@@ -191,8 +212,32 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
     selectedValue.setValue(selected);
   }
 
-  public void setToolTipText(String toolTip) {
-    combo.setTooltip(new Tooltip(toolTip));
+  /**
+   * Sets the tooltip on the name label and the options combo box. A blank text removes the
+   * tooltips.
+   *
+   * @param toolTip the tooltip text
+   */
+  public void setToolTipText(@Nullable final String toolTip) {
+    if (StringUtils.isBlank(toolTip)) {
+      nameLabel.setTooltip(null);
+      combo.setTooltip(null);
+      return;
+    }
+    nameLabel.setTooltip(createTooltip(toolTip));
+    combo.setTooltip(createTooltip(toolTip));
+  }
+
+  /**
+   * @param text the tooltip text
+   * @return a tooltip that wraps long text and stays open long enough to read option descriptions
+   */
+  private static @NotNull Tooltip createTooltip(@NotNull final String text) {
+    final Tooltip tooltip = new Tooltip(text);
+    tooltip.setWrapText(true);
+    tooltip.setMaxWidth(TOOLTIP_MAX_WIDTH);
+    tooltip.setShowDuration(TOOLTIP_SHOW_DURATION);
+    return tooltip;
   }
 
   public void setParameterValuesToComponents() {

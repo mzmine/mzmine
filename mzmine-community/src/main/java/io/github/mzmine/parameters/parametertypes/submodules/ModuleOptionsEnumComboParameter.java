@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -46,6 +47,8 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
     UserParameter<EnumType, ModuleOptionsEnumComponent<EnumType>>,
     EmbeddedParameterSet<ParameterSet, EnumType> {
 
+  private static final Logger logger = Logger.getLogger(
+      ModuleOptionsEnumComboParameter.class.getName());
   private static final String MODULE_ELEMENT = "module"; // same as old ModuleComboParameter
   private static final String NAME_ATTRIBUTE = "name";
   private static final String SELECTED_ATTRIBUTE = "selected_item";
@@ -181,7 +184,8 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
 
   @Override
   public ModuleOptionsEnumComponent<EnumType> createEditingComponent() {
-    return new ModuleOptionsEnumComponent<>(name, parametersMap, selectedValue, alwaysOpen);
+    return new ModuleOptionsEnumComponent<>(name, description, parametersMap, selectedValue,
+        alwaysOpen);
   }
 
   @Override
@@ -219,7 +223,14 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
       });
     }
 
-    getOptionByName(selectedAttr).ifPresent(this::setValue);
+    getOptionByName(selectedAttr).ifPresentOrElse(this::setValue, () -> {
+      // removed options (e.g., an old mass detector) fall back to the current default
+      if (!selectedAttr.isBlank()) {
+        logger.warning(
+            "Option '%s' of parameter '%s' is not available anymore. Using '%s' instead.".formatted(
+                selectedAttr, name, selectedValue));
+      }
+    });
   }
 
   private @NotNull Optional<EnumType> getOptionByName(final String id) {
