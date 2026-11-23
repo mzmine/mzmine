@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,7 @@ final class NumericRowTypeFilter extends AbstractRowTypeFilter {
       case NOT_EQUAL -> compare != 0;
       case CONTAINS -> throw new UnsupportedOperationException(
           "CONTAINS matching mode is not applicable to numeric filters");
-      case ALL, ANY -> throw new UnsupportedOperationException(
+      case ALL, ANY, NOT_CONTAINS -> throw new UnsupportedOperationException(
           "The selected matching mode is not implemented for this filter: " + matchingMode);
     };
   }

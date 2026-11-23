@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Uses String matching for now. So default mode would be to match for ALL substring words separated
@@ -45,13 +47,9 @@ class IonTypeRowTypeFilter extends AnnotationAsStringRowTypeFilter {
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    if (matchesString(row.getBestIonIdentity())) {
-      return true;
-    }
-
-    // match in all annotations
-    return super.matches(row);
+  protected @NotNull Stream<@Nullable Object> streamValues(@NotNull FeatureListRow row) {
+    // best ion identity first, then all annotations
+    return Stream.concat(Stream.of(row.getBestIonIdentity()), super.streamValues(row));
   }
 
 }

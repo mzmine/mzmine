@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import io.github.mzmine.util.StringUtils;
 import java.util.Arrays;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,9 +50,37 @@ abstract class AbstractStringRowTypeFilter extends AbstractRowTypeFilter {
         .toArray(String[]::new);
   }
 
+  /**
+   * @param row the row to extract the values from
+   * @return all values of this row that are matched as strings. May contain null values.
+   */
+  protected abstract @NotNull Stream<@Nullable Object> streamValues(@NotNull FeatureListRow row);
+
+  /**
+   * A row matches if any of its values matches. For {@link MatchingMode#NOT_CONTAINS}, a row only
+   * matches if none of its values contains any of the query words.
+   *
+   * @param row the row to test
+   * @return true if the row matches the filter
+   */
+  @Override
+  public boolean matches(@NotNull FeatureListRow row) {
+    // decision: NOT_CONTAINS removes the row if any value contains a query word, so all values
+    // need to pass. Rows without values are kept as they do not contain the query.
+    if (matchingMode == MatchingMode.NOT_CONTAINS) {
+      return streamValues(row).allMatch(this::matchesString);
+    }
+    return streamValues(row).anyMatch(this::matchesString);
+  }
+
+  /**
+   * @param valueObject the value to match, converted by {@link Object#toString()}
+   * @return true if the single value matches the filter
+   */
   public boolean matchesString(@Nullable Object valueObject) {
     if (valueObject == null) {
-      return false;
+      // a missing value cannot contain the query
+      return matchingMode == MatchingMode.NOT_CONTAINS;
     }
 
     final String value =
@@ -64,6 +94,8 @@ abstract class AbstractStringRowTypeFilter extends AbstractRowTypeFilter {
       case GREATER_EQUAL -> value.compareTo(query) >= 0;
       case ANY -> Arrays.stream(queryWords).anyMatch(value::contains);
       case ALL -> Arrays.stream(queryWords).allMatch(value::contains);
+      // none of the values may match, the filtering effect is achieved in the matches method.
+      case NOT_CONTAINS -> Arrays.stream(queryWords).noneMatch(value::contains);
     };
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,13 @@ public enum MatchingMode implements UniqueIdSupplier {
    * separating the query string by space, comma, or semicolon symbols and searching for ALL
    * substring
    */
-  ALL;
+  ALL,
+  /**
+   * NOT_CONTAINS is a list operation that excludes matches. For example, in Strings this is used by
+   * separating the query string by space, comma, or semicolon symbols and removing every entry that
+   * contains ANY of the substrings.
+   */
+  NOT_CONTAINS;
 
   @JsonCreator
   @Nullable
@@ -66,7 +72,7 @@ public enum MatchingMode implements UniqueIdSupplier {
   }
 
   public static List<MatchingMode> getStringMatchingModes() {
-    return List.of(ANY, ALL, CONTAINS, EQUAL);
+    return List.of(ANY, ALL, CONTAINS, EQUAL, NOT_CONTAINS);
   }
 
   @Override
@@ -79,6 +85,7 @@ public enum MatchingMode implements UniqueIdSupplier {
       case CONTAINS -> "⊂";
       case ANY -> "any";
       case ALL -> "all";
+      case NOT_CONTAINS -> "⊄";
     };
   }
 
@@ -93,6 +100,8 @@ public enum MatchingMode implements UniqueIdSupplier {
           "Search for ANY substring match to any query word. Separate words by space, comma, or semicolon symbols like: 'alpha hydroxy'. This query requires ANY of the two words in any order.";
       case ALL ->
           "Search for ALL substring matches to any query word. Separate words by space, comma, or semicolon symbols like: 'alpha hydroxy'. This query requires ALL of the two words in any order.";
+      case NOT_CONTAINS ->
+          "Removes entries that contain ANY of the query words as substring. Separate words by space, comma, or semicolon symbols like: 'alpha hydroxy'. This query removes entries that contain ANY of the two words.";
     };
   }
 
@@ -106,6 +115,7 @@ public enum MatchingMode implements UniqueIdSupplier {
       case CONTAINS -> "contains";
       case ANY -> "any";
       case ALL -> "all";
+      case NOT_CONTAINS -> "not_contains";
     };
   }
 
@@ -114,7 +124,7 @@ public enum MatchingMode implements UniqueIdSupplier {
    */
   public boolean isStringListOperation() {
     return switch (this) {
-      case ANY, ALL -> true;
+      case ANY, ALL, NOT_CONTAINS -> true;
       case EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL, CONTAINS -> false;
     };
   }
