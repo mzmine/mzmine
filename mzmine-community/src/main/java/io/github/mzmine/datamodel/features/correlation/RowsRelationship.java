@@ -161,7 +161,7 @@ public sealed interface RowsRelationship extends RowPair permits AbstractRowsRel
     /**
      *
      */
-    MS2Deepscore, DREAMS,
+    MS2Deepscore, DREAMS, ISOTOPE_LABELING_SIM,
     /**
      * {@link AnalogSpectralLibrarySearchModule} Not R2R relationships constructed currently, but we
      * need the enum values for the network visualizer
@@ -204,6 +204,7 @@ public sealed interface RowsRelationship extends RowPair permits AbstractRowsRel
         case ONLINE_REACTION -> "Online reaction";
         case MS2Deepscore -> "MS2Deepscore";
         case DREAMS -> "DreaMS";
+        case ISOTOPE_LABELING_SIM -> "Isotope Labeling Similarity";
         case ANALOG_COSINE -> "Analog (Cosine)";
         case ANALOG_DREAMS -> "Analog (DreaMS)";
         case ANALOG_MS2DEEPSCORE -> "Analog (MS2Deepscore)";
@@ -224,6 +225,7 @@ public sealed interface RowsRelationship extends RowPair permits AbstractRowsRel
         case ONLINE_REACTION -> "online_reaction";
         case MS2Deepscore -> "ms2_deepscore";
         case DREAMS -> "dreams";
+        case ISOTOPE_LABELING_SIM -> "isotope_labeling_sim";
         case ANALOG_COSINE -> "analog_cosine";
         case ANALOG_DREAMS -> "analog_dreams";
         case ANALOG_MS2DEEPSCORE -> "analog_ms2_deepscore";
