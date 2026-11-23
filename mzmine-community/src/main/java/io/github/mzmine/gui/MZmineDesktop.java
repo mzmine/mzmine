@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.util.List;
 import javafx.stage.Stage;
@@ -57,6 +58,15 @@ public interface MZmineDesktop extends Desktop {
    * @return Array of selected raw data files
    */
   RawDataFile[] getSelectedDataFiles();
+
+  /**
+   * Returns the metadata column selected under Group by in the MS data files tab.
+   *
+   * @return selected column, or null in headless mode or when no metadata grouping is selected
+   */
+  default @Nullable MetadataColumn<?> getRawDataGroupingColumn() {
+    return null;
+  }
 
   /**
    * Returns array of currently selected feature lists in GUI

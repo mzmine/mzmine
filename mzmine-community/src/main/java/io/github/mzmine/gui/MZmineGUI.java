@@ -310,6 +310,30 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
         .findFirst().orElse(strategies.getFirst()));
   }
 
+  /**
+   * Captures the metadata column currently selected under Group by in the MS data files tab.
+   *
+   * @return selected column, or null in headless mode, without a window, or for non-metadata grouping
+   */
+  @Override
+  public @Nullable MetadataColumn<?> getRawDataGroupingColumn() {
+    if (MZmineCore.isHeadLessMode() || mainWindowController == null) {
+      return null;
+    }
+    final AtomicReference<MetadataColumn<?>> selectedColumn = new AtomicReference<>();
+    FxThread.runOnFxThreadAndWait(() -> {
+      final MainWindowController controller = mainWindowController;
+      if (MZmineCore.isHeadLessMode() || controller == null) {
+        return;
+      }
+      final GroupingStrategy<RawDataFile> strategy = controller.getRawDataList().getActiveStrategy();
+      if (strategy instanceof RawDataMetadataGroupingStrategy metadataStrategy) {
+        selectedColumn.set(metadataStrategy.getColumn());
+      }
+    });
+    return selectedColumn.get();
+  }
+
   private static @NotNull List<@NotNull GroupingStrategy<FeatureList>> createFeatureListStrategies() {
     final List<GroupingStrategy<FeatureList>> strategies = new ArrayList<>();
     strategies.add(new FeatureListByRawDataFileStrategy());
