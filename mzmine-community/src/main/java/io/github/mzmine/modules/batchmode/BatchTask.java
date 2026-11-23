@@ -663,8 +663,8 @@ public class BatchTask extends AbstractTask {
 
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
-      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-          getProject(), batchStepParameters);
+      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(getProject(),
+          (AllSpectralDataImportParameters) batchStepParameters);
 
       // because of concurrency - the project may not have all the new raw data files - but all newly created files are in createdDataFiles
       Set<RawDataFile> files = new HashSet<>(loadedRawDataFiles);
