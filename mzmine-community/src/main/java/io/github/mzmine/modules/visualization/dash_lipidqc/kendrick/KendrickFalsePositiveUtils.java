@@ -25,18 +25,12 @@
 
 package io.github.mzmine.modules.visualization.dash_lipidqc.kendrick;
 
-import static io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.clampToUnit;
-import static io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.computeElutionOrderMetrics;
-import static io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.computeInterferenceMetrics;
-import static io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.computeInterferenceScore;
-import static io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.computeMs1Score;
-import static io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.detectMs1Tolerance;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.ElutionOrderMetrics;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.InterferenceMetrics;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidQcAnnotationSelectionUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,34 +49,45 @@ public final class KendrickFalsePositiveUtils {
   private KendrickFalsePositiveUtils() {
   }
 
+  /**
+   * Flags low configured overall quality and inconsistent retention trends.
+   *
+   * @param featureList                  feature list providing scoring settings and retention
+   *                                     context
+   * @param row                          row whose preferred lipid annotation is evaluated
+   * @param includeRetentionTimeAnalysis whether to evaluate retention-time QC
+   * @return warning reasons, or {@code null} if no outlier criterion is met
+   */
   public static @Nullable String potentialFalsePositiveReason(
       final @NotNull ModularFeatureList featureList, final @NotNull FeatureListRow row,
       final boolean includeRetentionTimeAnalysis) {
-    final @Nullable MatchedLipid match = LipidQcAnnotationSelectionUtils.getPreferredLipidMatch(row);
+    final @Nullable MatchedLipid match = LipidQcAnnotationSelectionUtils.getPreferredLipidMatch(
+        row);
     if (match == null) {
       return null;
     }
 
     final List<String> reasons = new ArrayList<>();
-    final double overall;
-    if (!includeRetentionTimeAnalysis) {
-      overall = computeLegacyOverallQualityScore(featureList, row, match, 0d, false);
-    } else {
-      final ElutionOrderMetrics elution = computeElutionOrderMetrics(featureList, row, match);
-      overall = computeLegacyOverallQualityScore(featureList, row, match, elution.combinedScore(),
-          true);
+    final double overall = LipidQcScoringUtils.computeConfiguredAnnotationScore(featureList, row,
+        match, includeRetentionTimeAnalysis);
+    if (includeRetentionTimeAnalysis) {
+      final ElutionOrderMetrics elution = LipidQcScoringUtils.computeElutionOrderMetrics(
+          featureList, row, match);
       if (elution.carbonsTrend().available()
           && elution.carbonsTrend().score() < OUTLIER_ELUTION_THRESHOLD) {
-        reasons.add("carbon trend %.0f%% is below %.0f%%".formatted(
-            elution.carbonsTrend().score() * 100d, OUTLIER_ELUTION_THRESHOLD * 100d));
+        reasons.add(
+            "carbon trend %.0f%% is below %.0f%%".formatted(elution.carbonsTrend().score() * 100d,
+                OUTLIER_ELUTION_THRESHOLD * 100d));
       }
-      if (elution.dbeTrend().available() && elution.dbeTrend().score() < OUTLIER_ELUTION_THRESHOLD) {
+      if (elution.dbeTrend().available()
+          && elution.dbeTrend().score() < OUTLIER_ELUTION_THRESHOLD) {
         reasons.add("DBE trend %.0f%% is below %.0f%%".formatted(elution.dbeTrend().score() * 100d,
             OUTLIER_ELUTION_THRESHOLD * 100d));
       }
       if (elution.combinedScore() < OUTLIER_ELUTION_THRESHOLD) {
-        reasons.add("elution order score %.0f%% is below %.0f%%".formatted(
-            elution.combinedScore() * 100d, OUTLIER_ELUTION_THRESHOLD * 100d));
+        reasons.add(
+            "elution order score %.0f%% is below %.0f%%".formatted(elution.combinedScore() * 100d,
+                OUTLIER_ELUTION_THRESHOLD * 100d));
       }
     }
     if (overall < OUTLIER_OVERALL_THRESHOLD) {
@@ -96,48 +101,4 @@ public final class KendrickFalsePositiveUtils {
     return String.join("; ", reasons);
   }
 
-  private static double computeLegacyOverallQualityScore(final @NotNull ModularFeatureList featureList,
-      final @NotNull FeatureListRow row, final @NotNull MatchedLipid match,
-      final double elutionOrderScore,
-      final boolean includeRetentionTimeAnalysis) {
-    final double ms1Score = computeMs1Score(row, match, detectMs1Tolerance(featureList));
-    final double ms2Score = computeMs2Score(match);
-    final double adductScore = computeAdductScore(row, match);
-    final double isotopeScore = computeIsotopeScore(row, match);
-    final InterferenceMetrics interferenceMetrics = computeInterferenceMetrics(row);
-    final double interference = computeInterferenceScore(interferenceMetrics.totalPenaltyCount());
-    final double scoreSum = ms1Score + ms2Score + adductScore + isotopeScore + interference
-        + (includeRetentionTimeAnalysis ? elutionOrderScore : 0d);
-    final int scoreCount = includeRetentionTimeAnalysis ? 6 : 5;
-    return scoreSum / scoreCount;
-  }
-
-  private static double computeMs2Score(final @NotNull MatchedLipid match) {
-    final double explainedIntensity = match.getMsMsScore() == null ? 0d : match.getMsMsScore();
-    return clampToUnit(explainedIntensity);
-  }
-
-  private static double computeAdductScore(final @NotNull FeatureListRow row,
-      final @NotNull MatchedLipid match) {
-    if (row.getBestIonIdentity() == null) {
-      return 0d;
-    }
-    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().toString());
-    final String lipidAdduct = normalizeAdduct(match.getIonizationType().getAdductName());
-    return featureAdduct.equals(lipidAdduct) ? 1d : 0d;
-  }
-
-  private static double computeIsotopeScore(final @NotNull FeatureListRow row,
-      final @NotNull MatchedLipid match) {
-    if (row.getBestIsotopePattern() == null || match.getIsotopePattern() == null) {
-      return 0.35d;
-    }
-    return io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator.getSimilarityScore(
-        row.getBestIsotopePattern(), match.getIsotopePattern(),
-        new io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance(0.003, 10d), 0d);
-  }
-
-  private static @NotNull String normalizeAdduct(final @Nullable String adduct) {
-    return adduct == null ? "" : adduct.replaceAll("\\s+", "").toLowerCase();
-  }
 }
