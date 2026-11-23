@@ -225,6 +225,11 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
+  public @NotNull List<RawFileWarning> getWarnings() {
+    return originalFile.getWarnings();
+  }
+
+  @Override
   public MassSpectrumType getSpectraType() {
     throw new UnsupportedOperationException("Unsupported during project load.");
   }

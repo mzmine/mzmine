@@ -96,7 +96,6 @@ public class RawDataFileImpl implements RawDataFile {
   // msconvert needs to have the peak picker as first step / not even title maker before that
   private boolean containsZeroIntensity;
   private boolean containsEmptyScans;
-  // warnings added by the import, the zero intensity and empty scan checks are derived from flags
   private final CopyOnWriteArrayList<RawFileWarning> warnings = new CopyOnWriteArrayList<>();
   private MassSpectrumType spectraType;
   @Nullable
