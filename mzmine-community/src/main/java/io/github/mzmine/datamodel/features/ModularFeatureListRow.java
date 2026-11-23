@@ -571,15 +571,19 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
 
   @Override
   public void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
+    final SpectralDBAnnotation displayed;
     synchronized (writeLock) {
       List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
           ArrayList::new);
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
+      displayed = old.isEmpty() ? null : old.getFirst();
     }
     // outside of lock
-    // cache values like isotope pattern to speed up feature table
-    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+    // cache values like isotope pattern of the match the feature table shows; the others on use
+    if (displayed != null) {
+      CompoundAnnotationUtils.precalculateAnnotationValues(displayed, this);
+    }
   }
 
   @Override
@@ -592,8 +596,8 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
     set(SpectralLibraryMatchesType.class, matches);
     if (matches != null) {
-      // cache values like isotope pattern to speed up feature table
-      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+      // cache values like isotope pattern of the match the feature table shows; the others on use
+      CompoundAnnotationUtils.precalculateDisplayedAnnotationValues(matches, this);
     }
   }
 
@@ -605,13 +609,17 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
 
   @Override
   public void addAnalogSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
+    final SpectralDBAnnotation displayed;
     synchronized (writeLock) {
       List<SpectralDBAnnotation> old = requireNonNullElseGet(
           get(AnalogSpectralLibraryMatchesType.class), ArrayList::new);
       old.addAll(matches);
       set(AnalogSpectralLibraryMatchesType.class, old);
+      displayed = old.isEmpty() ? null : old.getFirst();
     }
-    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+    if (displayed != null) {
+      CompoundAnnotationUtils.precalculateAnnotationValues(displayed, this);
+    }
   }
 
   @Override
@@ -624,7 +632,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   public void setAnalogSpectralLibraryMatch(@Nullable List<SpectralDBAnnotation> matches) {
     set(AnalogSpectralLibraryMatchesType.class, matches);
     if (matches != null) {
-      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+      CompoundAnnotationUtils.precalculateDisplayedAnnotationValues(matches, this);
     }
   }
 
