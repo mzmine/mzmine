@@ -85,7 +85,7 @@ mzmine development requires Java Development Kit (JDK) version 23 or newer (http
 
 To build the mzmine package from the sources, run the following command:
 
-    ./gradlew
+    ./gradlew jpackageImage
 
 or
 
