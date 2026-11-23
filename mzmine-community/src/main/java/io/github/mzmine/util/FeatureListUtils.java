@@ -1034,6 +1034,22 @@ public class FeatureListUtils {
     target.getRowMaps().clearAll();
     target.addRowMaps(remapped);
     IonNetworkLogic.remapIonNetworks(source.getRows(), rowMapping);
+
+    // the aligned other detector features and their MS-to-other correlations (keyed by MS row ID)
+    // decision: only for new feature lists. In place, the row IDs may already be overwritten so the
+    // old IDs cannot be read from the rows anymore - callers that filter or renumber in place call
+    // OtherFeatureListUtils.transferAlignedOtherFeatures with their old -> new ID map.
+    if (source != target && source instanceof ModularFeatureList sourceMfl
+        && sourceMfl.getAlignedOtherFeatures() != null) {
+      final Map<Integer, Integer> oldToNewIds = HashMap.newHashMap(source.getNumberOfRows());
+      for (final FeatureListRow oldRow : source.getRows()) {
+        final FeatureListRow newRow = rowMapping.apply(oldRow);
+        if (newRow != null) {
+          oldToNewIds.put(oldRow.getID(), newRow.getID());
+        }
+      }
+      OtherFeatureListUtils.transferAlignedOtherFeatures(sourceMfl, target, oldToNewIds);
+    }
   }
 
   /**
