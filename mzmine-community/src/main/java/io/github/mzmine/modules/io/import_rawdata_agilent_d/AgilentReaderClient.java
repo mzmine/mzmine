@@ -52,9 +52,6 @@ import org.jetbrains.annotations.Nullable;
  * Thin subprocess transport for the C# AgilentReader. Speaks the bridge wire protocol: each request
  * is one line of JSON written to the bridge's stdin; each response is one line of JSON (the
  * "header") on stdout, optionally followed by little-endian {@code float64} binary blobs.
- * <p>
- * This is the Agilent equivalent of {@code MassLynxLib} (which binds an in-process native library);
- * here the vendor code lives in a separate Windows process and we talk to it over stdio.
  */
 final class AgilentReaderClient implements AutoCloseable {
 

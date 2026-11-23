@@ -129,7 +129,7 @@ public final class AgilentSpectraBuilder {
         mobilityRange);
   }
 
-  private boolean isFilteredOut(int scanNumber, int msLevel, @NotNull PolarityType polarity,
+  public boolean isFilteredOut(int scanNumber, int msLevel, @NotNull PolarityType polarity,
       float rt, double precursorMz, @NotNull String scanDefinition,
       @Nullable Range<Double> mobilityRange) {
     final ScanSelection selection = activeScanFilter();
