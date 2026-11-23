@@ -31,16 +31,16 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.E
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.AdaptiveLocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
+import io.github.mzmine.util.DescriptionProvider;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
+public enum MassDetectors implements ModuleOptionsEnum<MassDetector>, DescriptionProvider {
   /**
    * Handles Profile and Centroid mode data. Uses {@link ExactMassDetector} first with 0 noise level
    * on profile data
@@ -66,10 +66,6 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
   /**
    *
    */
-  RECURSIVE,
-  /**
-   *
-   */
   WAVELET;
 
   @Override
@@ -80,7 +76,6 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case CENTROID -> CentroidMassDetector.class;
       case EXACT -> ExactMassDetector.class;
       case LOCAL_MAX -> LocalMaxMassDetector.class;
-      case RECURSIVE -> RecursiveMassDetector.class;
       case WAVELET -> WaveletMassDetector.class;
       case LOCAL_MAX_ADAPTIVE -> AdaptiveLocalMaxMassDetector.class;
     };
@@ -94,9 +89,38 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case CENTROID -> "Centroid";
       case EXACT -> "Exact mass";
       case LOCAL_MAX -> "Local maximum (beta)";
-      case RECURSIVE -> "Recursive threshold";
       case WAVELET -> "Wavelet transform";
       case LOCAL_MAX_ADAPTIVE -> "Local maximum (adaptive, beta)";
+    };
+  }
+
+  @Override
+  public @NotNull String getDescription() {
+    return switch (this) {
+      case FACTOR_OF_LOWEST -> """
+          Especially for trapping MS with injection times; centroids or symmetric peaks profile data \
+          with "grass" noise. Adapts noise level for each scan. Profile spectra are \
+          centroided first (Exact mass). Use when the noise level varies between scans or files, \
+          e.g., Orbitrap data with a visible noise floor.""";
+      case AUTO -> """
+          Centroids or symmetric peaks profile data with absolute noise level. Uses Centroid or \
+          Exact mass detector depending on spectra types.""";
+      case CENTROID -> """
+          Centroid data only; applies absolute intensity threshold.""";
+      case EXACT -> """
+          Symmetric peak profile data only; applies absolute intensity threshold. Detects local maxima and sets \
+          the m/z to the center of the peak at half maximum (FWHM).""";
+      case LOCAL_MAX -> """
+          Profile data only. Optional smoothing improves detection on noisy profile data. \
+          Good for TOF-MS data.""";
+      case LOCAL_MAX_ADAPTIVE -> """
+          Profile data only. Like Local maximum, but fits the m/z of intense asymmetric peaks and \
+          corrects saturated peaks, also across neighboring mobility scans. Use for TOF and \
+          ion mobility TOF data with detector saturation or tailing intense peaks.""";
+      case WAVELET -> """
+          Profile data only. Detects peaks by a continuous wavelet transform (Mexican hat) and an \
+          absolute noise level. Use for noisy or low resolution profile data where simple local \
+          maxima split peaks.""";
     };
   }
 
@@ -110,7 +134,6 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case EXACT -> "Exact mass";
       case LOCAL_MAX -> "Local maxima";
       case LOCAL_MAX_ADAPTIVE -> "Local maxima adaptive";
-      case RECURSIVE -> "Recursive threshold";
       case WAVELET -> "Wavelet transform";
     };
   }
@@ -118,14 +141,14 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
   public boolean usesCentroidData() {
     return switch (this) {
       case CENTROID, FACTOR_OF_LOWEST, AUTO -> true;
-      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, LOCAL_MAX_ADAPTIVE -> false;
+      case EXACT, LOCAL_MAX, WAVELET, LOCAL_MAX_ADAPTIVE -> false;
     };
   }
 
   public boolean usesProfileData() {
     return switch (this) {
       case CENTROID -> false;
-      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, FACTOR_OF_LOWEST, AUTO, LOCAL_MAX_ADAPTIVE -> true;
+      case EXACT, LOCAL_MAX, WAVELET, FACTOR_OF_LOWEST, AUTO, LOCAL_MAX_ADAPTIVE -> true;
     };
   }
 
