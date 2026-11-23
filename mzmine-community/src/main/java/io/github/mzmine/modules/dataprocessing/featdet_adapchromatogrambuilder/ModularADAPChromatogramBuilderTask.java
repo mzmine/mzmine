@@ -98,30 +98,31 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private ModularFeatureList newFeatureList;
 
   /**
+   * @param parameters        stored as applied method
    * @param callingModule     {@link ImageBuilderModule} or
    *                          {@link ModularADAPChromatogramBuilderModule}
-   * @param minimumTotalScans min total scans is only used in imaging
+   * @param minimumTotalScans min total scans is only used in imaging, null for the min consecutive
+   *                          scans
    * @param minGroupIntensity min group intensity is only used in chromatography
    */
-  public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
+  private ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      Class<? extends MZmineModule> callingModule, @Nullable Integer minimumTotalScans,
-      @Nullable Double minGroupIntensity, final boolean clearRtCorrection) {
+      Class<? extends MZmineModule> callingModule, @NotNull ScanSelection scanSelection,
+      @NotNull MZTolerance mzTolerance, int minimumConsecutiveScans,
+      @Nullable Integer minimumTotalScans, @Nullable Double minGroupIntensity,
+      double minHighestPoint, @NotNull String suffix, final boolean clearRtCorrection) {
     super(storage, moduleCallDate);
     this.project = project;
     this.dataFile = dataFile;
-    this.scanSelection = parameters.getValue(ADAPChromatogramBuilderParameters.scanSelection);
-
-    this.mzTolerance = parameters.getValue(ADAPChromatogramBuilderParameters.mzTolerance);
-    this.minimumConsecutiveScans = parameters.getValue(
-        ADAPChromatogramBuilderParameters.minimumConsecutiveScans);
-
-    this.suffix = parameters.getValue(ADAPChromatogramBuilderParameters.suffix);
+    this.scanSelection = scanSelection;
+    this.mzTolerance = mzTolerance;
+    this.minimumConsecutiveScans = minimumConsecutiveScans;
+    this.suffix = suffix;
 
     // Owen added parameters
     this.minGroupIntensity = requireNonNullElse(minGroupIntensity, 0d);
 
-    this.minHighestPoint = parameters.getValue(ADAPChromatogramBuilderParameters.minHighestPoint);
+    this.minHighestPoint = minHighestPoint;
     this.parameters = parameters;
     this.callingModule = callingModule;
     // image builder supplies a min number of total scans as well as min consecutive scans
@@ -132,21 +133,42 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     this.clearRtCorrection = clearRtCorrection;
   }
 
+  /**
+   * @param parameters {@link ImageBuilderParameters}
+   */
   public static ModularADAPChromatogramBuilderTask forImaging(MZmineProject project,
       RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
-    var total = parameters.getValue(ImageBuilderParameters.minTotalSignals);
     return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, total, null, false);
+        moduleCallDate, callingModule, parameters.getValue(ImageBuilderParameters.scanSelection),
+        parameters.getValue(ImageBuilderParameters.mzTolerance),
+        parameters.getValue(ImageBuilderParameters.minimumConsecutiveScans),
+        parameters.getValue(ImageBuilderParameters.minTotalSignals), null,
+        parameters.getValue(ImageBuilderParameters.minHighest),
+        parameters.getValue(ImageBuilderParameters.suffix), false);
   }
 
+  /**
+   * @param parameters {@link ADAPChromatogramBuilderParameters} with the
+   *                   {@link ChromatogramBuilderAlgorithms#LEGACY_ADAP} algorithm
+   */
   public static ModularADAPChromatogramBuilderTask forChromatography(MZmineProject project,
       RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
-    var minGroupIntensity = parameters.getValue(
-        ADAPChromatogramBuilderParameters.minGroupIntensity);
+    final var algorithm = parameters.getParameter(ADAPChromatogramBuilderParameters.algorithm);
+    if (algorithm.getValue() != ChromatogramBuilderAlgorithms.LEGACY_ADAP) {
+      throw new IllegalArgumentException(
+          "The ADAP task needs the legacy algorithm, not " + algorithm.getValue());
+    }
+    final ParameterSet legacy = algorithm.getEmbeddedParameters();
     return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, null, minGroupIntensity,
+        moduleCallDate, callingModule,
+        parameters.getValue(ADAPChromatogramBuilderParameters.scanSelection),
+        legacy.getValue(LegacyAdapChromatogramBuilderParameters.mzTolerance),
+        legacy.getValue(LegacyAdapChromatogramBuilderParameters.minimumConsecutiveScans), null,
+        legacy.getValue(LegacyAdapChromatogramBuilderParameters.minGroupIntensity),
+        legacy.getValue(LegacyAdapChromatogramBuilderParameters.minHighestPoint),
+        parameters.getValue(ADAPChromatogramBuilderParameters.suffix),
         parameters.getValue(ADAPChromatogramBuilderParameters.clearRtCorrection));
   }
 

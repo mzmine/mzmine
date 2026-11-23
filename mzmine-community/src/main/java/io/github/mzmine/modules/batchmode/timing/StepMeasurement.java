@@ -35,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param step             1-based step number
  * @param name             module name of the step
+ * @param algorithm        selected algorithms of the step, see {@link StepAlgorithms}, null if the
+ *                         module has no choice
  * @param secondsToFinish  wall-clock seconds the step took
  * @param usedHeapGB        used heap (GB) after the step, or null if not tracked
  * @param tempFilesCreated number of mapped temp files created during this step
@@ -44,15 +46,24 @@ import org.jetbrains.annotations.Nullable;
  * @param liveTempFileUsedGB       logical bytes of still-alive segments at the end of the step (GB,
  *                         best-effort)
  */
-public record StepMeasurement(int step, String name, double secondsToFinish,
-                              @Nullable String usedHeapGB, long tempFilesCreated, double reservedTempFileGB,
+public record StepMeasurement(int step, String name, @Nullable String algorithm,
+                              double secondsToFinish, @Nullable String usedHeapGB,
+                              long tempFilesCreated, double reservedTempFileGB,
                               double usedTempFileGB, long liveTempFiles, double liveTempFileUsedGB) {
 
   public StepMeasurement(@NotNull final StepTimeMeasurement time,
       @NotNull final StepStorageMeasurement storage) {
-    this(time.step(), time.name(), time.secondsToFinish(), time.usedHeapGB(),
+    this(time.step(), time.name(), time.algorithm(), time.secondsToFinish(), time.usedHeapGB(),
         storage.filesCreatedInStep(), storage.reservedGBInStep(), storage.usedGBInStep(),
         storage.liveFiles(), storage.liveUsedGB());
+  }
+
+  /**
+   * @return the module name followed by the selected algorithms in brackets, if any
+   */
+  @NotNull
+  static String nameWithAlgorithm(@Nullable String name, @Nullable String algorithm) {
+    return algorithm == null ? String.valueOf(name) : "%s (%s)".formatted(name, algorithm);
   }
 
   /**
@@ -63,7 +74,7 @@ public record StepMeasurement(int step, String name, double secondsToFinish,
   public String toString() {
     final String heap = usedHeapGB == null ? "" : ", used heap: %s GB".formatted(usedHeapGB);
     return "Step %d: %s took %.3f seconds%s; temp files created: %d (reserved %.3f GB, used %.3f GB); live: %d files / %.3f GB".formatted(
-        step, name, secondsToFinish, heap, tempFilesCreated, reservedTempFileGB, usedTempFileGB,
-        liveTempFiles, liveTempFileUsedGB);
+        step, nameWithAlgorithm(name, algorithm), secondsToFinish, heap, tempFilesCreated,
+        reservedTempFileGB, usedTempFileGB, liveTempFiles, liveTempFileUsedGB);
   }
 }
