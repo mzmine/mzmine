@@ -65,9 +65,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
-  private static final Logger logger = Logger.getLogger(
-      AllSpectralDataImportParameters.class.getName());
-
   /**
    * This parameter adds a different validation step to files that may map files selected in the All
    * .d or similar buttons to a validated list of distinct files
@@ -75,30 +72,26 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
       ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here.",
       AllSpectralDataImportParameters::validateDistinctPaths);
-
   public static final ParameterSetParameter<VendorImportParameters> vendorOptions = new ParameterSetParameter<>(
       "Vendor data options", "Set specific options how to handle vendor data.",
       new VendorImportParameters());
-
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
       "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help).\nAdvantage: Lower memory consumption\nCaution: All processing steps will directly change the underlying data, with no way of retrieving raw data or initial results.",
       new AdvancedSpectraImportParameters(), false);
-
   public static final OptionalParameter<FileNameParameter> metadataFile = new OptionalParameter<>(
       ProjectMetadataImportParameters.fileName);
-
   public static final OptionalModuleParameter<SampleMetadataExtractionParameters> extractMetadata = new OptionalModuleParameter<>(
       "Extract sample metadata",
       "Extract sample metadata columns from the file name or path of the imported raw data files using regular expressions. Runs after the metadata file import.",
       EmbeddedComponentOptions.VIEW_IN_WINDOW, new SampleMetadataExtractionParameters(true), false,
       SampleMetadataExtractionModule.class);
-
   public static final BooleanParameter sortAndRecolor = new BooleanParameter("Sort and color", """
       Apply default sorting and coloring by sample type.
       To color by metadata, apply the "%s" module in batch, quick access, or via right click in the MS data files list.""".formatted(
       ColorByMetadataModule.MODULE_NAME), true);
-
+  private static final Logger logger = Logger.getLogger(
+      AllSpectralDataImportParameters.class.getName());
   private final BooleanParameter applyVendorCentroidingOld = new BooleanParameter(
       "Try vendor centroiding",
       "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
@@ -116,43 +109,11 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-import.html");
   }
 
-  @Override
-  public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired) {
-    return showSetupDialog(valueCheckRequired, _ -> {});
-  }
-
-  /** Uses the same native dialog while allowing callers to retain its pending review. */
-  public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired,
-      final @NotNull java.util.function.Consumer<ParameterSetupDialog> reviewOpened) {
-    assert Platform.isFxApplicationThread();
-
-    if ((parameters == null) || (parameters.length == 0)) {
-      return ExitCode.OK;
-    }
-
-    final ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
-        this.getMessage());
-    final FileNamesComponent fileNamesComponent = dialog.getComponentForParameter(fileNames);
-    final SampleMetadataExtractionParameters metadataParameters = getParameter(
-        extractMetadata).getEmbeddedParameters();
-
-    final Subscription fileNameSubscription = fileNamesComponent.textProperty()
-        .subscribe(_ -> updateMetadataSelectedFiles(metadataParameters, fileNamesComponent));
-    try {
-      reviewOpened.accept(dialog);
-      dialog.showAndWait();
-    } finally {
-      fileNameSubscription.unsubscribe();
-    }
-    return dialog.getExitCode();
-  }
-
   private static void updateMetadataSelectedFiles(
       @NotNull final SampleMetadataExtractionParameters metadataParameters,
       @NotNull final FileNamesComponent fileNamesComponent) {
     metadataParameters.setSelectedFiles(fileNamesComponent.getValue());
   }
-
 
   public static ParameterSet create(final VendorImportParameters importParam,
       @NotNull final File[] allDataFiles, @Nullable final File metadata,
@@ -206,7 +167,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    * @return a list of already loaded raw data files
    */
   public static List<RawDataFile> getLoadedRawDataFiles(MZmineProject project,
-      final ParameterSet parameters) {
+      final AllSpectralDataImportParameters parameters) {
     // all files that should be loaded
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
     Set<File> loadFileSet = streamValidatedFiles(parameters).map(ImportFile::importedFile)
@@ -223,7 +184,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    * @return array of files - files that are already loaded
    */
   public static ImportFile[] skipAlreadyLoadedFiles(MZmineProject project,
-      final ParameterSet parameters) {
+      final AllSpectralDataImportParameters parameters) {
 
     Set<File> currentlyLoadedFiles = project.getCurrentRawDataFiles().stream()
         .map(RawDataFile::getAbsoluteFilePath).collect(Collectors.toSet());
@@ -243,9 +204,11 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    * @return stream of {@link ImportFile}s
    */
   @NotNull
-  public static Stream<ImportFile> streamValidatedFiles(final ParameterSet parameters) {
-    final File[] files = parameters.getValue(fileNames);
-    return streamValidatedFiles(files);
+  public static Stream<ImportFile> streamValidatedFiles(
+      final AllSpectralDataImportParameters allSpecDataImportParam) {
+    final File[] files = allSpecDataImportParam.getValue(fileNames);
+    return streamValidatedFiles(files,
+        allSpecDataImportParam.getValue(AllSpectralDataImportParameters.vendorOptions));
   }
 
   /**
@@ -255,13 +218,14 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    * @return stream of {@link ImportFile}s
    */
   @NotNull
-  public static Stream<ImportFile> streamValidatedFiles(final File[] files) {
+  public static Stream<ImportFile> streamValidatedFiles(final File[] files,
+      @NotNull final VendorImportParameters vendorImportParameters) {
     final boolean keepConverted = ConfigService.getPreferences()
         .getValue(MZminePreferences.keepConvertedFile);
-    return Arrays.stream(files)
-        .map(f -> AllSpectralDataImportModule.validateToActualPath(f, keepConverted));
+    return Arrays.stream(files).map(
+        f -> AllSpectralDataImportModule.validateToActualPath(f, keepConverted,
+            vendorImportParameters));
   }
-
 
   /**
    * Validating paths may jump from nested .d folders or similar to the main file this creates
@@ -275,6 +239,40 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         .filter(Objects::nonNull)
         // needs distinct as bruker files may be duplicated with .d files in multiple layers
         .distinct().toArray(File[]::new);
+  }
+
+  @Override
+  public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, _ -> {
+    });
+  }
+
+  /**
+   * Uses the same native dialog while allowing callers to retain its pending review.
+   */
+  public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired,
+      final @NotNull java.util.function.Consumer<ParameterSetupDialog> reviewOpened) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+
+    final ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
+    final FileNamesComponent fileNamesComponent = dialog.getComponentForParameter(fileNames);
+    final SampleMetadataExtractionParameters metadataParameters = getParameter(
+        extractMetadata).getEmbeddedParameters();
+
+    final Subscription fileNameSubscription = fileNamesComponent.textProperty()
+        .subscribe(_ -> updateMetadataSelectedFiles(metadataParameters, fileNamesComponent));
+    try {
+      reviewOpened.accept(dialog);
+      dialog.showAndWait();
+    } finally {
+      fileNameSubscription.unsubscribe();
+    }
+    return dialog.getExitCode();
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -28,10 +29,10 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
-import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -54,14 +55,15 @@ public class MassLynxImportTaskDelegator extends AbstractSimpleTask implements R
 
   public MassLynxImportTaskDelegator(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File file,
-      @NotNull ScanImportProcessorConfig processorConfig,
-      MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
+      @NotNull ScanImportProcessorConfig processorConfig, MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
 
     super(storage, moduleCallDate, parameters, moduleClass);
 
-    final MassLynxImportOptions importChoice = ConfigService.getPreference(
-        MZminePreferences.massLynxImportChoice);
+    assert parameters instanceof AllSpectralDataImportParameters;
+    final MassLynxImportOptions importChoice = parameters.getValue(
+            AllSpectralDataImportParameters.vendorOptions)
+        .getValue(VendorImportParameters.massLynxImportChoice);
     actualTask = importChoice == MassLynxImportOptions.MSCONVERT ? new MSConvertImportTask(storage,
         moduleCallDate, file, processorConfig, project, moduleClass, parameters)
         : new MassLynxImportTask(storage, moduleCallDate, file, moduleClass, parameters, project,

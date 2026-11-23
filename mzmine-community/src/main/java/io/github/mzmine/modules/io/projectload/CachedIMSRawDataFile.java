@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawFileWarning;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularDataModel;
@@ -216,6 +217,11 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   @Override
   public boolean isContainsEmptyScans() {
     throw new UnsupportedOperationException("Unsupported during project load.");
+  }
+
+  @Override
+  public @NotNull List<RawFileWarning> getWarnings() {
+    return originalFile.getWarnings();
   }
 
   @Override
