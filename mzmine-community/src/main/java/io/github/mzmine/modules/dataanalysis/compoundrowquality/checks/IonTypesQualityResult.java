@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -10,13 +35,18 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResu
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStatus;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
 import java.util.List;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,17 +58,30 @@ import org.jetbrains.annotations.Nullable;
 /// its bold style when the selection matches its row.
 public final class IonTypesQualityResult extends QualityCheckResult {
 
-  private final @NotNull String summary;
+  /// Collapsed summary lists this many ion types, e.g. GC-EI compounds have hundreds of fragments
+  private static final int COLLAPSED_SUMMARY_IONS = 6;
+  /// Collapsed sub pane shows this many ion chips
+  private static final int COLLAPSED_CHIPS = 12;
+
+  private final @NotNull List<@NotNull String> ionTypeNames;
+  // shared by summary and chips, so one toggle unfolds both
+  private final BooleanProperty expanded = new SimpleBooleanProperty(false);
+  private @Nullable Subscription chipsSubscription;
   private final @NotNull List<@NotNull FeatureListRow> distinctIonRows;
   private final @NotNull ColorAssignment colorAssignment;
   private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
 
-  public IonTypesQualityResult(@NotNull QualityCheckStatus status, @NotNull String summary,
+  /**
+   * @param ionTypeNames    distinct ion type names in the order of distinctIonRows
+   * @param distinctIonRows one row per distinct ion type
+   */
+  public IonTypesQualityResult(@NotNull QualityCheckStatus status,
+      @NotNull List<@NotNull String> ionTypeNames,
       @NotNull List<@NotNull FeatureListRow> distinctIonRows,
       @NotNull List<@NotNull FeatureListRow> involvedRows, @NotNull ColorAssignment colorAssignment,
       @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow) {
     super(QualityCheckType.ION_TYPES, status, involvedRows);
-    this.summary = summary;
+    this.ionTypeNames = List.copyOf(ionTypeNames);
     this.distinctIonRows = List.copyOf(distinctIonRows);
     this.colorAssignment = colorAssignment;
     this.selectedMemberRow = selectedMemberRow;
@@ -48,8 +91,14 @@ public final class IonTypesQualityResult extends QualityCheckResult {
   public @NotNull Region buildMainPane() {
     final Label title = FragmentParentsRendering.configureWrap(
         FxLabels.newBoldLabel(type.getLabel()));
-    final Label summaryLabel = FragmentParentsRendering.configureWrap(FxLabels.newLabel(summary));
+    final Label summaryLabel = FragmentParentsRendering.configureWrap(FxLabels.newLabel(""));
+    summaryLabel.textProperty()
+        .bind(Bindings.createStringBinding(() -> summaryText(expanded.get()), expanded));
     final VBox box = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, title, summaryLabel);
+    if (ionTypeNames.size() > COLLAPSED_SUMMARY_IONS) {
+      box.getChildren().add(
+          createToggleLink(ionTypeNames.size() - COLLAPSED_SUMMARY_IONS, "ion types"));
+    }
     box.setMinWidth(0);
     return box;
   }
@@ -62,12 +111,45 @@ public final class IonTypesQualityResult extends QualityCheckResult {
     final FlowPane chips = FxLayout.newFlowPane();
     chips.setPadding(Insets.EMPTY);
     chips.setMinWidth(0);
-    for (final FeatureListRow row : distinctIonRows) {
+    // a rebuilt sub pane replaces the previous one, so only the latest chips listen
+    if (chipsSubscription != null) {
+      chipsSubscription.unsubscribe();
+    }
+    chipsSubscription = expanded.subscribe(isExpanded -> fillChips(chips, isExpanded));
+    return chips;
+  }
+
+  private void fillChips(@NotNull final FlowPane chips, final boolean isExpanded) {
+    chips.getChildren().clear();
+    final boolean collapsible = distinctIonRows.size() > COLLAPSED_CHIPS;
+    final int shown = collapsible && !isExpanded ? COLLAPSED_CHIPS : distinctIonRows.size();
+    for (final FeatureListRow row : distinctIonRows.subList(0, shown)) {
       chips.getChildren().add(
           FragmentParentsRendering.buildChip(row, chipText(row), colorAssignment,
               selectedMemberRow));
     }
-    return chips;
+    if (collapsible) {
+      chips.getChildren().add(createToggleLink(distinctIonRows.size() - COLLAPSED_CHIPS, "ions"));
+    }
+  }
+
+  private @NotNull String summaryText(final boolean isExpanded) {
+    final int n = ionTypeNames.size();
+    final List<String> shown =
+        isExpanded ? ionTypeNames : ionTypeNames.subList(0, Math.min(n, COLLAPSED_SUMMARY_IONS));
+    return n + " ion type" + (n == 1 ? "" : "s") + ": " + String.join(", ", shown);
+  }
+
+  /**
+   * @param hidden number of hidden items while collapsed
+   * @param items  name of the items in the link text
+   * @return link that toggles between collapsed and expanded
+   */
+  private @NotNull Hyperlink createToggleLink(final int hidden, @NotNull final String items) {
+    final Hyperlink link = FxLabels.newHyperlink(() -> expanded.set(!expanded.get()), "");
+    link.textProperty().bind(Bindings.when(expanded).then("Show less")
+        .otherwise("+ %d more %s".formatted(hidden, items)));
+    return link;
   }
 
   /// Chip text for one ion: {@code "[ion] m/z value"} — the ion-type string followed by the

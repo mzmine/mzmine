@@ -190,7 +190,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final BooleanParameter KEEP_ALL_MS2 = new BooleanParameter(
       "Never remove rows with MS2", """
       If checked, all rows with MS2 are retained without applying any further filters on them.
-      GC-EI-MS pseudo MS2 spectra are not considered MS2, because every row has one.""", false);
+      GC-EI-MS pseudo MS2 spectra are not considered MS2, because every deconvoluted compound has one.""", false);
 
   public static final OptionalParameter<RowTypeFilterParameter> ROW_TYPE_FILTER = new OptionalParameter<>(
       new RowTypeFilterParameter());
