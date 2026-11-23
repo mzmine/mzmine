@@ -25,8 +25,6 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns.general;
 
-import org.jetbrains.annotations.Nullable;
-
 public interface NullableFloat {
 
   float NULL_VALUE = Float.NaN;
@@ -38,17 +36,4 @@ public interface NullableFloat {
     return NULL_VALUE;
   }
 
-  /**
-   * @return true if value represents null
-   */
-  default boolean isNull(final @Nullable Float value) {
-    return value == null || isNull(value.floatValue());
-  }
-
-  /**
-   * @return true if value represents null
-   */
-  default boolean isNull(final float value) {
-    return Float.isNaN(value);
-  }
 }

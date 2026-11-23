@@ -30,9 +30,13 @@ import io.github.mzmine.datamodel.features.DataTypesChangedListener;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumns;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableDoubleDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableFloatDataColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoDataColumnType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
@@ -75,7 +79,7 @@ public class ColumnarModularDataModelSchema {
 
   /**
    * Each data type has its own DataColumn usually created in the factory {@link DataColumns}. No
-   * column for {@link NoDataColumnType}, computed on demand without any storage
+   * column for {@link NoDataColumnType}, computed on demand without any storage.
    */
   protected final Map<DataType, DataColumn> columns = new ConcurrentHashMap<>(20);
   /**
@@ -99,6 +103,14 @@ public class ColumnarModularDataModelSchema {
    * resizeLock.writeLock
    */
   protected volatile int columnLength;
+
+  /**
+   * Direct references to the columns of the hottest types, see {@link #cacheHotColumn}.
+   * <p>
+   * Only written inside a {@link #resizeLock} write lock, null if the type was never added.
+   */
+  private volatile NullableFloatDataColumn rtColumn;
+  private volatile NullableDoubleDataColumn mzColumn;
 
   public ColumnarModularDataModelSchema(final @Nullable MemoryMapStorage storage, String modelName,
       int initialSize) {
@@ -136,7 +148,9 @@ public class ColumnarModularDataModelSchema {
         // values of NoDataColumnType are computed on demand, so no column is needed
         if (!(dataType instanceof NoDataColumnType)) {
           // for now use synchronized DataColumns
-          columns.put(dataType, DataColumns.ofTypeSynchronized(dataType, storage, columnLength));
+          final DataColumn column = DataColumns.ofTypeSynchronized(dataType, storage, columnLength);
+          columns.put(dataType, column);
+          cacheHotColumn(dataType, column);
         }
         allTypes.add(dataType);
 //        logger.finest("%s: adding data type %s at %d".formatted(modelName, dataType.getUniqueID(),
@@ -152,6 +166,58 @@ public class ColumnarModularDataModelSchema {
 
   protected <T> DataColumn<T> getColumn(@NotNull final DataType<T> type) {
     return columns.get(type);
+  }
+
+  /**
+   * Keeps {@link #rtColumn} and {@link #mzColumn} in sync with {@link #columns}. Must only be called
+   * inside a {@link #resizeLock} write lock.
+   *
+   * @param type   the type that was added, null column, or removed, null column
+   * @param column the new column of type or null if it was removed
+   */
+  private void cacheHotColumn(@NotNull final DataType type, @Nullable final DataColumn column) {
+    final Class<?> typeClass = type.getClass();
+    final DataColumn unwrapped = column == null ? null : column.unwrap();
+
+    //Note: we want to cache the real RTType/MZType here, so we need a strict class check else
+    // we might also match subclasses.
+    if (typeClass == RTType.class) {
+      rtColumn = (NullableFloatDataColumn) unwrapped;
+    } else if (typeClass == MZType.class) {
+      mzColumn = (NullableDoubleDataColumn) unwrapped;
+    }
+  }
+
+  /**
+   * Reads the retention time. Uses cached columnIndex for the RT column.
+   *
+   * @param rowIndex     the row index
+   * @param defaultValue returned if this schema has no {@link RTType} column or the value is null
+   * @return the retention time or defaultValue
+   */
+  public float getRtOrDefault(final int rowIndex, final float defaultValue) {
+    final NullableFloatDataColumn column = rtColumn;
+    if (column == null) {
+      return defaultValue;
+    }
+    final float value = column.getFloat(rowIndex);
+    return Float.isNaN(value) ? defaultValue : value;
+  }
+
+  /**
+   * Reads the m/z. Uses cached columnIndex for the MZ column.
+   *
+   * @param rowIndex     the row index
+   * @param defaultValue returned if this schema has no {@link MZType} column or the value is null
+   * @return the m/z or defaultValue
+   */
+  public double getMzOrDefault(final int rowIndex, final double defaultValue) {
+    final NullableDoubleDataColumn column = mzColumn;
+    if (column == null) {
+      return defaultValue;
+    }
+    final double value = column.getDouble(rowIndex);
+    return Double.isNaN(value) ? defaultValue : value;
   }
 
   /**
@@ -359,12 +425,12 @@ public class ColumnarModularDataModelSchema {
    * Remove the column
    */
   public <T> void remove(DataType<T> type) {
-    if (!allTypes.remove(type)) {
-      return;
-    }
-
     try (var _ = resizeLock.lockWrite()) {
+      if (!allTypes.remove(type)) {
+        return;
+      }
       columns.remove(type);
+      cacheHotColumn(type, null);
     }
   }
 
