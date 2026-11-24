@@ -30,29 +30,25 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -69,19 +65,29 @@ public abstract class MZmineTab extends Tab {
   public static final Logger logger = Logger.getLogger(MZmineTab.class.getName());
 
   /**
+   * Maximum width of tab headers in tab panes that hold {@link MZmineTab}s. Each line of the two
+   * line tab text is truncated with an ellipsis.
+   */
+  public static final double MAX_TAB_WIDTH = 230;
+
+  /**
+   * Style class added to the tab (and copied to its header) while title and sub title are shown in
+   * two lines. The themes use it to increase the header height.
+   */
+  public static final String TWO_LINE_STYLE_CLASS = "two-line-tab";
+
+  /**
    * If checked/unchecked the tab is/is not updated according to the selection of files/lists in the
    * main window.
    */
   private final CheckBox cbUpdateOnSelection;
   private final ContextMenu contextMenu;
-  private final BorderPane graphic = new BorderPane();
 
-  private final Label titleText = new Label();
-  private final Label subTitleText = new Label();
+  private final StringProperty title = new SimpleStringProperty();
+  private final StringProperty subTitle = new SimpleStringProperty();
 
   public MZmineTab(String title, boolean showBinding, boolean defaultBindingState) {
-    super(null);
-    graphic.setStyle("-fx-background-color: transparent");
+    super(title);
 
     cbUpdateOnSelection = new CheckBox("");
     cbUpdateOnSelection.setTooltip(new Tooltip(
@@ -89,36 +95,20 @@ public abstract class MZmineTab extends Tab {
     cbUpdateOnSelection.setSelected(defaultBindingState);
 
     if (showBinding) {
-      graphic.setLeft(cbUpdateOnSelection);
-      BorderPane.setAlignment(cbUpdateOnSelection, Pos.CENTER);
+      setGraphic(cbUpdateOnSelection);
     }
-    graphic.setMaxWidth(230);
-    subTitleText.setMaxWidth(230);
 
-    titleText.setText(title);
-    final VBox textWrapper = FxLayout.newVBox(Pos.CENTER_LEFT, titleText);
-    textWrapper.setSpacing(0);
-
-    final BooleanBinding showSubTitle = Bindings.createBooleanBinding(
-        () -> ConfigService.getPreference(MZminePreferences.useTabSubtitles)
-            && subTitleText.getText() != null && !subTitleText.getText().isEmpty(),
-        subTitleText.textProperty());
-    showSubTitle.subscribe(show -> {
-      if (show) {
-        textWrapper.getChildren().add(subTitleText);
-      } else {
-        textWrapper.getChildren().remove(subTitleText);
-      }
-    });
+    this.title.set(title);
+    // decision: use the plain tab text with a line break instead of a custom graphic. The overflow
+    // menu of the TabPane only shows the tab text and cannot copy custom graphics.
+    // Not bound because some tabs still call setText directly.
+    this.title.subscribe(_ -> updateTabText());
+    this.subTitle.subscribe(_ -> updateTabText());
 
     final Tooltip tooltip = new Tooltip();
-    tooltip.textProperty().bind(
-        Bindings.createStringBinding(() -> titleText.getText() + "\n" + subTitleText.getText(),
-            subTitleProperty(), titleText.textProperty()));
-
-    graphic.setCenter(textWrapper);
-    Tooltip.install(graphic, tooltip);
-    setGraphic(graphic);
+    tooltip.textProperty()
+        .bind(Bindings.createStringBinding(() -> createTabText(true), this.title, this.subTitle));
+    setTooltip(tooltip);
 
     contextMenu = new ContextMenu();
     contextMenu.setOnShowing(e -> updateContextMenu());
@@ -128,6 +118,19 @@ public abstract class MZmineTab extends Tab {
 
   public MZmineTab(String title) {
     this(title, false, false);
+  }
+
+  /**
+   * Configures a tab pane that holds {@link MZmineTab}s: limits the header width and allows two
+   * line headers (title and sub title).
+   *
+   * @param tabPane the tab pane to configure
+   */
+  public static void configureTabPane(@NotNull TabPane tabPane) {
+    tabPane.setTabMaxWidth(MAX_TAB_WIDTH);
+    // modena limits the tab label height to 1.8333em (22 px), which cuts off the second line.
+    // The header height itself is set by the themes, see TWO_LINE_STYLE_CLASS.
+    tabPane.setTabMaxHeight(Double.MAX_VALUE);
   }
 
   public static @NotNull String getFeatureListsSubtitle(
@@ -152,50 +155,64 @@ public abstract class MZmineTab extends Tab {
     return text;
   }
 
-  public String getTitle() {
-    return FxTextFlows.getText((Parent) graphic.getCenter());
-  }
+  private void updateTabText() {
+    final String text = createTabText(
+        ConfigService.getPreference(MZminePreferences.useTabSubtitles));
+    setText(text);
 
-  public void setTitle(String title) {
-    titleText.setText(title);
-  }
-
-  public void setSubTitle(String subTitle) {
-    subTitleText.setText(subTitle);
-  }
-
-  public StringProperty titleProperty() {
-    return titleText.textProperty();
-  }
-
-  public StringProperty subTitleProperty() {
-    return subTitleText.textProperty();
+    final boolean twoLines = text.contains("\n");
+    if (twoLines && !getStyleClass().contains(TWO_LINE_STYLE_CLASS)) {
+      getStyleClass().add(TWO_LINE_STYLE_CLASS);
+    } else if (!twoLines) {
+      getStyleClass().remove(TWO_LINE_STYLE_CLASS);
+    }
   }
 
   /**
-   * Utility method to get the text of a regular {@link Tab} or a {@link MZmineTab}
+   * @param includeSubTitle add the sub title as a second line if it is not blank
+   * @return the title and the sub title separated by a line break
+   */
+  private @NotNull String createTabText(final boolean includeSubTitle) {
+    final String mainTitle = Objects.requireNonNullElse(title.get(), "");
+    final String sub = subTitle.get();
+    if (!includeSubTitle || StringUtils.isBlank(sub)) {
+      return mainTitle;
+    }
+    return mainTitle + "\n" + sub;
+  }
+
+  /**
+   * @return the title without the sub title
+   */
+  public String getTitle() {
+    return title.get();
+  }
+
+  public void setTitle(String title) {
+    this.title.set(title);
+  }
+
+  public void setSubTitle(String subTitle) {
+    this.subTitle.set(subTitle);
+  }
+
+  public StringProperty titleProperty() {
+    return title;
+  }
+
+  public StringProperty subTitleProperty() {
+    return subTitle;
+  }
+
+  /**
+   * Utility method to get the text of a regular {@link Tab} or a {@link MZmineTab}. For an
+   * MZmineTab, it returns the main title.
    */
   public static String getText(Tab tab) {
     if (tab instanceof MZmineTab mt) {
       return mt.getTitle();
     }
     return tab.getText();
-  }
-
-  /**
-   * Utility method to set the text of a regular {@link Tab} or a {@link MZmineTab}
-   *
-   * @param tab
-   * @param text
-   */
-  public static void setText(Tab tab, String text) {
-    switch (tab) {
-      case MZmineTab t -> {
-        t.setTitle(text);
-        t.setSubTitle((String) null);
-      }
-      default -> tab.setText(text);
-    }
   }
 
   @NotNull

@@ -72,6 +72,9 @@ class ArgsToConfigUtils {
     ConfigService.setTdfPseudoProfile(argsParser.isLoadTdfPseudoProfile());
 
     checkAndLoadArgsConfiguration(argsParser);
+    // log in the command-line users after loading the configuration, so the logins use
+    // the proxy preferences
+    argsParser.loginCommandLineUsers();
     TmpFileCleanup.runCleanup(); // clean old temp files in old dir
 
     // parse args temp dir after config was loaded, so we can override
@@ -111,7 +114,8 @@ class ArgsToConfigUtils {
       commandLineLogin(isCliBatchProcessing, LoginOptions.CLI_TOKEN);
     }
 
-    // the -login user was already logged in and saved by MZmineCoreArgumentParser
+    // the -login user was already logged in and saved by
+    // MZmineCoreArgumentParser.loginCommandLineUsers
     // without a batch, -login only saves the user to the configuration and closes mzmine
     if (argsParser.isCliLogin() && !isCliBatchProcessing) {
       saveLoginToConfigAndExit();
@@ -147,7 +151,7 @@ class ArgsToConfigUtils {
 
   static void checkAndOverrideArgsUser(@NotNull final MZmineCoreArgumentParser argsParser) {
     if (argsParser.getUserFile() != null) {
-      return; // user was already read and locked in MZmineCoreArgumentParser
+      return; // user was already read and locked in MZmineCoreArgumentParser.loginCommandLineUsers
     }
     if (argsParser.isGuiMode()) {
       return; // GUI: caller will restore the user asynchronously after TaskService is ready

@@ -200,16 +200,15 @@ public class MobilityScanStorage {
       return;
     }
 
+    // all mobility scans of the frame at once
     // mobility scan -> [0][] = mzs, [1][] = intensities
-    final List<double[][]> data = new ArrayList<>();
+    final List<double[][]> data = massDetector.getMobilityScanMassValues(getMobilityScans());
 
-    for (MobilityScan mobilityScan : getMobilityScans()) {
-      double[][] mzIntensity = massDetector.getMassValues(mobilityScan);
-      if (denormalizeMSnScans && frame.getMSLevel() > 1) {
+    if (denormalizeMSnScans && frame.getMSLevel() > 1) {
+      for (final double[][] mzIntensity : data) {
         ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensity[1],
             frame.getInjectionTime());
       }
-      data.add(mzIntensity);
     }
 
     setMassLists(storage, data);

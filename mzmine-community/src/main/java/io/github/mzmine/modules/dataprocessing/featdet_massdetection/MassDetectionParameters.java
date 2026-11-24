@@ -32,11 +32,13 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
@@ -81,6 +83,25 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public MassDetectionParameters() {
     super(new Parameter[]{dataFiles, scanSelection, scanTypes, denormalizeMSnScans, massDetector},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
+  }
+
+  /**
+   * Create new instance copy and set all values
+   */
+  @NotNull
+  public static MassDetectionParameters create(@NotNull final RawDataFilesSelection files,
+      @NotNull final ScanSelection scanSelection, @NotNull final SelectedScanTypes scanTypes,
+      final boolean denormalizeMSnScans, @NotNull final MassDetectors detector,
+      @NotNull final ParameterSet detectorParameters) {
+    final var params = (MassDetectionParameters) new MassDetectionParameters().cloneParameterSet();
+
+    params.setParameter(MassDetectionParameters.dataFiles, files);
+    params.setParameter(MassDetectionParameters.scanSelection, scanSelection);
+    params.setParameter(MassDetectionParameters.scanTypes, scanTypes);
+    params.setParameter(MassDetectionParameters.denormalizeMSnScans, denormalizeMSnScans);
+    params.getParameter(MassDetectionParameters.massDetector)
+        .setValue(detector, detectorParameters);
+    return params;
   }
 
   /**

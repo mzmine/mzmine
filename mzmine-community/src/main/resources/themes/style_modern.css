@@ -621,6 +621,12 @@ TextFlow > .tooltip-text-monospaced {
     -fx-pref-height: -jr-header-height;
 }
 
+/* MZmineTab with title and sub title in two lines: keep the header height of one line tabs
+   and use the vertical padding for the second line */
+.tab-pane > .tab-header-area > .headers-region > .tab.two-line-tab {
+    -fx-padding: 0 1em 0 1em;
+}
+
 .tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
     -fx-text-fill: -fx-mid-text-color;
 }

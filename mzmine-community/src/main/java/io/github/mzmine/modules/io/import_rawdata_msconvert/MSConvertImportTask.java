@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
-import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
@@ -50,7 +49,6 @@ import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
-import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -77,7 +75,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   private final MZmineProject project;
   private final Class<? extends MZmineModule> module;
   private final ParameterSet parameters;
-  private final Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
+  private final boolean convertToFile = ConfigService.getConfiguration().getPreferences()
       .getValue(MZminePreferences.keepConvertedFile);
   private MSDKmzMLImportTask msdkTask;
 
@@ -171,7 +169,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     final boolean lockmassEnabled = vendorParameters.getValue(
         VendorImportParameters.watersLockmass);
     final ParameterSet lockmassParameters = vendorParameters.getParameter(
-            VendorImportParameters.watersLockmass).getEmbeddedParameter().getEmbeddedParameters();
+        VendorImportParameters.watersLockmass).getEmbeddedParameter().getEmbeddedParameters();
     final double positiveLockmass = lockmassParameters.getValue(WatersLockmassParameters.positive);
     final double negativeLockmass = lockmassParameters.getValue(WatersLockmassParameters.negative);
 
@@ -265,11 +263,13 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
    * @param type          file type detected by
    *                      {@link RawDataFileTypeDetector#detectDataFileType(File)}
    */
-  public static File applyMsConvertImportNameChanges(File file, boolean keepConverted,
-      RawDataFileType type) {
+  @NotNull
+  public static File applyMsConvertImportNameChanges(@NotNull final File file,
+      final boolean keepConverted, @Nullable final RawDataFileType type,
+      @NotNull final VendorImportParameters vendorImportParameters) {
     if (type != null && keepConverted && getSupportedFileTypes().contains(type)) {
       if ((type == RawDataFileType.WATERS_RAW || type == RawDataFileType.WATERS_RAW_IMS) && (
-          ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
+          vendorImportParameters.getValue(VendorImportParameters.massLynxImportChoice)
               != MassLynxImportOptions.MSCONVERT)) {
         // if waters mass lynx files are imported via the sdk, apply no remapping
         return file;
@@ -282,8 +282,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
   public static Set<RawDataFileType> getSupportedFileTypes() {
     return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
-        /*RawDataFileType.SCIEX_WIFF,*/ RawDataFileType.AGILENT_D,
-        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
+        /*RawDataFileType.SCIEX_WIFF,*/ RawDataFileType.AGILENT_D, RawDataFileType.AGILENT_D_IMS,
+        RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
   }
 
   @Override

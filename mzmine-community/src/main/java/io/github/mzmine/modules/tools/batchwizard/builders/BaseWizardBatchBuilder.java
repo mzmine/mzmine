@@ -1393,7 +1393,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
    * @param noPrecursor no precursor matching like in GC-EI-MS
    */
   protected void makeAndAddSpectralNetworkingSteps(final BatchQueue q, final boolean isExportActive,
-      final File exportPath, final boolean noPrecursor) {
+      @Nullable final File exportPath, final boolean noPrecursor) {
     // NETWORKING
     ParameterSet mainParams = MZmineCore.getConfiguration()
         .getModuleParameters(MainSpectralNetworkingModule.class).cloneParameterSet();
@@ -1422,7 +1422,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
 
     // GRAPHML EXPORT
-    if (isExportActive) {
+    if (isExportActive && exportPath != null) {
       ParameterSet graphml = MZmineCore.getConfiguration()
           .getModuleParameters(NetworkGraphMlExportModule.class).cloneParameterSet();
 

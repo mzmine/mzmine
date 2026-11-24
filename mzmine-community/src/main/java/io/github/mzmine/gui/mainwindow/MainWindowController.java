@@ -27,7 +27,7 @@ package io.github.mzmine.gui.mainwindow;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
-import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawFileWarning;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -77,6 +77,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelec
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.groupabletreeview.GroupTreeItem;
 import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeCell;
 import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeView;
@@ -90,6 +91,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -252,27 +254,19 @@ public class MainWindowController {
     try {
       Node rawIcon = FxIconUtil.getFileIconNode(rawDataFile.getColor());
       HBox box = new HBox(3, rawIcon);
-      if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
-          rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
-        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, FxIconUtil.LIST_ICON_SIZE,
-            MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
+      final List<RawFileWarning> warnings = rawDataFile.getWarnings();
+      if (!warnings.isEmpty()) {
+        final SimpleColorPalette palette = MZmineCore.getConfiguration()
+            .getDefaultColorPalette();
+        final boolean critical = warnings.stream().anyMatch(RawFileWarning::isCritical);
+        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE,
+            FxIconUtil.LIST_ICON_SIZE,
+            critical ? palette.getNegativeColor() : palette.getNeutralColor());
         box.getChildren().add(fontIcon);
 
-        Tooltip tip = new Tooltip();
-        if (rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
-            rawDataFile.getSpectraType())) {
-          tip.setText("""
-              Scans were detected as centroid but contain zero-intensity values. This might indicate incorrect conversion by msconvert. 
-              Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
-              a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
-              This leads to degraded mass accuracies.""");
-        } else if (rawDataFile.isContainsEmptyScans()) {
-          tip.setText("""
-              Some MS1 scans were recognized as empty (no detected signals).
-              The possible reason might be high noise levels influencing mzml conversion.
-              Files can be processed anyway, but consider re-converting if you encounter unexpected results.""");
-        }
-        Tooltip.install(box, tip);
+        final String text = warnings.stream().map(RawFileWarning::message)
+            .collect(Collectors.joining("\n\n"));
+        Tooltip.install(box, new Tooltip(text));
       }
       return box;
     } catch (Exception ex) {
@@ -282,7 +276,8 @@ public class MainWindowController {
 
   private static Node getFeatureListIcon(@NotNull FeatureList flist) {
     if (!flist.isAligned()) {
-      return FxIconUtil.getFontIcon(FxIcons.FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE, flist.getRawDataFile(0).getColor());
+      return FxIconUtil.getFontIcon(FxIcons.FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE,
+          flist.getRawDataFile(0).getColor());
     } else {
       return FxIconUtil.getFontIcon(FxIcons.ALIGNED_FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE);
     }
@@ -290,6 +285,7 @@ public class MainWindowController {
 
   @FXML
   public void initialize() {
+    MZmineTab.configureTabPane(mainTabPane);
     // do not switch panes by arrows
     mainTabPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
@@ -426,7 +422,8 @@ public class MainWindowController {
 
         if (selectedItems.size() == 1) {
           featureListsRenameMenuItem.setDisable(false);
-          if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
+          if (featureListsList.getTreeView().getSelectionModel().getSelectedItem() == null
+              || featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
               == null) {
             featureListsRenameMenuItem.setText("Rename group");
           } else {
@@ -919,7 +916,7 @@ public class MainWindowController {
    * @param title the matching title
    */
   public void removeTab(String title) {
-    getMainTabPane().getTabs().removeIf(t -> title.equals(t.getText()));
+    getMainTabPane().getTabs().removeIf(t -> title.equals(MZmineTab.getText(t)));
   }
 
   public void addTab(Tab tab) {
@@ -1021,6 +1018,35 @@ public class MainWindowController {
     if (selectedItem instanceof GroupTreeItem<RawDataFile> groupItem) {
       rawDataList.editGroup(groupItem);
     }
+  }
+
+  /**
+   * Groups the selected feature lists into a new user-named group. Switches the feature list view
+   * to a custom grouping if an automatic grouping is active.
+   *
+   * @param event the triggering event
+   */
+  public void handleGroupFeatureLists(@NotNull final Event event) {
+    final var selected = featureListsList.getSelectedItems();
+    if (selected.isEmpty()) {
+      return;
+    }
+
+    final var dialog = DialogLoggerUtil.createTextInputDialog("Group feature lists",
+        "Enter a name for the new group", "Group name:");
+    dialog.getEditor().setText("Group");
+    final Optional<String> result = dialog.showAndWait();
+    result.filter(name -> !name.isBlank()).ifPresent(featureListsList::groupSelected);
+  }
+
+  /**
+   * Moves the selected feature lists out of their groups to the top level. Switches the feature
+   * list view to a custom grouping if an automatic grouping is active.
+   *
+   * @param event the triggering event
+   */
+  public void handleUngroupFeatureLists(@NotNull final Event event) {
+    featureListsList.ungroupSelected();
   }
 
   public NotificationPane getNotificationPane() {

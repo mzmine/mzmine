@@ -36,13 +36,13 @@ import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.ShutDownHook;
-import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.localbridge.DeepLinkRouter;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -67,6 +67,7 @@ import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.mzmine.startup.MZmineExit;
+import io.mzio.mzmine.startup.MaxRuntimeWatchdog;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
@@ -76,6 +77,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -119,6 +121,8 @@ public final class MZmineCore {
       DeepLinkRouter.queueLaunchArguments(args);
 
       final String[] launchArguments = DeepLinkRouter.withoutDeepLinkArguments(args);
+      // the argument parser already logs in users from the command line so init trust store
+      NativeTrustStoreManager.initTrustStore();
       final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(launchArguments);
       getInstance().startUp(argsParser);
       launchBatchOrGui(launchArguments, argsParser);
@@ -142,6 +146,7 @@ public final class MZmineCore {
 
     showStartupSplash(argsParser);
 
+    // no-op if an entry point already initialized it before parsing the arguments
     NativeTrustStoreManager.initTrustStore();
 
     ProxyTestUtils.logProxyState("Proxy on startup:");
@@ -261,6 +266,12 @@ public final class MZmineCore {
 
     // set headless desktop globally
     DesktopService.setDesktop(new HeadLessDesktop());
+
+    // decision: start before the console login so that a login waiting for input is also ended
+    final Duration maxRuntime = argsParser.getMaxRuntime();
+    if (isCliBatchProcessing && maxRuntime != null) {
+      MaxRuntimeWatchdog.start(maxRuntime);
+    }
 
     // ask for login if terminal input is available
     if (DesktopService.hasTerminalInput() && CurrentUserService.isInvalid()) {

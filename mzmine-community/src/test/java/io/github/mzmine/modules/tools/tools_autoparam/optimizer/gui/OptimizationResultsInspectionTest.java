@@ -43,7 +43,7 @@ class OptimizationResultsInspectionTest {
       final BorderPane inspection = (BorderPane) new OptimizationResultsViewBuilder(model,
           () -> applied.set(model.getSelectedSolution()), null, () -> {}, null, null, null).build();
       final ButtonBar buttons = (ButtonBar) inspection.getBottom();
-      assertEquals(java.util.List.of("Export to .csv", "Apply"), buttons.getButtons().stream()
+      assertEquals(java.util.List.of("Export to .csv", "Apply to wizard"), buttons.getButtons().stream()
           .map(node -> ((Button) node).getText()).toList());
       final BorderPane content = (BorderPane) inspection.getCenter();
       final TableView<?> solutionTable = (TableView<?>) content.getBottom();

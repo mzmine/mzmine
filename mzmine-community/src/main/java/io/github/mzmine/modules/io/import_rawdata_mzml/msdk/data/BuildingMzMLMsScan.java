@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MobilitySpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
@@ -627,6 +628,13 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         return false;
       }
 
+      if (getMobility() != null) {
+        // mobility scans are processed and memory mapped later, all mobility scans of a frame at
+        // once, see processMobilityScansOfFrame
+        mobilityScanSimpleSpectralData = specData;
+        return true;
+      }
+
       // process and filter - needs metadata so wrap
       specData = config.processor().processScan(this, specData);
 
@@ -635,15 +643,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         spectrumType = MassSpectrumType.CENTROIDED;
       }
 
-      if (getMobility() != null) {
-        // cannot memory map mobility scan data as we need to do this later all mobility scans at once
-        mobilityScanSimpleSpectralData = specData;
-      } else {
-        // memory map regular scan data but not mobility scans
-        this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
-        this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
-            specData.intensities());
-      }
+      // memory map regular scan data
+      this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
+      this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
+          specData.intensities());
 
     } catch (MSDKException | IOException e) {
       logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));
@@ -653,13 +656,61 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   }
 
   /**
+   * Processes the raw data of all mobility scans of one frame together, see
+   * {@link MsProcessor#processMobilityScans}. The processed data replaces
+   * {@link #getMobilityScanSimpleSpectralData()} of each scan.
+   *
+   * @param mobilityScans all mobility scans of one frame, loaded by
+   *                      {@link #loadProcessMemMapMzData(MemoryMapStorage,
+   *                      ScanImportProcessorConfig)}
+   * @param config        the import processing config
+   */
+  public static void processMobilityScansOfFrame(
+      @NotNull final List<BuildingMzMLMsScan> mobilityScans,
+      @NotNull final ScanImportProcessorConfig config) {
+    if (mobilityScans.isEmpty()) {
+      return;
+    }
+
+    final List<SimpleSpectralArrays> rawSpectra = new ArrayList<>(mobilityScans.size());
+    for (final BuildingMzMLMsScan mobilityScan : mobilityScans) {
+      rawSpectra.add(mobilityScan.getMobilityScanSimpleSpectralData());
+    }
+
+    // assumption: all mobility scans of a frame share the metadata needed for processing (ms
+    // level, spectrum type, injection time), so the first scan represents all
+    final List<SimpleSpectralArrays> processedSpectra = config.processor()
+        .processMobilityScans(mobilityScans.getFirst(), rawSpectra);
+
+    for (int i = 0; i < mobilityScans.size(); i++) {
+      final BuildingMzMLMsScan mobilityScan = mobilityScans.get(i);
+      mobilityScan.mobilityScanSimpleSpectralData = processedSpectra.get(i);
+      if (config.isMassDetectActive(mobilityScan.getMSLevel())) {
+        // after mass detection we have a centroid scan
+        mobilityScan.spectrumType = MassSpectrumType.CENTROIDED;
+      }
+    }
+  }
+
+  /**
    * loads data for mzml scan entries that were created using the --combineMobilityScans option.
    * Splits the combined data into individual scans and memory maps the data.
    */
   public BuildingMobilityScanStorage loadProccessMemMapMzDataForMergedMobilityScan(
       MemoryMapStorage storage, @NotNull ScanImportProcessorConfig config) {
-    final List<MobilitySpectralArrays> processedMobilityScanData = splitMergedMobilityScans().stream()
-        .map(msa -> msa.process(this, config)).toList();
+    final List<MobilitySpectralArrays> mobilityScans = splitMergedMobilityScans();
+    final List<SimpleSpectralArrays> mobilityScanSpectra = mobilityScans.stream()
+        .map(MobilitySpectralArrays::spectrum).toList();
+    // all mobility scans of the frame are processed together, the merged frame spectrum is
+    // calculated from the mobility scans later
+    final List<SimpleSpectralArrays> processedSpectra = config.processor()
+        .processMobilityScans(this, mobilityScanSpectra);
+    final List<MobilitySpectralArrays> processedMobilityScanData = new ArrayList<>(
+        mobilityScans.size());
+    for (int i = 0; i < mobilityScans.size(); i++) {
+      processedMobilityScanData.add(
+          new MobilitySpectralArrays(mobilityScans.get(i).mobility(), processedSpectra.get(i)));
+    }
     if (config.isMassDetectActive(getMSLevel())) {
       spectrumType = MassSpectrumType.CENTROIDED;
     }
