@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,9 +45,8 @@ class SimpleStringRowTypeFilter extends AbstractStringRowTypeFilter {
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    final Object obj = valueFunction.apply(row);
-    return matchesString(obj);
+  protected @NotNull Stream<@Nullable Object> streamValues(@NotNull FeatureListRow row) {
+    return Stream.of(valueFunction.apply(row));
   }
 
 }

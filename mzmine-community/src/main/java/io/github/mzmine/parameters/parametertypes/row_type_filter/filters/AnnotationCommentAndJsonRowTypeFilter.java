@@ -26,11 +26,12 @@
 package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Matches the comment and additional json column
@@ -43,17 +44,10 @@ class AnnotationCommentAndJsonRowTypeFilter extends AbstractStringRowTypeFilter 
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations()
-        .anyMatch(this::matchesCommentOrJson);
-  }
-
-  private boolean matchesCommentOrJson(FeatureAnnotation annotation) {
-    if (matchesString(annotation.getComment())) {
-      return true;
-    }
-
-    return matchesString(CompoundAnnotationUtils.getAdditionalJson(annotation));
+  protected @NotNull Stream<@Nullable Object> streamValues(@NotNull FeatureListRow row) {
+    return row.streamAllFeatureAnnotations().flatMap(
+        annotation -> Stream.of(annotation.getComment(),
+            CompoundAnnotationUtils.getAdditionalJson(annotation)));
   }
 
 }

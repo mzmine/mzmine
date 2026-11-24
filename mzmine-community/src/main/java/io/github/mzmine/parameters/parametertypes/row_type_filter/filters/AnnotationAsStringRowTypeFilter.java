@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,9 +46,8 @@ class AnnotationAsStringRowTypeFilter extends AbstractStringRowTypeFilter {
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations().map(valueFunction)
-        .anyMatch(this::matchesString);
+  protected @NotNull Stream<@Nullable Object> streamValues(@NotNull FeatureListRow row) {
+    return row.streamAllFeatureAnnotations().map(valueFunction);
   }
 
 }
