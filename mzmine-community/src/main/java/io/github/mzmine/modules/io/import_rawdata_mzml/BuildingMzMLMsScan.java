@@ -520,9 +520,11 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    * Called when spectrum end is read. Load, process data points and memory map resulting data to
    * disk to save RAM.
    *
-   * @return false if
+   * @param storage destination for ordinary spectra
+   * @param config import processing settings
+   * @return whether the spectrum contains an m/z array
    */
-  public boolean loadProcessMemMapMzData(final MemoryMapStorage storage,
+  public boolean loadProcessMemMapMzData(@Nullable final MemoryMapStorage storage,
       final @NotNull ScanImportProcessorConfig config) {
     SimpleSpectralArrays specData = decodeSpectrum(mzBinaryDataInfo);
     if (specData == null) {
@@ -545,9 +547,15 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       spectrumType = MassSpectrumType.CENTROIDED;
     }
 
-    // memory map regular scan data
-    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
-    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.intensities());
+    final SimpleSpectralArrays stored = compactProfileSpectrum(specData, getSpectrumType());
+    if (stored != specData && mzRange == null && (getCVValue(MzMLCV.cvLowestMz).isEmpty()
+        || getCVValue(MzMLCV.cvHighestMz).isEmpty())) {
+      // decision: a scan window with missing limits uses the spectrum's original m/z bounds.
+      final double[] mzs = specData.mzs();
+      mzRange = Range.closed(mzs[0], mzs[mzs.length - 1]);
+    }
+    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, stored.mzs());
+    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, stored.intensities());
 
     return true;
   }
@@ -582,16 +590,22 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
     for (int i = 0; i < mobilityScans.size(); i++) {
       final BuildingMzMLMsScan mobilityScan = mobilityScans.get(i);
-      mobilityScan.mobilityScanSimpleSpectralData = processedSpectra.get(i);
       if (config.isMassDetectActive(mobilityScan.getMSLevel())) {
         // after mass detection we have a centroid scan
         mobilityScan.spectrumType = MassSpectrumType.CENTROIDED;
       }
+      mobilityScan.mobilityScanSimpleSpectralData = compactProfileSpectrum(processedSpectra.get(i),
+          mobilityScan.getSpectrumType());
     }
   }
 
   /**
    * Packs the selected frame's bins after they have been placed in mobility-axis order.
+   *
+   * @param storage destination for the packed bins
+   * @param config import processing settings
+   * @param mobilityScans the decoded, selected mobility bins
+   * @return the frame's packed mobility scan data
    */
   public @NotNull BuildingMobilityScanStorage packMergedMobilityScans(
       @Nullable final MemoryMapStorage storage, @NotNull final ScanImportProcessorConfig config,
@@ -602,19 +616,70 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     // calculated from the mobility scans later
     final List<SimpleSpectralArrays> processedSpectra = config.processor()
         .processMobilityScans(this, mobilityScanSpectra);
-    final List<MobilitySpectralArrays> processedMobilityScanData = new ArrayList<>(
-        mobilityScans.size());
-    for (int i = 0; i < mobilityScans.size(); i++) {
-      processedMobilityScanData.add(
-          new MobilitySpectralArrays(mobilityScans.get(i).mobility(), processedSpectra.get(i)));
-    }
     if (config.isMassDetectActive(getMSLevel())) {
       spectrumType = MassSpectrumType.CENTROIDED;
     }
+    final MassSpectrumType storedType = getSpectrumType();
+    final List<MobilitySpectralArrays> processedMobilityScanData = new ArrayList<>(
+        mobilityScans.size());
+    for (int i = 0; i < mobilityScans.size(); i++) {
+      final var spectrum = compactProfileSpectrum(processedSpectra.get(i), storedType);
+      processedMobilityScanData.add(
+          new MobilitySpectralArrays(mobilityScans.get(i).mobility(), spectrum));
+    }
     final BuildingMobilityScanStorage buildingMobilityScanStorage = new BuildingMobilityScanStorage(
-        storage, this, processedMobilityScanData, getSpectrumType());
+        storage, this, processedMobilityScanData, storedType);
     clearUnusedData();
     return buildingMobilityScanStorage;
+  }
+
+  /**
+   * @param spectrum decoded spectrum after import processing
+   * @param type     spectrum type after import processing
+   * @return the spectrum with redundant profile zeros removed
+   */
+  private static @NotNull SimpleSpectralArrays compactProfileSpectrum(
+      @NotNull final SimpleSpectralArrays spectrum, @Nullable final MassSpectrumType type) {
+    if (type != MassSpectrumType.PROFILE) {
+      return spectrum;
+    }
+
+    final double[] intensities = spectrum.intensities();
+    int remaining = 0;
+    for (int i = 0; i < intensities.length; i++) {
+      if (keepProfilePoint(intensities, i)) {
+        remaining++;
+      }
+    }
+    if (remaining == intensities.length) {
+      return spectrum;
+    }
+    if (remaining == 0) {
+      return SimpleSpectralArrays.EMPTY;
+    }
+
+    final double[] mzs = spectrum.mzs();
+    final double[] keptMzs = new double[remaining];
+    final double[] keptIntensities = new double[remaining];
+    int kept = 0;
+    for (int i = 0; i < intensities.length; i++) {
+      if (keepProfilePoint(intensities, i)) {
+        keptMzs[kept] = mzs[i];
+        keptIntensities[kept++] = intensities[i];
+      }
+    }
+    return new SimpleSpectralArrays(keptMzs, keptIntensities);
+  }
+
+  /**
+   * @param intensities decoded intensities in m/z order
+   * @param index       index of the candidate point
+   * @return whether the point carries signal or marks a signal's boundary
+   */
+  private static boolean keepProfilePoint(final double @NotNull [] intensities, final int index) {
+    // decision: retain the zero immediately before and after each nonzero region for peak picking.
+    return intensities[index] != 0d || (index > 0 && intensities[index - 1] != 0d) || (
+        index + 1 < intensities.length && intensities[index + 1] != 0d);
   }
 
   @NotNull

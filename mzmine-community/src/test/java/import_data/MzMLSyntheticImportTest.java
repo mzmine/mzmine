@@ -616,6 +616,53 @@ class MzMLSyntheticImportTest {
     assertPeaks(bins.getLast(), new double[]{120}, new double[]{2});
   }
 
+  @Test
+  void removesOnlyRedundantZerosFromProfileScans() throws IOException {
+    final double[] mzs = {100, 101, 102, 103, 104, 105, 106, 107, 108, 109};
+    final double[] intensities = {0, 0, 5, 0, 0, 0, -2, 0, 0, -0d};
+    final String profile = spectrum(0, "scan=1", 1, 60,
+        "<scanWindowList count=\"1\"><scanWindow/></scanWindowList>", "", mzs, intensities).replace(
+        "MS:1000127", "MS:1000128");
+    final String centroid = spectrum(1, "scan=2", 1, 120, "", "", mzs, intensities);
+    final RawDataFile file = importMzml(document(spectra(profile, centroid)), true);
+
+    assertPeaks(file.getScan(0), new double[]{101, 102, 103, 105, 106, 107},
+        new double[]{0, 5, 0, 0, -2, 0});
+    Assertions.assertEquals(Range.closed(100d, 109d), file.getScan(0).getScanningMZRange());
+    assertPeaks(file.getScan(1), mzs, intensities);
+  }
+
+  /**
+   * @param combined whether MSConvert encodes the frame in one spectrum
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void removesProfileZerosWithinEachStoredMobilityBin(final boolean combined) throws IOException {
+    final String spectraXml;
+    if (combined) {
+      final String frame = spectrum(0, "scan=1", 1, 60, "", "",
+          new double[]{100, 101, 102, 103, 104, 200, 201, 202},
+          new double[]{0, 0, 3, 0, 5, 0, 0, 0}).replace("binaryDataArrayList count=\"2\"",
+          "binaryDataArrayList count=\"3\"").replace("</binaryDataArrayList>",
+          binaryArray("MS:1003007", "UO:0000028", 10, 10, 10, 10, 10, 20, 20, 20)
+              + "</binaryDataArrayList>");
+      spectraXml = spectra(frame);
+    } else {
+      spectraXml = spectra(
+          spectrum(0, "scan=1", 1, 60, driftTime(10), "", new double[]{100, 101, 102, 103, 104},
+              new double[]{0, 0, 3, 0, 5}),
+          spectrum(1, "scan=2", 1, 60, driftTime(20), "", new double[]{200, 201, 202},
+              new double[]{0, 0, 0}));
+    }
+    final var file = Assertions.assertInstanceOf(IMSRawDataFile.class,
+        importMzml(document(spectraXml.replace("MS:1000127", "MS:1000128")), true));
+    final List<MobilityScan> bins = file.getFrames().getFirst().getMobilityScans();
+    Assertions.assertEquals(2, bins.size());
+    assertPeaks(bins.getFirst(), new double[]{101, 102, 103, 104}, new double[]{0, 3, 0, 5});
+    Assertions.assertEquals(104d, bins.getFirst().getBasePeakMz());
+    Assertions.assertTrue(bins.getLast().isEmptyScan());
+  }
+
   private static @NotNull String mobilitySpectrum(final int index, final int function,
       final int seconds, final int mobility) {
     return spectrum(index, "function=%d process=0 scan=%d".formatted(function, index + 1), 1,
