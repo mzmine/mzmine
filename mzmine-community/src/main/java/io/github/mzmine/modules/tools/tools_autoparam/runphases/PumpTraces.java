@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.datamodel.otherdetectors.ChromatogramType;
 import java.util.Arrays;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;

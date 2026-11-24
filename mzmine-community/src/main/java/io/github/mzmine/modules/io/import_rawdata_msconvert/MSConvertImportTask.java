@@ -39,7 +39,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -51,13 +51,13 @@ import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +77,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   private final ParameterSet parameters;
   private final boolean convertToFile = ConfigService.getConfiguration().getPreferences()
       .getValue(MZminePreferences.keepConvertedFile);
-  private MSDKmzMLImportTask msdkTask;
+  private MzMLImportTask mzMLTask;
 
   public MSConvertImportTask(final @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File path, ScanImportProcessorConfig config,
@@ -209,51 +209,29 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   }
 
   /**
-   * Some versions of msconvert output information into stdout before the mzml is parsed. Therefore,
-   * we need to find the mzml header and skip to it's start.
-   *
-   * @return true if the start of the mzml has been found, no matter if something was skipped. false
-   * if the file cannot be parsed by msconvert.
+   * @param stdout converter output, possibly beginning with log lines
+   * @return a buffered stream positioned on the first XML declaration or mzML root
+   * @throws IOException when the converter ends without producing XML
    */
-  private static void skipToMzmlStart(InputStream mzMLStream) throws IOException {
-    if (mzMLStream.markSupported()) {
-      // set a mark so we can later return to the start of the file
-      mzMLStream.mark(Integer.MAX_VALUE);
-      final byte[] xmlHeader = "<?xml".getBytes(StandardCharsets.UTF_8);
-      final byte[] buffer = new byte[256];
-      int headerStartIndex = -1;
-      int headerStartOffset = 0;
-
-      while (headerStartIndex == -1) {
-        final int read = mzMLStream.read(buffer);
-        for (int i = 0; i < read; i++) {
-          if (buffer[i] == xmlHeader[0]) {
-            final byte[] bytes = Arrays.copyOfRange(buffer, i,
-                Math.min(i + xmlHeader.length, read));
-            if (Arrays.equals(bytes, xmlHeader)) {
-              logger.finest("Found XML header at position %d".formatted(i));
-              headerStartIndex = i;
-              break;
-            }
-          }
-        }
-        if (headerStartIndex == -1) {
-          if (read != -1) {
-            logger.finest(() -> "Skipping text (%d bytes) before mzml header: %s".formatted(read,
-                inQuotes(new String(buffer, 0, read, StandardCharsets.UTF_8))));
-            headerStartOffset += read;
-          } else {
-            logger.finest("No data received from MSConvert. Current header offset: %d".formatted(
-                headerStartOffset));
-          }
-        }
+  static @NotNull InputStream mzMLStream(@NotNull final InputStream stdout) throws IOException {
+    final var input = new BufferedInputStream(stdout);
+    final byte[] prefix = new byte["<indexedmzML".length()];
+    while (true) {
+      input.mark(prefix.length);
+      final int first = input.read();
+      if (first < 0) {
+        throw new IOException("MSConvert output ended before the mzML document");
       }
-      // return to start of file and skip ahead to the index where the mzml starts
-      mzMLStream.reset();
-      mzMLStream.mark(0);
-      final int byteOffset = headerStartOffset + headerStartIndex;
-      logger.finest(() -> "Found XML header at byte offset %d".formatted(byteOffset));
-      mzMLStream.skipNBytes(byteOffset);
+      if (first == '<') {
+        prefix[0] = '<';
+        final int length = 1 + input.readNBytes(prefix, 1, prefix.length - 1);
+        final String tag = new String(prefix, 0, length, StandardCharsets.US_ASCII);
+        input.reset();
+        if (tag.startsWith("<?xml") || tag.startsWith("<mzML") || tag.startsWith("<indexedmzML")) {
+          return input;
+        }
+        input.read();
+      }
     }
   }
 
@@ -288,24 +266,19 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
   @Override
   public String getTaskDescription() {
-    return msdkTask != null ? msdkTask.getTaskDescription()
+    return mzMLTask != null ? mzMLTask.getTaskDescription()
         : "Waiting for conversion/Importing MS data file %s".formatted(rawFilePath);
   }
 
   @Override
   public double getFinishedPercentage() {
-    return msdkTask != null ? msdkTask.getFinishedPercentage() : 0;
+    return mzMLTask != null ? mzMLTask.getFinishedPercentage() : 0;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    final File msConvertPath = MSConvert.getMsConvertPath();
-    if (msConvertPath == null) {
-      error("MSConvert not found. Please install MSConvert.");
-      return;
-    }
     final File mzMLFile = getMzMLFileName(rawFilePath);
 
     if (mzMLFile.exists()) {
@@ -313,6 +286,15 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
           "Discovered mzml file for MS data file %s. Importing mzml file from %s.".formatted(
               rawFilePath, mzMLFile));
       importFromMzML(mzMLFile);
+      if (getStatus() == TaskStatus.PROCESSING) {
+        setStatus(TaskStatus.FINISHED);
+      }
+      return;
+    }
+
+    final File msConvertPath = MSConvert.getMsConvertPath();
+    if (msConvertPath == null) {
+      error("MSConvert not found. Please install MSConvert.");
       return;
     }
 
@@ -321,15 +303,22 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
             AllSpectralDataImportParameters.vendorOptions));
 
     if (convertToFile) {
-      ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(FileAndPathUtil.getTempDir());
+      final ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(
+              FileAndPathUtil.getTempDir()).redirectOutput(ProcessBuilder.Redirect.DISCARD)
+          .redirectError(ProcessBuilder.Redirect.INHERIT);
       Process process = null;
       try {
         process = builder.start();
         while (process.isAlive()) { // wait for conversion to finish
           if (isCanceled()) {
             process.destroy();
+            return;
           }
           TimeUnit.MILLISECONDS.sleep(100);
+        }
+        if (process.exitValue() != 0) {
+          error("MSConvert exited with code " + process.exitValue() + " for " + rawFilePath);
+          return;
         }
       } catch (IOException | InterruptedException e) {
         // an interrupt would otherwise leave msconvert running after mzmine exits
@@ -341,7 +330,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
         }
         logger.log(Level.WARNING, "Error while converting %s to mzML file.".formatted(rawFilePath),
             e);
-        setStatus(TaskStatus.ERROR);
+        error("Error converting " + rawFilePath + ": " + e.getMessage());
         return;
       }
       importFromMzML(mzMLFile);
@@ -349,13 +338,12 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       importFromStream(rawFilePath, cmdLine);
     }
 
-    if (!isCanceled()) {
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
     }
   }
 
-  private void importFromMzML(File mzMLFile) {
-    RawDataFile dataFile = null;
+  private void importFromMzML(@NotNull final File mzMLFile) {
     ParameterUtils.replaceRawFileName(parameters, rawFilePath, mzMLFile);
 
     if (project.getCurrentRawDataFiles().stream()
@@ -365,94 +353,82 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       return;
     }
 
-    msdkTask = new MSDKmzMLImportTask(project, mzMLFile, config, module, parameters, moduleCallDate,
+    mzMLTask = new MzMLImportTask(project, mzMLFile, config, module, parameters, moduleCallDate,
         storage);
 
     this.addTaskStatusListener((_, _, _) -> {
       if (isCanceled()) {
-        msdkTask.cancel();
+        mzMLTask.cancel();
       }
     });
 
-    dataFile = msdkTask.importStreamOrFile();
-    if (msdkTask.isCanceled()) {
-      setStatus(msdkTask.getStatus());
-      if (msdkTask.getStatus() == TaskStatus.ERROR) {
-        setErrorMessage(msdkTask.getErrorMessage());
-      }
+    final RawDataFile result = mzMLTask.importConvertedData();
+    if (isCanceled()) {
       return;
     }
-
-    if (dataFile == null || isCanceled()) {
+    if (result == null) {
+      error(mzMLTask.getErrorMessage());
       return;
     }
-
-    var totalScans = msdkTask.getTotalScansInMzML();
-    var parsedScans = msdkTask.getParsedMzMLScans();
-    var convertedScans = msdkTask.getConvertedScansAfterFilter();
-
-    if (parsedScans == 0 && dataFile.getOtherDataFiles().isEmpty()) {
-      throw new IllegalStateException(
-          "No scans or chromatograms found in file %s".formatted(dataFile.getName()));
-    }
-
-    if (parsedScans != totalScans) {
-      throw (new RuntimeException(
-          "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
-              + totalScans + ")"));
-    }
-    msdkTask.addAppliedMethodAndAddToProject(dataFile);
+    mzMLTask.addAppliedMethodAndAddToProject(result);
   }
 
-  private void importFromStream(File rawFilePath, List<String> cmdLine) {
+  private void importFromStream(@NotNull final File rawFilePath,
+      @NotNull final List<String> cmdLine) {
     final ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(
-        FileAndPathUtil.getTempDir());
+        FileAndPathUtil.getTempDir()).redirectError(ProcessBuilder.Redirect.INHERIT);
     Process process = null;
     try {
       process = builder.start();
 
-      // Get the stdout of MSConvert process as InputStream
-      RawDataFile dataFile = null;
-      try (InputStream mzMLStream = process.getInputStream()) //
-      {
-        skipToMzmlStart(mzMLStream);
-        msdkTask = new MSDKmzMLImportTask(project, rawFilePath, mzMLStream, config, module,
+      final Process converter = process;
+      this.addTaskStatusListener((_, _, _) -> {
+        if (isCanceled()) {
+          converter.destroy();
+          if (mzMLTask != null) {
+            mzMLTask.cancel();
+          }
+        }
+      });
+      if (isCanceled()) {
+        converter.destroy();
+        return;
+      }
+      final RawDataFile dataFile;
+      try (InputStream mzMLStream = mzMLStream(process.getInputStream())) {
+        mzMLTask = new MzMLImportTask(project, rawFilePath, mzMLStream, config, module,
             parameters, moduleCallDate, storage);
 
-        final Process finalProcess = process;
-        this.addTaskStatusListener((_, _, _) -> {
-          if (isCanceled()) {
-            finalProcess.destroy();
-            msdkTask.cancel();
-          }
-        });
-        dataFile = msdkTask.importStreamOrFile();
+        if (isCanceled()) {
+          converter.destroy();
+          return;
+        }
+        dataFile = mzMLTask.importConvertedData();
       }
 
       if (dataFile == null || isCanceled()) {
         process.destroy();
+        if (!isCanceled()) {
+          error(mzMLTask.getErrorMessage());
+        }
         return;
       }
 
-      var totalScans = msdkTask.getTotalScansInMzML();
-      var parsedScans = msdkTask.getParsedMzMLScans();
-      var convertedScans = msdkTask.getConvertedScansAfterFilter();
-
-      // Finish
-      process.destroy();
-
-      if (parsedScans == 0 && dataFile.getOtherDataFiles().isEmpty()) {
-        throw (new RuntimeException("No scans found"));
+      final int exitCode = process.waitFor();
+      if (isCanceled()) {
+        return;
       }
-
-      if (parsedScans != totalScans) {
-        throw (new RuntimeException(
-            "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
-                + parsedScans + " out of " + totalScans + ")"));
+      if (exitCode != 0) {
+        dataFile.close();
+        error("MSConvert exited with code " + exitCode + " for " + rawFilePath);
+        return;
       }
-      msdkTask.addAppliedMethodAndAddToProject(dataFile);
+      mzMLTask.addAppliedMethodAndAddToProject(dataFile);
 
-    } catch (Throwable e) {
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
       if (process != null) {
         process.destroy();
       }
@@ -467,6 +443,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
   @Override
   public @NotNull List<RawDataFile> getImportedRawDataFiles() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFiles() : List.of();
+    return getStatus() == TaskStatus.FINISHED && mzMLTask != null
+        ? mzMLTask.getImportedRawDataFiles() : List.of();
   }
 }

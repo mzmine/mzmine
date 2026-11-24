@@ -46,7 +46,7 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.WatersImsCalibrationReader;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.datamodel.otherdetectors.ChromatogramType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;

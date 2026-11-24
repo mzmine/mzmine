@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.datamodel.otherdetectors.ChromatogramType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.TextUtils;

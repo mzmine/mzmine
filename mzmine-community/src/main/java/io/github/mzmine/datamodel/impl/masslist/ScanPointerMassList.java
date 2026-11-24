@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,14 +32,14 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * This class points back to the scan to access data. (Useful if the scan is already centroided /
- * thresholded) See its use in {@link AllSpectralDataImportModule} or in {@link MSDKmzMLImportTask}
+ * thresholded) See its use in {@link AllSpectralDataImportModule} or in {@link MzMLImportTask}
  */
 public class ScanPointerMassList implements MassList {
 

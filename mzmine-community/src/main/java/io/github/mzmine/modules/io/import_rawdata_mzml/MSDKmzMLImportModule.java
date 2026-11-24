@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,7 +53,7 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
 
   private static final Logger logger = Logger.getLogger(MSDKmzMLImportModule.class.getName());
 
-  private static final String MODULE_NAME = "mzML file import via MSDK";
+  private static final String MODULE_NAME = "mzML file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
 
   @Override
@@ -114,7 +114,7 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
       RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
       logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
-      Task newTask = new MSDKmzMLImportTask(project, fileNames[i],
+      Task newTask = new MzMLImportTask(project, fileNames[i],
           ScanImportProcessorConfig.createDefault(), MSDKmzMLImportModule.class, parameters,
           moduleCallDate, storage);
       tasks.add(newTask);

@@ -33,6 +33,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public enum RawFileWarningType {
 
+  DUPLICATE_MOBILITY_SCANS(true, """
+      A frame contained multiple spectra at the same mobility. Only the first spectrum at that coordinate was kept."""),
+
   ZERO_INTENSITY_CENTROIDS(false, """
       Scans were detected as centroid but contain zero-intensity values. This might indicate incorrect conversion by msconvert.
       Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses
@@ -70,6 +73,7 @@ public enum RawFileWarningType {
   @Override
   public String toString() {
     return switch (this) {
+      case DUPLICATE_MOBILITY_SCANS -> "Repeated mobility scans";
       case EMPTY_SCANS -> "Empty scan warning";
       case ZERO_INTENSITY_CENTROIDS -> "Zero intensity centroids warning";
     };

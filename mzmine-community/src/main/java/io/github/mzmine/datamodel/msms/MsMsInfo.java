@@ -33,12 +33,12 @@ import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.DIAImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLIsolationWindow;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorActivation;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorElement;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.util.List;
@@ -88,10 +88,11 @@ public interface MsMsInfo {
   }
 
   static MsMsInfo fromMzML(MzMLPrecursorElement precursorElement, int msLevel) {
-    Optional<MzMLPrecursorSelectedIonList> list = precursorElement.getSelectedIonList();
-    if (list.isEmpty()) {
-      return null;
-    }
+    final var selectedIons = precursorElement.getSelectedIonList()
+        .map(MzMLPrecursorSelectedIonList::getSelectedIonList);
+    final List<MzMLCVParam> ionParams =
+        selectedIons.isEmpty() || selectedIons.get().isEmpty() ? List.of()
+            : selectedIons.get().getFirst().getCVParamsList();
 
     Double precursorMz = null;
     Integer charge = null;
@@ -101,7 +102,9 @@ public interface MsMsInfo {
     ActivationMethod method = ActivationMethod.UNKNOWN;
 
     MzMLPrecursorActivation activation = precursorElement.getActivation();
-    for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
+    final List<MzMLCVParam> activationParams =
+        activation == null ? List.of() : activation.getCVParamsList();
+    for (MzMLCVParam mzMLCVParam : activationParams) {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvActivationEnergy2)) {
@@ -130,8 +133,7 @@ public interface MsMsInfo {
       method = ActivationMethod.EAD;
     }
 
-    List<MzMLCVParam> cvParamsList = list.get().getSelectedIonList().get(0).getCVParamsList();
-    for (MzMLCVParam param : cvParamsList) {
+    for (MzMLCVParam param : ionParams) {
       if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
         // the value can be "inf" in some mzmls, use safe parsing
         precursorMz = ParsingUtils.stringToDouble(param.getValue().get());
@@ -178,6 +180,9 @@ public interface MsMsInfo {
       mzwindow = Range.closed(precursorMz - lower, precursorMz + upper);
     }
 
+    if (selectedIons.isEmpty() || selectedIons.get().isEmpty()) {
+      return mzwindow == null ? null : new DIAMsMsInfoImpl(energy, null, msLevel, method, mzwindow);
+    }
     if (precursorMz == null || (mzwindow != null && RangeUtils.rangeLength(mzwindow) > 15d)) {
       return new DIAMsMsInfoImpl(energy, null, msLevel, method, mzwindow);
     }

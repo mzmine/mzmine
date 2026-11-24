@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -41,7 +41,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
@@ -95,8 +95,7 @@ public class RawDataFileUtils {
         case MZDATA ->
             newTask = new MzDataImportTask(project, fileName, module, parameters, moduleCallDate,
                 storage);
-        case MZML ->
-            newTask = new MSDKmzMLImportTask(project, fileName, scanProcessorConfig, module,
+        case MZML -> newTask = new MzMLImportTask(project, fileName, scanProcessorConfig, module,
                 parameters, moduleCallDate, storage);
         case IMZML -> newTask = new ImzMLImportTask(project, fileName, scanProcessorConfig, module,
             parameters, moduleCallDate, storage);

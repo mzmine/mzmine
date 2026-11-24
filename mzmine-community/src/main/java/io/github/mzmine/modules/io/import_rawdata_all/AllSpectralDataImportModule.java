@@ -55,7 +55,7 @@ import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
@@ -441,7 +441,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_TDF -> // ims files are big, use own storage
           new TDFImportTask(project, file, storage, module, parameters, moduleCallDate);
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, scanProcessorConfig, module, parameters,
+      case MZML -> new MzMLImportTask(project, file, scanProcessorConfig, module, parameters,
           moduleCallDate, storage);
       case MZXML -> new MzXMLImportTask(project, file, scanProcessorConfig, module, parameters,
           moduleCallDate, storage);
@@ -494,8 +494,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case IMZML -> new ImzMLImportTask(project, file, scanProcessorConfig, module, parameters,
           moduleCallDate, storage);
       // MS
-      case MZML ->
-          new MSDKmzMLImportTask(project, file, null, scanProcessorConfig, module, parameters,
+      case MZML -> new MzMLImportTask(project, file, null, scanProcessorConfig, module, parameters,
               moduleCallDate, storage);
       case MZXML -> new MzXMLImportTask(project, file, scanProcessorConfig, module, parameters,
           moduleCallDate, storage);
@@ -522,7 +521,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
+      case MZML_ZIP, MZML_GZIP ->
+          new ZipImportTask(project, file, scanProcessorConfig, module, parameters, moduleCallDate,
+              storage);
+      case MZDATA, NETCDF, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, scanProcessorConfig, module,
               parameters, moduleCallDate, storage, storageMassLists);
     };

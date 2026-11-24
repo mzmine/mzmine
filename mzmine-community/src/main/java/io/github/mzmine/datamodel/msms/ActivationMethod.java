@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.msms;
 
 import io.github.msdk.datamodel.ActivationType;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCV;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

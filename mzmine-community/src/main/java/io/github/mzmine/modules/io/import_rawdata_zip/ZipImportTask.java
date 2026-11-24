@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +61,7 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
 
-  private MSDKmzMLImportTask msdkTask;
+  private MzMLImportTask mzMLTask;
 
   public ZipImportTask(@NotNull MZmineProject project, File fileToOpen,
       @NotNull final ScanImportProcessorConfig scanProcessorConfig,
@@ -86,17 +85,20 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started opening compressed file " + fileToOpen);
 
-    try {
+    try (FileInputStream fis = new FileInputStream(fileToOpen)) {
 
       // Create decompressing stream
-      FileInputStream fis = new FileInputStream(fileToOpen);
       InputStream is;
 
       final var fileType = RawDataFileTypeDetector.detectDataFileType(fileToOpen);
       switch (fileType) {
         case MZML_ZIP -> {
           ZipInputStream zis = new ZipInputStream(fis);
-          final ZipEntry nextEntry = zis.getNextEntry();
+          if (zis.getNextEntry() == null) {
+            zis.close();
+            error("Empty ZIP archive: " + fileToOpen);
+            return;
+          }
           is = zis;
         }
         case MZML_GZIP -> {
@@ -111,29 +113,25 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
 
       BufferedInputStream bis = new BufferedInputStream(is);
 
-      msdkTask = new MSDKmzMLImportTask(project, fileToOpen, bis, scanProcessorConfig, module,
+      mzMLTask = new MzMLImportTask(project, fileToOpen, bis, scanProcessorConfig, module,
           parameters, moduleCallDate, getMemoryMapStorage());
 
       this.addTaskStatusListener((_, _, _) -> {
         if (isCanceled()) {
-          msdkTask.cancel();
+          mzMLTask.cancel();
         }
       });
-      RawDataFile dataFile = msdkTask.importStreamOrFile();
+      RawDataFile dataFile = mzMLTask.importStreamOrFile();
 
       if (dataFile == null || isCanceled()) {
-        return;
-      }
-
-      bis.close();
-      is.close();
-
-      if (isCanceled()) {
+        if (!isCanceled()) {
+          error(mzMLTask.getErrorMessage());
+        }
         return;
       }
 
       dataFile.setFileMetadataValue(RawDataFileFormatType.class, fileType);
-      msdkTask.addAppliedMethodAndAddToProject(dataFile);
+      mzMLTask.addAppliedMethodAndAddToProject(dataFile);
 
     } catch (Throwable e) {
       logger.log(Level.SEVERE, "Could not open file " + fileToOpen, e);
@@ -151,8 +149,8 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
 
   @Override
   public String getTaskDescription() {
-    if (msdkTask != null) {
-      return msdkTask.getTaskDescription();
+    if (mzMLTask != null) {
+      return mzMLTask.getTaskDescription();
     } else {
       return "Importing file " + fileToOpen;
     }
@@ -163,22 +161,23 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (msdkTask == null) {
+    if (mzMLTask == null) {
       return 0d;
     }
-    return msdkTask.getFinishedPercentage();
+    return mzMLTask.getFinishedPercentage();
   }
 
   @Override
   public void cancel() {
     super.cancel();
-    if (msdkTask != null) {
-      msdkTask.cancel();
+    if (mzMLTask != null) {
+      mzMLTask.cancel();
     }
   }
 
   @Override
   public @NotNull List<RawDataFile> getImportedRawDataFiles() {
-    return msdkTask.getImportedRawDataFiles();
+    return getStatus() == TaskStatus.FINISHED && mzMLTask != null
+        ? mzMLTask.getImportedRawDataFiles() : List.of();
   }
 }

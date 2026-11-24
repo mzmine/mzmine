@@ -38,56 +38,37 @@ import io.github.mzmine.datamodel.features.rawfiletypes.RawFileMetadataTypes;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SourceFileSha1Type;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLTags;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.header.MzMLFileMetadataMapper;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.header.MzMLHeaderMetadata;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
+import io.github.mzmine.modules.io.import_rawdata_mzml.header.MzMLFileMetadataMapper;
+import io.github.mzmine.modules.io.import_rawdata_mzml.header.MzMLHeaderMetadata;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Parses only the mzML header, the same way as {@link MSDKmzMLImportTask}, and maps it to the raw
- * file metadata.
+ * Verifies acquisition metadata after reading an mzML document.
  */
 class MzMLFileMetadataTest {
 
   /**
-   * Streams the header until the run element, like MzMLParser does for the header.
+   * @param is mzML input
+   * @return file metadata produced by the element reader
    */
   private static @NotNull ModularDataModel readHeader(@NotNull final InputStream is)
       throws Exception {
-    final MzMLHeaderMetadata header = new MzMLHeaderMetadata();
-    final TagTracker tracker = new TagTracker();
-    final XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(is);
+    final XMLStreamReader reader = XMLInputFactory.newDefaultFactory().createXMLStreamReader(is);
+    final MzMLHeaderMetadata header;
     try {
-      while (reader.hasNext()) {
-        final int event = reader.next();
-        if (event == XMLStreamConstants.START_ELEMENT) {
-          final String tag = reader.getLocalName();
-          tracker.enter(tag);
-          if (MzMLTags.TAG_RUN.equals(tag)) {
-            header.setRunReferences(
-                reader.getAttributeValue(null, MzMLTags.ATTR_DEFAULT_INSTRUMENT_CONFIGURATION_REF),
-                reader.getAttributeValue(null, MzMLTags.ATTR_DEFAULT_SOURCE_FILE_REF),
-                reader.getAttributeValue(null, MzMLTags.ATTR_SAMPLE_REF));
-            break;
-          }
-          header.processOpeningTag(tracker, reader, tag);
-        } else if (event == XMLStreamConstants.END_ELEMENT) {
-          final String tag = reader.getLocalName();
-          tracker.exit(tag);
-          header.processClosingTag(tag);
-        }
-      }
+      header = new MzMLReader(reader, new File("metadata.mzML"),
+          ScanImportProcessorConfig.createDefault(), null, () -> false).readDocument().header();
     } finally {
       reader.close();
     }
