@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -69,7 +69,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   private Process dumper = null;
   private String taskDescription;
   private int parsedScans = 0;
-  private MSDKmzMLImportTask msdkTask;
+  private MzMLImportTask mzMLTask;
   private int convertedScans;
 
   protected ThermoRawImportTask(final @Nullable MemoryMapStorage storage, MZmineProject project,
@@ -88,10 +88,10 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
 
   @Override
   public double getFinishedPercentage() {
-    if (msdkTask == null) {
+    if (mzMLTask == null) {
       return 0.0;
     } else {
-      return msdkTask.getFinishedPercentage();
+      return mzMLTask.getFinishedPercentage();
     }
   }
 
@@ -107,55 +107,54 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
         return;
       }
 
-      dumper = builder.start();
+      dumper = builder.redirectError(ProcessBuilder.Redirect.INHERIT).start();
 
       // Get the stdout of ThermoRawFileParser process as InputStream
-      RawDataFile dataFile = null;
-      try (InputStream mzMLStream = dumper.getInputStream()) //
-      {
-        msdkTask = new MSDKmzMLImportTask(project, fileToOpen, mzMLStream, scanProcessorConfig,
+      final RawDataFile dataFile;
+      try (final InputStream mzMLStream = dumper.getInputStream()) {
+        mzMLTask = new MzMLImportTask(project, fileToOpen, mzMLStream, scanProcessorConfig,
             module, parameters, moduleCallDate, storage);
 
         this.addTaskStatusListener((_, _, _) -> {
           if (isCanceled()) {
-            msdkTask.cancel();
+            mzMLTask.cancel();
           }
         });
-        dataFile = msdkTask.importStreamOrFile();
+        dataFile = mzMLTask.importConvertedData();
       }
 
       if (dataFile == null || isCanceled()) {
+        if (!isCanceled()) {
+          error(mzMLTask.getErrorMessage());
+        }
         return;
       }
-      var totalScans = msdkTask.getTotalScansInMzML();
-      parsedScans = msdkTask.getParsedMzMLScans();
-      convertedScans = msdkTask.getConvertedScansAfterFilter();
-      // Finish
-      if (dumper != null) {
-        dumper.destroy();
+      final int exitCode = dumper.waitFor();
+      if (isCanceled()) {
+        return;
       }
-
-      if (parsedScans == 0) {
-        throw (new RuntimeException("No scans found"));
+      if (exitCode != 0) {
+        dataFile.close();
+        error("Thermo converter exited with code " + exitCode + " for " + fileToOpen);
+        return;
       }
-
-      if (parsedScans != totalScans) {
-        throw (new RuntimeException(
-            "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-                + " out of " + totalScans + ")"));
+      parsedScans = mzMLTask.getParsedMzMLScans();
+      convertedScans = mzMLTask.getConvertedScansAfterFilter();
+      mzMLTask.addAppliedMethodAndAddToProject(dataFile);
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
       }
-      msdkTask.addAppliedMethodAndAddToProject(dataFile);
-    } catch (Throwable e) {
-      if (dumper != null) {
-        dumper.destroy();
-      }
-
       if (getStatus() == TaskStatus.PROCESSING) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(ExceptionUtils.exceptionToString(e));
       }
 
       return;
+    } finally {
+      if (dumper != null) {
+        dumper.destroy();
+      }
     }
 
     logger.info(
@@ -221,8 +220,8 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   public void cancel() {
     super.cancel();
 
-    if (msdkTask != null) {
-      msdkTask.cancel();
+    if (mzMLTask != null) {
+      mzMLTask.cancel();
     }
 
     // Try to destroy the dumper process
@@ -259,6 +258,6 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
 
   @Override
   public @NotNull List<RawDataFile> getImportedRawDataFiles() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFiles() : List.of();
+    return getStatus() == TaskStatus.FINISHED ? mzMLTask.getImportedRawDataFiles() : List.of();
   }
 }

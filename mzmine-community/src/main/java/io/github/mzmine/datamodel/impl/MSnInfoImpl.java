@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorElement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

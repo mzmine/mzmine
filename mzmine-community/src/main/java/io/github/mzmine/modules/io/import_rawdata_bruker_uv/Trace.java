@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_uv;
 
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.datamodel.otherdetectors.ChromatogramType;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

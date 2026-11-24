@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CorrelationCoefficientType;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;

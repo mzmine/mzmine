@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,15 +25,11 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
-import io.github.msdk.datamodel.ActivationInfo;
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -40,6 +37,7 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.ChromatogramType;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
@@ -51,27 +49,25 @@ import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV.DetectorCVs;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLChromatogram;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCV.DetectorCVs;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLIsolationWindow;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorActivation;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorElement;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLUnits;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -258,19 +254,20 @@ public class ConversionUtils {
     return spectrum;
   }
 
-  public static Scan mzmlScanToSimpleScan(final RawDataFile dataFile,
+  public static SimpleScan mzmlScanToSimpleScan(final RawDataFile dataFile,
       final BuildingMzMLMsScan scan) {
     return mzmlScanToSimpleScan(dataFile, scan, scan.getSpectrumType());
   }
 
-  public static Scan mzmlScanToSimpleScan(final RawDataFile dataFile, final BuildingMzMLMsScan scan,
+  public static SimpleScan mzmlScanToSimpleScan(final RawDataFile dataFile,
+      final BuildingMzMLMsScan scan,
       final MassSpectrumType spectrumType) {
     return mzmlScanToSimpleScan(dataFile, scan, scan.getDoubleBufferMzValues(),
         scan.getDoubleBufferIntensityValues(), spectrumType);
   }
 
   /**
-   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
+   * Creates a {@link SimpleScan} from a processed mzML spectrum
    *
    * @param scan         the scan
    * @param mzs          use these mz values instead of the scan data
@@ -278,7 +275,7 @@ public class ConversionUtils {
    * @param spectrumType override spectrum type
    * @return a {@link SimpleScan}
    */
-  public static Scan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
+  public static SimpleScan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
       MemorySegment mzs, MemorySegment intensities, MassSpectrumType spectrumType) {
     MsMsInfo info = scan.getMsMsInfo();
     Float injTime = scan.getInjectionTime();
@@ -302,22 +299,22 @@ public class ConversionUtils {
   public static void extractImsMsMsInfo(final MzMLPrecursorList precursorList,
       @NotNull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
       final int currentScanNumber) {
-    Double lowerWindow = null;
-    Double upperWindow = null;
-    Double isolationMz = null;
-    Double precursorMz = null;
-    Integer charge = null;
-    Float collissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : precursorList.getPrecursorElements()) {
+      Double lowerWindow = null;
+      Double upperWindow = null;
+      Double isolationMz = null;
+      Double precursorMz = null;
+      Integer charge = null;
+      Float collissionEnergy = null;
       Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
-      if (selectedIonList.isPresent()) {
+      if (selectedIonList.isPresent() && !selectedIonList.get().getSelectedIonList().isEmpty()) {
         if (selectedIonList.get().getSelectedIonList().size() > 1) {
           logger.info("Selection of more than one ion in a single scan is not supported.");
         }
         for (MzMLCVParam param : selectedIonList.get().getSelectedIonList().get(0)
             .getCVParamsList()) {
           if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
-            precursorMz = Double.parseDouble(param.getValue().get());
+            precursorMz = ParsingUtils.stringToDouble(param.getValue().get());
           }
           if (param.getAccession().equals(MzMLCV.cvChargeState)) {
             charge = Integer.parseInt(param.getValue().orElse("0"));
@@ -328,15 +325,15 @@ public class ConversionUtils {
       if (iw.isPresent()) {
         for (MzMLCVParam param : iw.get().getCVParamsList()) {
           if (param.getAccession().equals(MzMLCV.cvIsolationWindowLowerOffset)) {
-            lowerWindow = Double.parseDouble(param.getValue().get());
+            lowerWindow = ParsingUtils.stringToDouble(param.getValue().get());
             continue;
           }
           if (param.getAccession().equals(MzMLCV.cvIsolationWindowUpperOffset)) {
-            upperWindow = Double.parseDouble(param.getValue().get());
+            upperWindow = ParsingUtils.stringToDouble(param.getValue().get());
             continue;
           }
           if (isolationMz == null && param.getAccession().equals(MzMLCV.cvIsolationWindowTarget)) {
-            isolationMz = Double.parseDouble(param.getValue().get());
+            isolationMz = ParsingUtils.stringToDouble(param.getValue().get());
           }
         }
       }
@@ -390,10 +387,9 @@ public class ConversionUtils {
    * chromatogram type. E.g. all pressure, all PDA or all UV chromatograms will be in one file.
    */
   public static List<OtherDataFile> convertOtherTraces(RawDataFile file,
-      List<Chromatogram> chromatograms) {
+      List<MzMLChromatogram> chromatograms) {
 
     final Map<ChromatogramType, List<MzMLChromatogram>> groupedChromatograms = chromatograms.stream()
-        .filter(c -> c instanceof MzMLChromatogram).map(c -> (MzMLChromatogram) c)
         .collect(Collectors.groupingBy(ConversionUtils::getChromatogramType));
 
     final List<OtherDataFile> otherFiles = new ArrayList<>();
@@ -409,7 +405,7 @@ public class ConversionUtils {
               // reported as absorbance but is actually pico ampere (at least on Thermo)
               return MzMLUnits.PICO_AMPERE;
             } else {
-              return MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession());
+              return MzMLUnits.ofAccession(c.getIntensityUnit());
             }
           });
 
@@ -489,29 +485,32 @@ public class ConversionUtils {
   /**
    * Sets the MS2 info for the otherFeature if it is set in the chromatogram
    */
-  private static void extractAndSetMsMsInfoToOtherFeature(@NotNull MzMLChromatogram chrom,
-      ChromatogramType chromType, @NotNull OtherFeature feature) {
-    if (chromType == ChromatogramType.MRM_SRM) {
-      final List<IsolationInfo> isolations = chrom.getIsolations();
-      if (isolations.size() != 2) {
-        return;
-      }
-
-      final IsolationInfo q1Isolation = isolations.getFirst();
-      final Double q1Mass = q1Isolation.getPrecursorMz();
-      final Double q3Mass = isolations.getLast().getPrecursorMz();
-
-      final ActivationInfo activationInfo = q1Isolation.getActivationInfo();
-      final Float energy =
-          activationInfo != null ? Objects.requireNonNullElse(activationInfo.getActivationEnergy(),
-              0d).floatValue() : null;
-      final ActivationMethod method = ActivationMethod.fromActivationType(
-          activationInfo != null ? activationInfo.getActivationType() : null);
-
-      if (q1Mass != null && q3Mass != null) {
-        OtherFeatureUtils.applyMrmInfo(q1Mass, q3Mass, method, energy, feature);
-      }
+  private static void extractAndSetMsMsInfoToOtherFeature(@NotNull final MzMLChromatogram chrom,
+      @NotNull final ChromatogramType chromType, @NotNull final OtherFeature feature) {
+    final var precursor = chrom.getPrecursor();
+    final var product = chrom.getProduct();
+    if (chromType != ChromatogramType.MRM_SRM || precursor == null || product == null) {
+      return;
     }
+    final var q1 = precursor.getIsolationWindow().flatMap(ConversionUtils::targetMz);
+    final var q3 = product.getIsolationWindow().flatMap(ConversionUtils::targetMz);
+    if (q1.isEmpty() || q3.isEmpty()) {
+      return;
+    }
+    final var activation = precursor.getActivation();
+    final Float energy = activation == null ? null : activation.getCVParamsList().stream()
+        .filter(cv -> cv.getAccession().equals(MzMLCV.cvActivationEnergy))
+        .flatMap(cv -> cv.getValue().stream()).findFirst().map(Float::valueOf).orElse(null);
+    final ActivationMethod method = energy != null && activation.getCVParamsList().stream()
+        .anyMatch(cv -> cv.getAccession().equals(MzMLCV.cvActivationCID)) ? ActivationMethod.CID
+        : ActivationMethod.UNKNOWN;
+    OtherFeatureUtils.applyMrmInfo(q1.get(), q3.get(), method, energy, feature);
+  }
+
+  private static @NotNull Optional<Double> targetMz(@NotNull final MzMLIsolationWindow window) {
+    return window.getCVParamsList().stream()
+        .filter(cv -> cv.getAccession().equals(MzMLCV.cvIsolationWindowTarget))
+        .flatMap(cv -> cv.getValue().stream()).findFirst().map(Double::valueOf);
   }
 
   public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {
@@ -519,7 +518,7 @@ public class ConversionUtils {
   }
 
   private static @NotNull ChromatogramType getChromatogramType(MzMLChromatogram c) {
-    return c.getCVParams().getCVParamsList().stream()
+    return c.getCVParamsList().stream()
         .filter(cv -> ChromatogramType.ofAccession(cv.getAccession()) != ChromatogramType.UNKNOWN)
         .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
         .map(chromatogramType -> switch (chromatogramType) {
@@ -536,17 +535,4 @@ public class ConversionUtils {
         }).orElse(ChromatogramType.UNKNOWN);
   }
 
-  /*
-   * @Nullable public MzMLMobility getMobility(MsScan scan) { if
-   * (!getScanList().getScans().isEmpty()) { for (MzMLCVParam param :
-   * getScanList().getScans().get(0).getCVParamsList()) { String accession = param.getAccession();
-   * if(param.getValue().isEmpty()) { continue; } switch (accession) { case
-   * MzMLCV.cvMobilityDriftTime -> { if
-   * (param.getUnitAccession().equals(MzMLCV.cvMobilityDriftTimeUnit)) { return new
-   * MzMLMobility(Double.parseDouble(param.getValue().get()), MobilityType.DRIFT_TUBE); } } case
-   * MzMLCV.cvMobilityInverseReduced -> { if
-   * (param.getUnitAccession().equals(MzMLCV.cvMobilityInverseReducedUnit)) { return new
-   * MzMLMobility(Double.parseDouble(param.getValue().get()), MobilityType.TIMS); } } } } } return
-   * null; }
-   */
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -204,11 +204,54 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
   }
 
   /**
-   * @param scan
+   * @param scan scan or frame to test
    * @param scanNumberOffset is used for baseFilteringInteger (filter every n-th scan)
-   * @return
+   * @return whether the scan satisfies the selection
    */
-  public boolean matches(Scan scan, int scanNumberOffset) {
+  public boolean matches(@NotNull final Scan scan, final int scanNumberOffset) {
+    if (!matchesMetadata(scan, scanNumberOffset, scan.getScanNumber())) {
+      return false;
+    }
+    if (scanMobilityRange == null) {
+      return true;
+    }
+    if (scan instanceof MobilityScan mobilityScan) {
+      return scanMobilityRange.contains(mobilityScan.getMobility());
+    }
+    return !(scan instanceof Frame frame) || scanMobilityRange.isConnected(
+        frame.getMobilityRange());
+  }
+
+  /**
+   * Checks selection criteria available before decoding the first spectrum of a frame.
+   *
+   * @param metadata acquisition metadata from the frame
+   * @param frameNumber one-based frame number before selection
+   * @return whether to decode the frame and check its mobility range
+   */
+  public boolean matchesFrameMetadata(@NotNull final Scan metadata, final int frameNumber) {
+    final int offset = scanNumberRange == null ? 1 : scanNumberRange.lowerEndpoint();
+    return matchesMetadata(metadata, offset, frameNumber);
+  }
+
+  /**
+   * @param minMobility lowest acquired coordinate
+   * @param maxMobility highest acquired coordinate
+   * @return whether the selected mobility interval overlaps the acquired frame range
+   */
+  public boolean matchesFrameMobilityRange(final double minMobility, final double maxMobility) {
+    return scanMobilityRange == null || scanMobilityRange.isConnected(
+        Range.closed(minMobility, maxMobility));
+  }
+
+  /**
+   * @param scan             source of acquisition metadata
+   * @param scanNumberOffset starting number for every-nth selection
+   * @param scanNumber       source scan or frame number to select
+   * @return whether the acquisition metadata satisfies all mobility-independent criteria
+   */
+  private boolean matchesMetadata(@NotNull final Scan scan, final int scanNumberOffset,
+      final int scanNumber) {
     if (!msLevel.accept(scan)) {
       return false;
     }
@@ -221,28 +264,16 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
       return false;
     }
 
-    if ((scanNumberRange != null) && (!scanNumberRange.contains(scan.getScanNumber()))) {
+    if ((scanNumberRange != null) && (!scanNumberRange.contains(scanNumber))) {
       return false;
     }
 
-    if ((baseFilteringInteger != null) && (
-        (scan.getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
+    if ((baseFilteringInteger != null) && ((scanNumber - scanNumberOffset) % baseFilteringInteger != 0)) {
       return false;
     }
 
     if ((scanRTRange != null) && (!scanRTRange.contains((double) scan.getRetentionTime()))) {
       return false;
-    }
-
-    if (scan instanceof MobilityScan mobScan) {
-      if ((scanMobilityRange != null) && (!scanMobilityRange.contains(mobScan.getMobility()))) {
-        return false;
-      }
-    } else if (scan instanceof Frame) {
-      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange()
-          .isConnected(scanMobilityRange)) {
-        return false;
-      }
     }
 
     if (!Strings.isNullOrEmpty(scanDefinition)) {
