@@ -42,6 +42,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLScanList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLScanWindow;
 import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLScanWindowList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLTags;
 import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLUserParam;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -72,32 +73,32 @@ final class MzMLRecordReader {
    * @return the spectrum, including encoded payloads for classification and processing
    */
   @NotNull BuildingMzMLMsScan readSpectrum() throws XMLStreamException {
-    final String id = MzMLXml.required(xml, "id");
-    final int index = Integer.parseInt(MzMLXml.required(xml, "index"));
-    final int length = Integer.parseInt(MzMLXml.required(xml, "defaultArrayLength"));
+    final String id = MzMLXml.required(xml, MzMLTags.ATTR_ID);
+    final int index = Integer.parseInt(MzMLXml.required(xml, MzMLTags.ATTR_INDEX));
+    final int length = Integer.parseInt(MzMLXml.required(xml, MzMLTags.ATTR_DEFAULT_ARRAY_LENGTH));
     final var spectrum = new BuildingMzMLMsScan(id, scanNumber(id, index));
     while (nextChild()) {
       switch (xml.getLocalName()) {
-        case "scanList" -> readScanList(spectrum.getScanList());
-        case "precursorList" -> {
+        case MzMLTags.TAG_SCAN_LIST -> readScanList(spectrum.getScanList());
+        case MzMLTags.TAG_PRECURSOR_LIST -> {
           while (nextChild()) {
-            if (xml.getLocalName().equals("precursor")) {
+            if (xml.getLocalName().equals(MzMLTags.TAG_PRECURSOR)) {
               spectrum.getPrecursorList().addPrecursor(readPrecursor());
             } else {
               MzMLXml.skipElement(xml);
             }
           }
         }
-        case "productList" -> {
+        case MzMLTags.TAG_PRODUCT_LIST -> {
           while (nextChild()) {
-            if (xml.getLocalName().equals("product")) {
+            if (xml.getLocalName().equals(MzMLTags.TAG_PRODUCT)) {
               spectrum.getProductList().addProduct(readProduct());
             } else {
               MzMLXml.skipElement(xml);
             }
           }
         }
-        case "binaryDataArrayList" -> readArrays(length, array -> {
+        case MzMLTags.TAG_BINARY_DATA_ARRAY_LIST -> readArrays(length, array -> {
           switch (array.getArrayType()) {
             case MZ -> spectrum.setMzBinaryDataInfo(array);
             case INTENSITY -> spectrum.setIntensityBinaryDataInfo(array);
@@ -117,15 +118,15 @@ final class MzMLRecordReader {
    * @return a chromatogram with decoded time and intensity arrays
    */
   @NotNull MzMLChromatogram readChromatogram() throws XMLStreamException {
-    final String id = MzMLXml.required(xml, "id");
-    Integer.parseInt(MzMLXml.required(xml, "index"));
-    final int length = Integer.parseInt(MzMLXml.required(xml, "defaultArrayLength"));
+    final String id = MzMLXml.required(xml, MzMLTags.ATTR_ID);
+    Integer.parseInt(MzMLXml.required(xml, MzMLTags.ATTR_INDEX));
+    final int length = Integer.parseInt(MzMLXml.required(xml, MzMLTags.ATTR_DEFAULT_ARRAY_LENGTH));
     final var trace = new MzMLChromatogram(id, length);
     while (nextChild()) {
       switch (xml.getLocalName()) {
-        case "precursor" -> trace.setPrecursor(readPrecursor());
-        case "product" -> trace.setProduct(readProduct());
-        case "binaryDataArrayList" -> readArrays(length, trace::readBinary);
+        case MzMLTags.TAG_PRECURSOR -> trace.setPrecursor(readPrecursor());
+        case MzMLTags.TAG_PRODUCT -> trace.setProduct(readProduct());
+        case MzMLTags.TAG_BINARY_DATA_ARRAY_LIST -> readArrays(length, trace::readBinary);
         default -> readParam(trace);
       }
     }
@@ -134,7 +135,7 @@ final class MzMLRecordReader {
 
   private void readScanList(@NotNull final MzMLScanList scans) throws XMLStreamException {
     while (nextChild()) {
-      if (xml.getLocalName().equals("scan")) {
+      if (xml.getLocalName().equals(MzMLTags.TAG_SCAN)) {
         scans.addScan(readScan());
       } else {
         readParam(scans);
@@ -145,10 +146,10 @@ final class MzMLRecordReader {
   private @NotNull MzMLScan readScan() throws XMLStreamException {
     final var scan = new MzMLScan();
     while (nextChild()) {
-      if (xml.getLocalName().equals("scanWindowList")) {
+      if (xml.getLocalName().equals(MzMLTags.TAG_SCAN_WINDOW_LIST)) {
         final var windows = new MzMLScanWindowList();
         while (nextChild()) {
-          if (xml.getLocalName().equals("scanWindow")) {
+          if (xml.getLocalName().equals(MzMLTags.TAG_SCAN_WINDOW)) {
             windows.addScanWindow(readParams(new MzMLScanWindow()));
           } else {
             MzMLXml.skipElement(xml);
@@ -163,16 +164,17 @@ final class MzMLRecordReader {
   }
 
   private @NotNull MzMLPrecursorElement readPrecursor() throws XMLStreamException {
-    final var precursor = new MzMLPrecursorElement(attribute("spectrumRef"));
+    final var precursor = new MzMLPrecursorElement(attribute(MzMLTags.ATTR_SPECTRUM_REF));
     while (nextChild()) {
       switch (xml.getLocalName()) {
-        case "isolationWindow" ->
+        case MzMLTags.TAG_ISOLATION_WINDOW ->
             precursor.setIsolationWindow(readParams(new MzMLIsolationWindow()));
-        case "activation" -> precursor.setActivation(readParams(new MzMLPrecursorActivation()));
-        case "selectedIonList" -> {
+        case MzMLTags.TAG_ACTIVATION ->
+            precursor.setActivation(readParams(new MzMLPrecursorActivation()));
+        case MzMLTags.TAG_SELECTED_ION_LIST -> {
           final var ions = new MzMLPrecursorSelectedIonList();
           while (nextChild()) {
-            if (xml.getLocalName().equals("selectedIon")) {
+            if (xml.getLocalName().equals(MzMLTags.TAG_SELECTED_ION)) {
               ions.addSelectedIon(readParams(new MzMLPrecursorSelectedIon()));
             } else {
               MzMLXml.skipElement(xml);
@@ -189,7 +191,7 @@ final class MzMLRecordReader {
   private @NotNull MzMLProduct readProduct() throws XMLStreamException {
     final var product = new MzMLProduct();
     while (nextChild()) {
-      if (xml.getLocalName().equals("isolationWindow")) {
+      if (xml.getLocalName().equals(MzMLTags.TAG_ISOLATION_WINDOW)) {
         product.setIsolationWindow(readParams(new MzMLIsolationWindow()));
       } else {
         MzMLXml.skipElement(xml);
@@ -208,9 +210,9 @@ final class MzMLRecordReader {
 
   private void readParam(@NotNull final MzMLCVGroup target) throws XMLStreamException {
     switch (xml.getLocalName()) {
-      case "cvParam" -> target.addCVParam(MzMLCVParam.read(xml));
-      case "referenceableParamGroupRef" -> {
-        final var group = header.getParamGroup(MzMLXml.required(xml, "ref"));
+      case MzMLTags.TAG_CV_PARAM -> target.addCVParam(MzMLCVParam.read(xml));
+      case MzMLTags.TAG_REF_PARAM_GROUP_REF -> {
+        final var group = header.getParamGroup(MzMLXml.required(xml, MzMLTags.ATTR_REF));
         if (group != null) {
           target.getCVParamsList().addAll(group.getCvParams());
           if (target instanceof MzMLIsolationWindow window) {
@@ -220,9 +222,9 @@ final class MzMLRecordReader {
           }
         }
       }
-      case "userParam" -> {
+      case MzMLTags.TAG_USER_PARAM -> {
         if (target instanceof MzMLIsolationWindow window) {
-          applyWindowParam(window, attribute("name"), attribute("value"));
+          applyWindowParam(window, attribute(MzMLTags.ATTR_NAME), attribute(MzMLTags.ATTR_VALUE));
         }
       }
     }
@@ -239,7 +241,7 @@ final class MzMLRecordReader {
   private void readArrays(final int defaultLength,
       @NotNull final Consumer<MzMLBinaryDataInfo> target) throws XMLStreamException {
     while (nextChild()) {
-      if (xml.getLocalName().equals("binaryDataArray")) {
+      if (xml.getLocalName().equals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
         final MzMLBinaryDataInfo array = readArray(defaultLength);
         if (array != null) {
           target.accept(array);
@@ -252,20 +254,20 @@ final class MzMLRecordReader {
 
   private @Nullable MzMLBinaryDataInfo readArray(final int defaultLength)
       throws XMLStreamException {
-    final String length = attribute("arrayLength");
+    final String length = attribute(MzMLTags.ATTR_ARRAY_LENGTH);
     final var array = new MzMLBinaryDataInfo(
-        Integer.parseInt(MzMLXml.required(xml, "encodedLength")),
+        Integer.parseInt(MzMLXml.required(xml, MzMLTags.ATTR_ENCODED_LENGTH)),
         length == null ? defaultLength : Integer.parseInt(length));
     boolean supported = true;
     while (nextChild()) {
       switch (xml.getLocalName()) {
-        case "cvParam" -> {
-          supported &= applyArrayParam(array, MzMLXml.required(xml, "accession"),
-              attribute("unitAccession"));
+        case MzMLTags.TAG_CV_PARAM -> {
+          supported &= applyArrayParam(array, MzMLXml.required(xml, MzMLTags.ATTR_ACCESSION),
+              attribute(MzMLTags.ATTR_UNIT_ACCESSION));
           MzMLXml.skipElement(xml);
         }
-        case "referenceableParamGroupRef" -> {
-          final var group = header.getParamGroup(MzMLXml.required(xml, "ref"));
+        case MzMLTags.TAG_REF_PARAM_GROUP_REF -> {
+          final var group = header.getParamGroup(MzMLXml.required(xml, MzMLTags.ATTR_REF));
           if (group != null) {
             for (final var cv : group.getCvParams()) {
               supported &= applyArrayParam(array, cv.getAccession(),
@@ -274,7 +276,7 @@ final class MzMLRecordReader {
           }
           MzMLXml.skipElement(xml);
         }
-        case "binary" -> {
+        case MzMLTags.TAG_BINARY -> {
           if (supported && array.getArrayType() != null) {
             array.setTextContent(xml.getElementText());
           } else {

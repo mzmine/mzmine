@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.header.MzMLHeaderMetadata;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLTags;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.ArrayList;
@@ -76,10 +77,10 @@ final class MzMLReader {
    */
   @NotNull MzMLImportData readDocument() throws XMLStreamException {
     xml.nextTag();
-    if (xml.getLocalName().equals("indexedmzML")) {
+    if (xml.getLocalName().equals(MzMLTags.TAG_INDEXED_MZML)) {
       boolean found = false;
       while (nextChild()) {
-        if (xml.getLocalName().equals("mzML") && !found) {
+        if (xml.getLocalName().equals(MzMLTags.TAG_MZML) && !found) {
           readMzML();
           found = true;
         } else {
@@ -90,7 +91,7 @@ final class MzMLReader {
         throw new XMLStreamException("Missing mzML inside indexedmzML", xml.getLocation());
       }
     } else {
-      xml.require(XMLStreamConstants.START_ELEMENT, null, "mzML");
+      xml.require(XMLStreamConstants.START_ELEMENT, null, MzMLTags.TAG_MZML);
       readMzML();
     }
     while (xml.hasNext()) {
@@ -102,7 +103,7 @@ final class MzMLReader {
 
   private void readMzML() throws XMLStreamException {
     while (nextChild()) {
-      if (xml.getLocalName().equals("run")) {
+      if (xml.getLocalName().equals(MzMLTags.TAG_RUN)) {
         readRun();
       } else {
         header.readSection(xml);
@@ -111,25 +112,27 @@ final class MzMLReader {
   }
 
   private void readRun() throws XMLStreamException {
-    final String instrument = MzMLXml.required(xml, "defaultInstrumentConfigurationRef");
-    header.setRunReferences(instrument, xml.getAttributeValue(null, "defaultSourceFileRef"),
-        xml.getAttributeValue(null, "sampleRef"));
-    timestamp = xml.getAttributeValue(null, "startTimeStamp");
+    final String instrument = MzMLXml.required(xml,
+        MzMLTags.ATTR_DEFAULT_INSTRUMENT_CONFIGURATION_REF);
+    header.setRunReferences(instrument,
+        xml.getAttributeValue(null, MzMLTags.ATTR_DEFAULT_SOURCE_FILE_REF),
+        xml.getAttributeValue(null, MzMLTags.ATTR_SAMPLE_REF));
+    timestamp = xml.getAttributeValue(null, MzMLTags.ATTR_START_TIME_STAMP);
     while (nextChild()) {
       switch (xml.getLocalName()) {
-        case "spectrumList" -> readSpectrumList();
-        case "chromatogramList" -> readChromatogramList();
+        case MzMLTags.TAG_SPECTRUM_LIST -> readSpectrumList();
+        case MzMLTags.TAG_CHROMATOGRAM_LIST -> readChromatogramList();
         default -> MzMLXml.skipElement(xml);
       }
     }
   }
 
   private void readSpectrumList() throws XMLStreamException {
-    declaredSpectra = Integer.parseInt(MzMLXml.required(xml, "count"));
-    MzMLXml.required(xml, "defaultDataProcessingRef");
+    declaredSpectra = Integer.parseInt(MzMLXml.required(xml, MzMLTags.ATTR_COUNT));
+    MzMLXml.required(xml, MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
     while (nextChild()) {
-      if (xml.getLocalName().equals("spectrum")) {
-        final String id = xml.getAttributeValue(null, "id");
+      if (xml.getLocalName().equals(MzMLTags.TAG_SPECTRUM)) {
+        final String id = xml.getAttributeValue(null, MzMLTags.ATTR_ID);
         try {
           acceptSpectrum(records.readSpectrum());
         } catch (RuntimeException | XMLStreamException e) {
@@ -145,8 +148,8 @@ final class MzMLReader {
 
   private void readChromatogramList() throws XMLStreamException {
     while (nextChild()) {
-      if (xml.getLocalName().equals("chromatogram")) {
-        final String id = xml.getAttributeValue(null, "id");
+      if (xml.getLocalName().equals(MzMLTags.TAG_CHROMATOGRAM)) {
+        final String id = xml.getAttributeValue(null, MzMLTags.ATTR_ID);
         try {
           final var trace = records.readChromatogram();
           if (trace.hasBinaryArrays()) {

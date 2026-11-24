@@ -40,9 +40,10 @@ public class MzMLCVParam {
    * @return the controlled vocabulary parameter without advancing the cursor
    */
   public static @NotNull MzMLCVParam read(@NotNull final XMLStreamReader xml) {
-    return new MzMLCVParam(xml.getAttributeValue(null, "accession"),
-        xml.getAttributeValue(null, "value"), xml.getAttributeValue(null, "name"),
-        xml.getAttributeValue(null, "unitAccession"));
+    return new MzMLCVParam(xml.getAttributeValue(null, MzMLTags.ATTR_ACCESSION),
+        xml.getAttributeValue(null, MzMLTags.ATTR_VALUE),
+        xml.getAttributeValue(null, MzMLTags.ATTR_NAME),
+        xml.getAttributeValue(null, MzMLTags.ATTR_UNIT_ACCESSION));
   }
 
   private final String accession;

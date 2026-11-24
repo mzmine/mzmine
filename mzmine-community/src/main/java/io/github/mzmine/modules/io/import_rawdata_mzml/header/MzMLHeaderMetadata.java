@@ -99,37 +99,37 @@ public class MzMLHeaderMetadata {
    */
   public void readSection(@NotNull final XMLStreamReader xml) throws XMLStreamException {
     switch (xml.getLocalName()) {
-      case "fileDescription" -> {
-        while (nextChild(xml, "sourceFileList")) {
-          while (nextChild(xml, "sourceFile")) {
+      case MzMLTags.TAG_FILE_DESCRIPTION -> {
+        while (nextChild(xml, MzMLTags.TAG_SOURCE_FILE_LIST)) {
+          while (nextChild(xml, MzMLTags.TAG_SOURCE_FILE)) {
             readParams(xml, putNew(sourceFiles, new MzMLParamContainer(id(xml))));
           }
         }
       }
-      case "referenceableParamGroupList" -> {
-        while (nextChild(xml, "referenceableParamGroup")) {
-          final String id = MzMLXml.required(xml, "id");
+      case MzMLTags.TAG_REF_PARAM_GROUP_LIST -> {
+        while (nextChild(xml, MzMLTags.TAG_REF_PARAM_GROUP)) {
+          final String id = MzMLXml.required(xml, MzMLTags.ATTR_ID);
           readParams(xml, putNew(paramGroups, new MzMLParamContainer(id)));
         }
       }
-      case "softwareList" -> {
-        while (nextChild(xml, "software")) {
-          readParams(xml,
-              putNew(software, new MzMLSoftware(id(xml), xml.getAttributeValue(null, "version"))));
+      case MzMLTags.TAG_SOFTWARE_LIST -> {
+        while (nextChild(xml, MzMLTags.TAG_SOFTWARE)) {
+          readParams(xml, putNew(software,
+              new MzMLSoftware(id(xml), xml.getAttributeValue(null, MzMLTags.ATTR_VERSION))));
         }
       }
-      case "instrumentConfigurationList" -> {
-        while (nextChild(xml, "instrumentConfiguration")) {
+      case MzMLTags.TAG_INSTRUMENT_CONFIGURATION_LIST -> {
+        while (nextChild(xml, MzMLTags.TAG_INSTRUMENT_CONFIGURATION)) {
           readParams(xml,
               putNew(instrumentConfigurations, new MzMLInstrumentConfiguration(id(xml))));
         }
       }
-      case "sampleList" -> {
-        while (nextChild(xml, "sample")) {
+      case MzMLTags.TAG_SAMPLE_LIST -> {
+        while (nextChild(xml, MzMLTags.TAG_SAMPLE)) {
           final var sample = putNew(samples, new MzMLParamContainer(id(xml)));
-          final String name = xml.getAttributeValue(null, "name");
+          final String name = xml.getAttributeValue(null, MzMLTags.ATTR_NAME);
           if (name != null && !name.isBlank()) {
-            sample.addUserParam(new MzMLUserParam("name", name));
+            sample.addUserParam(new MzMLUserParam(MzMLTags.ATTR_NAME, name));
           }
           readParams(xml, sample);
         }
@@ -156,11 +156,11 @@ public class MzMLHeaderMetadata {
       @NotNull final MzMLParamContainer target) throws XMLStreamException {
     while (xml.nextTag() == XMLStreamConstants.START_ELEMENT) {
       switch (xml.getLocalName()) {
-        case "componentList" -> {
+        case MzMLTags.TAG_COMPONENT_LIST -> {
           if (target instanceof MzMLInstrumentConfiguration config) {
             while (xml.nextTag() == XMLStreamConstants.START_ELEMENT) {
               switch (xml.getLocalName()) {
-                case "source", "analyzer", "detector" ->
+                case MzMLTags.TAG_SOURCE, MzMLTags.TAG_ANALYZER, MzMLTags.TAG_DETECTOR ->
                     readParams(xml, addComponent(config, xml.getLocalName(), xml));
                 default -> MzMLXml.skipElement(xml);
               }
@@ -168,27 +168,27 @@ public class MzMLHeaderMetadata {
             continue;
           }
         }
-        case "softwareRef" -> {
+        case MzMLTags.TAG_SOFTWARE_REF -> {
           if (target instanceof MzMLInstrumentConfiguration config) {
-            config.setSoftwareRef(xml.getAttributeValue(null, "ref"));
+            config.setSoftwareRef(xml.getAttributeValue(null, MzMLTags.ATTR_REF));
           }
         }
-        case "referenceableParamGroupRef" -> {
-          final String ref = xml.getAttributeValue(null, "ref");
+        case MzMLTags.TAG_REF_PARAM_GROUP_REF -> {
+          final String ref = xml.getAttributeValue(null, MzMLTags.ATTR_REF);
           if (ref != null) {
             target.addParamGroupRef(ref);
           }
         }
-        case "cvParam" -> {
+        case MzMLTags.TAG_CV_PARAM -> {
           // decision: optional malformed header metadata must not prevent spectrum import.
-          final String accession = xml.getAttributeValue(null, "accession");
+          final String accession = xml.getAttributeValue(null, MzMLTags.ATTR_ACCESSION);
           if (accession != null && !accession.isEmpty()) {
             target.addCvParam(MzMLCVParam.read(xml));
           }
         }
-        case "userParam" -> {
-          final String name = xml.getAttributeValue(null, "name");
-          final String value = xml.getAttributeValue(null, "value");
+        case MzMLTags.TAG_USER_PARAM -> {
+          final String name = xml.getAttributeValue(null, MzMLTags.ATTR_NAME);
+          final String value = xml.getAttributeValue(null, MzMLTags.ATTR_VALUE);
           if (name != null) {
             target.addUserParam(
                 new MzMLUserParam(name, value == null || value.isBlank() ? null : value));

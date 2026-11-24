@@ -45,6 +45,10 @@ public abstract class MzMLTags {
    */
   public static final String TAG_CV_LIST = "cvList";
   /**
+   * Constant <code>TAG_FILE_DESCRIPTION="fileDescription"</code>
+   */
+  public static final String TAG_FILE_DESCRIPTION = "fileDescription";
+  /**
    * Constant <code>TAG_DATA_PROCESSING_LIST="dataProcessingList"</code>
    */
   public static final String TAG_DATA_PROCESSING_LIST = "dataProcessingList";
@@ -227,6 +231,10 @@ public abstract class MzMLTags {
    * Constant <code>ATTR_DEFAULT_ARRAY_LENGTH="defaultArrayLength"</code>
    */
   public static final String ATTR_DEFAULT_ARRAY_LENGTH = "defaultArrayLength";
+  /**
+   * Constant <code>ATTR_ARRAY_LENGTH="arrayLength"</code>
+   */
+  public static final String ATTR_ARRAY_LENGTH = "arrayLength";
   /**
    * Constant <code>ATTR_INDEX="index"</code>
    */
