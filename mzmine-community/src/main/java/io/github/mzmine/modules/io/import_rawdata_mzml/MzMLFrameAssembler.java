@@ -53,6 +53,9 @@ import org.jetbrains.annotations.Nullable;
  */
 final class MzMLFrameAssembler {
 
+  static final int NO_WATERS_FUNCTION = 0;
+  private static final String WATERS_FUNCTION_PREFIX = "function=";
+
   private final List<BuildingMobilityScanStorage> frames;
   private final ScanImportProcessorConfig config;
   private final @Nullable MemoryMapStorage storage;
@@ -189,20 +192,22 @@ final class MzMLFrameAssembler {
   }
 
   /**
-   * @return the Waters function number or zero for other native ID formats
+   * @param id native spectrum identifier
+   * @return the Waters function number, or {@link #NO_WATERS_FUNCTION} if none can be read
    */
   static int watersFunction(@NotNull final String id) {
-    if (!id.startsWith("function=")) {
-      return 0;
+    if (!id.startsWith(WATERS_FUNCTION_PREFIX)) {
+      return NO_WATERS_FUNCTION;
     }
+    final int start = WATERS_FUNCTION_PREFIX.length();
     final int end = id.indexOf(' ');
-    if (end <= "function=".length()) {
-      return 0;
+    if (end <= start) {
+      return NO_WATERS_FUNCTION;
     }
     try {
-      return Integer.parseInt(id, "function=".length(), end, 10);
+      return Integer.parseInt(id, start, end, 10);
     } catch (NumberFormatException ignored) {
-      return 0;
+      return NO_WATERS_FUNCTION;
     }
   }
 

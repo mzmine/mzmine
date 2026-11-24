@@ -30,6 +30,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.binary.MzMLBinaryDataInfo
 import io.github.mzmine.modules.io.import_rawdata_mzml.binary.MzMLBitLength;
 import io.github.mzmine.modules.io.import_rawdata_mzml.binary.MzMLCompressionType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.header.MzMLHeaderMetadata;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCVGroup;
 import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLCVParam;
 import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLIsolationWindow;
@@ -300,7 +301,7 @@ final class MzMLRecordReader {
     } else if (MzMLArrayType.isArrayTypeAccession(accession)) {
       array.setArrayType(MzMLArrayType.ofAccession(accession));
       array.setUnitAccession(unit);
-    } else if (accession.equals("MS:1003006")) {
+    } else if (accession.equals(MzMLCV.cvMeanInverseReducedIonMobilityArray)) {
       throw new IllegalArgumentException("Importing timsTOF files from mzML with the "
           + "--combineIonMobilitySpectra option is not supported. Please use the native .d data instead.");
     } else {

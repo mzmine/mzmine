@@ -44,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
  */
 record MzMLMobilityAxis(double[] coordinates, RangeMap<Double, Integer> indices) {
 
+  private static final int WATERS_REFERENCE_FUNCTION = 1;
+
   /**
    * @param type mobility unit system of the acquired frame
    * @return inclusive radius used to recognize repeated mobility coordinates
@@ -60,12 +62,14 @@ record MzMLMobilityAxis(double[] coordinates, RangeMap<Double, Integer> indices)
     final var functions = frames.stream()
         .collect(Collectors.groupingBy(MzMLMobilityAxis::function));
     final var result = new HashMap<Integer, MzMLMobilityAxis>();
-    final var reference = functions.containsKey(1) ? build(functions.get(1)) : null;
+    final var reference = functions.containsKey(WATERS_REFERENCE_FUNCTION) ? build(
+        functions.get(WATERS_REFERENCE_FUNCTION)) : null;
     for (final var entry : functions.entrySet()) {
       final var group = entry.getValue();
-      if (entry.getKey() == 1 || (entry.getKey() != 0 && reference != null && group.stream()
-          .flatMap(f -> f.getMobilityScans().stream())
-          .allMatch(scan -> reference.indices.get(scan.mobility()) != null))) {
+      if (entry.getKey() == WATERS_REFERENCE_FUNCTION || (
+          entry.getKey() != MzMLFrameAssembler.NO_WATERS_FUNCTION && reference != null
+              && group.stream().flatMap(f -> f.getMobilityScans().stream())
+              .allMatch(scan -> reference.indices.get(scan.mobility()) != null))) {
         result.put(entry.getKey(), reference);
       } else {
         result.put(entry.getKey(), build(group));

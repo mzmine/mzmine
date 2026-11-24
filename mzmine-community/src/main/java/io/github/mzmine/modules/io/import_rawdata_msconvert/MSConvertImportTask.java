@@ -40,6 +40,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.model.MzMLTags;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -215,7 +216,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
    */
   static @NotNull InputStream mzMLStream(@NotNull final InputStream stdout) throws IOException {
     final var input = new BufferedInputStream(stdout);
-    final byte[] prefix = new byte["<indexedmzML".length()];
+    final String indexedMzmlStart = "<" + MzMLTags.TAG_INDEXED_MZML;
+    final byte[] prefix = new byte[indexedMzmlStart.length()];
     while (true) {
       input.mark(prefix.length);
       final int first = input.read();
@@ -227,7 +229,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
         final int length = 1 + input.readNBytes(prefix, 1, prefix.length - 1);
         final String tag = new String(prefix, 0, length, StandardCharsets.US_ASCII);
         input.reset();
-        if (tag.startsWith("<?xml") || tag.startsWith("<mzML") || tag.startsWith("<indexedmzML")) {
+        if (tag.startsWith("<?xml") || tag.startsWith("<" + MzMLTags.TAG_MZML) || tag.startsWith(
+            indexedMzmlStart)) {
           return input;
         }
         input.read();
