@@ -169,11 +169,15 @@ import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGeneration
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryExportQualityParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
+import io.github.mzmine.modules.tools.batchwizard.LipidDoubleBondWizardStepFactory;
+import io.github.mzmine.modules.tools.batchwizard.LipidDoubleBondWizardSteps;
+import io.github.mzmine.modules.tools.batchwizard.LipidDoubleBondWizardTechnique;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters.MassOptions;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.LipidAnnotationWizardSubParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
@@ -243,6 +247,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -252,6 +257,8 @@ import org.openscience.cdk.Element;
  * This class defines all parameters that are equal in all workflows. Data import annotation etc.
  */
 public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
+
+  private static final Logger logger = Logger.getLogger(BaseWizardBatchBuilder.class.getName());
 
   // only parameters that are used in all workflows
   // input
@@ -290,6 +297,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   private final boolean checkLocalCsvDatabase;
   // lipid annotation
   private final boolean annotateLipids;
+  // null if double bonds are not localized
+  private final @Nullable LipidDoubleBondWizardTechnique lipidDoubleBondTechnique;
   private final boolean batchHasQcs;
   protected File csvLibraryFile;
   private @NotNull String csvFilterSamplesColumn = "";
@@ -327,6 +336,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     }
 
     annotateLipids = getValue(params, AnnotationWizardParameters.lipidAnnotation);
+    final LipidAnnotationWizardSubParameters lipidOptions = getOptionalParameters(params,
+        AnnotationWizardParameters.lipidAnnotation).value();
+    lipidDoubleBondTechnique = lipidOptions == null ? null
+        : lipidOptions.getEmbeddedParameterValueIfSelectedOrElse(
+            LipidAnnotationWizardSubParameters.lipidDoubleBonds, null);
     predictFormulas = getValue(params, AnnotationWizardParameters.formulaPrediction);
 
     // filter
@@ -1567,6 +1581,32 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     final MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(LipidAnnotationModule.class), param);
     q.add(step);
+    makeAndAddLipidDoubleBondStep(q);
+  }
+
+  /**
+   * Adds the optional localization of lipid double bonds directly after the lipid annotation step.
+   * The step is contributed through {@link LipidDoubleBondWizardSteps}.
+   *
+   * @param q the batch queue to add the step to
+   */
+  private void makeAndAddLipidDoubleBondStep(final @NotNull BatchQueue q) {
+    if (lipidDoubleBondTechnique == null) {
+      return;
+    }
+    // decision: double bonds are localized in the MS2 scans of fragment-confirmed lipid matches.
+    // Imaging workflows annotate lipids without MS2 fragments, so the step would never apply.
+    if (isImaging) {
+      logger.info("Skipping the localization of lipid double bonds in imaging workflows.");
+      return;
+    }
+    final LipidDoubleBondWizardStepFactory factory = LipidDoubleBondWizardSteps.getFactory();
+    if (factory == null) {
+      logger.warning(
+          "Lipid double bond localization was selected in the wizard, but this mzmine version does not provide the module. The step is skipped.");
+      return;
+    }
+    q.add(factory.createStep(lipidDoubleBondTechnique, mzTolScans));
   }
 
   protected void makeAndAddFormulaPredictionStep(final BatchQueue q) {

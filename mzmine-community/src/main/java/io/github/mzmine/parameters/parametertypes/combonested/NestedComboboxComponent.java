@@ -44,6 +44,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NestedComboboxComponent extends BorderPane {
@@ -99,7 +100,7 @@ public class NestedComboboxComponent extends BorderPane {
     setCenter(currentChoiceParametersPane);
   }
 
-  protected Region createChoiceParametersPane(String choice) {
+  protected @NotNull Region createChoiceParametersPane(final @NotNull String choice) {
     ParameterSet parameterSet = choices.get(choice);
     GridPane paramsPane = new GridPane();
 
@@ -117,7 +118,9 @@ public class NestedComboboxComponent extends BorderPane {
       }
       if (comp instanceof Region) {
         ((Region) comp).setMinWidth(0);
-        ((Region) comp).setPrefWidth(prefWidth);
+        if (prefWidth != null) {
+          ((Region) comp).setPrefWidth(prefWidth);
+        }
       }
       GridPane.setMargin(comp, new Insets(5.0, 0.0, 5.0, 0.0));
 

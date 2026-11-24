@@ -41,14 +41,13 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -173,11 +172,12 @@ public class LipidAnnotationResolver {
   public @NotNull List<MatchedLipid> resolveFeatureListRowMatchedLipids(
       final @NotNull FeatureListRow featureListRow,
       final @NotNull Set<MatchedLipid> matchedLipids) {
-    final List<MatchedLipid> resolvedMatchedLipidsList = removeDuplicates(matchedLipids);
+    final List<MatchedLipid> resolvedMatchedLipidsList = new ArrayList<>(matchedLipids);
     final Map<MatchedLipid, Double> preFilterScoreCache = new IdentityHashMap<>();
     final Map<MatchedLipid, Double> qualityScoreCache = new IdentityHashMap<>();
-    sortByRankingScore(featureListRow, resolvedMatchedLipidsList, preFilterScoreCache);
     filterByMinimumQuality(featureListRow, resolvedMatchedLipidsList, qualityScoreCache);
+    sortByRankingScore(featureListRow, resolvedMatchedLipidsList, preFilterScoreCache);
+    removeDuplicateShorthandAnnotations(resolvedMatchedLipidsList);
     //TODO: Add Keep isobars functionality
 
     //TODO: Add keep isomers functionality
@@ -189,10 +189,14 @@ public class LipidAnnotationResolver {
     return resolvedMatchedLipidsList;
   }
 
-  private @NotNull List<MatchedLipid> removeDuplicates(
-      final @NotNull Set<MatchedLipid> resolvedMatchedLipids) {
-    return resolvedMatchedLipids.stream().collect(Collectors.collectingAndThen(
-        Collectors.toCollection(() -> new TreeSet<>(comparatorMatchedLipids())), ArrayList::new));
+  private void removeDuplicateShorthandAnnotations(
+      final @NotNull List<MatchedLipid> rankedMatchedLipids) {
+    // decision: key on level and name, because single-chain classes produce identical names on
+    // species and molecular species level (e.g. LPC 18:1) and both must be kept
+    final Set<String> retainedAnnotations = new HashSet<>();
+    rankedMatchedLipids.removeIf(match -> !retainedAnnotations.add(
+        match.getLipidAnnotation().getLipidAnnotationLevel().name() + "|" + Objects.toString(
+            match.getLipidAnnotation().getAnnotation(), "")));
   }
 
   private void filterMaximumNumberOfId(final @NotNull List<MatchedLipid> resolvedMatchedLipids) {
@@ -213,13 +217,6 @@ public class LipidAnnotationResolver {
     }
     resolvedMatchedLipids.removeIf(matchedLipid -> qualityScoreCache.computeIfAbsent(matchedLipid,
         lipid -> computeQualityScore(featureListRow, lipid)) < minimumOverallQualityScore);
-  }
-
-  private static @NotNull Comparator<MatchedLipid> comparatorMatchedLipids() {
-    return Comparator.comparing(
-            (MatchedLipid lipid) -> Objects.toString(lipid.getLipidAnnotation().getAnnotation(), ""))
-        .thenComparingDouble(LipidAnnotationResolver::safeMs2Score)
-        .thenComparing(MatchedLipid::getAccurateMz, Comparator.nullsLast(Double::compareTo));
   }
 
   private void sortByRankingScore(final @NotNull FeatureListRow featureListRow,

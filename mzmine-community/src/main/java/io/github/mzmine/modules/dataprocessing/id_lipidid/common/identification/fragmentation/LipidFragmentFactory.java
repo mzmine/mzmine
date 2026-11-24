@@ -25,9 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
@@ -36,13 +34,13 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.Lip
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.MassListPeakFinder.BestDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -63,6 +61,7 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
   protected IonizationType ionizationType;
   protected LipidFragmentationRule[] rules;
   protected Scan msMsScan;
+  protected final @NotNull MassListPeakFinder peakFinder;
 
   public LipidFragmentFactory(MZTolerance mzToleranceMS2, ILipidAnnotation lipidAnnotation,
       IonizationType ionizationType, LipidFragmentationRule[] rules, Scan msMsScan,
@@ -72,6 +71,7 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
     this.ionizationType = ionizationType;
     this.rules = rules;
     this.msMsScan = msMsScan;
+    this.peakFinder = new MassListPeakFinder(msMsScan.getMassList(), mzToleranceMS2);
     this.minChainLength = chainParameters.getParameter(
         LipidAnnotationChainParameters.minChainLength).getValue();
     this.maxChainLength = chainParameters.getParameter(
@@ -104,6 +104,8 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
   private List<LipidFragment> checkForRuleTypes(LipidFragmentationRule rule) {
     LipidFragmentationRuleType ruleType = rule.getLipidFragmentationRuleType();
     return switch (ruleType) {
+      // OAD fragments are generated after molecular-species matching and never from class rules.
+      case OAD_DOUBLE_BOND_POSITION_FRAGMENT -> List.of();
       case HEADGROUP_FRAGMENT -> checkForHeadgroupFragment(rule, lipidAnnotation, msMsScan);
       case HEADGROUP_FRAGMENT_NL -> checkForHeadgroupFragmentNL(rule, lipidAnnotation, msMsScan);
       case PRECURSOR -> checkForOnlyPrecursor(rule, lipidAnnotation, msMsScan);
@@ -523,37 +525,7 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
 
   @NotNull
   protected BestDataPoint getBestDataPoint(Double mzExact) {
-    boolean fragmentMatched = false;
-    MassList massList = msMsScan.getMassList();
-    if (massList != null) {
-      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
-      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), DefaultTo.GREATER_EQUALS);
-      if (index < 0) {
-        return new BestDataPoint(fragmentMatched, 0.0, 0.0);
-      }
-      int numberOfDataPoints = massList.getNumberOfDataPoints();
-      double maxIntensity = 0.0;
-      double bestMzValue = 0.0;
-      for (int i = index; i < numberOfDataPoints; i++) {
-        double intensity = massList.getIntensityValue(i);
-        double mzValue = massList.getMzValue(i);
-        Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(mzValue);
-        if (mzTolRangeMSMS.contains(mzExact) && intensity > maxIntensity) {
-          maxIntensity = intensity;
-          bestMzValue = mzValue;
-          fragmentMatched = true;
-        }
-        if (mzTolRangeMSMS.upperEndpoint() < mzValue) {
-          break;
-        }
-      }
-      return new BestDataPoint(fragmentMatched, bestMzValue, maxIntensity);
-    }
-    return new BestDataPoint(fragmentMatched, 0.0, 0.0);
-  }
-
-  protected record BestDataPoint(boolean fragmentMatched, double mzValue, double intensity) {
-
+    return peakFinder.findBest(mzExact);
   }
 
 }

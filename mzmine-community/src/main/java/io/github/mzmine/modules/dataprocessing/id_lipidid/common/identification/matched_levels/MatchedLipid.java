@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.DoubleBondPositionLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
@@ -118,7 +119,7 @@ public class MatchedLipid implements FeatureAnnotation {
     this.preferredAnnotationLevel = lipidAnnotation.getLipidAnnotationLevel();
   }
 
-  public static MatchedLipid loadFromXML(XMLStreamReader reader,
+  public static @Nullable MatchedLipid loadFromXML(XMLStreamReader reader,
       Collection<RawDataFile> possibleFiles) throws XMLStreamException {
     // differentiate between old and new versions
     if ((reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
@@ -152,12 +153,20 @@ public class MatchedLipid implements FeatureAnnotation {
 
       switch (reader.getLocalName()) {
         case XML_LIPID_ANNOTATION_ELEMENT -> {
-          if (reader.getAttributeValue(null, XML_LIPID_ANNOTATION_ELEMENT)
-              .equals(LipidAnnotationLevel.SPECIES_LEVEL.name())) {
-            lipidAnnotation = SpeciesLevelAnnotation.loadFromXML(reader);
-          } else if (reader.getAttributeValue(null, XML_LIPID_ANNOTATION_ELEMENT)
-              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL.name())) {
-            lipidAnnotation = MolecularSpeciesLevelAnnotation.loadFromXML(reader);
+          final String levelText = reader.getAttributeValue(null,
+              XML_LIPID_ANNOTATION_ELEMENT);
+          final LipidAnnotationLevel annotationLevel = UniqueIdSupplier.parseOrElse(levelText,
+              LipidAnnotationLevel.values(), null);
+          if (annotationLevel == null) {
+            logger.warning(() -> "Skipping lipid annotation with unknown level: " + levelText);
+            skipElement(reader, XML_LIPID_ANNOTATION_ELEMENT);
+          } else {
+            lipidAnnotation = switch (annotationLevel) {
+              case SPECIES_LEVEL -> SpeciesLevelAnnotation.loadFromXML(reader);
+              case MOLECULAR_SPECIES_LEVEL -> MolecularSpeciesLevelAnnotation.loadFromXML(reader);
+              case DOUBLE_BOND_POSITION_LEVEL ->
+                  DoubleBondPositionLevelAnnotation.loadFromXML(reader);
+            };
           }
         }
         case XML_ACCURATE_MZ -> accurateMz = Double.parseDouble(reader.getElementText());
@@ -193,8 +202,11 @@ public class MatchedLipid implements FeatureAnnotation {
       status = MatchedLipidStatus.UNCONFIRMED; // should always load
     }
 
-    final ILipidAnnotation resolvedLipidAnnotation = Objects.requireNonNull(lipidAnnotation,
-        "Cannot load matched lipid without lipid annotation.");
+    if (lipidAnnotation == null) {
+      logger.warning("Cannot load matched lipid without a recognized lipid annotation.");
+      return null;
+    }
+    final ILipidAnnotation resolvedLipidAnnotation = lipidAnnotation;
     MatchedLipid matchedLipid = new MatchedLipid(resolvedLipidAnnotation, accurateMz,
         ionizationType, lipidFragments, msMsScore, status);
 
@@ -260,13 +272,31 @@ public class MatchedLipid implements FeatureAnnotation {
 
   public void setPreferredAnnotationLevel(
       final @NotNull LipidAnnotationLevel preferredAnnotationLevel) {
-    switch (lipidAnnotation) {
-      case SpeciesLevelAnnotation _ ->
-        // cannot set preferred level to molecular species for species level annotation
-          this.preferredAnnotationLevel = LipidAnnotationLevel.SPECIES_LEVEL;
-      case MolecularSpeciesLevelAnnotation _ ->
-          this.preferredAnnotationLevel = preferredAnnotationLevel;
-    }
+    this.preferredAnnotationLevel = LipidAnnotationLevel.min(preferredAnnotationLevel,
+        lipidAnnotation.getLipidAnnotationLevel());
+  }
+
+  /**
+   * Creates a replacement match that retains all identification evidence and presentation metadata
+   * but uses the requested preferred annotation level. The requested level is constrained to the
+   * structural evidence available in this match, just like
+   * {@link #setPreferredAnnotationLevel(LipidAnnotationLevel)}.
+   * <p>
+   * A replacement object is useful when a match is stored inside a feature-list row: writing a list
+   * containing new objects back to the row triggers its value-change listeners, whereas mutating a
+   * match already held by the row does not.
+   *
+   * @param preferredAnnotationLevel requested display level
+   * @return a copy of this match using the effective preferred level
+   */
+  public @NotNull MatchedLipid copyWithPreferredAnnotationLevel(
+      final @NotNull LipidAnnotationLevel preferredAnnotationLevel) {
+    final MatchedLipid copy = new MatchedLipid(lipidAnnotation, accurateMz, ionizationType,
+        matchedFragments, msMsScore, status);
+    copy.comment = comment;
+    copy.overallQualityScore = overallQualityScore;
+    copy.setPreferredAnnotationLevel(preferredAnnotationLevel);
+    return copy;
   }
 
   @Override
@@ -377,7 +407,7 @@ public class MatchedLipid implements FeatureAnnotation {
 
   @Override
   public @Nullable String getCompoundName() {
-    return getLipidAnnotation().getAnnotation();
+    return lipidAnnotation.getAnnotation(preferredAnnotationLevel);
   }
 
   @Override
@@ -448,5 +478,26 @@ public class MatchedLipid implements FeatureAnnotation {
   @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ELEMENT;
+  }
+
+  /**
+   * Advances past the current element, including nested elements with the same local name.
+   *
+   * @param reader    the reader positioned at the start of the element
+   * @param localName the local name of the element to skip
+   * @throws XMLStreamException if the stream cannot be read
+   */
+  private static void skipElement(final @NotNull XMLStreamReader reader,
+      final @NotNull String localName) throws XMLStreamException {
+    int depth = 1;
+    while (reader.hasNext() && depth > 0) {
+      final int event = reader.next();
+      if (event == XMLStreamConstants.START_ELEMENT && localName.equals(reader.getLocalName())) {
+        depth++;
+      } else if (event == XMLStreamConstants.END_ELEMENT && localName.equals(
+          reader.getLocalName())) {
+        depth--;
+      }
+    }
   }
 }

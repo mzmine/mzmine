@@ -41,7 +41,7 @@ public class SetLipidAnnotationLevelModule extends TaskPerFeatureListModule {
   public SetLipidAnnotationLevelModule() {
     super("Set preferred lipid annotation level", SetLipidAnnotationLevelParameters.class,
         MZmineModuleCategory.ANNOTATION, false,
-        "Select if lipid annotations should be displayed as species or molecular species level by default.");
+        "Select the preferred structural level used to display lipid annotations.");
   }
 
   @Override

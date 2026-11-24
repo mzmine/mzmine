@@ -31,8 +31,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public sealed interface ILipidAnnotation permits SpeciesLevelAnnotation,
-    MolecularSpeciesLevelAnnotation {
+public sealed interface ILipidAnnotation permits SpeciesLevelAnnotation, IChainedLipidAnnotation {
 
   ILipidClass getLipidClass();
 
@@ -41,6 +40,10 @@ public sealed interface ILipidAnnotation permits SpeciesLevelAnnotation,
   default String getSpeciesLevelAnnotation() {
     return LipidFactory.buildAnnotation(getLipidClass(), getChainsCarbonCount(),
         getChainsDoubleBondCount(), getSpeciesLevelOxygens());
+  }
+
+  default String getMolecularSpeciesLevelAnnotation() {
+    return getAnnotation();
   }
 
   /**
@@ -52,7 +55,8 @@ public sealed interface ILipidAnnotation permits SpeciesLevelAnnotation,
   default String getAnnotation(LipidAnnotationLevel level) {
     return switch (level) {
       case SPECIES_LEVEL -> getSpeciesLevelAnnotation();
-      case MOLECULAR_SPECIES_LEVEL -> getAnnotation();
+      case MOLECULAR_SPECIES_LEVEL -> getMolecularSpeciesLevelAnnotation();
+      case DOUBLE_BOND_POSITION_LEVEL -> getAnnotation();
     };
   }
 

@@ -44,6 +44,8 @@ import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelat
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationRowIdentity;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
@@ -127,6 +129,7 @@ public class RowsFilterTask extends AbstractTask {
   private final MinimumSamplesFilter minSamplesInGroup;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
+  private final @Nullable LipidAnnotationLevel minimumLipidAnnotationLevel;
   private final MinimumSamplesFilter minSamplesInOneGroup;
   private final RowTypeFilter rowTypeFilter;
   // row-ID filter: null when off. A strong filter on feature list rows — it respects the
@@ -149,8 +152,8 @@ public class RowsFilterTask extends AbstractTask {
    * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
-  public RowsFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage,
+  public RowsFilterTask(final @NotNull MZmineProject project, final @NotNull FeatureList list,
+      final @NotNull ParameterSet parameterSet, final @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
@@ -166,6 +169,8 @@ public class RowsFilterTask extends AbstractTask {
     // Get parameters.
     keepAllWithMS2 = parameters.getValue(RowsFilterParameters.KEEP_ALL_MS2);
     keepAnnotated = parameters.getValue(RowsFilterParameters.KEEP_ALL_ANNOTATED);
+    minimumLipidAnnotationLevel = parameters.getOptionalValue(
+        RowsFilterParameters.MIN_LIPID_ANNOTATION_LEVEL).orElse(null);
 
     onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
     filterByIdentityText = parameters.getValue(RowsFilterParameters.IDENTITY_TEXT);
@@ -306,8 +311,8 @@ public class RowsFilterTask extends AbstractTask {
    * @param processInCurrentList use the current list and filter it
    * @return a new feature list with rows of the original feature list that pass the filtering.
    */
-  private FeatureList filterFeatureListRows(final FeatureList featureList,
-      boolean processInCurrentList) {
+  private @Nullable FeatureList filterFeatureListRows(final @NotNull FeatureList featureList,
+      final boolean processInCurrentList) {
     // prepare filters that require a prepared data table
     if (significanceFoldChangeFilterParameters != null) {
       significanceFoldChangeFilter = significanceFoldChangeFilterParameters.createFilter(
@@ -488,8 +493,8 @@ public class RowsFilterTask extends AbstractTask {
    * @return list of errors if any
    */
   @NotNull
-  private List<String> prechecks(FeatureList featureList) {
-    List<String> errors = new ArrayList<>();
+  private List<String> prechecks(final @NotNull FeatureList featureList) {
+    final List<String> errors = new ArrayList<>();
 
     if (minSamples != null) {
       String message = minSamples.getInvalidConfigMessage(
@@ -527,7 +532,8 @@ public class RowsFilterTask extends AbstractTask {
     return errors;
   }
 
-  private boolean isFilterRowCriteriaFailed(FeatureListRow row, int rowIndex, boolean hasMS2) {
+  private boolean isFilterRowCriteriaFailed(final @NotNull FeatureListRow row, final int rowIndex,
+      final boolean hasMS2) {
 
     // Check ms2 filter .
     if (filterByMS2 && !hasMS2) {
@@ -554,6 +560,11 @@ public class RowsFilterTask extends AbstractTask {
 
     // Check identities.
     if (onlyIdentified && !row.isIdentified()) {
+      return true;
+    }
+
+    if (minimumLipidAnnotationLevel != null && !hasLipidAnnotationAtLeast(row,
+        minimumLipidAnnotationLevel)) {
       return true;
     }
 
@@ -739,6 +750,23 @@ public class RowsFilterTask extends AbstractTask {
 
     return removeRedundantIsotopeRows && isRowRedundantDueToIsotopePattern(row,
         row.getBestIsotopePattern());
+  }
+
+  /**
+   * Tests the evidence level stored by each matched lipid rather than its preferred display level.
+   * A higher level satisfies a lower requested minimum because it contains at least the same
+   * structural detail; for example, a double-bond-position annotation also satisfies a molecular
+   * species minimum.
+   *
+   * @param row          row whose lipid matches are inspected
+   * @param minimumLevel lowest accepted lipid annotation level
+   * @return {@code true} if any non-null lipid match reaches the requested minimum
+   */
+  static boolean hasLipidAnnotationAtLeast(final @NotNull FeatureListRow row,
+      final @NotNull LipidAnnotationLevel minimumLevel) {
+    return row.getLipidMatches().stream().filter(Objects::nonNull)
+        .map(MatchedLipid::getLipidAnnotation).filter(Objects::nonNull)
+        .anyMatch(annotation -> annotation.getLipidAnnotationLevel().isAtLeast(minimumLevel));
   }
 
   /**

@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain;
 
+import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.jetbrains.annotations.NotNull;
 
 public interface ILipidChain {
 
@@ -42,6 +44,26 @@ public interface ILipidChain {
   LipidChainType getLipidChainType();
 
   int getNumberOfOxygens();
+
+  /** Returns localized double-bond positions, or an empty list for a composition-only chain. */
+  default @NotNull List<DoubleBondPosition> getDoubleBondPositions() {
+    return List.of();
+  }
+
+  /**
+   * Returns {@code true} only when every DBE has one distinct localized position. Partial position
+   * lists are intentionally not considered localized because {@code 18:2(9)} is ambiguous.
+   */
+  default boolean hasFullyLocalizedDoubleBonds() {
+    return getNumberOfDBEs() > 0 && getDoubleBondPositions().size() == getNumberOfDBEs()
+        && getDoubleBondPositions().stream().map(DoubleBondPosition::position).distinct().count()
+        == getNumberOfDBEs();
+  }
+
+  /** Returns the same chain without positional detail for molecular-species-level rendering. */
+  default @NotNull ILipidChain withoutDoubleBondPositions() {
+    return this;
+  }
 
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 

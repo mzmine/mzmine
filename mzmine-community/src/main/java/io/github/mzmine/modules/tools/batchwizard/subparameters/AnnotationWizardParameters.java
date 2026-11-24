@@ -31,7 +31,6 @@ import io.github.mzmine.modules.io.download.DownloadAssets;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
@@ -49,10 +48,11 @@ public final class AnnotationWizardParameters extends WizardStepParameters {
       Search a local CSV or TSV database as comma- or tab-separated data, respectively.
       Matches are done based on m/z, retention time, and ion mobility if applicable and selected.""");
 
-  public static final BooleanParameter lipidAnnotation = new BooleanParameter("Annotate lipids", """
+  public static final LipidAnnotationWizardParameter lipidAnnotation = new LipidAnnotationWizardParameter(
+      "Annotate lipids", """
       Lipid annotation can be applied on MS1 only data (including imaging),
       or in combination with MS2 information from either DDA or DIA experiments.
-      """, true);
+      """, new LipidAnnotationWizardSubParameters(), true);
 
   public static final OptionalParameter<DoubleParameter> formulaPrediction = new OptionalParameter<>(
       new DoubleParameter("Formula prediction (for m/z < X)", """

@@ -33,6 +33,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainFactory;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
@@ -67,8 +69,8 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
     final Set<LipidFragment> molecularSpeciesFragments = annotatedFragments.stream().filter(
         fragment -> fragment.getLipidFragmentInformationLevelType()
             .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)).collect(Collectors.toSet());
-    if (!molecularSpeciesFragments.isEmpty() && LipidQcScoringUtils.hasSufficientEvidence(
-        molecularSpeciesFragments)) {
+    if (hasSufficientMolecularSpeciesEvidence(molecularSpeciesLevelAnnotation.getLipidClass(),
+        annotatedFragments, molecularSpeciesFragments)) {
 
       final IMolecularFormula lipidFormula = ionizationType.ionizeFormula(
           molecularSpeciesLevelAnnotation.getMolecularFormula()).orElse(null);
@@ -115,12 +117,14 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
         Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
             molecularSpeciesLevelAnnotation.getLipidChains(),
             detectedFragmentsWithChainInformation);
-        if (!fittingFragments.isEmpty() && LipidQcScoringUtils.hasSufficientEvidence(
-            fittingFragments)) {
-          MatchedLipid newMolecularSpeciesLevelMatch = buildNewMolecularSpeciesLevelMatch(
+        if (hasSufficientMolecularSpeciesEvidence(lipidAnnotation.getLipidClass(),
+            detectedFragments, fittingFragments)) {
+          final MatchedLipid newMolecularSpeciesLevelMatch = buildNewMolecularSpeciesLevelMatch(
               fittingFragments, molecularSpeciesLevelAnnotation, accurateMz, massList, minMsMsScore,
               mzTolRangeMSMS, ionizationType);
-          matchedMolecularSpeciesLevelAnnotations.add(newMolecularSpeciesLevelMatch);
+          if (newMolecularSpeciesLevelMatch != null) {
+            matchedMolecularSpeciesLevelAnnotations.add(newMolecularSpeciesLevelMatch);
+          }
         }
       }
     }
@@ -217,13 +221,42 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
     return fittingFragments;
   }
 
-  private MatchedLipid buildNewMolecularSpeciesLevelMatch(Set<LipidFragment> detectedFragments,
+  private @Nullable MatchedLipid buildNewMolecularSpeciesLevelMatch(Set<LipidFragment> detectedFragments,
       ILipidAnnotation molecularSpeciesLevelAnnotation, Double accurateMz, DataPoint[] massList,
       double minMsMsScore, MZTolerance mzTolRangeMSMS, IonizationType ionizationType) {
-    Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
-        minMsMsScore, mzTolRangeMSMS);
-    return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
-        detectedFragments, msMsScore);
+    if (detectedFragments.isEmpty()) {
+      return null;
+    }
+    final IMolecularFormula lipidFormula = ionizationType.ionizeFormula(
+        molecularSpeciesLevelAnnotation.getMolecularFormula()).orElse(null);
+    if (lipidFormula == null) {
+      return null;
+    }
+    final double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
+    final Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
+        precursorMz, mzTolRangeMSMS);
+    return msMsScore >= minMsMsScore ? new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz,
+        ionizationType, detectedFragments, msMsScore) : null;
 
+  }
+
+  /**
+   * CerP chain losses are not class-specific and therefore may only refine an independently
+   * supported CerP class annotation. Other sphingolipid classes retain the standard molecular-
+   * species evidence gate.
+   */
+  private boolean hasSufficientMolecularSpeciesEvidence(
+      final @NotNull ILipidClass lipidClass, final @NotNull Set<LipidFragment> allFragments,
+      final @NotNull Set<LipidFragment> molecularSpeciesFragments) {
+    if (molecularSpeciesFragments.isEmpty()) {
+      return false;
+    }
+    if (lipidClass != LipidClasses.CERAMIDEPHOSPHATES) {
+      return LipidQcScoringUtils.hasSufficientEvidence(molecularSpeciesFragments);
+    }
+    final Set<LipidFragment> speciesFragments = allFragments.stream().filter(
+        fragment -> fragment.getLipidFragmentInformationLevelType()
+            == LipidAnnotationLevel.SPECIES_LEVEL).collect(Collectors.toSet());
+    return LipidQcScoringUtils.hasSufficientEvidence(speciesFragments);
   }
 }

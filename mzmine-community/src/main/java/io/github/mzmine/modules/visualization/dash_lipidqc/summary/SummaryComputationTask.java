@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.DoubleBondPositionLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.IChainedLipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -121,9 +123,13 @@ final class SummaryComputationTask extends FxUpdateTask<LipidSummaryPane> {
       // collect species-level keys from molecular species annotations to avoid double-counting
       // when both species-level and molecular species-level annotations exist for the same species
       final Set<String> rowMolecularAggregateKeys = new HashSet<>();
+      final Set<String> rowPositionMolecularKeys = new HashSet<>();
       for (final MatchedLipid lipid : matches) {
-        if (lipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation) {
+        if (lipid.getLipidAnnotation() instanceof IChainedLipidAnnotation) {
           rowMolecularAggregateKeys.add(getSpeciesLevelKey(lipid.getLipidAnnotation()));
+        }
+        if (lipid.getLipidAnnotation() instanceof DoubleBondPositionLevelAnnotation position) {
+          rowPositionMolecularKeys.add(position.getMolecularSpeciesLevelAnnotation());
         }
       }
       final Set<String> rowUniqueAnnotationKeys = new HashSet<>();
@@ -135,7 +141,7 @@ final class SummaryComputationTask extends FxUpdateTask<LipidSummaryPane> {
         groupToRowIds.computeIfAbsent(groupName, _ -> new HashSet<>()).add(row.getID());
 
         final @Nullable String uniqueAnnotationKey = uniqueAnnotationKey(lipid,
-            rowMolecularAggregateKeys);
+            rowMolecularAggregateKeys, rowPositionMolecularKeys);
         if (uniqueAnnotationKey == null || !rowUniqueAnnotationKeys.add(uniqueAnnotationKey)) {
           continue;
         }
@@ -197,7 +203,8 @@ final class SummaryComputationTask extends FxUpdateTask<LipidSummaryPane> {
   }
 
   private static @Nullable String uniqueAnnotationKey(final @NotNull MatchedLipid lipid,
-      final @NotNull Set<String> rowMolecularAggregateKeys) {
+      final @NotNull Set<String> rowMolecularAggregateKeys,
+      final @NotNull Set<String> rowPositionMolecularKeys) {
     final String speciesKey = getSpeciesLevelKey(lipid.getLipidAnnotation());
     switch (lipid.getLipidAnnotation()) {
       case SpeciesLevelAnnotation _ -> {
@@ -207,8 +214,14 @@ final class SummaryComputationTask extends FxUpdateTask<LipidSummaryPane> {
         }
         return "S|" + speciesKey;
       }
-      case MolecularSpeciesLevelAnnotation _ -> {
+      case MolecularSpeciesLevelAnnotation molecular -> {
+        if (rowPositionMolecularKeys.contains(molecular.getAnnotation())) {
+          return null;
+        }
         return "M|" + lipid.getLipidAnnotation().getAnnotation();
+      }
+      case DoubleBondPositionLevelAnnotation _ -> {
+        return "D|" + lipid.getLipidAnnotation().getAnnotation();
       }
     }
   }

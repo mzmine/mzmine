@@ -26,11 +26,14 @@ public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
       IonizationType.values());
   public static final ComboParameter<LipidFragmentationRuleType> lipidFragmentationRuleType = new ComboParameter<>(
       "Lipid fragmentation rule type", "Choose the type of the lipid fragmentation rule",
-      LipidFragmentationRuleType.values());
+      java.util.Arrays.stream(LipidFragmentationRuleType.values())
+          .filter(type -> type != LipidFragmentationRuleType.OAD_DOUBLE_BOND_POSITION_FRAGMENT)
+          .toArray(LipidFragmentationRuleType[]::new));
   public static final ComboParameter<LipidAnnotationLevel> lipidFragmentationRuleInformationLevel = new ComboParameter<>(
       "Lipid fragment information level",
       "Choose the information value of the lipid fragment, molecular formula level, or chain composition level",
-      LipidAnnotationLevel.values());
+      new LipidAnnotationLevel[]{LipidAnnotationLevel.SPECIES_LEVEL,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL});
   public static final ComboParameter<PolarityType> polarity = new ComboParameter<>("Polarity",
       "Select polarity type", new PolarityType[]{PolarityType.POSITIVE, PolarityType.NEGATIVE});
 

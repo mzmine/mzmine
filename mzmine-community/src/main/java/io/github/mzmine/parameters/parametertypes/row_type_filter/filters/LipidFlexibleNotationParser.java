@@ -28,6 +28,7 @@ import static io.github.mzmine.util.maths.MathOperator.EQUAL;
 import static io.github.mzmine.util.maths.MathOperator.GREATER_EQ;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.util.maths.CountOperator;
@@ -46,9 +47,14 @@ class LipidFlexibleNotationParser {
   }
 
   public static LipidFlexibleNotation toFlexible(MolecularSpeciesLevelAnnotation lipid) {
-    final List<LipidFlexibleChain> chains = lipid.getLipidChains().stream()
+    return toFlexible(lipid.getLipidClass(), lipid.getLipidChains());
+  }
+
+  public static LipidFlexibleNotation toFlexible(final @NotNull ILipidClass lipidClass,
+      final @NotNull List<ILipidChain> lipidChains) {
+    final List<LipidFlexibleChain> chains = lipidChains.stream()
         .map(LipidFlexibleNotationParser::toFlexibleChain).toList();
-    final String lipidClassAbbr = lipid.getLipidClass().getAbbr();
+    final String lipidClassAbbr = lipidClass.getAbbr();
     return new LipidFlexibleNotation(new LipidClass(lipidClassAbbr), chains);
   }
 
@@ -288,7 +294,8 @@ class LipidFlexibleNotationParser {
       throw new IllegalStateException("Should stop before passing blank chain");
     }
 
-    String[] parts = chain.split("[:;]");
+    final String withoutPositions = chain.replaceAll("\\([^)]*\\)", "");
+    String[] parts = withoutPositions.split("[:;]");
 
     if (requireDoubleBondDefinition && parts.length < 2) {
       throw new QueryFormatException(
@@ -315,9 +322,14 @@ class LipidFlexibleNotationParser {
       throws QueryFormatException {
     number = number.trim();
     // remove suffix
-    if (!potentialSuffix.isEmpty() && number.toLowerCase()
-        .endsWith(potentialSuffix.toLowerCase())) {
-      number = number.substring(0, number.length() - potentialSuffix.length()).trim();
+    if (!potentialSuffix.isEmpty()) {
+      final String suffix = potentialSuffix.toLowerCase();
+      final String lowerNumber = number.toLowerCase();
+      if (lowerNumber.startsWith(suffix)) {
+        number = number.substring(potentialSuffix.length()).trim();
+      } else if (lowerNumber.endsWith(suffix)) {
+        number = number.substring(0, number.length() - potentialSuffix.length()).trim();
+      }
     }
 
     MathOperator operator = EQUAL;

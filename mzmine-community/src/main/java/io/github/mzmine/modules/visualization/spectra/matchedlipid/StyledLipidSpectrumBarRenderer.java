@@ -42,6 +42,7 @@ import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -59,6 +60,8 @@ public class StyledLipidSpectrumBarRenderer extends ColoredXYBarRenderer {
   private static final int MAX_VERTICAL_ATTEMPTS = 6;
   private final @NotNull Paint borderPaint;
   private final @NotNull List<Rectangle2D> placedLabelBounds = new ArrayList<>();
+  private final @NotNull List<Rectangle2D> reservedLabelCorridors = new ArrayList<>();
+  private @NotNull List<Range> reservedLabelMzRanges = List.of();
 
   public StyledLipidSpectrumBarRenderer(final boolean isTransparent,
       final @NotNull Paint borderPaint) {
@@ -66,11 +69,53 @@ public class StyledLipidSpectrumBarRenderer extends ColoredXYBarRenderer {
     this.borderPaint = borderPaint;
   }
 
+  /**
+   * Returns the screen-space bounds occupied by conventional fragment labels in the current draw.
+   * OAD group annotations use this snapshot to avoid covering those labels.
+   */
+  @NotNull List<Rectangle2D> getPlacedLabelBounds() {
+    return List.copyOf(placedLabelBounds);
+  }
+
+  /**
+   * Reserves the m/z spans covered by OAD evidence leaders. Conventional fragment labels first try
+   * to stay outside these spans and only use them as a fallback when the plot offers no other free
+   * position.
+   *
+   * @param ranges complete OAD evidence-group ranges in data coordinates
+   */
+  void setReservedLabelMzRanges(final @NotNull List<Range> ranges) {
+    reservedLabelMzRanges = List.copyOf(ranges);
+  }
+
   @Override
   public @NotNull XYItemRendererState initialise(final @NotNull java.awt.Graphics2D g2,
       final @NotNull Rectangle2D dataArea, final @NotNull XYPlot plot,
-      final @NotNull XYDataset dataset, final PlotRenderingInfo info) {
+      final @NotNull XYDataset dataset, final @Nullable PlotRenderingInfo info) {
     placedLabelBounds.clear();
+    reservedLabelCorridors.clear();
+    final Range visibleMzRange = plot.getDomainAxis().getRange();
+    for (final Range reservedMzRange : reservedLabelMzRanges) {
+      final double lowerMz = Math.max(visibleMzRange.getLowerBound(),
+          reservedMzRange.getLowerBound());
+      final double upperMz = Math.min(visibleMzRange.getUpperBound(),
+          reservedMzRange.getUpperBound());
+      if (lowerMz >= upperMz) {
+        continue;
+      }
+      final double first = plot.getDomainAxis()
+          .valueToJava2D(lowerMz, dataArea, plot.getDomainAxisEdge());
+      final double second = plot.getDomainAxis()
+          .valueToJava2D(upperMz, dataArea, plot.getDomainAxisEdge());
+      final double minimum = Math.min(first, second);
+      final double maximum = Math.max(first, second);
+      final Rectangle2D corridor = plot.getOrientation().isHorizontal()
+          ? new Rectangle2D.Double(dataArea.getMinX(), minimum, dataArea.getWidth(),
+              maximum - minimum)
+          : new Rectangle2D.Double(minimum, dataArea.getMinY(), maximum - minimum,
+              dataArea.getHeight());
+      reservedLabelCorridors.add(corridor);
+    }
     return super.initialise(g2, dataArea, plot, dataset, info);
   }
 
@@ -78,7 +123,7 @@ public class StyledLipidSpectrumBarRenderer extends ColoredXYBarRenderer {
   protected void drawItemLabel(final @NotNull java.awt.Graphics2D g2,
       final @NotNull XYDataset dataset, final int series, final int item,
       final @NotNull XYPlot plot,
-      final XYItemLabelGenerator generator,
+      final @Nullable XYItemLabelGenerator generator,
       final @NotNull Rectangle2D bar, final boolean negative) {
     if (generator == null) {
       return;
@@ -110,27 +155,29 @@ public class StyledLipidSpectrumBarRenderer extends ColoredXYBarRenderer {
     final double height = labelSize.getHeight();
     final double verticalStep = height + 4d;
 
-    for (int offsetIndex = 0; offsetIndex <= MAX_VERTICAL_ATTEMPTS; offsetIndex++) {
-      final double shift = offsetIndex * verticalStep;
-      final Rectangle2D rightUp = candidateBounds(anchorX + LABEL_X_OFFSET,
-          anchorY - (height + LABEL_Y_OFFSET) - shift, width, height, clipBounds);
-      if (isPlacementFree(rightUp)) {
-        return rightUp;
-      }
-      final Rectangle2D rightDown = candidateBounds(anchorX + LABEL_X_OFFSET,
-          anchorY + LABEL_Y_OFFSET + shift, width, height, clipBounds);
-      if (isPlacementFree(rightDown)) {
-        return rightDown;
-      }
-      final Rectangle2D leftUp = candidateBounds(anchorX - (width + LABEL_X_OFFSET),
-          anchorY - (height + LABEL_Y_OFFSET) - shift, width, height, clipBounds);
-      if (isPlacementFree(leftUp)) {
-        return leftUp;
-      }
-      final Rectangle2D leftDown = candidateBounds(anchorX - (width + LABEL_X_OFFSET),
-          anchorY + LABEL_Y_OFFSET + shift, width, height, clipBounds);
-      if (isPlacementFree(leftDown)) {
-        return leftDown;
+    for (final boolean avoidReservedCorridors : new boolean[]{true, false}) {
+      for (int offsetIndex = 0; offsetIndex <= MAX_VERTICAL_ATTEMPTS; offsetIndex++) {
+        final double shift = offsetIndex * verticalStep;
+        final Rectangle2D rightUp = candidateBounds(anchorX + LABEL_X_OFFSET,
+            anchorY - (height + LABEL_Y_OFFSET) - shift, width, height, clipBounds);
+        if (isPlacementFree(rightUp, avoidReservedCorridors)) {
+          return rightUp;
+        }
+        final Rectangle2D rightDown = candidateBounds(anchorX + LABEL_X_OFFSET,
+            anchorY + LABEL_Y_OFFSET + shift, width, height, clipBounds);
+        if (isPlacementFree(rightDown, avoidReservedCorridors)) {
+          return rightDown;
+        }
+        final Rectangle2D leftUp = candidateBounds(anchorX - (width + LABEL_X_OFFSET),
+            anchorY - (height + LABEL_Y_OFFSET) - shift, width, height, clipBounds);
+        if (isPlacementFree(leftUp, avoidReservedCorridors)) {
+          return leftUp;
+        }
+        final Rectangle2D leftDown = candidateBounds(anchorX - (width + LABEL_X_OFFSET),
+            anchorY + LABEL_Y_OFFSET + shift, width, height, clipBounds);
+        if (isPlacementFree(leftDown, avoidReservedCorridors)) {
+          return leftDown;
+        }
       }
     }
 
@@ -151,7 +198,8 @@ public class StyledLipidSpectrumBarRenderer extends ColoredXYBarRenderer {
     return new Rectangle2D.Double(clampedLeft, clampedTop, width, height);
   }
 
-  private boolean isPlacementFree(final @NotNull Rectangle2D candidate) {
+  private boolean isPlacementFree(final @NotNull Rectangle2D candidate,
+      final boolean avoidReservedCorridors) {
     final Rectangle2D padded = new Rectangle2D.Double(candidate.getX() - LABEL_OVERLAP_PADDING,
         candidate.getY() - LABEL_OVERLAP_PADDING,
         candidate.getWidth() + 2d * LABEL_OVERLAP_PADDING,
@@ -159,6 +207,13 @@ public class StyledLipidSpectrumBarRenderer extends ColoredXYBarRenderer {
     for (final Rectangle2D existing : placedLabelBounds) {
       if (existing.intersects(padded)) {
         return false;
+      }
+    }
+    if (avoidReservedCorridors) {
+      for (final Rectangle2D corridor : reservedLabelCorridors) {
+        if (corridor.intersects(padded)) {
+          return false;
+        }
       }
     }
     return true;

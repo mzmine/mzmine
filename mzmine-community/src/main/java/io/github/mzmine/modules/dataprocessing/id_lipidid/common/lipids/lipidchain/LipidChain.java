@@ -25,21 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain;
 
-import io.github.mzmine.util.FormulaUtils;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class LipidChain implements ILipidChain {
-
-  private static final String XML_ELEMENT = "lipidchain";
-  private static final String XML_CHAIN_ANNOTATION = "chainAnnotation";
-  private static final String XML_CHAIN_FORMULA = "chainFormula";
-  private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
-  private static final String XML_NUMBER_OF_DBES = "numberOfDBEs";
-  private static final String XML_CHAIN_TYPE = "chainType";
-  private static final String XML_NUMBER_OF_OXYGENS = "numberOfOxygens";
 
   private final String chainAnnotation;
   private final IMolecularFormula molecularFormula;
@@ -97,66 +88,9 @@ public class LipidChain implements ILipidChain {
     return numberOfOxygens;
   }
 
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(XML_ELEMENT);
-    writer.writeStartElement(XML_CHAIN_ANNOTATION);
-    writer.writeCharacters(chainAnnotation);
-    writer.writeEndElement();
-    writer.writeStartElement(XML_CHAIN_FORMULA);
-    writer.writeCharacters(FormulaUtils.getFormulaString(molecularFormula));
-    writer.writeEndElement();
-    writer.writeStartElement(XML_NUMBER_OF_CARBONS);
-    writer.writeCharacters(String.valueOf(numberOfCarbons));
-    writer.writeEndElement();
-    writer.writeStartElement(XML_NUMBER_OF_DBES);
-    writer.writeCharacters(String.valueOf(numberOfDBEs));
-    writer.writeEndElement();
-    writer.writeStartElement(XML_CHAIN_TYPE);
-    writer.writeCharacters(lipidChainType.name());
-    writer.writeEndElement();
-    writer.writeStartElement(XML_NUMBER_OF_OXYGENS);
-    writer.writeCharacters(String.valueOf(numberOfOxygens));
-    writer.writeEndElement();
+  public void saveToXML(final @NotNull XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(LipidChainFactory.XML_CHAIN_ELEMENT);
+    LipidChainFactory.writeChainBody(writer, this);
     writer.writeEndElement();
   }
-
-  public static ILipidChain loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
-      throw new IllegalStateException("Expected start of lipid chain element.");
-    }
-
-    String chainAnnotation = null;
-    IMolecularFormula molecularFormula = null;
-    Integer numberOfCarbons = null;
-    Integer numberOfDBEs = null;
-    LipidChainType lipidChainType = null;
-
-    while (reader.hasNext()) {
-      reader.next();
-      if (reader.isStartElement()) {
-        String elementName = reader.getLocalName();
-        switch (elementName) {
-          case "chainAnnotation" -> chainAnnotation = reader.getElementText();
-          case "chainFormula" ->
-              molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
-                  reader.getElementText());
-          case "numberOfCarbons" -> numberOfCarbons = Integer.parseInt(reader.getElementText());
-          case "numberOfDBEs" -> numberOfDBEs = Integer.parseInt(reader.getElementText());
-          case "chainType" -> lipidChainType = LipidChainType.valueOf(reader.getElementText());
-        }
-      } else if (reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT)) {
-        break;
-      }
-    }
-
-    if (chainAnnotation == null || molecularFormula == null || numberOfCarbons == null
-        || numberOfDBEs == null || lipidChainType == null) {
-      throw new XMLStreamException("Missing data in lipid chain XML.");
-    }
-
-    return new LipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs,
-        lipidChainType);
-  }
-
-
 }

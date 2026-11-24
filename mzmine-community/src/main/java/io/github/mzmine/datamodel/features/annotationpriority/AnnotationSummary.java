@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.CombinedScoreWeights;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.DoubleBondPositionLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -375,13 +376,13 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
       case MatchedLipid l -> {
         if (l.getMsMsScore() != null && l.getMsMsScore() > 0d) {
           switch (l.getLipidAnnotation()) {
-            case MolecularSpeciesLevelAnnotation _ -> {
+            case MolecularSpeciesLevelAnnotation _, DoubleBondPositionLevelAnnotation _ -> {
               yield MsiAnnotationLevel.LEVEL_2;
             }
             case SpeciesLevelAnnotation _ -> {
               yield MsiAnnotationLevel.LEVEL_3;
             }
-            case null, default -> {
+            case null -> {
             }
           }
         }
@@ -416,13 +417,13 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
       case MatchedLipid l -> {
         if (l.getMsMsScore() != null && l.getMsMsScore() > 0d) {
           switch (l.getLipidAnnotation()) {
-            case MolecularSpeciesLevelAnnotation _ -> {
+            case MolecularSpeciesLevelAnnotation _, DoubleBondPositionLevelAnnotation _ -> {
               yield ExposomicsAnnotationLevel.LEVEL_2a;
             }
             case SpeciesLevelAnnotation _ -> {
               yield ExposomicsAnnotationLevel.LEVEL_2b;
             }
-            case null, default -> {
+            case null -> {
             }
           }
         }

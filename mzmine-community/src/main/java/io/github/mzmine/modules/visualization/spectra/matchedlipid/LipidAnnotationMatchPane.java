@@ -93,7 +93,7 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
       final List<MatchedLipid> matchedLipids = selectedRow.get(LipidMatchListType.class);
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         for (MatchedLipid matchedLipid : matchedLipids) {
-          if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
+          if (!matchedLipid.getMatchedFragments().isEmpty()) {
             MatchedLipidPane lipidAnnotationMatchPane = new MatchedLipidPane(matchedLipid);
             GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
             GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
@@ -164,8 +164,7 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
               FxColorUtil.fxColorToAWT(MAX_MSMS_SCORE_COLOR), MIN_MSMS_SCORE_COLOR_VALUE,
               MAX_MSMS_SCORE_COLOR_VALUE, msMsScore));
 
-      Label lblMatchedLipid = createLabel(matchedLipid.getLipidAnnotation().getAnnotation(),
-          "white-larger-label");
+      Label lblMatchedLipid = createLabel(matchedLipid.toString(), "white-larger-label");
 
       String simScoreTooltip =
           "Explained intensity [%] of all signals in MS/MS spectrum: " + MSMS_SCORE_FORM.format(
@@ -240,7 +239,7 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
     private BorderPane extractLipidInformation() {
       VBox panelOther = new VBox();
       panelOther.setAlignment(Pos.TOP_LEFT);
-      Label annotation = new Label("Name: " + matchedLipid.getLipidAnnotation().getAnnotation());
+      Label annotation = new Label("Name: " + matchedLipid);
       annotation.setWrapText(true);
       panelOther.getChildren().addAll(annotation);
 

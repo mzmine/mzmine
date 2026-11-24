@@ -25,7 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification;
 
-public enum LipidFragmentationRuleRating {
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
+
+public enum LipidFragmentationRuleRating implements UniqueIdSupplier {
   MINOR("minor", "Fragmentation rule alone is not enough to identify a lipid"),//
   MAJOR("major", "Fragmentation rule can identify lipid");//
 
@@ -37,12 +40,16 @@ public enum LipidFragmentationRuleRating {
     this.description = description;
   }
 
-  public String getName() {
+  public @NotNull String getName() {
     return name;
   }
 
-  public String getDescription() {
+  public @NotNull String getDescription() {
     return description;
   }
-}
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return name;
+  }
+}

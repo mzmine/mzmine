@@ -1075,7 +1075,6 @@ public enum LipidClasses implements ILipidClass {
 
   //TODO at ACer
 
-  //TODO Needs Test
   CERAMIDEPHOSPHATES("Ceramide-1-phosphates", "CerP", LipidCategories.SPHINGOLIPIDS,
       LipidMainClasses.CERAMIDES, "C3H9O3P",
       new LipidChainType[]{LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
@@ -1085,16 +1084,17 @@ public enum LipidClasses implements ILipidClass {
           "H2O", LipidFragmentationRuleRating.MINOR), //
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
-          "H3PO4"), //
+          "H3PO4", LipidFragmentationRuleRating.MINOR), //
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
-          "H5PO5"), //
+          "H5PO5", LipidFragmentationRuleRating.MINOR), //
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
-          "HPO3"), //
+          "HPO3", LipidFragmentationRuleRating.MINOR), //
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
           LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT,
-          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H3O2"), //
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H3O2",
+          LipidFragmentationRuleRating.MINOR), //
 
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
@@ -1107,10 +1107,12 @@ public enum LipidClasses implements ILipidClass {
           LipidFragmentationRuleRating.MINOR), //
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
           LipidFragmentationRuleType.AMID_CHAIN_MINUS_FORMULA_FRAGMENT_NL,
-          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "NH3"), //
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "NH3",
+          LipidFragmentationRuleRating.MINOR), //
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
           LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
-          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H"), //
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H",
+          LipidFragmentationRuleRating.MINOR), //
   }),
 
   //TODO find formate rules

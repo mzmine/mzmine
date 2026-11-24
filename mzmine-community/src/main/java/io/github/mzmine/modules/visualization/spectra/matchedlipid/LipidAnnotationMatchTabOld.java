@@ -97,7 +97,7 @@ public class LipidAnnotationMatchTabOld extends SimpleTab implements FeatureRowI
       final List<MatchedLipid> matchedLipids = selectedRow.get(LipidMatchListType.class);
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         for (MatchedLipid matchedLipid : matchedLipids) {
-          if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
+          if (!matchedLipid.getMatchedFragments().isEmpty()) {
             LipidAnnotationMatchPaneOld lipidAnnotationMatchPane = new LipidAnnotationMatchPaneOld(
                 matchedLipid);
             GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
@@ -123,7 +123,7 @@ public class LipidAnnotationMatchTabOld extends SimpleTab implements FeatureRowI
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
       int i = 0;
       for (MatchedLipid matchedLipid : matchedLipids) {
-        if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
+        if (!matchedLipid.getMatchedFragments().isEmpty()) {
           LipidAnnotationMatchPaneOld lipidAnnotationMatchPane = new LipidAnnotationMatchPaneOld(
               matchedLipid);
           GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);

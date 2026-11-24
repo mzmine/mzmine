@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.utils;
 
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.DoubleBondPositionLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
@@ -200,6 +201,30 @@ public class LipidFactory {
     } else {
       return null;
     }
+  }
+
+  public @Nullable DoubleBondPositionLevelAnnotation buildDoubleBondPositionLevelLipidFromChains(
+      final @NotNull ILipidClass lipidClass, final @NotNull List<ILipidChain> lipidChains) {
+    if (lipidChains.stream().noneMatch(ILipidChain::hasFullyLocalizedDoubleBonds)) {
+      return null;
+    }
+    final List<ILipidChain> positionChains = new ArrayList<>(lipidChains);
+    final String annotation = lipidClass.getAbbr() + " "
+        + LIPID_CHAIN_FACTORY.connectDoubleBondPositionLevelChainAnnotations(positionChains);
+    final List<ILipidChain> plainChains = lipidChains.stream()
+        .map(ILipidChain::withoutDoubleBondPositions).collect(java.util.stream.Collectors.toCollection(
+            ArrayList::new));
+    final String molecularSpeciesAnnotation = lipidClass.getAbbr() + " "
+        + LIPID_CHAIN_FACTORY.connectLipidChainAnnotations(plainChains);
+    final int totalNumberOfCarbons = lipidChains.stream().mapToInt(ILipidChain::getNumberOfCarbons)
+        .sum();
+    final int totalNumberOfDBEs = lipidChains.stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
+    final IMolecularFormula molecularFormula = synthesisLipidMolecularFormula(
+        lipidClass.getBackBoneFormula(), totalNumberOfCarbons, totalNumberOfDBEs, 0,
+        lipidClass.getChainTypes());
+    return molecularFormula == null ? null
+        : new DoubleBondPositionLevelAnnotation(lipidClass, annotation, molecularSpeciesAnnotation,
+            molecularFormula, positionChains);
   }
 
 

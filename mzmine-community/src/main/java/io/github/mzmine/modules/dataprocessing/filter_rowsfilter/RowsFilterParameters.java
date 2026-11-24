@@ -27,10 +27,11 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
@@ -140,12 +141,12 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalParameter<DoubleRangeParameter> FEATURE_DURATION = new OptionalParameter<>(
       new DoubleRangeParameter("Chromatographic width",
           "Permissible range of (average) row retention time widths. The full width including all detected data points.",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 3d)), false);
+          ConfigService.getConfiguration().getRTFormat(), Range.closed(0.0, 3d)), false);
 
   public static final OptionalParameter<DoubleRangeParameter> FWHM = new OptionalParameter<>(
       new DoubleRangeParameter("Chromatographic FWHM",
           "Permissible range of chromatographic FWHM per row",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)), false);
+          ConfigService.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)), false);
   public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
       new IntRangeParameter("Charge",
           "Filter by charge, run %s module first".formatted(IsotopeFinderModule.MODULE_NAME), true,
@@ -157,6 +158,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter("Only identified?",
       "Select to filter only identified compounds", false);
+
+  public static final OptionalParameter<ComboParameter<LipidAnnotationLevel>> MIN_LIPID_ANNOTATION_LEVEL = new OptionalParameter<>(
+      new ComboParameter<>("Minimum lipid annotation level", """
+          Match rows with at least one lipid annotation at this evidence level or higher. \
+          The annotation's actual evidence level is used, independently of its preferred display level.
+          """, LipidAnnotationLevel.values(), LipidAnnotationLevel.DOUBLE_BOND_POSITION_LEVEL),
+      false);
 
   public static final OptionalParameter<StringParameter> IDENTITY_TEXT = new OptionalParameter<>(
       new StringParameter("Text in identity",
@@ -201,7 +209,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
       new MassDefectParameter("Mass defect",
           "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
-          MZmineCore.getConfiguration().getMZFormat()));
+          ConfigService.getConfiguration().getMZFormat()));
 
   public static final BooleanParameter onlyCorrelatedWithOtherDetectors = new BooleanParameter(
       "Require other detector correlation",
@@ -223,7 +231,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
             ROW_ID_FILTER, COMPOUND_ID_FILTER, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
             massDefect, KENDRICK_MASS_DEFECT,
             // identities / annotations
-            ROW_TYPE_FILTER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter,
+            ROW_TYPE_FILTER, HAS_IDENTITIES, MIN_LIPID_ANNOTATION_LEVEL, IDENTITY_TEXT, COMMENT_TEXT,
+            MS2_Filter,
             onlyCorrelatedWithOtherDetectors, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
@@ -286,7 +295,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
         new ParameterGroup("Feature properties", ROW_ID_FILTER, COMPOUND_ID_FILTER, MZ_RANGE,
             RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, massDefect, KENDRICK_MASS_DEFECT), //
         new ParameterGroup("Annotations & MS2 filter", KEEP_ALL_MS2, MS2_Filter, KEEP_ALL_ANNOTATED,
-            ROW_TYPE_FILTER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT), //
+            ROW_TYPE_FILTER, HAS_IDENTITIES, MIN_LIPID_ANNOTATION_LEVEL, IDENTITY_TEXT,
+            COMMENT_TEXT), //
         new ParameterGroup("Other options", onlyCorrelatedWithOtherDetectors, Reset_ID) //
     );
 
@@ -358,6 +368,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
     param.setParameter(RowsFilterParameters.CHARGE, false, Range.closed(1, 1));
     param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
     param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
+    param.setParameter(RowsFilterParameters.MIN_LIPID_ANNOTATION_LEVEL, false);
     param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
     param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
     param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
@@ -385,13 +396,16 @@ public class RowsFilterParameters extends SimpleParameterSet {
       case 3 -> """
           "%s" was added as an additional filtering option.""".formatted(
           foldChangeFilter.getName());
+      case 4 -> """
+          "%s" was added as an additional filtering option.""".formatted(
+          MIN_LIPID_ANNOTATION_LEVEL.getName());
       default -> null;
     };
   }
 
   @Override
   public int getVersion() {
-    return 3;
+    return 4;
   }
 
   @Override
@@ -419,6 +433,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
     }
     if (!loadedParams.containsKey(foldChangeFilter.getName())) {
       setParameter(foldChangeFilter, false);
+    }
+    if (!loadedParams.containsKey(MIN_LIPID_ANNOTATION_LEVEL.getName())) {
+      setParameter(MIN_LIPID_ANNOTATION_LEVEL, false);
     }
   }
 

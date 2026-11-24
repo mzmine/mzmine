@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.IChainedLipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -275,7 +276,7 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
       Set<MatchedLipid> matchedMolecularSpeciesLevelAnnotations,
       Set<LipidFragment> detectedFragmentsWithCombinedChainInformation) {
     for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelAnnotations) {
-      if (matchedLipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation lipidAnnotation) {
+      if (matchedLipid.getLipidAnnotation() instanceof IChainedLipidAnnotation lipidAnnotation) {
         List<ILipidChain> lipidChains = lipidAnnotation.getLipidChains();
         for (LipidFragment fragmentWithCombinedChainInformation : detectedFragmentsWithCombinedChainInformation) {
           for (ILipidChain lipidChainOne : lipidChains) {
@@ -412,13 +413,12 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
     ILipidAnnotation molecularSpeciesLevelAnnotation = LIPID_FACTORY.buildMolecularSpeciesLevelLipidFromChains(
         lipidAnnotation.getLipidClass(), predictedChains);
     if (molecularSpeciesLevelAnnotation != null) {
-      IMolecularFormula lipidFormula = null;
-      try {
-        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
+      final IMolecularFormula lipidFormula = ionizationType.ionizeFormula(
+          lipidAnnotation.getMolecularFormula()).orElse(null);
+      if (lipidFormula == null) {
+        return null;
       }
-      double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
+      final double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
       Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
           precursorMz, mzTolRangeMSMS);
       return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
@@ -442,13 +442,12 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
         predictedChains.stream().mapToInt(ILipidChain::getNumberOfCarbons).sum(),
         predictedChains.stream().mapToInt(ILipidChain::getNumberOfDBEs).sum(), 0);
     if (molecularSpeciesLevelAnnotation != null) {
-      IMolecularFormula lipidFormula = null;
-      try {
-        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
+      final IMolecularFormula lipidFormula = ionizationType.ionizeFormula(
+          lipidAnnotation.getMolecularFormula()).orElse(null);
+      if (lipidFormula == null) {
+        return null;
       }
-      double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
+      final double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
       Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
           precursorMz, mzTolRangeMSMS);
       return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
