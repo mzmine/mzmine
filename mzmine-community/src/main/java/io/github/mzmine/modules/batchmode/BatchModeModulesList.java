@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorModule;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -472,6 +473,7 @@ public class BatchModeModulesList {
       List.of(
           // tools
           GlobalIonLibrariesModule.class, //
+          CustomLipidClassEditorModule.class, //
           IsotopePatternPreviewModule.class, //
           QualityParametersModule.class, //
           LibraryAnalysisCSVExportModule.class, //

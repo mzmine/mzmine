@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidChainFormulaModification;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
@@ -103,108 +104,21 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
 
   private List<LipidFragment> checkForRuleTypes(LipidFragmentationRule rule) {
     LipidFragmentationRuleType ruleType = rule.getLipidFragmentationRuleType();
-    return switch (ruleType) {
-      case HEADGROUP_FRAGMENT -> checkForHeadgroupFragment(rule, lipidAnnotation, msMsScan);
-      case HEADGROUP_FRAGMENT_NL -> checkForHeadgroupFragmentNL(rule, lipidAnnotation, msMsScan);
-      case PRECURSOR -> checkForOnlyPrecursor(rule, lipidAnnotation, msMsScan);
-      case ACYLCHAIN_FRAGMENT -> checkForAcylChainFragment(rule, lipidAnnotation, msMsScan);
-      case ACYLCHAIN_FRAGMENT_NL ->
-          findChainFragmentNL(rule, lipidAnnotation, msMsScan, LipidChainType.ACYL_CHAIN);
-      case ACYLCHAIN_MINUS_FORMULA_FRAGMENT ->
-          findChainMinusFormulaFragment(rule, lipidAnnotation, msMsScan, LipidChainType.ACYL_CHAIN);
-      case ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL ->
-          findChainMinusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.ACYL_CHAIN);
-      case ACYLCHAIN_PLUS_FORMULA_FRAGMENT ->
-          findChainPlusFormulaFragment(rule, lipidAnnotation, msMsScan, LipidChainType.ACYL_CHAIN);
-      case ACYLCHAIN_PLUS_FORMULA_FRAGMENT_NL ->
-          findChainPlusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.ACYL_CHAIN);
-      case TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT ->
-          checkForTwoAcylChainsPlusFormulaFragment(rule, lipidAnnotation, msMsScan);
-      case ALKYLCHAIN_FRAGMENT ->
-          findChainFragment(rule, lipidAnnotation, msMsScan, LipidChainType.ALKYL_CHAIN);
-      case ALKYLCHAIN_FRAGMENT_NL ->
-          findChainFragmentNL(rule, lipidAnnotation, msMsScan, LipidChainType.ALKYL_CHAIN);
-      case ALKYLCHAIN_PLUS_FORMULA_FRAGMENT ->
-          findChainPlusFormulaFragment(rule, lipidAnnotation, msMsScan, LipidChainType.ALKYL_CHAIN);
-      case ALKYLCHAIN_PLUS_FORMULA_FRAGMENT_NL ->
-          findChainPlusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.ALKYL_CHAIN);
-      case ALKYLCHAIN_MINUS_FORMULA_FRAGMENT ->
-          findChainMinusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.ALKYL_CHAIN);
-      case ALKYLCHAIN_MINUS_FORMULA_FRAGMENT_NL ->
-          findChainMinusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.ALKYL_CHAIN);
-      case AMID_CHAIN_FRAGMENT ->
-          findChainFragment(rule, lipidAnnotation, msMsScan, LipidChainType.AMID_CHAIN);
-      case AMID_CHAIN_PLUS_FORMULA_FRAGMENT ->
-          findChainPlusFormulaFragment(rule, lipidAnnotation, msMsScan, LipidChainType.AMID_CHAIN);
-      case AMID_CHAIN_MINUS_FORMULA_FRAGMENT ->
-          findChainMinusFormulaFragment(rule, lipidAnnotation, msMsScan, LipidChainType.AMID_CHAIN);
-      case AMID_MONO_HYDROXY_CHAIN_FRAGMENT -> findChainFragment(rule, lipidAnnotation, msMsScan,
-          LipidChainType.AMID_MONO_HYDROXY_CHAIN);
-      case AMID_MONO_HYDROXY_CHAIN_PLUS_FORMULA_FRAGMENT ->
-          findChainPlusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.AMID_MONO_HYDROXY_CHAIN);
-      case AMID_MONO_HYDROXY_CHAIN_MINUS_FORMULA_FRAGMENT ->
-          findChainMinusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.AMID_MONO_HYDROXY_CHAIN);
-      case AMID_CHAIN_FRAGMENT_NL ->
-          findChainFragmentNL(rule, lipidAnnotation, msMsScan, LipidChainType.AMID_CHAIN);
-      case AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL ->
-          findChainPlusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.AMID_CHAIN);
-      case AMID_CHAIN_MINUS_FORMULA_FRAGMENT_NL ->
-          findChainMinusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.AMID_CHAIN);
-      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_FRAGMENT ->
-          findChainFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT_NL ->
-          findChainPlusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT_NL ->
-          findChainPlusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT_NL ->
-          findChainPlusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT_NL ->
-          findChainMinusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT_NL ->
-          findChainMinusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT_NL ->
-          findChainMinusFormulaFragmentNL(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_FRAGMENT ->
-          findChainFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_FRAGMENT ->
-          findChainFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT ->
-          findChainPlusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT ->
-          findChainPlusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_PLUS_FORMULA_FRAGMENT ->
-          findChainPlusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT ->
-          findChainMinusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT ->
-          findChainMinusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN);
-      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT ->
-          findChainMinusFormulaFragment(rule, lipidAnnotation, msMsScan,
-              LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
-    };
+    final LipidChainType chainType = ruleType.getChainType();
+    if (chainType == null) {
+      // head group and precursor rules do not refer to a chain
+      return switch (ruleType) {
+        case HEADGROUP_FRAGMENT -> checkForHeadgroupFragment(rule, lipidAnnotation, msMsScan);
+        case HEADGROUP_FRAGMENT_NL -> checkForHeadgroupFragmentNL(rule, lipidAnnotation, msMsScan);
+        case PRECURSOR -> checkForOnlyPrecursor(rule, lipidAnnotation, msMsScan);
+        default -> List.of();
+      };
+    }
+    if (ruleType == LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT) {
+      // decision: acyl chain fragments are only matched as [FA-H]- in negative mode
+      return checkForAcylChainFragment(rule, lipidAnnotation, msMsScan);
+    }
+    return findChainRuleFragments(rule, lipidAnnotation, msMsScan, chainType);
   }
 
   private List<LipidFragment> checkForOnlyPrecursor(LipidFragmentationRule rule,
@@ -300,35 +214,16 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
     }
   }
 
-  @NotNull
-  protected List<LipidFragment> findChainMinusFormulaFragment(
-      final @NotNull LipidFragmentationRule rule, final @NotNull ILipidAnnotation lipidAnnotation,
-      final @NotNull Scan msMsScan, final @NotNull LipidChainType chainType) {
-    final IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
-        rule.getMolecularFormula());
-    final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(chainType,
-        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
-    final List<LipidFragment> matchedFragments = new ArrayList<>();
-    for (final ILipidChain lipidChain : chains) {
-      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormula(
-          lipidChain.getChainMolecularFormula(), modificationFormula, true);
-      if (fragmentFormula.isEmpty()) {
-        continue;
-      }
-      final IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(
-          fragmentFormula.get(), rule.getPolarityType());
-      if (ionizedFragmentFormula == null) {
-        continue;
-      }
-      addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          ionizedFragmentFormula);
-    }
-    return matchedFragments;
+  private void addMatchedChainFragment(LipidFragmentationRule rule,
+      ILipidAnnotation lipidAnnotation, Scan msMsScan, List<LipidFragment> matchedFragments,
+      ILipidChain lipidChain, IMolecularFormula ionizedFragmentFormula) {
+    addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
+        lipidChain.getLipidChainType(), ionizedFragmentFormula);
   }
 
   private void addMatchedChainFragment(LipidFragmentationRule rule,
       ILipidAnnotation lipidAnnotation, Scan msMsScan, List<LipidFragment> matchedFragments,
-      ILipidChain lipidChain, IMolecularFormula ionizedFragmentFormula) {
+      ILipidChain lipidChain, LipidChainType chainType, IMolecularFormula ionizedFragmentFormula) {
     Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
     BestDataPoint bestDataPoint = getBestDataPoint(mzExact);
     if (bestDataPoint.fragmentMatched()) {
@@ -339,173 +234,89 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
           mzExact, FormulaUtils.getFormulaString(ionizedFragmentFormula),
           new SimpleDataPoint(bestDataPoint.mzValue(), bestDataPoint.intensity()),
           lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-          lipidChain.getNumberOfOxygens(), lipidChain.getLipidChainType(), msMsScan,
+          lipidChain.getNumberOfOxygens(), chainType, msMsScan,
           rule.getRelativeIntensityWeight(), rule.getMolecularFormula()));
     }
   }
 
-  @NotNull
-  protected List<LipidFragment> findChainMinusFormulaFragmentNL(
+  /**
+   * Matches all chain rules: the plain chain, the chain plus a formula or the chain minus a
+   * formula, each either as fragment ion or as neutral loss from the precursor ion. The formula
+   * may be a signed formula like +O2-H2, see {@link LipidChainFormulaModification}.
+   *
+   * @param chainType the chain type of the rule
+   * @return all matched fragments
+   */
+  protected @NotNull List<LipidFragment> findChainRuleFragments(
       final @NotNull LipidFragmentationRule rule, final @NotNull ILipidAnnotation lipidAnnotation,
       final @NotNull Scan msMsScan, final @NotNull LipidChainType chainType) {
-    final IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
-        rule.getMolecularFormula());
-    final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(chainType,
-        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
-
-    final IMolecularFormula lipidFormula = rule.getIonizationType()
-        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
-    if (lipidFormula == null) {
-      return List.of();
+    final LipidFragmentationRuleType ruleType = rule.getLipidFragmentationRuleType();
+    final LipidChainFormulaModification modification;
+    if (ruleType.isChainFormulaModification()) {
+      modification = LipidChainFormulaModification.parse(rule.getMolecularFormula());
+      if (modification == null) {
+        return List.of();
+      }
+    } else {
+      modification = null;
     }
+
+    final IMolecularFormula precursorIonFormula;
+    if (ruleType.isNeutralLoss()) {
+      precursorIonFormula = rule.getIonizationType()
+          .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
+      if (precursorIonFormula == null) {
+        return List.of();
+      }
+    } else {
+      precursorIonFormula = null;
+    }
+
     final List<LipidFragment> matchedFragments = new ArrayList<>();
-    for (final ILipidChain lipidChain : chains) {
-      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormula(
-          lipidChain.getChainMolecularFormula(), modificationFormula, true);
-      if (fragmentFormula.isEmpty()) {
+    for (final ILipidChain lipidChain : buildChains(chainType)) {
+      final IMolecularFormula chainFormula = lipidChain.getChainMolecularFormula();
+      final Optional<IMolecularFormula> chainFragmentFormula;
+      if (modification == null) {
+        chainFragmentFormula = Optional.of(chainFormula);
+      } else if (ruleType.isChainPlusFormula()) {
+        chainFragmentFormula = modification.addTo(chainFormula);
+      } else {
+        chainFragmentFormula = modification.subtractFrom(chainFormula);
+      }
+      if (chainFragmentFormula.isEmpty()) {
         continue;
       }
-      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormula(
-          lipidFormula, fragmentFormula.get(), true);
-      if (lipidMinusFragmentFormula.isEmpty()) {
+
+      final IMolecularFormula ionFormula;
+      if (precursorIonFormula != null) {
+        ionFormula = FormulaUtils.subtractFormula(precursorIonFormula, chainFragmentFormula.get(),
+            true).orElse(null);
+      } else {
+        ionFormula = ionizeFragmentBasedOnPolarity(chainFragmentFormula.get(),
+            rule.getPolarityType());
+      }
+      if (ionFormula == null) {
         continue;
       }
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          lipidMinusFragmentFormula.get());
+          chainType, ionFormula);
     }
     return matchedFragments;
   }
 
-  @NotNull
-  protected List<LipidFragment> findChainPlusFormulaFragment(LipidFragmentationRule rule,
-      ILipidAnnotation lipidAnnotation, Scan msMsScan, LipidChainType lipidChainType) {
-    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
-        rule.getMolecularFormula());
-    final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(lipidChainType,
-        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
-    final List<LipidFragment> matchedFragments = new ArrayList<>();
-    for (final ILipidChain lipidChain : chains) {
-      final IMolecularFormula lipidChainFormula = FormulaUtils.cloneFormula(
-          lipidChain.getChainMolecularFormula());
-      final IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
-          modificationFormula);
-      final IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(
-          fragmentFormula,
-          rule.getPolarityType());
-      if (ionizedFragmentFormula == null) {
-        continue;
-      }
-      addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          ionizedFragmentFormula);
+  /**
+   * @param chainType the chain type of a rule
+   * @return all chains in the range of the chain parameters. Two combined acyl chains are built as
+   * one acyl chain with doubled ranges.
+   */
+  private @NotNull List<ILipidChain> buildChains(final @NotNull LipidChainType chainType) {
+    if (chainType == LipidChainType.TWO_ACYL_CHAINS_COMBINED) {
+      return LIPID_CHAIN_FACTORY.buildLipidChainsInRange(LipidChainType.ACYL_CHAIN,
+          minChainLength * 2, maxChainLength * 2, minDoubleBonds * 2, maxDoubleBonds * 2,
+          onlySearchForEvenChains);
     }
-    return matchedFragments;
-  }
-
-  private List<LipidFragment> checkForTwoAcylChainsPlusFormulaFragment(LipidFragmentationRule rule,
-      ILipidAnnotation lipidAnnotation, Scan msMsScan) {
-    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
-        rule.getMolecularFormula());
-    List<ILipidChain> combinedFattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
-        LipidChainType.ACYL_CHAIN, minChainLength * 2, maxChainLength * 2, minDoubleBonds * 2,
-        maxDoubleBonds * 2, onlySearchForEvenChains);
-    List<LipidFragment> matchedFragments = new ArrayList<>();
-    for (ILipidChain combinedFattyAcylChain : combinedFattyAcylChains) {
-      IMolecularFormula combinedChainsFormula = combinedFattyAcylChain.getChainMolecularFormula();
-      IMolecularFormula fragmentFormula = FormulaUtils.addFormula(combinedChainsFormula,
-          modificationFormula);
-      IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
-          rule.getPolarityType());
-      if (ionizedFragmentFormula == null) {
-        continue;
-      }
-      Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      BestDataPoint bestDataPoint = getBestDataPoint(mzExact);
-      if (bestDataPoint.fragmentMatched()) {
-        matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
-            mzExact, FormulaUtils.getFormulaString(ionizedFragmentFormula),
-            new SimpleDataPoint(bestDataPoint.mzValue(), bestDataPoint.intensity()),
-            lipidAnnotation.getLipidClass(), combinedFattyAcylChain.getNumberOfCarbons(),
-            combinedFattyAcylChain.getNumberOfDBEs(), combinedFattyAcylChain.getNumberOfOxygens(),
-            LipidChainType.TWO_ACYL_CHAINS_COMBINED, msMsScan, rule.getRelativeIntensityWeight(),
-            rule.getMolecularFormula()));
-      }
-    }
-    return matchedFragments;
-  }
-
-  @NotNull
-  protected List<LipidFragment> findChainFragment(LipidFragmentationRule rule,
-      ILipidAnnotation lipidAnnotation, Scan msMsScan, LipidChainType lipidChainType) {
-    List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(lipidChainType,
-        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
-    List<LipidFragment> matchedFragments = new ArrayList<>();
-    for (ILipidChain lipidChain : chains) {
-      IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
-      IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(lipidChainFormula,
-          rule.getPolarityType());
-      if (ionizedFragmentFormula == null) {
-        continue;
-      }
-      addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          ionizedFragmentFormula);
-    }
-    return matchedFragments;
-  }
-
-  @NotNull
-  protected List<LipidFragment> findChainFragmentNL(LipidFragmentationRule rule,
-      ILipidAnnotation lipidAnnotation, Scan msMsScan, LipidChainType lipidChainType) {
-    final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(lipidChainType,
-        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
-
-    final IMolecularFormula lipidFormula = rule.getIonizationType()
-        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
-    if (lipidFormula == null) {
-      return List.of();
-    }
-    final List<LipidFragment> matchedFragments = new ArrayList<>();
-    for (final ILipidChain lipidChain : chains) {
-      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
-          lipidChain.getChainMolecularFormula(), true);
-      if (fragmentFormula.isEmpty()) {
-        continue;
-      }
-      addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          fragmentFormula.get());
-    }
-    return matchedFragments;
-  }
-
-  @NotNull
-  protected List<LipidFragment> findChainPlusFormulaFragmentNL(
-      final @NotNull LipidFragmentationRule rule, final @NotNull ILipidAnnotation lipidAnnotation,
-      final @NotNull Scan msMsScan, final @NotNull LipidChainType lipidChainType) {
-    final IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
-        rule.getMolecularFormula());
-    final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(lipidChainType,
-        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
-
-    final IMolecularFormula lipidFormula = rule.getIonizationType()
-        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
-    if (lipidFormula == null) {
-      return List.of();
-    }
-    final List<LipidFragment> matchedFragments = new ArrayList<>();
-    for (final ILipidChain lipidChain : chains) {
-      final IMolecularFormula lipidChainFormula = FormulaUtils.cloneFormula(
-          lipidChain.getChainMolecularFormula());
-      final IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
-          modificationFormula);
-      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormula(
-          lipidFormula, fragmentFormula, true);
-      if (lipidMinusFragmentFormula.isEmpty()) {
-        continue;
-      }
-      addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          lipidMinusFragmentFormula.get());
-    }
-    return matchedFragments;
+    return LIPID_CHAIN_FACTORY.buildLipidChainsInRange(chainType, minChainLength, maxChainLength,
+        minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
   }
 
   /**

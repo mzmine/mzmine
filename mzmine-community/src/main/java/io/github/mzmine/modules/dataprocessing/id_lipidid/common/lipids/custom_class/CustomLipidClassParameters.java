@@ -30,7 +30,9 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 public class CustomLipidClassParameters extends SimpleParameterSet {
 
   public static final CustomLipidClassChoiceParameter customLipidClassChoices = new CustomLipidClassChoiceParameter(
-      "Custom lipid classes", "Click add to define custom lipid classes", new CustomLipidClass[0]);
+      "Custom lipid classes",
+      "Add classes from your library, or open the custom lipid class editor to build and download classes",
+      new CustomLipidClass[0]);
 
   public CustomLipidClassParameters() {
     super(customLipidClassChoices);

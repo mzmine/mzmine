@@ -35,7 +35,9 @@ public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
       "Select polarity type", new PolarityType[]{PolarityType.POSITIVE, PolarityType.NEGATIVE});
 
   public static final StringParameter formula = new StringParameter("Molecular formula",
-      "Enter a molecular formula, if it is involved in the fragmentation rule. E.g. a head group fragment needs to be specified by its molecular formula.",
+      """
+          Enter a molecular formula, if it is involved in the fragmentation rule. E.g. a head group fragment needs to be specified by its molecular formula.
+          Chain plus/minus formula rules also accept a signed formula to add and remove atoms at the same time, e.g., +O2-H2 adds two O and removes two H from the chain.""",
       "", false, false);
 
   public AddLipidFragmentationRuleParameters() {

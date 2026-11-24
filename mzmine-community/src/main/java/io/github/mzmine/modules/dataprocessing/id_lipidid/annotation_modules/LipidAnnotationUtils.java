@@ -262,8 +262,12 @@ public class LipidAnnotationUtils {
     return matchedLipids.stream().filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
+  /**
+   * @param lipidCategory category of the lipid class
+   * @return the factory that predicts and validates molecular species annotations for the category
+   */
   @NotNull
-  private static IMolecularSpeciesLevelMatchedLipidFactory getMolecularSpeciesLevelMatchedLipidFactory(
+  public static IMolecularSpeciesLevelMatchedLipidFactory getMolecularSpeciesLevelMatchedLipidFactory(
       LipidCategories lipidCategory) {
     switch (lipidCategory) {
       case FATTYACYLS -> {
@@ -292,8 +296,12 @@ public class LipidAnnotationUtils {
 
   }
 
+  /**
+   * @param lipidCategory category of the lipid class
+   * @return the factory that validates species level annotations for the category
+   */
   @NotNull
-  private static ISpeciesLevelMatchedLipidFactory getSpeciesLevelMatchedLipidFactory(
+  public static ISpeciesLevelMatchedLipidFactory getSpeciesLevelMatchedLipidFactory(
       LipidCategories lipidCategory) {
     switch (lipidCategory) {
       case FATTYACYLS -> {

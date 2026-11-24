@@ -27,6 +27,7 @@ package io.github.mzmine.util.presets;
 
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.library.CustomLipidClassPreset;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.MetadataRegexMappingPreset;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,10 @@ public enum KnownPresetGroup implements PresetGroup {
    * {@link MetadataRegexMappingPreset}
    */
   METADATA_REGEX_MAPPING_PRESET, //
+  /**
+   * {@link CustomLipidClassPreset}
+   */
+  CUSTOM_LIPID_CLASS_PRESET, //
   ;
 
   public KnownPresetGroup parse(String name) {
@@ -57,6 +62,7 @@ public enum KnownPresetGroup implements PresetGroup {
       case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
       case ION_LIBRARY_PRESET -> "ion_libraries";
       case METADATA_REGEX_MAPPING_PRESET -> "metadata_regex_mappings";
+      case CUSTOM_LIPID_CLASS_PRESET -> "custom_lipid_classes";
     };
   }
 
@@ -66,6 +72,7 @@ public enum KnownPresetGroup implements PresetGroup {
       case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
       case ION_LIBRARY_PRESET -> "Ion libraries";
       case METADATA_REGEX_MAPPING_PRESET -> "Metadata regex mappings";
+      case CUSTOM_LIPID_CLASS_PRESET -> "Custom lipid classes";
     };
   }
 }

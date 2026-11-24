@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.presets;
 
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.library.CustomLipidClassPreset;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -53,7 +54,8 @@ import org.jetbrains.annotations.Nullable;
     @JsonSubTypes.Type(value = RowTypeFilterPreset.class, name = "row_type_filter"), //
     @JsonSubTypes.Type(value = IonLibraryPreset.class, name = "ion_library"), //
     @JsonSubTypes.Type(value = ModulePreset.class, name = "module_preset"), //
-    @JsonSubTypes.Type(value = MetadataRegexMappingPreset.class, name = "metadata_regex_mapping") //
+    @JsonSubTypes.Type(value = MetadataRegexMappingPreset.class, name = "metadata_regex_mapping"), //
+    @JsonSubTypes.Type(value = CustomLipidClassPreset.class, name = "custom_lipid_class") //
 })
 public interface Preset extends Comparable<Preset> {
 

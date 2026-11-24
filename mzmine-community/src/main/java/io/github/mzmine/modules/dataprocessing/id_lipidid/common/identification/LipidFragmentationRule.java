@@ -300,6 +300,11 @@ public class LipidFragmentationRule {
       if ((formula == null || formula.isBlank())) {
         errors.append("Formula is empty but requires a value for rule type ")
             .append(inQuotes(ruleType.toString()));
+      } else if (ruleType.isChainFormulaModification()) {
+        if (!LipidChainFormulaModification.isValid(formula)) {
+          errors.append("Invalid custom lipid fragment rule formula: ").append(formula)
+              .append(" -> could not parse. Use a formula like C3H5O or a signed formula like +O2-H2.\n");
+        }
       } else {
         try {
           final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
