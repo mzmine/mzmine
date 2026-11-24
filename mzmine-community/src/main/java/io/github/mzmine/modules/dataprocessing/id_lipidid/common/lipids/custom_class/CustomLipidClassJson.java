@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Reads and writes custom lipid classes in the JSON format of the import and export buttons. The
- * format is a JSON list of classes. Unknown fields, e.g., the _meta block of the community library,
+ * format is a JSON list of classes. Unknown fields, e.g., additional metadata,
  * are ignored when reading.
  */
 public final class CustomLipidClassJson {
@@ -56,7 +56,7 @@ public final class CustomLipidClassJson {
   }
 
   /**
-   * @param file a JSON file exported by mzmine or downloaded from the community library
+   * @param file a JSON file exported by mzmine
    * @return the classes, never containing null
    * @throws IOException        if the file cannot be read
    * @throws JsonParseException if the JSON is invalid

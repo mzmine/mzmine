@@ -10,12 +10,9 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassJson;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.community.CommunityLipidLibraryController;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.community.LipidLibraryClient;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Delete;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Duplicate;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Export;
@@ -25,20 +22,16 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_c
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Open;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Revert;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Save;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Share;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.library.LocalLipidClassLibrary;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Editor to build, save, import, export and share custom lipid classes. Saved classes go to the
+ * Editor to build, save, import and export custom lipid classes. Saved classes go to the
  * local lipid class library and can be added to the lipid annotation module.
  */
 public class CustomLipidClassEditorController extends FxController<CustomLipidClassEditorModel> {
@@ -48,7 +41,6 @@ public class CustomLipidClassEditorController extends FxController<CustomLipidCl
 
   private final CustomLipidClassEditorInteractor interactor;
   private final CustomLipidClassEditorViewBuilder viewBuilder;
-  private final CommunityLipidLibraryController communityController;
   private final PauseTransition simulationDelay = new PauseTransition(Duration.millis(250));
 
   private static class Holder {
@@ -59,13 +51,7 @@ public class CustomLipidClassEditorController extends FxController<CustomLipidCl
   private CustomLipidClassEditorController() {
     super(new CustomLipidClassEditorModel(LocalLipidClassLibrary.getInstance().getPresets()));
     interactor = new CustomLipidClassEditorInteractor(model, LocalLipidClassLibrary.getInstance());
-    communityController = new CommunityLipidLibraryController(
-        imported -> model.getLibraryPresets().stream()
-            .filter(p -> imported.stream().anyMatch(c -> c.getAbbr().equals(p.lipidClass().getAbbr())
-                && c.getName().equals(p.lipidClass().getName()))).findFirst()
-            .ifPresent(p -> model.selectedPresetProperty().set(p)));
-    viewBuilder = new CustomLipidClassEditorViewBuilder(model, communityController::buildView,
-        communityController::reloadIfNeeded);
+    viewBuilder = new CustomLipidClassEditorViewBuilder(model);
     model.setEventHandler(this::handleEvent);
 
     // validate on every change of the class in the editor
@@ -189,7 +175,6 @@ public class CustomLipidClassEditorController extends FxController<CustomLipidCl
           DialogLoggerUtil.showErrorDialog("Export failed", e.getMessage());
         }
       }
-      case Share _ -> share();
       case TestSpectrum _ -> testSpectrum();
     }
   }
@@ -285,37 +270,5 @@ public class CustomLipidClassEditorController extends FxController<CustomLipidCl
       return;
     }
     classes.forEach(interactor::delete);
-  }
-
-  /**
-   * Copies the class JSON to the clipboard and opens the submission form of the community library.
-   */
-  private void share() {
-    final CustomLipidClass lipidClass = model.validClassProperty().get();
-    if (lipidClass == null) {
-      DialogLoggerUtil.showWarningDialog("Cannot share lipid class",
-          "Fix these issues first:\n" + String.join("\n", model.getIssues()));
-      return;
-    }
-    final boolean accepted = DialogLoggerUtil.showDialogYesNo(AlertType.CONFIRMATION,
-        "Share with the community", """
-            Share %s %s in the mzmine custom lipid library?
-
-            1. The class is copied to your clipboard.
-            2. The submission form opens in your browser (requires a free GitHub account).
-            3. Paste the class into the form, describe it and submit.
-
-            The class is checked automatically and reviewed before it is published. By submitting, \
-            you grant mzio GmbH exclusive rights to the class. You keep the right to use it for \
-            your own research and are named as its author. Details: %s""".formatted(
-            lipidClass.getAbbr(), lipidClass.getName(),
-            LipidLibraryClient.CONTRIBUTOR_AGREEMENT_URL));
-    if (!accepted) {
-      return;
-    }
-    final ClipboardContent content = new ClipboardContent();
-    content.putString(CustomLipidClassJson.toJson(List.of(lipidClass)));
-    Clipboard.getSystemClipboard().setContent(content);
-    MZmineCore.getDesktop().openWebPage(LipidLibraryClient.submissionUrl(lipidClass));
   }
 }

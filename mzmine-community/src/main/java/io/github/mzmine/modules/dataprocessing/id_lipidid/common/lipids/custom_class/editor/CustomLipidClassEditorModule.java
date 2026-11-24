@@ -18,8 +18,7 @@ public class CustomLipidClassEditorModule implements MZmineRunnableModule {
 
   public static final String NAME = "Custom lipid class editor";
   private static final String DESCRIPTION = """
-      Build, test and save custom lipid classes for lipid annotation. \
-      Browse, download and share classes in the community lipid library.""";
+      Build, test and save custom lipid classes for lipid annotation.""";
 
   @Override
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,

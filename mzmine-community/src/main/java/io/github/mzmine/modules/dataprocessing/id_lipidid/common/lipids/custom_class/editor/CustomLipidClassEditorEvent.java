@@ -64,10 +64,6 @@ sealed interface CustomLipidClassEditorEvent {
 
   }
 
-  record Share() implements CustomLipidClassEditorEvent {
-
-  }
-
   /**
    * Tests the class against the pasted spectrum.
    */

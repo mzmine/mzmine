@@ -182,7 +182,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
     libraryButton.setTooltip(new Tooltip("Add classes saved in your local lipid class library"));
     libraryButton.setOnAction(_ -> addFromLibrary());
     editorButton.setTooltip(new Tooltip("""
-        Open the custom lipid class editor to build, test and share classes         and to download classes from the community library.
+        Open the custom lipid class editor to build and test classes.
         A selected class is opened as a new class in the editor."""));
     editorButton.setOnAction(_ -> {
       final CustomLipidClass selected = listView.getSelectionModel().getSelectedItem();
@@ -256,7 +256,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
     final List<CustomLipidClass> saved = LocalLipidClassLibrary.getInstance().getClasses();
     if (saved.isEmpty()) {
       DialogLoggerUtil.showMessageDialog("No saved lipid classes", """
-          Your local lipid class library is empty. Open the editor to create classes           or to download classes from the community library.""");
+          Your local lipid class library is empty. Open the editor to create classes.""");
       return;
     }
     final ListView<CustomLipidClass> choices = new ListView<>(

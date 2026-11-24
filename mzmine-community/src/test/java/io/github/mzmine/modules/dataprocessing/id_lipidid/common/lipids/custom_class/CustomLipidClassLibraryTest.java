@@ -7,8 +7,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidRuleTarget;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.community.LipidLibraryCatalog;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.community.LipidLibraryClient;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.LipidRuleRow;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.library.CustomLipidClassPreset;
 import io.github.mzmine.util.io.JsonUtils;
@@ -35,40 +33,13 @@ class CustomLipidClassLibraryTest {
   }
 
   @Test
-  void exportFormatIgnoresCommunityMetadata() {
+  void importIgnoresUnknownFields() {
     final String json = CustomLipidClassJson.toJson(List.of(PE));
     final String withMeta = json.replaceFirst("\\{",
         "{\"_meta\": {\"id\": \"pe\", \"authors\": [{\"name\": \"A\"}]},");
     final List<CustomLipidClass> classes = CustomLipidClassJson.fromJson(withMeta);
     Assertions.assertEquals(1, classes.size());
     Assertions.assertEquals("PE", classes.getFirst().getAbbr());
-  }
-
-  @Test
-  void catalogParsesAndIgnoresUnknownFields() throws Exception {
-    final String index = """
-        {"formatVersion": 1, "generated": "2026-11-02", "enums": {}, "classes": [
-          {"id": "tst", "source": "community", "name": "Test", "abbr": "TST",
-           "coreClass": "GLYCEROLIPIDS", "mainClass": "DIRADYLGLYCEROLS",
-           "chainTypes": ["ACYL_CHAIN"], "polarities": ["POSITIVE"],
-           "authors": [{"name": "Jane Doe", "orcid": "0000"}], "tags": ["oxidized"],
-           "minMzmineVersion": "999.0.0", "file": "classes/tst.json", "unknown": 1}]}
-        """;
-    final LipidLibraryCatalog catalog = JsonUtils.MAPPER.readValue(index,
-        LipidLibraryCatalog.class);
-    Assertions.assertEquals(1, catalog.classes().size());
-    final var entry = catalog.classes().getFirst();
-    Assertions.assertTrue(entry.isCommunity());
-    Assertions.assertEquals("Jane Doe", entry.authorNames());
-    Assertions.assertTrue(entry.searchText().contains("oxidized"));
-    Assertions.assertTrue(entry.requiresNewerMzmine());
-  }
-
-  @Test
-  void submissionUrlPrefillsTitle() {
-    final String url = LipidLibraryClient.submissionUrl(PE);
-    Assertions.assertTrue(url.startsWith(LipidLibraryClient.REPOSITORY_URL + "/issues/new"));
-    Assertions.assertTrue(url.contains("title=%5BLipid+class%5D+PE+"), url);
   }
 
   @Test

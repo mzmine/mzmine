@@ -28,14 +28,12 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_c
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Open;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Revert;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Save;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.editor.CustomLipidClassEditorEvent.Share;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.library.CustomLipidClassPreset;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -77,22 +75,17 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Builds the custom lipid class editor: local library on the left, the class form and rule table
- * in the center and a live preview on the right. The community library is a second tab.
+ * in the center and a live preview on the right.
  */
 class CustomLipidClassEditorViewBuilder extends FxViewBuilder<CustomLipidClassEditorModel> {
 
   private static final String MS1_ONLY = "MS1 adduct only";
-  private final Supplier<Region> communityViewSupplier;
-  private final Runnable onCommunityShown;
   private final BooleanProperty libraryExpanded = new SimpleBooleanProperty(true);
   // guards against loops between list selection and model selection
   private boolean updatingSelection = false;
 
-  CustomLipidClassEditorViewBuilder(@NotNull CustomLipidClassEditorModel model,
-      @NotNull Supplier<Region> communityViewSupplier, @NotNull Runnable onCommunityShown) {
+  CustomLipidClassEditorViewBuilder(@NotNull CustomLipidClassEditorModel model) {
     super(model);
-    this.communityViewSupplier = communityViewSupplier;
-    this.onCommunityShown = onCommunityShown;
   }
 
   @Override
@@ -107,18 +100,7 @@ class CustomLipidClassEditorViewBuilder extends FxViewBuilder<CustomLipidClassEd
     final BorderPane main = new BorderPane(editorAndPreview);
     main.leftProperty().bind(
         Bindings.when(libraryExpanded).then((Node) libraryPane).otherwise(collapsedStrip));
-
-    final Tab myClasses = new Tab("My lipid classes", main);
-    final Tab community = new Tab("Community library", communityViewSupplier.get());
-    // decision: load the catalog from the internet only when the user looks at it
-    community.setOnSelectionChanged(_ -> {
-      if (community.isSelected()) {
-        onCommunityShown.run();
-      }
-    });
-    final TabPane tabs = new TabPane(myClasses, community);
-    tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-    return tabs;
+    return main;
   }
 
   // ---------- library ----------
@@ -138,8 +120,7 @@ class CustomLipidClassEditorViewBuilder extends FxViewBuilder<CustomLipidClassEd
     list.setPlaceholder(FxLabels.newLabel("""
         No saved lipid classes yet.
         Create a new class, start from a built-in
-        template or import classes from the
-        community library."""));
+        template or import a class file."""));
     list.setCellFactory(_ -> new ListCell<>() {
       @Override
       protected void updateItem(CustomLipidClassPreset item, boolean empty) {
@@ -509,9 +490,6 @@ class CustomLipidClassEditorViewBuilder extends FxViewBuilder<CustomLipidClassEd
     FxButtons.disableIf(revert, model.modifiedProperty().not());
     final Button duplicate = FxButtons.createButton("Save as copy…",
         "Continue editing a copy of this class", () -> model.sendEvent(new Duplicate()));
-    final Button share = FxButtons.createButton("Share with community…",
-        "Submit this class to the mzmine custom lipid library", () -> model.sendEvent(new Share()));
-    FxButtons.disableIf(share, model.validClassProperty().isNull());
 
     final Label issueCount = FxLabels.newLabel(Bindings.createStringBinding(() -> {
       final int n = model.getIssues().size();
@@ -519,7 +497,7 @@ class CustomLipidClassEditorViewBuilder extends FxViewBuilder<CustomLipidClassEd
     }, model.getIssues()));
     issueCount.setStyle("-fx-text-fill: #d9534f;");
     return FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS, save, revert,
-        duplicate, share, issueCount);
+        duplicate, issueCount);
   }
 
   // ---------- preview ----------
