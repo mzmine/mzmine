@@ -28,8 +28,8 @@ package io.github.mzmine.parameters.parametertypes.combowithinput;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.ValueChangeDecorator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -46,7 +46,7 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
   private List<Runnable> changeListeners;
 
   public ComboWithInputComponent(final UserParameter<?, ? extends Node> embeddedParameter,
-      final ObservableList<EnumValue> choices, final EnumValue inputTrigger,
+      final ObservableList<EnumValue> choices, final Collection<EnumValue> inputTriggers,
       ComboWithInputValue<EnumValue, ?> defaultValue) {
     this.embeddedParameter = embeddedParameter;
     setSpacing(5);
@@ -64,14 +64,14 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
     comboBox = new ComboBox<>();
     comboBox.getSelectionModel().selectedItemProperty()
         .addListener((observable, oldValue, newValue) -> {
-          embeddedComponent.setDisable(!Objects.equals(getSelectedOption(), inputTrigger));
+          embeddedComponent.setDisable(!inputTriggers.contains(getSelectedOption()));
           onValueChanged();
         });
     comboBox.setItems(choices);
     comboBox.setMinWidth(USE_PREF_SIZE);
     setValue(defaultValue);
 
-    if (choices.contains(inputTrigger)) {
+    if (choices.stream().anyMatch(inputTriggers::contains)) {
       super.getChildren().addAll(comboBox, embeddedComponent);
     } else {
       super.getChildren().add(comboBox);
