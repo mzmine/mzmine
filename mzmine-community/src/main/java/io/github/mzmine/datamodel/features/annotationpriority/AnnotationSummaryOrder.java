@@ -43,8 +43,10 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
    */
   MZMINE, EXPOSOMICS, MSI;
 
-  private static final Comparator<@NotNull AnnotationSummary> SCORES_LOW_TO_HIGH = Comparator.comparing(
-      AnnotationSummary::mzmineAnnotationTypeRank).thenComparing(AnnotationSummary::combinedScore);
+  static final Comparator<@NotNull AnnotationSummary> SCORES_LOW_TO_HIGH = Comparator.comparing(
+          // rank is 1 = most confident, so reverse it to sort from low to high confidence
+          AnnotationSummary::mzmineAnnotationTypeRank, Comparator.reverseOrder())
+      .thenComparing(AnnotationSummary::combinedScore);
 
   private static final Comparator<@Nullable AnnotationSummary> SCHYMANSKI_LOW_TO_HIGH = //
       Comparator.nullsFirst( // annotation summary null - first
