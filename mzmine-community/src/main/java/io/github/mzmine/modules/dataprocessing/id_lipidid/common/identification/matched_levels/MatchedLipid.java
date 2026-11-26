@@ -30,6 +30,7 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -45,6 +46,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidPane;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
@@ -54,6 +56,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import javafx.scene.Node;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -448,5 +451,13 @@ public class MatchedLipid implements FeatureAnnotation {
   @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ELEMENT;
+  }
+
+  @Override
+  public @Nullable Node createAnnotationPane(@Nullable FeatureListRow row) {
+    final MatchedLipidPane pane = new MatchedLipidPane(this);
+    // same min height as SpectralMatchPanelFX so cards in one list get similar heights
+    pane.setMinHeight(200);
+    return pane;
   }
 }

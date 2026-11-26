@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.Node;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -354,6 +356,17 @@ public interface FeatureAnnotation {
    * A comment
    */
   @Nullable String getComment();
+
+  /**
+   * Creates a pane that visualizes this annotation, e.g., as a card in an annotation overview. Must
+   * be called on the JavaFX thread.
+   *
+   * @param row the row this annotation belongs to, used for actions like opening raw data
+   * @return the pane or null if this annotation type has no visualization
+   */
+  default @Nullable Node createAnnotationPane(@Nullable FeatureListRow row) {
+    return null;
+  }
 
   @Nullable
   default IMolecularFormula getCdkFormula() {

@@ -46,19 +46,7 @@
               <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0">
                 <BorderPane fx:id="pnNetwork" />
                     <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
-                      <Tab fx:id="tabAnnotations" closable="false" text="Annotations">
-                        <ScrollPane fitToHeight="true" fitToWidth="true">
-                          <GridPane fx:id="gridAnnotations">
-                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="150"/>
-                            </columnConstraints>
-                            <rowConstraints>
-                              <RowConstraints vgrow="SOMETIMES"/>
-                              <RowConstraints vgrow="SOMETIMES"/>
-                            </rowConstraints>
-                          </GridPane>
-                        </ScrollPane>
-                      </Tab>
+                      <Tab fx:id="tabAnnotations" closable="false" text="Annotations"/>
                       <Tab fx:id="tabAnalogs" closable="false" text="Analogs"/>
                       <Tab fx:id="tabSimilarity" closable="false" text="Similarity"/>
                       <Tab fx:id="tabAllMs2" closable="false" text="All MS2"/>

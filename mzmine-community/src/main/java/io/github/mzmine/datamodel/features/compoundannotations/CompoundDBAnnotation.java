@@ -71,6 +71,7 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchPane;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
@@ -91,6 +92,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.scene.Node;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
@@ -773,5 +775,11 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     }
 
     return isotopes;
+  }
+
+  @Override
+  default @Nullable Node createAnnotationPane(@Nullable FeatureListRow row) {
+    return new CompoundDatabaseMatchPane(this,
+        row instanceof ModularFeatureListRow modularRow ? modularRow : null);
   }
 }
