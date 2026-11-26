@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.AdaptiveLocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
@@ -61,7 +62,7 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
   /**
    * Only on profile mode data
    */
-  LOCAL_MAX,
+  LOCAL_MAX, LOCAL_MAX_ADAPTIVE,
   /**
    *
    */
@@ -81,6 +82,7 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case LOCAL_MAX -> LocalMaxMassDetector.class;
       case RECURSIVE -> RecursiveMassDetector.class;
       case WAVELET -> WaveletMassDetector.class;
+      case LOCAL_MAX_ADAPTIVE -> AdaptiveLocalMaxMassDetector.class;
     };
   }
 
@@ -94,6 +96,7 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case LOCAL_MAX -> "Local maximum (beta)";
       case RECURSIVE -> "Recursive threshold";
       case WAVELET -> "Wavelet transform";
+      case LOCAL_MAX_ADAPTIVE -> "Local maximum (adaptive, beta)";
     };
   }
 
@@ -106,6 +109,7 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case CENTROID -> "Centroid";
       case EXACT -> "Exact mass";
       case LOCAL_MAX -> "Local maxima";
+      case LOCAL_MAX_ADAPTIVE -> "Local maxima adaptive";
       case RECURSIVE -> "Recursive threshold";
       case WAVELET -> "Wavelet transform";
     };
@@ -114,14 +118,14 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
   public boolean usesCentroidData() {
     return switch (this) {
       case CENTROID, FACTOR_OF_LOWEST, AUTO -> true;
-      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET -> false;
+      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, LOCAL_MAX_ADAPTIVE -> false;
     };
   }
 
   public boolean usesProfileData() {
     return switch (this) {
       case CENTROID -> false;
-      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, FACTOR_OF_LOWEST, AUTO -> true;
+      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, FACTOR_OF_LOWEST, AUTO, LOCAL_MAX_ADAPTIVE -> true;
     };
   }
 

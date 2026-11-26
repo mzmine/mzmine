@@ -263,6 +263,13 @@ public interface RawDataFile extends Comparable<RawDataFile> {
    */
   boolean isContainsEmptyScans();
 
+  /**
+   * Problems detected in this file, e.g. a suspicious conversion or incomplete data.
+   *
+   * @return a snapshot of the warnings for this file, empty if there are none
+   */
+  @NotNull List<RawFileWarning> getWarnings();
+
 
   /**
    * The spectrum type of all spectra or {@link MassSpectrumType#MIXED}

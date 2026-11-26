@@ -34,6 +34,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -107,8 +108,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final List<Task> tasks = new ArrayList<>();
     final AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
         AllSpectralDataImportModule.class);
-    final ExitCode exitCode = (module == null ? new AllSpectralDataImportModule() : module)
-        .runModule(project, parameters.cloneParameterSet(), tasks, moduleCallDate);
+    final ExitCode exitCode = (module == null ? new AllSpectralDataImportModule()
+        : module).runModule(project, parameters.cloneParameterSet(), tasks, moduleCallDate);
     return new NativeImportSelection.ImportTaskPreparation(exitCode, tasks);
   }
 
@@ -163,7 +164,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    *                      of the imported file
    * @return the valid file that will be imported
    */
-  public static ImportFile validateToActualPath(File file, boolean keepConverted) {
+  public static ImportFile validateToActualPath(File file, boolean keepConverted,
+      @NotNull final VendorImportParameters vendorImportParameters) {
     file = validateBrukerPath(file);
 
     RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
@@ -180,7 +182,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // MSconvert task can in theory convert thermo .raw so skip the method call instead of changing the way msconvert task works
     // TODO this will need to change with the data handling parameter that defines which SDK to use for each format.
     final File importedFile = type == RawDataFileType.THERMO_RAW ? file : //
-        MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted, type);
+        MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted, type,
+            vendorImportParameters);
     return new ImportFile(file, type, importedFile);
   }
 
@@ -294,7 +297,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // change to the folder
     // skip files that are already loaded
     final ImportFile[] filesToImport = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(
-        project, parameters);
+        project, (AllSpectralDataImportParameters) parameters);
 
     // after skipping already loaded
     if (checkDuplicateFilesInImportListAndProject(project, filesToImport)) {
@@ -398,8 +401,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 //    var threadPoolTask = new ThreadPoolTask(description , nThreads, tasks);
 //    tasksToAdd.add(threadPoolTask);
 
-    final AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(project,
-        tasks, dataImportTasks, parameters);
+    final AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(project, tasks,
+        dataImportTasks, parameters);
     tasksToAdd.add(mainTask);
 
     return ExitCode.OK;
@@ -438,9 +441,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_TDF -> // ims files are big, use own storage
           new TDFImportTask(project, file, storage, module, parameters, moduleCallDate);
       // MS
-      case MZML ->
-          new MSDKmzMLImportTask(project, file, scanProcessorConfig, module, parameters,
-              moduleCallDate, storage);
+      case MZML -> new MSDKmzMLImportTask(project, file, scanProcessorConfig, module, parameters,
+          moduleCallDate, storage);
       case MZXML -> new MzXMLImportTask(project, file, scanProcessorConfig, module, parameters,
           moduleCallDate, storage);
       case MZDATA ->
@@ -462,7 +464,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
       case SCIEX_WIFF2, SCIEX_WIFF ->
           new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
-          scanProcessorConfig);
+              scanProcessorConfig);
       case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
@@ -514,7 +516,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               project, parameters, module);
       case SCIEX_WIFF2, SCIEX_WIFF ->
           new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
-          scanProcessorConfig);
+              scanProcessorConfig);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
       case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,

@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -139,8 +138,8 @@ public class SimpleParameterSet implements ParameterSet {
   public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
     var nameParameterMap = getNameParameterMap();
 
-    final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
-      case true -> Integer.parseInt(xmlElement.getAttribute(BatchQueue.MODULE_VERSION_ATTR));
+    final int loadedVersion = switch (xmlElement.hasAttribute(ParameterSet.MODULE_VERSION_ATTR)) {
+      case true -> Integer.parseInt(xmlElement.getAttribute(ParameterSet.MODULE_VERSION_ATTR));
       case false -> 1;
     };
 
@@ -161,8 +160,16 @@ public class SimpleParameterSet implements ParameterSet {
     return loadedParameters;
   }
 
+  /**
+   * Saves the version of this parameter set and its parameter values to the element. Embedded
+   * parameter sets (module combos, sub modules) are saved into the element of their parameter,
+   * without the version they would always load as version 1.
+   *
+   * @param xmlElement the element of this parameter set
+   */
   @Override
-  public void saveValuesToXML(Element xmlElement) {
+  public void saveValuesToXML(@NotNull final Element xmlElement) {
+    xmlElement.setAttribute(ParameterSet.MODULE_VERSION_ATTR, String.valueOf(getVersion()));
     ParameterUtils.saveValuesToXML(xmlElement, skipSensitiveParameters, parameters);
   }
 

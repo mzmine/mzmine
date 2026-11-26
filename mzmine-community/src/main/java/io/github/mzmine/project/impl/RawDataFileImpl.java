@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawFileWarning;
+import io.github.mzmine.datamodel.RawFileWarningType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularDataModel;
@@ -46,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -93,6 +96,7 @@ public class RawDataFileImpl implements RawDataFile {
   // msconvert needs to have the peak picker as first step / not even title maker before that
   private boolean containsZeroIntensity;
   private boolean containsEmptyScans;
+  private final CopyOnWriteArrayList<RawFileWarning> warnings = new CopyOnWriteArrayList<>();
   private MassSpectrumType spectraType;
   @Nullable
   private LocalDateTime startTimeStamp = null;
@@ -176,8 +180,13 @@ public class RawDataFileImpl implements RawDataFile {
     });
   }
 
+  /**
+   * Adds a scan and records any file warnings detected while inspecting it.
+   *
+   * @param newScan the scan to add
+   */
   @Override
-  public synchronized void addScan(Scan newScan) {
+  public synchronized void addScan(final @NotNull Scan newScan) {
     scans.add(newScan);
     if (newScan.getNumberOfDataPoints() > maxRawDataPoints) {
       // TODO how to make sure changes to Frames are reflected
@@ -198,7 +207,7 @@ public class RawDataFileImpl implements RawDataFile {
     //check for empty scans (absent m/z range or absent intensity)
     if (!containsEmptyScans && newScan.isEmptyScan() && newScan.getMSLevel() == 1) {
       containsEmptyScans = true;
-      logger.warning("Some MS1 scans were recognized as empty (no detected peaks).");
+      addWarning(new RawFileWarning(RawFileWarningType.EMPTY_SCANS));
     }
 
     // check for zero intensity because this might indicate incorrect conversion by msconvert
@@ -208,15 +217,11 @@ public class RawDataFileImpl implements RawDataFile {
     if (!containsZeroIntensity && spectraType.isCentroided() && newScan.getMSLevel() == 1) {
       // just check a few data points as the conversion error just adds many centroid data points to
       // the sides of each centroid
-      int dataPointsToCheck = Math.min(16, newScan.getNumberOfDataPoints());
+      final int dataPointsToCheck = Math.min(16, newScan.getNumberOfDataPoints());
       for (int i = 0; i < dataPointsToCheck; i++) {
         if (newScan.getIntensityValue(i) <= 0) {
           containsZeroIntensity = true;
-          logger.warning("""
-              Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert.
-              Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses
-              a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
-              This leads to degraded mass accuracies.""");
+          addWarning(new RawFileWarning(RawFileWarningType.ZERO_INTENSITY_CENTROIDS));
           break;
         }
       }
@@ -236,6 +241,22 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public boolean isContainsEmptyScans() {
     return containsEmptyScans;
+  }
+
+  /**
+   * Adds and logs a warning about this file. Duplicates are ignored.
+   *
+   * @param warning the warning to add
+   */
+  public void addWarning(final @NotNull RawFileWarning warning) {
+    if (warnings.addIfAbsent(warning)) {
+      logger.warning(() -> warning.type().toString() + " in " + getName());
+    }
+  }
+
+  @Override
+  public @NotNull List<RawFileWarning> getWarnings() {
+    return new ArrayList<>(warnings);
   }
 
   @Override
