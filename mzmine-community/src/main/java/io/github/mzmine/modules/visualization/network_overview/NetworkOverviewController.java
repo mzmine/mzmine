@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
+import io.github.mzmine.modules.visualization.annotations.FeatureAnnotationsPane;
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
@@ -39,17 +40,13 @@ import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkPa
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerPane;
-import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.WeakAdapter;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
-import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup.RowAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,14 +82,12 @@ public class NetworkOverviewController {
   private FeatureTableFX internalTable;
 
   /**
-   * Row-only interfaces that listen for changes to selected rows. The Annotations / Mirror /
-   * All-MS2 tabs are dispatched separately because they also consume analog-compound-node data.
+   * Row-only interfaces that listen for changes to selected rows. The Mirror / All-MS2 tabs are
+   * dispatched separately because they also consume analog-compound-node data.
    */
   private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
-  private NetworkAnnotationCardsPane annotationsPane;
-  // Separate controller for the new Analogs tab. Same UI as the Annotations panel but driven from
-  // the row's getAnalogSpectralLibraryMatches() instead of getSpectralLibraryMatches().
-  private SpectraIdentificationResultsWindowFX analogMatchesController;
+  private FeatureAnnotationsPane annotationsPane;
+  private FeatureAnnotationsPane analogsPane;
   private ExternalRowHtmlVisualizerController masstController;
   private MirrorScanWindowController mirrorScanController;
   private SpectraStackVisualizerPane allMs2Pane;
@@ -124,12 +119,8 @@ public class NetworkOverviewController {
     // all MS2
     allMs2Pane = new SpectraStackVisualizerPane();
 
-    // Pass null to the analog panel so it does NOT register its own row-selection listener on the
-    // internal table - the dispatcher in handleSelectedNodesChanged is the single source of data.
-    // Passing internalTable here would let the panel's built-in setFeatureRows (which always reads
-    // row.getSpectralLibraryMatches()) overwrite the analog matches we set on the analog tab.
-    analogMatchesController = new SpectraIdentificationResultsWindowFX(null);
-    annotationsPane = new NetworkAnnotationCardsPane();
+    annotationsPane = new FeatureAnnotationsPane(false);
+    analogsPane = new FeatureAnnotationsPane(true);
 
     // create mirror scan tab
     var mirrorScanTab = new MirrorScanWindowFXML();
@@ -140,19 +131,17 @@ public class NetworkOverviewController {
 
     tabSimilarity.setContent(mirrorScanController.getMainPane());
     tabAnnotations.setContent(annotationsPane);
-    // Pull the analog controller's UI out of its (unused) Tab wrapper and attach to our tab. The
-    // controller's setMatches/setTitle methods continue to work the same way regardless.
-    tabAnalogs.setContent(analogMatchesController.getContent());
+    tabAnalogs.setContent(analogsPane);
     tabAllMs2.setContent(allMs2Pane);
 
     // MASST
     masstController = new ExternalRowHtmlVisualizerController();
     tabMasst.setContent(masstController.buildView());
 
-    // Row-only consumers. The Annotations, Mirror, and All-MS2 tabs are dispatched explicitly in
+    // Row-only consumers. The Mirror and All-MS2 tabs are dispatched explicitly in
     // handleSelectedNodesChanged because they also accept analog-compound data and need a richer
     // signature than setFeatureRows.
-    featureRowInterfaces = List.of(masstController);
+    featureRowInterfaces = List.of(annotationsPane, analogsPane, masstController);
 
     // add callbacks
     weak.addListChangeListener(networkController,
@@ -237,75 +226,21 @@ public class NetworkOverviewController {
     final List<AnalogCompoundGroup> selectedAnalogs = networkPane.getAnalogGroupsFromNodes(
         selectedNodes);
 
-    // 1) Annotations tab: regular library matches only. Analogs tab: analog matches only.
-    //    Split by SpectralDBAnnotation.isAnalogMatch() so each tab shows the matching variant.
-    dispatchAnnotationsAndAnalogs(selectedRows, selectedAnalogs);
-
-    // 2) Mirror tab: pair-based. Two rows -> row1.MS2 vs row2.MS2 (existing behavior).
+    // 1) Mirror tab: pair-based. Two rows -> row1.MS2 vs row2.MS2 (existing behavior).
     //    Row + analog -> row.MS2 vs library entry. Two analogs -> two library entries.
     //    Anything other than 2 items clears.
     dispatchMirror(selectedNodes, networkPane);
 
-    // 3) All MS2 stack: row MS2 charts + one extra chart per analog node's representative
+    // 2) All MS2 stack: row MS2 charts + one extra chart per analog node's representative
     //    library entry, rendered as standalone fragment spectra alongside the rows.
     final List<SpectralDBAnnotation> analogReps = selectedAnalogs.stream()
         .map(AnalogCompoundGroup::representative).toList();
     allMs2Pane.setRowsAndAnalogs(selectedRows, analogReps, false);
 
-    // 4) Other row-only consumers (MASST). They ignore analog nodes.
+    // 3) Row-only consumers (annotations, analogs, MASST). They ignore analog nodes.
     for (final FeatureRowInterfaceFx interfaceFx : featureRowInterfaces) {
       interfaceFx.setFeatureRows(selectedRows);
     }
-  }
-
-  /**
-   * Annotations tab + Analogs tab. Both consume {@link SpectralDBAnnotation}s but differ by
-   * {@link SpectralDBAnnotation#isAnalogMatch()}:
-   * <ul>
-   *   <li>Annotations: all annotations of the rows (library, compound DB, lipid) + non-analog
-   *       members of any selected analog-compound group (cross-type dedup means analog groups may
-   *       carry direct matches that share the same compound). Sorted and filtered by
-   *       {@link NetworkAnnotationCardsPane}.</li>
-   *   <li>Analogs: row's {@code getAnalogSpectralLibraryMatches()} + analog members of any selected
-   *       analog-compound group.</li>
-   * </ul>
-   * LinkedHashSet preserves insertion order (rows first, then analog members) and dedupes via
-   * SpectralDBAnnotation.equals so identical entries don't render twice.
-   */
-  private void dispatchAnnotationsAndAnalogs(final List<FeatureListRow> rows,
-      final List<AnalogCompoundGroup> analogs) {
-    final List<RowAnnotation> groupMembers = new ArrayList<>();
-    final LinkedHashSet<SpectralDBAnnotation> analogsMatches = new LinkedHashSet<>();
-
-    for (final FeatureListRow row : rows) {
-      analogsMatches.addAll(row.getAnalogSpectralLibraryMatches());
-    }
-    for (final AnalogCompoundGroup group : analogs) {
-      for (final RowAnnotation member : group.members()) {
-        if (member.annotation().isAnalogMatch()) {
-          analogsMatches.add(member.annotation());
-        } else {
-          groupMembers.add(member);
-        }
-      }
-    }
-
-    annotationsPane.setAnnotations(rows, groupMembers);
-    final String title = buildAnnotationsTitle(rows, analogs);
-    analogMatchesController.setMatches(new ArrayList<>(analogsMatches));
-    analogMatchesController.setTitle(title);
-  }
-
-  private static @NotNull String buildAnnotationsTitle(final List<FeatureListRow> rows,
-      final List<AnalogCompoundGroup> analogs) {
-    final List<String> parts = new ArrayList<>();
-    rows.stream().map(FeatureUtils::rowToString).forEach(parts::add);
-    for (final AnalogCompoundGroup group : analogs) {
-      final String key = group.compoundKey();
-      final String name = group.representative().getCompoundName();
-      parts.add("Library: " + (key != null ? key : (name != null ? name : "analog")));
-    }
-    return String.join("; ", parts);
   }
 
   /**

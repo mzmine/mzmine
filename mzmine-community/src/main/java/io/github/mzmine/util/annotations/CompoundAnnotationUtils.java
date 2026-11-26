@@ -621,26 +621,31 @@ public class CompoundAnnotationUtils {
       @NotNull List<@NotNull FeatureAnnotation> annotations) {
     final Map<String, FeatureAnnotation> keys = new HashMap<>();
     for (final FeatureAnnotation a : annotations) {
-      final String firstBlock = inchiKeyFirstBlock(a.getInChIKey());
-      if (firstBlock != null) {
-        keys.put("K:" + firstBlock, a);
-        continue;
-      }
-      final String formula = a.getFormula();
-      if (formula != null && !formula.isBlank()) {
-        keys.put("F:" + formula.trim(), a);
-        continue;
-      }
-      final String name = a.getCompoundName();
-      if (name != null && !name.isBlank()) {
-        keys.put("N:" + name.trim(), a);
-        continue;
-      }
-
-      // last resort — keep distinct by identity so two unidentified annotations do not collapse
-      keys.put("id:" + System.identityHashCode(a), a);
+      keys.put(uniqueAnnotationKey(a), a);
     }
     return keys.values();
+  }
+
+  /// Key used by {@link #getUniqueAnnotations(List)}: InChIKey first block, then molecular formula,
+  /// then name, and object identity when all are missing.
+  ///
+  /// @param annotation the annotation
+  /// @return the key, annotations with equal keys describe the same compound
+  public static @NotNull String uniqueAnnotationKey(@NotNull FeatureAnnotation annotation) {
+    final String firstBlock = inchiKeyFirstBlock(annotation.getInChIKey());
+    if (firstBlock != null) {
+      return "K:" + firstBlock;
+    }
+    final String formula = annotation.getFormula();
+    if (formula != null && !formula.isBlank()) {
+      return "F:" + formula.trim();
+    }
+    final String name = annotation.getCompoundName();
+    if (name != null && !name.isBlank()) {
+      return "N:" + name.trim();
+    }
+    // last resort — keep distinct by identity so two unidentified annotations do not collapse
+    return "id:" + System.identityHashCode(annotation);
   }
 
   /// Count distinct annotations keyed by InChIKey first block; fall back to the molecular formula
