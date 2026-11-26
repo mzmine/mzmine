@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.modules.visualization.annotations.FeatureAnnotationsPane;
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -85,7 +85,7 @@ public class NetworkOverviewController {
    * Row-only interfaces that listen for changes to selected rows. The Mirror / All-MS2 tabs are
    * dispatched separately because they also consume analog-compound-node data.
    */
-  private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
+  private @NotNull List<SelectedRowsBinding> selectedRowsBindings;
   private FeatureAnnotationsPane annotationsPane;
   private FeatureAnnotationsPane analogsPane;
   private ExternalRowHtmlVisualizerController masstController;
@@ -140,8 +140,8 @@ public class NetworkOverviewController {
 
     // Row-only consumers. The Mirror and All-MS2 tabs are dispatched explicitly in
     // handleSelectedNodesChanged because they also accept analog-compound data and need a richer
-    // signature than setFeatureRows.
-    featureRowInterfaces = List.of(annotationsPane, analogsPane, masstController);
+    // signature than the selected rows property.
+    selectedRowsBindings = List.of(annotationsPane, analogsPane, masstController);
 
     // add callbacks
     weak.addListChangeListener(networkController,
@@ -238,8 +238,8 @@ public class NetworkOverviewController {
     allMs2Pane.setRowsAndAnalogs(selectedRows, analogReps, false);
 
     // 3) Row-only consumers (annotations, analogs, MASST). They ignore analog nodes.
-    for (final FeatureRowInterfaceFx interfaceFx : featureRowInterfaces) {
-      interfaceFx.setFeatureRows(selectedRows);
+    for (final SelectedRowsBinding binding : selectedRowsBindings) {
+      binding.selectedRowsProperty().set(selectedRows);
     }
   }
 

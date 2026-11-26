@@ -62,7 +62,7 @@ class AnnotationGroupCard extends ToggleButton {
 
   private static final Logger logger = Logger.getLogger(AnnotationGroupCard.class.getName());
   private static final double STRUCTURE_WIDTH = 165d;
-  private static final double STRUCTURE_HEIGHT = 100d;
+  private static final double STRUCTURE_HEIGHT = 90d;
   private static final double CHART_WIDTH = 40d;
   private static final double HEADER_HEIGHT = 22d;
   private static final double BORDER_WIDTH = 2d;

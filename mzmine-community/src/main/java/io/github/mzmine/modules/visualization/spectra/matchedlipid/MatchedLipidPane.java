@@ -178,7 +178,8 @@ public class MatchedLipidPane extends GridPane {
     metaDataScroll.setFitToWidth(true);
     metaDataScroll.setFitToHeight(true);
     int margin = 20;
-    metaDataScroll.setMinSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
+    // no min height, so the box scrolls when the pane is smaller, e.g., in a list
+    metaDataScroll.setMinSize(META_WIDTH + margin, 0);
     metaDataScroll.setMaxSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
     metaDataScroll.setPrefSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
 

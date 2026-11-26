@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
-import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -55,6 +57,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,8 +69,12 @@ import org.jetbrains.annotations.Nullable;
  * On top, a horizontal strip of {@link AnnotationGroupCard}s groups the annotations by compound.
  * Selecting a group card only shows the annotations of that group.
  */
-public class FeatureAnnotationsPane extends BorderPane implements FeatureRowInterfaceFx {
+public class FeatureAnnotationsPane extends BorderPane implements SelectedRowsBinding {
 
+  private static final double PANE_HEIGHT = 300d;
+
+  private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>(
+      List.of());
   private final ObservableList<AnnotationSummary> shown = FXCollections.observableArrayList();
   private final ListView<AnnotationSummary> listView = new ListView<>(shown);
   // panes are expensive (charts), so keep them while the row is shown. Cleared on setRow
@@ -103,6 +110,9 @@ public class FeatureAnnotationsPane extends BorderPane implements FeatureRowInte
       return cell;
     });
     setCenter(listView);
+
+    selectedRows.subscribe(
+        rows -> setRow(rows == null || rows.isEmpty() ? null : rows.getFirst()));
   }
 
   /**
@@ -115,34 +125,35 @@ public class FeatureAnnotationsPane extends BorderPane implements FeatureRowInte
       if (pane instanceof Region region) {
         // list cells only give the graphic its pref width. Fill the list, minus the scroll bar
         region.prefWidthProperty().bind(listView.widthProperty().subtract(30));
+        // decision: same fixed height for all panes to show more of them
+        region.setMinHeight(PANE_HEIGHT);
+        region.setPrefHeight(PANE_HEIGHT);
+        region.setMaxHeight(PANE_HEIGHT);
+        // children with a larger fixed height (e.g. metadata boxes) would draw into the next cell
+        final Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(region.widthProperty());
+        clip.heightProperty().bind(region.heightProperty());
+        region.setClip(clip);
       }
       return pane;
     });
   }
 
   /**
-   * Shows the first row, see {@link #setRow(FeatureListRow)}.
+   * Only the first selected row is shown, see {@link #setRow(FeatureListRow)}.
    *
-   * @param selectedRows the selected rows
+   * @return the selected rows property
    */
   @Override
-  public void setFeatureRows(@NotNull List<? extends FeatureListRow> selectedRows) {
-    setRow(selectedRows.isEmpty() ? null : selectedRows.getFirst());
-  }
-
-  /**
-   * @return true if the current row has annotations of the shown kind
-   */
-  @Override
-  public boolean hasContent() {
-    return !annotations.isEmpty();
+  public @NotNull ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return selectedRows;
   }
 
   /**
    * @param row the row to show annotations for, null to clear. For a {@link CompoundRow}, analog
    *            matches are taken from its preferred row
    */
-  public void setRow(@Nullable FeatureListRow row) {
+  private void setRow(@Nullable FeatureListRow row) {
     // a compound row's own (possibly empty) analog matches would hide those of the preferred row
     final FeatureListRow source =
         analogMatches && row instanceof CompoundRow compoundRow ? compoundRow.getPreferredRow()
