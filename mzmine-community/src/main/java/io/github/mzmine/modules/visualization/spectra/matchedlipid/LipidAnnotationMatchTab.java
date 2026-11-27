@@ -30,13 +30,13 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 
 public class LipidAnnotationMatchTab extends SimpleFeatureListTab {
 
-  private final LipidAnnotationMatchPane lipidAnnotationMatchPane;
+  private final LipidAnnotationsMatchPane lipidAnnotationsMatchPane;
 
   public LipidAnnotationMatchTab(final FeatureTableFX table) {
     super("Lipid matches", true, true);
-    lipidAnnotationMatchPane = new LipidAnnotationMatchPane(getParentGroup());
-    lipidAnnotationMatchPane.autoUpdateProperty().bindBidirectional(updateOnSelectionProperty());
-    setContent(lipidAnnotationMatchPane);
-    lipidAnnotationMatchPane.setFeatureTable(table);
+    lipidAnnotationsMatchPane = new LipidAnnotationsMatchPane(getParentGroup());
+    lipidAnnotationsMatchPane.autoUpdateProperty().bindBidirectional(updateOnSelectionProperty());
+    setContent(lipidAnnotationsMatchPane);
+    lipidAnnotationsMatchPane.setFeatureTable(table);
   }
 }

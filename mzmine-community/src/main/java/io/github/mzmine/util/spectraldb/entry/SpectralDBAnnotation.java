@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -58,6 +59,7 @@ import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralMatchPanelFX;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -71,6 +73,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import javafx.scene.Node;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -645,5 +648,12 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   public @Nullable IsotopePattern getIsotopePattern() {
     // entry caches the isotope pattern
     return entry.getIsotopePattern();
+  }
+
+  @Override
+  public @Nullable Node createAnnotationPane(@Nullable FeatureListRow row) {
+    final SpectralMatchPanelFX pane = new SpectralMatchPanelFX(this);
+    pane.setCoupleZoomY(true);
+    return pane;
   }
 }

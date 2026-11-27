@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,61 +28,39 @@ package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
-import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
+import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.List;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import org.jetbrains.annotations.NotNull;
 
-public class LipidAnnotationMatchTabOld extends SimpleTab implements FeatureRowInterfaceFx {
+/**
+ * Shows multiple lipid matches ({@link MatchedLipidPane}s).
+ */
+public class LipidAnnotationsMatchPane extends AbstractFeatureListRowsPane {
 
-  private final WeakAdapter weak = new WeakAdapter();
-  private final FeatureTableFX table;
   private final ScrollPane scrollPane;
   private int matches = 0;
 
-  public LipidAnnotationMatchTabOld(FeatureTableFX table) {
-    super("Lipid annotation matches", false, false);
-    setOnCloseRequest(event -> weak.dipose());
-    this.table = table;
+  public LipidAnnotationsMatchPane(final ParentFeatureListPaneGroup parentGroup) {
+    super(parentGroup);
     scrollPane = new ScrollPane();
     scrollPane.setFitToHeight(true);
     scrollPane.setFitToWidth(true);
     scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
     scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    setContent(scrollPane);
-    weak.addListChangeListener(table.getSelectionModel().getSelectedItems(), c -> selectionChanged());
-  }
-
-  public static void addNewTab(final FeatureTableFX table) {
-    FxThread.runLater(() -> {
-      final LipidAnnotationMatchTabOld tab = new LipidAnnotationMatchTabOld(table);
-      tab.selectionChanged();
-      MZmineCore.getDesktop().addTab(tab);
-    });
-  }
-
-  private void selectionChanged() {
-    if (weak.isDisposed()) {
-      return;
-    }
-    final ModularFeatureListRow selectedRow = table.getSelectedRow();
-    if (selectedRow == null || selectedRow.get(LipidMatchListType.class) == null) {
-      return;
-    }
-    setFeatureRow(selectedRow);
+    setCenter(scrollPane);
   }
 
   @Override
-  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
+  public void onSelectedRowsChanged(List<? extends FeatureListRow> selectedRows) {
+    super.onSelectedRowsChanged(selectedRows);
+    if (!super.isAutoUpdate()) {
+      return;
+    }
     matches = 0;
     GridPane pane = new GridPane();
     GridPane.setHgrow(pane, Priority.ALWAYS);
@@ -98,8 +76,8 @@ public class LipidAnnotationMatchTabOld extends SimpleTab implements FeatureRowI
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         for (MatchedLipid matchedLipid : matchedLipids) {
           if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
-            LipidAnnotationMatchPaneOld lipidAnnotationMatchPane = new LipidAnnotationMatchPaneOld(
-                matchedLipid);
+            MatchedLipidPane lipidAnnotationMatchPane = new MatchedLipidPane(matchedLipid,
+                selectedRow);
             GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
             GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
             pane.add(lipidAnnotationMatchPane, 0, i);
@@ -110,35 +88,11 @@ public class LipidAnnotationMatchTabOld extends SimpleTab implements FeatureRowI
       }
     }
     scrollPane.setContent(pane);
+
   }
 
-  public void setFeatureRow(final ModularFeatureListRow selectedRow) {
-    matches = 0;
-    GridPane pane = new GridPane();
-    GridPane.setHgrow(pane, Priority.ALWAYS);
-    GridPane.setVgrow(pane, Priority.ALWAYS);
-    pane.setHgap(10);
-    pane.setVgap(10);
-    List<MatchedLipid> matchedLipids = selectedRow.get(LipidMatchListType.class);
-    if (matchedLipids != null && !matchedLipids.isEmpty()) {
-      int i = 0;
-      for (MatchedLipid matchedLipid : matchedLipids) {
-        if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
-          LipidAnnotationMatchPaneOld lipidAnnotationMatchPane = new LipidAnnotationMatchPaneOld(
-              matchedLipid);
-          GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-          GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-          pane.add(lipidAnnotationMatchPane, 0, i);
-          i++;
-          matches++;
-        }
-      }
-    }
-    scrollPane.setContent(pane);
-  }
-
+  @Override
   public boolean hasContent() {
     return matches > 0;
   }
-
 }

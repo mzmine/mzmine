@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import java.awt.Toolkit;
 import java.util.List;
@@ -42,6 +43,7 @@ import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
@@ -76,7 +78,11 @@ public class CompoundDatabaseMatchPane extends BorderPane {
     structure.setWidth(structureWidth);
 
     setCenter(structure);
-    setRight(entries);
+    // scrolls when the pane is lower than the entries, e.g., in a list with fixed pane heights
+    final ScrollPane entriesScroll = FxLayout.newScrollPane(entries);
+    // no fit to height, the entries would be limited to the viewport height
+    entriesScroll.setFitToHeight(false);
+    setRight(entriesScroll);
   }
 
   public CompoundDatabaseMatchPane(CompoundDBAnnotation annotation) {
