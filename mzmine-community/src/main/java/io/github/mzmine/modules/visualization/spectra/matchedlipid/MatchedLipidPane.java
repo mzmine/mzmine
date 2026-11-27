@@ -79,10 +79,6 @@ public class MatchedLipidPane extends GridPane {
   private VBox metaDataPanel;
   private ScrollPane metaDataScroll;
 
-  public MatchedLipidPane(MatchedLipid matchedLipid) {
-    this(matchedLipid, null);
-  }
-
   /**
    * @param matchedLipid the lipid annotation
    * @param row          the annotated row, adds the lipid quality card if not null
@@ -175,12 +171,6 @@ public class MatchedLipidPane extends GridPane {
     metaDataPanel = new VBox();
     metaDataPanel.getStyleClass().add("region");
 
-    ColumnConstraints ccMetadata1 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
-        Priority.ALWAYS, HPos.LEFT, false);
-    ColumnConstraints ccMetadata2 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
-        Priority.ALWAYS, HPos.LEFT, false);
-    ccMetadata1.setPercentWidth(50);
-    ccMetadata2.setPercentWidth(50);
     // an accordion without expanded pane starts collapsed
     metaDataPanel.getChildren()
         .add(new Accordion(new TitledPane("Lipid information", createLipidInformation())));

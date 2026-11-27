@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.modules.visualization.annotations.FeatureAnnotationsPane;
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -82,10 +84,16 @@ public class NetworkOverviewController {
   private FeatureTableFX internalTable;
 
   /**
-   * Row-only interfaces that listen for changes to selected rows. The Mirror / All-MS2 tabs are
+   * Rows of the selected nodes, for the annotations tab. The Mirror / All-MS2 tabs are
    * dispatched separately because they also consume analog-compound-node data.
    */
-  private @NotNull List<SelectedRowsBinding> selectedRowsBindings;
+  private final ObjectProperty<List<FeatureListRow>> rowSelection = new SimpleObjectProperty<>(
+      List.of());
+  /**
+   * Analog matches of the first selected row, or the members of the first selected analog node if
+   * no row is selected
+   */
+  private final ObservableList<AnnotationSummary> analogAnnotations = FXCollections.observableArrayList();
   private FeatureAnnotationsPane annotationsPane;
   private FeatureAnnotationsPane analogsPane;
   private ExternalRowHtmlVisualizerController masstController;
@@ -119,8 +127,8 @@ public class NetworkOverviewController {
     // all MS2
     allMs2Pane = new SpectraStackVisualizerPane();
 
-    annotationsPane = new FeatureAnnotationsPane(false);
-    analogsPane = new FeatureAnnotationsPane(true);
+    annotationsPane = FeatureAnnotationsPane.forSelectedRows(() -> rowSelection, false);
+    analogsPane = FeatureAnnotationsPane.forAnnotations(analogAnnotations);
 
     // create mirror scan tab
     var mirrorScanTab = new MirrorScanWindowFXML();
@@ -137,11 +145,6 @@ public class NetworkOverviewController {
     // MASST
     masstController = new ExternalRowHtmlVisualizerController();
     tabMasst.setContent(masstController.buildView());
-
-    // Row-only consumers. The Mirror and All-MS2 tabs are dispatched explicitly in
-    // handleSelectedNodesChanged because they also accept analog-compound data and need a richer
-    // signature than the selected rows property.
-    selectedRowsBindings = List.of(annotationsPane, analogsPane, masstController);
 
     // add callbacks
     weak.addListChangeListener(networkController,
@@ -237,10 +240,27 @@ public class NetworkOverviewController {
         .map(AnalogCompoundGroup::representative).toList();
     allMs2Pane.setRowsAndAnalogs(selectedRows, analogReps, false);
 
-    // 3) Row-only consumers (annotations, analogs, MASST). They ignore analog nodes.
-    for (final SelectedRowsBinding binding : selectedRowsBindings) {
-      binding.selectedRowsProperty().set(selectedRows);
+    // 3) Annotations and MASST use the rows. The analogs tab shows the analog matches of the first
+    //    row, or the members of the first analog node if no row is selected
+    rowSelection.set(selectedRows);
+    masstController.selectedRowsProperty().set(selectedRows);
+    analogAnnotations.setAll(
+        !selectedRows.isEmpty() ? FeatureAnnotationsPane.getRowAnnotations(selectedRows.getFirst(),
+            true) : selectedAnalogs.isEmpty() ? List.of()
+            : getGroupAnnotations(selectedAnalogs.getFirst()));
+  }
+
+  /**
+   * @param group an analog node
+   * @return the analog matches of all rows in the group, sorted by the annotation sort config
+   */
+  private static @NotNull List<AnnotationSummary> getGroupAnnotations(
+      @NotNull AnalogCompoundGroup group) {
+    if (group.members().isEmpty()) {
+      return List.of();
     }
+    return group.members().stream().map(m -> AnnotationSummary.of(m.row(), m.annotation()))
+        .sorted(FeatureAnnotationsPane.getSorter(group.members().getFirst().row())).toList();
   }
 
   /**

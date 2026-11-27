@@ -44,9 +44,11 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.awt.Paint;
 import java.util.Objects;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Pos;
@@ -72,8 +74,9 @@ public final class LipidQualityCardUtils {
   private static final double METRIC_BAR_WIDTH = 230d;
   private static final double METRIC_BAR_HEIGHT = 16d;
   /**
-   * Computes the cards of {@link #createQualityCard(FeatureListRow, MatchedLipid)} one after the
-   * other. Each card iterates the feature list for the elution order. The thread ends when idle.
+   * Computes the shown cards of {@link #createQualityCard(FeatureListRow, MatchedLipid)} one after
+   * the other. Each card iterates the feature list for the elution order. The thread ends when
+   * idle.
    */
   private static final ThreadPoolExecutor cardExecutor = createCardExecutor();
 
@@ -93,8 +96,9 @@ public final class LipidQualityCardUtils {
 
   /**
    * Creates the quality card of a lipid annotation, without actions in the header. Returns a
-   * placeholder right away, the metrics are computed in the background and then replace the
-   * placeholder.
+   * placeholder right away. The metrics are computed in the background while the card is in a
+   * scene and then replace the placeholder. Cards that leave the scene before, e.g., when another
+   * row is selected, are dropped from the queue.
    *
    * @param row   the annotated row
    * @param match the lipid annotation of the row
@@ -106,7 +110,7 @@ public final class LipidQualityCardUtils {
     final VBox container = new VBox(placeholder);
     container.setFillWidth(true);
 
-    cardExecutor.execute(() -> {
+    final Runnable compute = () -> {
       try {
         final ModularFeatureList featureList =
             row.getFeatureList() instanceof ModularFeatureList flist ? flist : null;
@@ -119,6 +123,20 @@ public final class LipidQualityCardUtils {
       } catch (Exception e) {
         logger.log(Level.WARNING, "Could not compute lipid annotation quality", e);
         FxThread.runLater(() -> placeholder.setText("Could not compute annotation quality"));
+      }
+    };
+    // only accessed on the FX thread
+    final AtomicReference<Future<?>> job = new AtomicReference<>();
+    container.sceneProperty().subscribe(scene -> {
+      final Future<?> current = job.get();
+      if (scene != null) {
+        // first shown, or shown again after it was cancelled
+        if (current == null || current.isCancelled()) {
+          job.set(cardExecutor.submit(compute));
+        }
+      } else if (current != null && !current.isDone()) {
+        // a cancelled job stays in the queue but does not run
+        current.cancel(false);
       }
     });
     return container;

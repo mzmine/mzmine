@@ -41,9 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -62,34 +61,59 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Shows the annotations of a row as panes in a list view. The preferred annotation comes first, all
- * other annotations are sorted by the annotation sort config of the feature list. Shows either
- * only analog matches or only the other annotations, so both can go into separate tabs.
+ * Shows annotations as panes in a list view, in the given order. On top, a horizontal strip of
+ * {@link AnnotationGroupCard}s groups the annotations by compound. Selecting a group card only
+ * shows the annotations of that group.
  * <p>
- * On top, a horizontal strip of {@link AnnotationGroupCard}s groups the annotations by compound.
- * Selecting a group card only shows the annotations of that group.
+ * Create it with {@link #forSelectedRows(SelectedRowsBinding, boolean)} to show the annotations of
+ * the first selected row, or with {@link #forAnnotations(ObservableList)} for any list of
+ * annotations.
  */
-public class FeatureAnnotationsPane extends BorderPane implements SelectedRowsBinding {
+public class FeatureAnnotationsPane extends BorderPane {
 
   private static final double PANE_HEIGHT = 350d;
 
-  private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>(
-      List.of());
+  // the shown annotations in their order. A group card selects a subset
+  private final ObservableList<AnnotationSummary> annotations;
   private final ObservableList<AnnotationSummary> shown = FXCollections.observableArrayList();
   private final ListView<AnnotationSummary> listView = new ListView<>(shown);
-  // panes are expensive (charts), so keep them while the row is shown. Cleared on setRow
+  // panes are expensive (charts), so keep them while the annotations are shown
   private final Map<AnnotationSummary, Node> panes = new HashMap<>();
   private final HBox groupCards = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY);
   private final ToggleGroup groupToggle = new ToggleGroup();
   private final Label placeholder = FxLabels.newLabel("No annotations");
-  private final boolean analogMatches;
-  private @NotNull List<AnnotationSummary> annotations = List.of();
 
   /**
-   * @param analogMatches true to show only analog matches, false to show all other annotations
+   * Shows the annotations of the first selected row. The preferred annotation comes first, all
+   * other annotations are sorted by the annotation sort config of the feature list.
+   *
+   * @param selectedRows  provides the selected rows
+   * @param analogMatches true to show only analog matches, false to show all other annotations. For
+   *                      a {@link CompoundRow}, analog matches are taken from its preferred row
+   * @return the pane
    */
-  public FeatureAnnotationsPane(boolean analogMatches) {
-    this.analogMatches = analogMatches;
+  public static @NotNull FeatureAnnotationsPane forSelectedRows(
+      @NotNull SelectedRowsBinding selectedRows, boolean analogMatches) {
+    final FeatureAnnotationsPane pane = new FeatureAnnotationsPane(
+        FXCollections.observableArrayList());
+    selectedRows.selectedRowsProperty().subscribe(
+        rows -> pane.setRow(rows == null || rows.isEmpty() ? null : rows.getFirst(),
+            analogMatches));
+    return pane;
+  }
+
+  /**
+   * @param annotations the annotations to show in this order. Update it with
+   *                    {@link ObservableList#setAll}, every change rebuilds all group cards
+   * @return the pane
+   */
+  public static @NotNull FeatureAnnotationsPane forAnnotations(
+      @NotNull ObservableList<AnnotationSummary> annotations) {
+    return new FeatureAnnotationsPane(annotations);
+  }
+
+  private FeatureAnnotationsPane(@NotNull ObservableList<AnnotationSummary> annotations) {
+    this.annotations = annotations;
     final ScrollPane groupScroll = FxLayout.newScrollPane(groupCards, ScrollBarPolicy.AS_NEEDED,
         ScrollBarPolicy.NEVER);
     // fixed viewport height so the pane does not grow. Cards fill the viewport height, so they
@@ -111,8 +135,8 @@ public class FeatureAnnotationsPane extends BorderPane implements SelectedRowsBi
     });
     setCenter(listView);
 
-    selectedRows.subscribe(
-        rows -> setRow(rows == null || rows.isEmpty() ? null : rows.getFirst()));
+    annotations.addListener((ListChangeListener<AnnotationSummary>) _ -> showAnnotations());
+    showAnnotations();
   }
 
   /**
@@ -140,39 +164,31 @@ public class FeatureAnnotationsPane extends BorderPane implements SelectedRowsBi
   }
 
   /**
-   * Only the first selected row is shown, see {@link #setRow(FeatureListRow)}.
-   *
-   * @return the selected rows property
+   * @param row           the row to show annotations for, null to clear
+   * @param analogMatches true to show only analog matches, see
+   *                      {@link #forSelectedRows(SelectedRowsBinding, boolean)}
    */
-  @Override
-  public @NotNull ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
-    return selectedRows;
+  private void setRow(@Nullable FeatureListRow row, boolean analogMatches) {
+    final List<AnnotationSummary> rowAnnotations = getRowAnnotations(row, analogMatches);
+    // tell the user if the row only has the annotations shown in the other pane
+    final boolean otherKindOnly = rowAnnotations.isEmpty() && row != null
+        && !CompoundAnnotationUtils.getAllFeatureAnnotations(row).isEmpty();
+    placeholder.setText(!otherKindOnly ? "No annotations"
+        : analogMatches ? "Only direct matches" : "Only analog matches");
+    annotations.setAll(rowAnnotations);
   }
 
   /**
-   * @param row the row to show annotations for, null to clear. For a {@link CompoundRow}, analog
-   *            matches are taken from its preferred row
+   * Rebuilds the group cards and preselects the card of the preferred annotation.
    */
-  private void setRow(@Nullable FeatureListRow row) {
-    // a compound row's own (possibly empty) analog matches would hide those of the preferred row
-    final FeatureListRow source =
-        analogMatches && row instanceof CompoundRow compoundRow ? compoundRow.getPreferredRow()
-            : row;
-    annotations = sortAnnotations(source, analogMatches);
+  private void showAnnotations() {
     panes.clear();
-
-    // tell the user if the row only has the annotations shown in the other pane
-    final boolean otherKindOnly = annotations.isEmpty() && source != null
-        && !CompoundAnnotationUtils.getAllFeatureAnnotations(source).isEmpty();
-    placeholder.setText(!otherKindOnly ? "No annotations"
-        : analogMatches ? "Only direct matches" : "Only analog matches");
-
     groupToggle.selectToggle(null);
     groupToggle.getToggles().clear();
     groupCards.getChildren().clear();
     if (!annotations.isEmpty()) {
       final Comparator<AnnotationSummary> sorter = getSorter(annotations.getFirst().row());
-      // linked map keeps the group of the preferred annotation first
+      // linked map keeps the group of the first (preferred) annotation first
       final Map<String, List<AnnotationSummary>> groups = new LinkedHashMap<>();
       for (final AnnotationSummary summary : annotations) {
         groups.computeIfAbsent(CompoundAnnotationUtils.uniqueAnnotationKey(summary.annotation()),
@@ -181,13 +197,13 @@ public class FeatureAnnotationsPane extends BorderPane implements SelectedRowsBi
       for (final List<AnnotationSummary> group : groups.values()) {
         final AnnotationGroupCard card = new AnnotationGroupCard(group, sorter);
         card.setToggleGroup(groupToggle);
-        // on user action only, so that setRow does not build the cards twice
+        // on user action only, so that showAnnotations does not build the cards twice
         card.setOnAction(_ -> showSelectedGroup());
         groupCards.getChildren().add(card);
       }
-      // the preferred annotation is first, see sortAnnotations. Its group is the first card.
-      // source is not null, otherwise annotations would be empty
-      if (annotations.getFirst().annotation().equals(source.getPreferredAnnotation())) {
+      // the first group holds the first annotation. Preselect it if it is the preferred one
+      final AnnotationSummary first = annotations.getFirst();
+      if (first.annotation().equals(first.row().getPreferredAnnotation())) {
         groupToggle.selectToggle((AnnotationGroupCard) groupCards.getChildren().getFirst());
       }
     }
@@ -207,26 +223,36 @@ public class FeatureAnnotationsPane extends BorderPane implements SelectedRowsBi
 
   /**
    * @param row           the row, null to clear
-   * @param analogMatches true to keep only analog matches, false to keep only regular annotations
+   * @param analogMatches true to keep only analog matches, false to keep only regular annotations.
+   *                      For a {@link CompoundRow}, analog matches are taken from its preferred
+   *                      row
    * @return the preferred annotation first, then all other annotations sorted by the annotation
    * sort config of the feature list.
    */
-  static @NotNull List<AnnotationSummary> sortAnnotations(@Nullable FeatureListRow row,
+  public static @NotNull List<AnnotationSummary> getRowAnnotations(@Nullable FeatureListRow row,
       boolean analogMatches) {
-    if (row == null) {
+    // a compound row's own (possibly empty) analog matches would hide those of the preferred row
+    final FeatureListRow source =
+        analogMatches && row instanceof CompoundRow compoundRow ? compoundRow.getPreferredRow()
+            : row;
+    if (source == null) {
       return List.of();
     }
-    final FeatureAnnotation preferred = row.getPreferredAnnotation();
-    final List<AnnotationSummary> sorted = CompoundAnnotationUtils.getAllFeatureAnnotations(row)
+    final FeatureAnnotation preferred = source.getPreferredAnnotation();
+    final List<AnnotationSummary> sorted = CompoundAnnotationUtils.getAllFeatureAnnotations(source)
         .stream().filter(a -> a.isAnalogMatch() == analogMatches && !a.equals(preferred))
-        .map(a -> AnnotationSummary.of(row, a)).sorted(getSorter(row)).toList();
+        .map(a -> AnnotationSummary.of(source, a)).sorted(getSorter(source)).toList();
 
     // decision: the preferred annotation is only shown in the pane of its kind (analog or not)
     return preferred != null && preferred.isAnalogMatch() == analogMatches ? Stream.concat(
-        Stream.of(AnnotationSummary.of(row, preferred)), sorted.stream()).toList() : sorted;
+        Stream.of(AnnotationSummary.of(source, preferred)), sorted.stream()).toList() : sorted;
   }
 
-  private static @NotNull Comparator<AnnotationSummary> getSorter(@NotNull FeatureListRow row) {
+  /**
+   * @param row a row of the feature list
+   * @return the annotation sort order of the feature list, best first
+   */
+  public static @NotNull Comparator<AnnotationSummary> getSorter(@NotNull FeatureListRow row) {
     return row.getFeatureList().getAnnotationSortConfig().sortOrder().getComparatorHighFirst();
   }
 }

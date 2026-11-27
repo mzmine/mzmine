@@ -626,8 +626,9 @@ public class CompoundAnnotationUtils {
     return keys.values();
   }
 
-  /// Key used by {@link #getUniqueAnnotations(List)}: InChIKey first block, then molecular formula,
-  /// then name, and object identity when all are missing.
+  /// Key used by {@link #getUniqueAnnotations(List)}: InChIKey first block, then the lipid
+  /// annotation name for lipids, then molecular formula, then name, and object identity when all
+  /// are missing.
   ///
   /// @param annotation the annotation
   /// @return the key, annotations with equal keys describe the same compound
@@ -635,6 +636,11 @@ public class CompoundAnnotationUtils {
     final String firstBlock = inchiKeyFirstBlock(annotation.getInChIKey());
     if (firstBlock != null) {
       return "K:" + firstBlock;
+    }
+    // lipid isomers share a formula (e.g. PG 40:5 and BMP 40:5). The annotation name is the
+    // molecular species name if available, otherwise the species name
+    if (annotation instanceof MatchedLipid lipid) {
+      return "L:" + lipid.getLipidAnnotation().getAnnotation();
     }
     final String formula = annotation.getFormula();
     if (formula != null && !formula.isBlank()) {
