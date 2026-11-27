@@ -93,6 +93,8 @@ public class FeatureAnnotationsPane extends BorderPane {
   private final Map<AnnotationSummary, Node> panes = new HashMap<>();
   private final HBox groupCards = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY);
   private final ToggleGroup groupToggle = new ToggleGroup();
+  // true while showAnnotations rebuilds the cards, it shows the selected group once at the end
+  private boolean rebuildingCards = false;
   private final Label placeholder = FxLabels.newLabel("No annotations");
 
   /**
@@ -202,6 +204,12 @@ public class FeatureAnnotationsPane extends BorderPane {
     });
     setCenter(listView);
 
+    // not onAction: arrow keys change the selected card without firing it
+    groupToggle.selectedToggleProperty().subscribe(_ -> {
+      if (!rebuildingCards) {
+        showSelectedGroup();
+      }
+    });
     annotations.addListener((ListChangeListener<AnnotationSummary>) _ -> showAnnotations());
     showAnnotations();
   }
@@ -266,6 +274,7 @@ public class FeatureAnnotationsPane extends BorderPane {
    * Rebuilds the group cards and preselects the card of the preferred annotation.
    */
   private void showAnnotations() {
+    rebuildingCards = true;
     panes.clear();
     groupToggle.selectToggle(null);
     groupToggle.getToggles().clear();
@@ -281,8 +290,6 @@ public class FeatureAnnotationsPane extends BorderPane {
       for (final List<AnnotationSummary> group : groups.values()) {
         final AnnotationGroupCard card = new AnnotationGroupCard(group, sorter);
         card.setToggleGroup(groupToggle);
-        // on user action only, so that showAnnotations does not build the cards twice
-        card.setOnAction(_ -> showSelectedGroup());
         groupCards.getChildren().add(card);
       }
       // the first group holds the first annotation. Preselect it if it is the preferred one
@@ -291,6 +298,7 @@ public class FeatureAnnotationsPane extends BorderPane {
         groupToggle.selectToggle((AnnotationGroupCard) groupCards.getChildren().getFirst());
       }
     }
+    rebuildingCards = false;
     showSelectedGroup();
   }
 

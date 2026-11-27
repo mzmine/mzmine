@@ -129,6 +129,17 @@ class AnnotationGroupCard extends ToggleButton {
   }
 
   /**
+   * Clicking or pressing enter on the selected card keeps it selected.
+   */
+  @Override
+  public void fire() {
+    // decision: no deselecting, it would show the annotations of all groups
+    if (!isSelected()) {
+      super.fire();
+    }
+  }
+
+  /**
    * @return the grouped annotations
    */
   @NotNull List<AnnotationSummary> getAnnotations() {
