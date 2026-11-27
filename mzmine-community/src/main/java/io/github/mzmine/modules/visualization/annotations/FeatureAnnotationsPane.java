@@ -71,7 +71,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeatureAnnotationsPane extends BorderPane implements SelectedRowsBinding {
 
-  private static final double PANE_HEIGHT = 300d;
+  private static final double PANE_HEIGHT = 350d;
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>(
       List.of());

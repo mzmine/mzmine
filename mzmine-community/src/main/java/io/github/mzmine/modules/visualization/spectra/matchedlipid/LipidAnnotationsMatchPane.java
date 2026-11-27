@@ -76,7 +76,8 @@ public class LipidAnnotationsMatchPane extends AbstractFeatureListRowsPane {
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         for (MatchedLipid matchedLipid : matchedLipids) {
           if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
-            MatchedLipidPane lipidAnnotationMatchPane = new MatchedLipidPane(matchedLipid);
+            MatchedLipidPane lipidAnnotationMatchPane = new MatchedLipidPane(matchedLipid,
+                selectedRow);
             GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
             GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
             pane.add(lipidAnnotationMatchPane, 0, i);

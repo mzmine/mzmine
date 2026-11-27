@@ -455,7 +455,7 @@ public class MatchedLipid implements FeatureAnnotation {
 
   @Override
   public @Nullable Node createAnnotationPane(@Nullable FeatureListRow row) {
-    final MatchedLipidPane pane = new MatchedLipidPane(this);
+    final MatchedLipidPane pane = new MatchedLipidPane(this, row);
     // same min height as SpectralMatchPanelFX so cards in one list get similar heights
     pane.setMinHeight(200);
     return pane;

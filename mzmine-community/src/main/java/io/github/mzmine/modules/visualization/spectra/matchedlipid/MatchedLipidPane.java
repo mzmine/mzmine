@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.util.FxColorUtil;
@@ -33,6 +34,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
+import io.github.mzmine.modules.visualization.dash_lipidqc.quality.LipidQualityCardUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.DecimalFormat;
@@ -40,9 +42,11 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -53,6 +57,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Card that shows a single {@link MatchedLipid} with its fragment spectrum and metadata.
@@ -74,13 +80,21 @@ public class MatchedLipidPane extends GridPane {
   private ScrollPane metaDataScroll;
 
   public MatchedLipidPane(MatchedLipid matchedLipid) {
+    this(matchedLipid, null);
+  }
+
+  /**
+   * @param matchedLipid the lipid annotation
+   * @param row          the annotated row, adds the lipid quality card if not null
+   */
+  public MatchedLipidPane(@NotNull MatchedLipid matchedLipid, @Nullable FeatureListRow row) {
     super();
 
     this.matchedLipid = matchedLipid;
 
     setMinSize(750, 500);
     var pnTitle = createTitlePane();
-    metaDataScroll = createMetaDataPane();
+    metaDataScroll = createMetaDataPane(row);
 
     // assumption: a comment marks an unconfirmed match without MS2 evidence
     final String comment = matchedLipid.getComment();
@@ -157,7 +171,7 @@ public class MatchedLipidPane extends GridPane {
     return lbl;
   }
 
-  private ScrollPane createMetaDataPane() {
+  private ScrollPane createMetaDataPane(@Nullable FeatureListRow row) {
     metaDataPanel = new VBox();
     metaDataPanel.getStyleClass().add("region");
 
@@ -167,16 +181,24 @@ public class MatchedLipidPane extends GridPane {
         Priority.ALWAYS, HPos.LEFT, false);
     ccMetadata1.setPercentWidth(50);
     ccMetadata2.setPercentWidth(50);
-    BorderPane lipidInformationPanel = extractLipidInformation();
-
-    metaDataPanel.getChildren().add(lipidInformationPanel);
+    // an accordion without expanded pane starts collapsed
+    metaDataPanel.getChildren()
+        .add(new Accordion(new TitledPane("Lipid information", createLipidInformation())));
+    if (row != null) {
+      metaDataPanel.getChildren().add(LipidQualityCardUtils.createQualityCard(row, matchedLipid));
+    }
+    final VBox rawDataInformation = createRawDataInformation();
+    if (rawDataInformation != null) {
+      metaDataPanel.getChildren().add(rawDataInformation);
+    }
     metaDataPanel.setMinSize(META_WIDTH, ENTRY_HEIGHT);
     metaDataPanel.setPrefSize(META_WIDTH, -1);
     metaDataScroll = new ScrollPane(metaDataPanel);
     metaDataScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
     metaDataScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
     metaDataScroll.setFitToWidth(true);
-    metaDataScroll.setFitToHeight(true);
+    // no fit to height: the content would be limited to the viewport or its min height and could
+    // not grow when the lipid information is expanded
     int margin = 20;
     // no min height, so the box scrolls when the pane is smaller, e.g., in a list
     metaDataScroll.setMinSize(META_WIDTH + margin, 0);
@@ -186,7 +208,10 @@ public class MatchedLipidPane extends GridPane {
     return metaDataScroll;
   }
 
-  private BorderPane extractLipidInformation() {
+  /**
+   * @return name, formula, ion and class of the lipid
+   */
+  private @NotNull VBox createLipidInformation() {
     VBox panelOther = new VBox();
     panelOther.setAlignment(Pos.TOP_LEFT);
     Label annotation = new Label("Name: " + matchedLipid.getLipidAnnotation().getAnnotation());
@@ -223,36 +248,32 @@ public class MatchedLipidPane extends GridPane {
             .getLipidCategory().getName());
     lipidCategory.setWrapText(true);
     panelOther.getChildren().addAll(lipidCategory);
+    return panelOther;
+  }
 
-    Label space = new Label("");
-    panelOther.getChildren().addAll(space);
-
-    Label rawDataTitle = new Label("Raw data information");
-    rawDataTitle.getStyleClass().add("bold-title-label");
-    panelOther.getChildren().addAll(rawDataTitle);
-
-    if (!matchedLipid.getMatchedFragments().isEmpty()) {
-      LipidFragment lipidFragment = matchedLipid.getMatchedFragments().stream().findFirst()
-          .orElse(null);
-      if (lipidFragment != null) {
-        Label rawFile = new Label(
-            "Raw data file: " + lipidFragment.getMsMsScan().getDataFile().getName());
-        rawFile.setWrapText(true);
-        panelOther.getChildren().addAll(rawFile);
-
-        Label matchedScan = new Label(
-            "Matched Scan number: " + ScanUtils.extractScanIdString(lipidFragment.getMsMsScan(),
-                false));
-        matchedScan.setWrapText(true);
-        panelOther.getChildren().addAll(matchedScan);
-      }
+  /**
+   * @return raw data file and scan of the matched MS2 spectrum, null if there are no matched
+   * fragments, e.g., for annotations without MS2 evidence
+   */
+  private @Nullable VBox createRawDataInformation() {
+    final LipidFragment lipidFragment = matchedLipid.getMatchedFragments().stream().findFirst()
+        .orElse(null);
+    // decision: no empty "Raw data information" section without a matched MS2 spectrum
+    if (lipidFragment == null) {
+      return null;
     }
+    final Label rawDataTitle = new Label("Raw data information");
+    rawDataTitle.getStyleClass().add("bold-title-label");
 
-    Label otherInfo = new Label("Lipid information");
-    otherInfo.getStyleClass().add("bold-title-label");
-    BorderPane pn = new BorderPane(panelOther);
-    pn.setTop(otherInfo);
-    return pn;
+    final Label rawFile = new Label(
+        "Raw data file: " + lipidFragment.getMsMsScan().getDataFile().getName());
+    rawFile.setWrapText(true);
+
+    final Label matchedScan = new Label(
+        "Matched Scan number: " + ScanUtils.extractScanIdString(lipidFragment.getMsMsScan(),
+            false));
+    matchedScan.setWrapText(true);
+    return new VBox(rawDataTitle, rawFile, matchedScan);
   }
 
 }
