@@ -228,6 +228,9 @@ public class FeatureAnnotationsPane extends BorderPane {
         region.setMinHeight(PANE_HEIGHT);
         region.setPrefHeight(PANE_HEIGHT);
         region.setMaxHeight(PANE_HEIGHT);
+        // a selected cell sets -fx-background to the selection color, labels derive their text
+        // color from it and turn dark in dark themes. Keep the unselected background for the pane
+        region.setStyle("-fx-background: -fx-control-inner-background;");
         // children with a larger fixed height (e.g. metadata boxes) would draw into the next cell
         final Rectangle clip = new Rectangle();
         clip.widthProperty().bind(region.widthProperty());
