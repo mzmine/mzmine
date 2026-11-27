@@ -25,13 +25,18 @@
 
 package io.github.mzmine.modules.visualization.annotations;
 
+import io.github.mzmine.datamodel.features.DataTypeValueChangeListener;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -39,8 +44,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -72,6 +80,10 @@ import org.jetbrains.annotations.Nullable;
 public class FeatureAnnotationsPane extends BorderPane {
 
   private static final double PANE_HEIGHT = 350d;
+  // changes of these types of the shown row reload the annotations
+  private static final List<DataType> WATCHED_TYPES = Stream.concat(
+      CompoundAnnotationUtils.annotationTypePriority.stream(),
+      Stream.of(DataTypes.get(PreferredAnnotationType.class))).toList();
 
   // the shown annotations in their order. A group card selects a subset
   private final ObservableList<AnnotationSummary> annotations;
@@ -96,10 +108,65 @@ public class FeatureAnnotationsPane extends BorderPane {
       @NotNull SelectedRowsBinding selectedRows, boolean analogMatches) {
     final FeatureAnnotationsPane pane = new FeatureAnnotationsPane(
         FXCollections.observableArrayList());
-    selectedRows.selectedRowsProperty().subscribe(
-        rows -> pane.setRow(rows == null || rows.isEmpty() ? null : rows.getFirst(),
-            analogMatches));
+    final ObservableValue<FeatureListRow> row = selectedRows.selectedRowsProperty()
+        .map(rows -> rows.isEmpty() ? null : rows.getFirst());
+    row.subscribe(r -> pane.setRow(r, analogMatches));
+
+    // reload when the annotations of the row change, e.g. when they are removed in the feature
+    // table. Only while the pane is in a scene, so the feature list does not keep a closed pane
+    final AtomicReference<Runnable> removeListener = new AtomicReference<>(() -> {
+    });
+    pane.sceneProperty().flatMap(_ -> row).subscribe(watched -> {
+      removeListener.getAndSet(() -> {
+      }).run();
+      final FeatureListRow source = getSourceRow(watched, analogMatches);
+      if (source != null) {
+        removeListener.set(
+            addAnnotationListener(source, () -> pane.setRow(watched, analogMatches)));
+      }
+    });
     return pane;
+  }
+
+  /**
+   * Calls onChange on the FX thread when an annotation type of the row changes. Multiple changes in
+   * a row, e.g. clearing all annotations, only call it once.
+   *
+   * @param row      the row to watch
+   * @param onChange called on the FX thread
+   * @return removes the listener
+   */
+  private static @NotNull Runnable addAnnotationListener(@NotNull FeatureListRow row,
+      @NotNull Runnable onChange) {
+    final AtomicBoolean scheduled = new AtomicBoolean(false);
+    final DataTypeValueChangeListener<Object> listener = (model, _, _, _) -> {
+      // the listener is registered on the schema, so it is called for all rows
+      if (model == row && scheduled.compareAndSet(false, true)) {
+        FxThread.runLater(() -> {
+          scheduled.set(false);
+          onChange.run();
+        });
+      }
+    };
+    for (final DataType type : WATCHED_TYPES) {
+      // compound rows store their values in the compound row schema, not in the feature list
+      if (row instanceof CompoundRow compoundRow) {
+        compoundRow.getCompoundList().getCompoundRowSchema()
+            .addDataTypeValueChangeListener(type, listener);
+      } else {
+        row.getFeatureList().addRowTypeValueListener(type, listener);
+      }
+    }
+    return () -> {
+      for (final DataType type : WATCHED_TYPES) {
+        if (row instanceof CompoundRow compoundRow) {
+          compoundRow.getCompoundList().getCompoundRowSchema()
+              .removeDataTypeValueChangeListener(type, listener);
+        } else {
+          row.getFeatureList().removeRowTypeValueListener(type, listener);
+        }
+      }
+    };
   }
 
   /**
@@ -248,21 +315,31 @@ public class FeatureAnnotationsPane extends BorderPane {
    */
   public static @NotNull List<AnnotationSummary> getRowAnnotations(@Nullable FeatureListRow row,
       boolean analogMatches) {
-    // a compound row's own (possibly empty) analog matches would hide those of the preferred row
-    final FeatureListRow source =
-        analogMatches && row instanceof CompoundRow compoundRow ? compoundRow.getPreferredRow()
-            : row;
+    final FeatureListRow source = getSourceRow(row, analogMatches);
     if (source == null) {
       return List.of();
     }
     final FeatureAnnotation preferred = source.getPreferredAnnotation();
-    final List<AnnotationSummary> sorted = CompoundAnnotationUtils.getAllFeatureAnnotations(source)
+    final Stream<AnnotationSummary> sorted = CompoundAnnotationUtils.getAllFeatureAnnotations(
+            source)
         .stream().filter(a -> a.isAnalogMatch() == analogMatches && !a.equals(preferred))
-        .map(a -> AnnotationSummary.of(source, a)).sorted(getSorter(source)).toList();
+        .map(a -> AnnotationSummary.of(source, a)).sorted(getSorter(source));
 
     // decision: the preferred annotation is only shown in the pane of its kind (analog or not)
     return preferred != null && preferred.isAnalogMatch() == analogMatches ? Stream.concat(
-        Stream.of(AnnotationSummary.of(source, preferred)), sorted.stream()).toList() : sorted;
+        Stream.of(AnnotationSummary.of(source, preferred)), sorted).toList() : sorted.toList();
+  }
+
+  /**
+   * @param row           the selected row
+   * @param analogMatches true if analog matches are shown
+   * @return the row that holds the shown annotations
+   */
+  private static @Nullable FeatureListRow getSourceRow(@Nullable FeatureListRow row,
+      boolean analogMatches) {
+    // a compound row's own (possibly empty) analog matches would hide those of the preferred row
+    return analogMatches && row instanceof CompoundRow compoundRow ? compoundRow.getPreferredRow()
+        : row;
   }
 
   /**
