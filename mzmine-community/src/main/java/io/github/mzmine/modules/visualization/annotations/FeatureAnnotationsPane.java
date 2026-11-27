@@ -169,13 +169,30 @@ public class FeatureAnnotationsPane extends BorderPane {
    *                      {@link #forSelectedRows(SelectedRowsBinding, boolean)}
    */
   private void setRow(@Nullable FeatureListRow row, boolean analogMatches) {
-    final List<AnnotationSummary> rowAnnotations = getRowAnnotations(row, analogMatches);
-    // tell the user if the row only has the annotations shown in the other pane
-    final boolean otherKindOnly = rowAnnotations.isEmpty() && row != null
-        && !CompoundAnnotationUtils.getAllFeatureAnnotations(row).isEmpty();
-    placeholder.setText(!otherKindOnly ? "No annotations"
-        : analogMatches ? "Only direct matches" : "Only analog matches");
-    annotations.setAll(rowAnnotations);
+    setPlaceholderText(getEmptyText(row, analogMatches));
+    annotations.setAll(getRowAnnotations(row, analogMatches));
+  }
+
+  /**
+   * @param text the text shown when there are no annotations
+   */
+  public void setPlaceholderText(@NotNull String text) {
+    placeholder.setText(text);
+  }
+
+  /**
+   * The text for an empty pane. Only shown if the row has no annotations of the shown kind, so it
+   * tells the user if the row only has the annotations of the other kind.
+   *
+   * @param row           the shown row, null if none
+   * @param analogMatches true if the pane shows analog matches
+   * @return the placeholder text
+   */
+  public static @NotNull String getEmptyText(@Nullable FeatureListRow row, boolean analogMatches) {
+    if (row == null || CompoundAnnotationUtils.getAllFeatureAnnotations(row).isEmpty()) {
+      return "No annotations";
+    }
+    return analogMatches ? "Only direct matches" : "Only analog matches";
   }
 
   /**

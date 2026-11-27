@@ -51,8 +51,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -84,14 +82,13 @@ public class NetworkOverviewController {
   private FeatureTableFX internalTable;
 
   /**
-   * Rows of the selected nodes, for the annotations tab. The Mirror / All-MS2 tabs are
-   * dispatched separately because they also consume analog-compound-node data.
+   * Direct annotations of the first selected row, or the direct hits of the first selected analog
+   * node if no row is selected
    */
-  private final ObjectProperty<List<FeatureListRow>> rowSelection = new SimpleObjectProperty<>(
-      List.of());
+  private final ObservableList<AnnotationSummary> directAnnotations = FXCollections.observableArrayList();
   /**
-   * Analog matches of the first selected row, or the members of the first selected analog node if
-   * no row is selected
+   * Analog matches of the first selected row, or the analog hits of the first selected analog node
+   * if no row is selected
    */
   private final ObservableList<AnnotationSummary> analogAnnotations = FXCollections.observableArrayList();
   private FeatureAnnotationsPane annotationsPane;
@@ -127,7 +124,7 @@ public class NetworkOverviewController {
     // all MS2
     allMs2Pane = new SpectraStackVisualizerPane();
 
-    annotationsPane = FeatureAnnotationsPane.forSelectedRows(() -> rowSelection, false);
+    annotationsPane = FeatureAnnotationsPane.forAnnotations(directAnnotations);
     analogsPane = FeatureAnnotationsPane.forAnnotations(analogAnnotations);
 
     // create mirror scan tab
@@ -240,26 +237,31 @@ public class NetworkOverviewController {
         .map(AnalogCompoundGroup::representative).toList();
     allMs2Pane.setRowsAndAnalogs(selectedRows, analogReps, false);
 
-    // 3) Annotations and MASST use the rows. The analogs tab shows the analog matches of the first
-    //    row, or the members of the first analog node if no row is selected
-    rowSelection.set(selectedRows);
+    // 3) MASST uses the rows. The annotation tabs show the first row, or the hits of the first
+    //    analog node if no row is selected. A node can also hold direct hits to its compound
     masstController.selectedRowsProperty().set(selectedRows);
-    analogAnnotations.setAll(
-        !selectedRows.isEmpty() ? FeatureAnnotationsPane.getRowAnnotations(selectedRows.getFirst(),
-            true) : selectedAnalogs.isEmpty() ? List.of()
-            : getGroupAnnotations(selectedAnalogs.getFirst()));
+    final FeatureListRow row = selectedRows.isEmpty() ? null : selectedRows.getFirst();
+    final AnalogCompoundGroup group = selectedAnalogs.isEmpty() ? null : selectedAnalogs.getFirst();
+    annotationsPane.setPlaceholderText(FeatureAnnotationsPane.getEmptyText(row, false));
+    analogsPane.setPlaceholderText(FeatureAnnotationsPane.getEmptyText(row, true));
+    directAnnotations.setAll(row != null ? FeatureAnnotationsPane.getRowAnnotations(row, false)
+        : getGroupAnnotations(group, false));
+    analogAnnotations.setAll(row != null ? FeatureAnnotationsPane.getRowAnnotations(row, true)
+        : getGroupAnnotations(group, true));
   }
 
   /**
-   * @param group an analog node
-   * @return the analog matches of all rows in the group, sorted by the annotation sort config
+   * @param group         an analog node, null if none is selected
+   * @param analogMatches true for the analog hits, false for the direct hits
+   * @return the hits of all rows in the group, sorted by the annotation sort config
    */
   private static @NotNull List<AnnotationSummary> getGroupAnnotations(
-      @NotNull AnalogCompoundGroup group) {
-    if (group.members().isEmpty()) {
+      @Nullable AnalogCompoundGroup group, boolean analogMatches) {
+    if (group == null || group.members().isEmpty()) {
       return List.of();
     }
-    return group.members().stream().map(m -> AnnotationSummary.of(m.row(), m.annotation()))
+    return group.members().stream().filter(m -> m.annotation().isAnalogMatch() == analogMatches)
+        .map(m -> AnnotationSummary.of(m.row(), m.annotation()))
         .sorted(FeatureAnnotationsPane.getSorter(group.members().getFirst().row())).toList();
   }
 
